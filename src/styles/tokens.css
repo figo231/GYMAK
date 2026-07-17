@@ -1,0 +1,34 @@
+/* =========================================================
+   Design tokens reconciled from the original application.
+   Centralized color, spacing and theme variables.
+   ========================================================= */
+
+:root {
+  --bg-deep: #F5F5F7;
+  --bg-deep-2: #FFFFFF;
+  --glow-blue: #FF6B2C;
+  --glow-purple: #FF9457;
+
+  --card-glass: rgba(255, 255, 255, 0.55);
+  --card-glass-strong: rgba(255, 255, 255, 0.78);
+
+  --border-soft: rgba(17, 24, 39, 0.08);
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-dim: #9CA3AF;
+
+  --fire-1: #FBBF24;
+  --fire-2: #F97316;
+  --fire-3: #EF4444;
+
+  --success: #22C55E;
+  --danger: #F43F5E;
+
+  --muscle-chest: #FF7A3D;
+  --muscle-shoulders: #FFA35E;
+  --muscle-back: #22C55E;
+  --muscle-legs: #F59E0B;
+  --muscle-arms: #EC4899;
+  --muscle-core: #14B8A6;
+}
