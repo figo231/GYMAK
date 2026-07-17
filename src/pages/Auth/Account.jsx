@@ -5,13 +5,13 @@ import { useSyncStatus } from "../../hooks/useSyncStatus";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
 const STATUS_LABEL = {
-  idle: { text: "جاهز", color: "#9CA3AF" },
-  migrating: { text: "بننقل بياناتك القديمة...", color: "#FBBF24" },
-  syncing: { text: "جاري المزامنة...", color: "#FBBF24" },
-  synced: { text: "متزامن ✓", color: "#22C55E" },
-  offline: { text: "أوفلاين — هيتم المزامنة أول ما ترجع النت", color: "#9CA3AF" },
-  error: { text: "فيه مشكلة في المزامنة", color: "#F43F5E" },
-  disabled: { text: "المزامنة مش متاحة دلوقتي", color: "#9CA3AF" },
+  idle: { text: "جاهز", color: "var(--text-dim)" },
+  migrating: { text: "بننقل بياناتك القديمة...", color: "var(--warn-text)" },
+  syncing: { text: "جاري المزامنة...", color: "var(--warn-text)" },
+  synced: { text: "متزامن ✓", color: "var(--success)" },
+  offline: { text: "أوفلاين — هيتم المزامنة أول ما ترجع النت", color: "var(--text-dim)" },
+  error: { text: "فيه مشكلة في المزامنة", color: "var(--danger)" },
+  disabled: { text: "المزامنة مش متاحة دلوقتي", color: "var(--text-dim)" },
 };
 
 function timeAgo(ts) {
@@ -70,24 +70,24 @@ export default function Account() {
           <div><span className="ib-val" style={{ color: statusInfo.color, fontSize: 12 }}>{statusInfo.text}</span></div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#93C5FD", color: "#93C5FD" }} />آخر مزامنة</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--info-text)", color: "var(--info-text)" }} />آخر مزامنة</div>
           <div><span className="ib-val" style={{ fontSize: 12 }}>{timeAgo(lastSyncAt)}</span></div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#FDBA74", color: "#FDBA74" }} />نقل البيانات القديمة</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--accent-text-soft)", color: "var(--accent-text-soft)" }} />نقل البيانات القديمة</div>
           <div>
-            <span className="ib-val" style={{ fontSize: 12, color: lastMigration?.status === "failed" ? "#F43F5E" : undefined }}>
+            <span className="ib-val" style={{ fontSize: 12, color: lastMigration?.status === "failed" ? "var(--danger)" : undefined }}>
               {isMigrated ? "تم ✓" : lastMigration?.status === "failed" ? "فشل، هنعيد المحاولة" : "لسه"}
             </span>
           </div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#A78BFA", color: "#A78BFA" }} />تغييرات لسه ماتزامنتش</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--purple-text)", color: "var(--purple-text)" }} />تغييرات لسه ماتزامنتش</div>
           <div><span className="ib-val" style={{ fontSize: 12 }}>{pendingChangeCount}</span></div>
         </div>
         {lastDroppedCount > 0 && (
           <div className="inbody-row" style={{ padding: "8px 0" }}>
-            <div className="ib-label"><span className="ib-dot" style={{ background: "#F59E0B", color: "#F59E0B" }} />سجلات اتجاهلت</div>
+            <div className="ib-label"><span className="ib-dot" style={{ background: "var(--warn-text)", color: "var(--warn-text)" }} />سجلات اتجاهلت</div>
             <div><span className="ib-val" style={{ fontSize: 12 }}>{lastDroppedCount}</span></div>
           </div>
         )}
@@ -115,7 +115,7 @@ export default function Account() {
 
       <button
         type="button" className="btn" onClick={handleSignOut} disabled={busy}
-        style={{ width: "100%", background: "rgba(244,63,94,0.12)", color: "#F43F5E", padding: 13, borderRadius: 14, border: "none", fontWeight: 800, fontSize: 13.5, cursor: "pointer" }}
+        style={{ width: "100%", background: "rgba(244,63,94,0.12)", color: "var(--danger)", padding: 13, borderRadius: 14, border: "none", fontWeight: 800, fontSize: 13.5, cursor: "pointer" }}
       >
         {busy ? "جاري الخروج..." : "تسجيل الخروج"}
       </button>

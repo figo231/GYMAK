@@ -39,7 +39,7 @@ export default function WeightChart({ history }) {
         <span className="chart-now">{nowDisp} <small style={{ fontSize: 12, color: "var(--text-dim)" }}>{Store.unitLabel()}</small></span>
         <span
           className="chart-diff"
-          style={{ display: "inline-flex", color: diffUp ? "#F43F5E" : "#22C55E", background: diffUp ? "rgba(244,63,94,0.13)" : "rgba(34,197,94,0.13)" }}
+          style={{ display: "inline-flex", color: diffUp ? "var(--danger)" : "var(--success)", background: diffUp ? "rgba(244,63,94,0.13)" : "rgba(34,197,94,0.13)" }}
         >
           {(diff > 0 ? "↑ +" : diff < 0 ? "↓ " : "→ ") + Math.abs(diff) + " " + Store.unitLabel()}
         </span>
@@ -47,17 +47,20 @@ export default function WeightChart({ history }) {
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="110" preserveAspectRatio="none">
         <defs>
           <linearGradient id="wArea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FF6B2C" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#FF6B2C" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--glow-blue)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--glow-blue)" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="wLine" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#FF9457" />
-            <stop offset="100%" stopColor="#FF6B2C" />
+            <stop offset="0%" stopColor="var(--glow-purple)" />
+            <stop offset="100%" stopColor="var(--glow-blue)" />
           </linearGradient>
         </defs>
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} stroke="var(--border-soft)" strokeWidth="1" strokeDasharray="3 4" />
+        ))}
         <path d={areaPath} fill="url(#wArea)" />
         <path d={linePath} fill="none" stroke="url(#wLine)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={pts.at(-1)[0]} cy={pts.at(-1)[1]} r="4.5" fill="#111827" stroke="#FFC9A3" strokeWidth="2.5" />
+        <circle cx={pts.at(-1)[0]} cy={pts.at(-1)[1]} r="4.5" fill="var(--bg-deep-2)" stroke="var(--glow-blue)" strokeWidth="2.5" />
       </svg>
       <div className="chart-labels">
         {history.map((h, i) => <span key={i}>{h.date.slice(5)}</span>)}

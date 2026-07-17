@@ -57,15 +57,15 @@ export default function ExerciseDetail() {
           </span>
         </div>
         <div className="fav-btn">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FDBA74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21c-5-3.5-9-6.9-9-11.2C3 6.6 5.5 4 8.5 4c1.7 0 3.2.8 4.2 2 1-1.2 2.5-2 4.2-2 3 0 5.5 2.6 5.5 5.8 0 4.3-4 7.7-9 11.2Z" /></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21c-5-3.5-9-6.9-9-11.2C3 6.6 5.5 4 8.5 4c1.7 0 3.2.8 4.2 2 1-1.2 2.5-2 4.2-2 3 0 5.5 2.6 5.5 5.8 0 4.3-4 7.7-9 11.2Z" /></svg>
         </div>
       </div>
 
       {exercise && (
         <div className="glass muscle-card">
           <div className="muscle-legend">
-            <div className="legend-item"><span className="legend-dot" style={{ background: "#FF7A3D", color: "#FF7A3D" }} />أساسية</div>
-            <div className="legend-item"><span className="legend-dot" style={{ background: "#64748B", color: "#64748B" }} />مساعدة</div>
+            <div className="legend-item"><span className="legend-dot" style={{ background: "var(--accent-text)", color: "var(--accent-text)" }} />أساسية</div>
+            <div className="legend-item"><span className="legend-dot" style={{ background: "var(--text-secondary)", color: "var(--text-secondary)" }} />مساعدة</div>
           </div>
           <div className="muscle-tags">
             <span className="m-tag primary">{exercise.muscleLabel}</span>
@@ -87,7 +87,7 @@ export default function ExerciseDetail() {
           </div>
           <div className="tip-card">
             <div className="tip-ic">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /><circle cx="12" cy="12" r="4" /></svg>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /><circle cx="12" cy="12" r="4" /></svg>
             </div>
             <div className="tip-txt"><b>نصيحة:</b> لو حسيت بألم في الكتف، قلل مدى الحركة وركّز على الانقباض في أعلى الحركة بدل ما تزود الوزن.</div>
           </div>
@@ -115,7 +115,7 @@ export default function ExerciseDetail() {
               <input
                 type="number" step="0.5" inputMode="decimal" value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                style={{ width: "100%", background: "none", border: "none", outline: "none", color: "#111827", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
+                style={{ width: "100%", background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
               />
             </div>
             <div className="log-field">
@@ -123,19 +123,19 @@ export default function ExerciseDetail() {
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <input
                   type="number" value={sets} onChange={(e) => setSets(e.target.value)}
-                  style={{ width: "38%", background: "none", border: "none", outline: "none", color: "#111827", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
+                  style={{ width: "38%", background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
                 />
                 <span className="log-val" style={{ fontWeight: 400, color: "var(--text-dim)" }}>×</span>
                 <input
                   type="number" value={reps} onChange={(e) => setReps(e.target.value)}
-                  style={{ width: "38%", background: "none", border: "none", outline: "none", color: "#111827", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
+                  style={{ width: "38%", background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
                 />
               </div>
             </div>
           </div>
           <div className="log-btn" style={{ cursor: "pointer" }} onClick={handleSave}>تسجيل هذه المجموعة</div>
           {showFeedback && (
-            <div style={{ textAlign: "center", fontSize: 11.5, color: "#4ADE80", fontWeight: 700, marginTop: 10 }}>
+            <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--success)", fontWeight: 700, marginTop: 10 }}>
               تم الحفظ ✓ +25 XP
             </div>
           )}

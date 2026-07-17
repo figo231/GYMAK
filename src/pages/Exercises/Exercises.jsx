@@ -6,12 +6,12 @@ import AddExerciseSheet from "./AddExerciseSheet";
 
 const FILTERS = [
   { m: "all", label: "الكل" },
-  { m: "chest", color: "#FF7A3D", label: "صدر" },
-  { m: "back", color: "#22C55E", label: "ظهر" },
-  { m: "shoulders", color: "#FFA35E", label: "أكتاف" },
-  { m: "legs", color: "#F59E0B", label: "أرجل" },
-  { m: "arms", color: "#EC4899", label: "ذراعين" },
-  { m: "core", color: "#14B8A6", label: "بطن" },
+  { m: "chest", color: "var(--muscle-chest)", label: "صدر" },
+  { m: "back", color: "var(--muscle-back)", label: "ظهر" },
+  { m: "shoulders", color: "var(--muscle-shoulders)", label: "أكتاف" },
+  { m: "legs", color: "var(--muscle-legs)", label: "أرجل" },
+  { m: "arms", color: "var(--muscle-arms)", label: "ذراعين" },
+  { m: "core", color: "var(--muscle-core)", label: "بطن" },
 ];
 
 export default function Exercises() {
@@ -59,7 +59,7 @@ export default function Exercises() {
 
       {activeProgram && (
         <div className="glass" style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", marginBottom: 14 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#FF6B2C,#FF9457)" }}>
+          <div style={{ width: 34, height: 34, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -71,12 +71,12 @@ export default function Exercises() {
               ))}
             </div>
           </div>
-          <Link to="/programs" style={{ textDecoration: "none", fontSize: 11, fontWeight: 800, color: "#FFC9A3", background: "rgba(147,197,253,0.12)", padding: "6px 10px", borderRadius: 12, flexShrink: 0 }}>تغيير</Link>
+          <Link to="/programs" style={{ textDecoration: "none", fontSize: 11, fontWeight: 800, color: "var(--accent-text)", background: "rgba(147,197,253,0.12)", padding: "6px 10px", borderRadius: 12, flexShrink: 0 }}>تغيير</Link>
         </div>
       )}
 
       <div className="glass search-bar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
         <input type="text" placeholder="دور على تمرين..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 

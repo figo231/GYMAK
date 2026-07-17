@@ -88,7 +88,7 @@ export default function Dashboard() {
           <div className="xp-track"><div className="xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
         </div>
         <Link to="/profile" className="header-icon-btn" style={{ textDecoration: "none" }} aria-label="الإشعارات">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
         </Link>
       </div>
 
@@ -113,7 +113,8 @@ export default function Dashboard() {
           <div className="streak-week">
             {week.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "")}>{DAY_LETTERS[dow]}</div>;
+              const isToday = d.date === new Date().toISOString().slice(0, 10);
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>
         </div>
@@ -147,11 +148,15 @@ export default function Dashboard() {
 
         <div className="side-actions">
           <Link to="/exercises" className="glass qa-tile" style={{ textDecoration: "none" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#FFD9BE" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg>
+            <div className="qa-tile-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg>
+            </div>
             <span>تسجيل تمرين</span>
           </Link>
           <div className="glass qa-tile" style={{ cursor: "pointer" }} onClick={() => setShowWeightSheet(true)}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#FFE0C7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" /><path d="M12 8v4l3 2" /></svg>
+            <div className="qa-tile-icon" style={{ background: "rgba(255, 148, 87, 0.14)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" /><path d="M12 8v4l3 2" /></svg>
+            </div>
             <span>تسجيل وزن</span>
           </div>
         </div>
@@ -159,7 +164,10 @@ export default function Dashboard() {
 
       <div className="section-title">
         <h2>قياسات الجسم</h2>
-        <Link to="/stats">التفاصيل</Link>
+        <Link to="/stats">
+          التفاصيل
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link>
       </div>
       <div className="inbody-grid">
         <div className="glass inbody-card">
@@ -167,7 +175,12 @@ export default function Dashboard() {
           <div className="inbody-name">دهون الجسم</div>
         </div>
         <div className="glass inbody-card">
-          <span className="inbody-val">{monthDiff ? (monthDiff.diff > 0 ? "+" : "") + monthDiff.diff : "—"}</span>
+          <span className="inbody-val" style={{ color: monthDiff ? (monthDiff.diff > 0 ? "var(--danger)" : monthDiff.diff < 0 ? "var(--success)" : undefined) : undefined }}>
+            {monthDiff && monthDiff.diff !== 0 && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: monthDiff.diff > 0 ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>
+            )}
+            {monthDiff ? (monthDiff.diff > 0 ? "+" : "") + monthDiff.diff : "—"}
+          </span>
           <div className="inbody-name">تغيّر الشهر</div>
         </div>
         <div className="glass inbody-card" style={{ cursor: "pointer" }} onClick={handleBMIClick}>
@@ -178,7 +191,10 @@ export default function Dashboard() {
 
       <div className="section-title">
         <h2>آخر تمرين مسجّل</h2>
-        <Link to="/exercises">عرض الكل</Link>
+        <Link to="/exercises">
+          عرض الكل
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link>
       </div>
       <div className="glass" style={{ padding: "6px 14px" }}>
         {!recent.length ? (
@@ -189,7 +205,9 @@ export default function Dashboard() {
           recent.map((r, i) => (
             <div className="plan-row" key={i}>
               <div className="plan-info">
-                <span className={`muscle-dot ${r.muscle}`} />
+                <div className="plan-icon-chip" style={{ background: "rgba(var(--ink), 0.055)", border: "1px solid var(--border-soft)" }}>
+                  <span className={`muscle-dot ${r.muscle}`} />
+                </div>
                 <div>
                   <div className="plan-name">{r.name}</div>
                   <div className="plan-sub">{r.muscleLabel} · {r.sets} × {r.reps}</div>

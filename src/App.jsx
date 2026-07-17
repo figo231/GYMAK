@@ -5,6 +5,7 @@ import { I18nProvider } from "./hooks/useI18n";
 import { ToastProvider } from "./hooks/useToast";
 import { DialogProvider } from "./hooks/useDialog";
 import { AuthProvider } from "./hooks/useAuth";
+import { ThemeProvider } from "./hooks/useTheme";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 function RouteFallback() {
@@ -15,17 +16,19 @@ function RouteFallback() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <I18nProvider>
-        <ToastProvider>
-          <DialogProvider>
-            <AuthProvider>
-              <Suspense fallback={<RouteFallback />}>
-                <RouterProvider router={router} />
-              </Suspense>
-            </AuthProvider>
-          </DialogProvider>
-        </ToastProvider>
-      </I18nProvider>
+      <ThemeProvider>
+        <I18nProvider>
+          <ToastProvider>
+            <DialogProvider>
+              <AuthProvider>
+                <Suspense fallback={<RouteFallback />}>
+                  <RouterProvider router={router} />
+                </Suspense>
+              </AuthProvider>
+            </DialogProvider>
+          </ToastProvider>
+        </I18nProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

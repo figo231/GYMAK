@@ -66,7 +66,7 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
 
         <div className="edit-sheet-actions">
           <button type="button" onClick={onClose}>إلغاء</button>
-          <button type="button" style={{ background: "linear-gradient(135deg,#FF6B2C,#FF9457)", color: "#fff" }} onClick={handleSave}>حفظ</button>
+          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }} onClick={handleSave}>حفظ</button>
         </div>
       </div>
     </div>

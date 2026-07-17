@@ -1,34 +1,163 @@
 /* =========================================================
-   Design tokens reconciled from the original application.
-   Centralized color, spacing and theme variables.
+   Design tokens — light (default) + dark.
+
+   Theme resolution order:
+   1. If <html data-theme="light|dark"> is set explicitly (user override,
+      persisted separately from app data — see useTheme hook), that wins.
+   2. Otherwise it follows prefers-color-scheme automatically.
+
+   Everything downstream (global.css, page CSS) reads these variables —
+   no page should ever hardcode a hex color for anything that needs to
+   adapt between themes. Purely decorative/brand colors (the orange
+   flame gradient, etc.) are intentionally left as literals since they
+   read fine on both backgrounds.
    ========================================================= */
 
 :root {
+  color-scheme: light;
+
+  /* ---- surfaces ---- */
   --bg-deep: #F5F5F7;
   --bg-deep-2: #FFFFFF;
-  --glow-blue: #FF6B2C;
-  --glow-purple: #FF9457;
+  --bg-deep-rgb: 245, 245, 247;
+  --media-bg: #EDEDF0;
 
+  /* ---- glass ---- */
   --card-glass: rgba(255, 255, 255, 0.55);
-  --card-glass-strong: rgba(255, 255, 255, 0.78);
-
+  --card-glass-strong: rgba(255, 255, 255, 0.80);
+  --sheet-bg: rgba(247, 247, 249, 0.92);
+  --nav-pill-bg: rgba(255, 255, 255, 0.72);
+  --glass-sheen: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 8px 30px rgba(17, 24, 39, 0.09);
   --border-soft: rgba(17, 24, 39, 0.08);
 
+  /* ---- ink: base rgb triplet used for all translucent overlays
+     (rgba(var(--ink), 0.045) etc.) — flips to white in dark mode ---- */
+  --ink: 17, 24, 39;
+
+  /* ---- text ---- */
   --text-primary: #111827;
   --text-secondary: #6B7280;
   --text-dim: #9CA3AF;
 
+  /* ---- brand / accent ---- */
+  --glow-blue: #FF6B2C;
+  --glow-purple: #FF9457;
+  --accent-text: #C2410C;
+  --accent-text-soft: #EA580C;
+
+  /* ---- status ---- */
   --fire-1: #FBBF24;
   --fire-2: #F97316;
   --fire-3: #EF4444;
+  --success: #16A34A;
+  --danger: #E11D48;
+  --warn-text: #B45309;
+  --info-text: #2563EB;
+  --purple-text: #7C3AED;
+  --toast-bg: rgba(28, 28, 32, 0.92);
 
-  --success: #22C55E;
-  --danger: #F43F5E;
-
+  /* muscle group accents */
   --muscle-chest: #FF7A3D;
-  --muscle-shoulders: #FFA35E;
-  --muscle-back: #22C55E;
+  --muscle-shoulders: #F59E0B;
+  --muscle-back: #16A34A;
+  --muscle-legs: #D97706;
+  --muscle-arms: #DB2777;
+  --muscle-core: #0D9488;
+}
+
+/* ===== Dark palette: applied automatically via system preference ... ===== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg-deep: #0B0E13;
+    --bg-deep-2: #12161D;
+    --bg-deep-rgb: 11, 14, 19;
+    --media-bg: #171B22;
+
+    --card-glass: rgba(255, 255, 255, 0.055);
+    --card-glass-strong: rgba(255, 255, 255, 0.09);
+    --sheet-bg: rgba(19, 22, 28, 0.92);
+    --nav-pill-bg: rgba(255, 255, 255, 0.07);
+    --glass-sheen: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    --border-soft: rgba(255, 255, 255, 0.09);
+
+    --ink: 255, 255, 255;
+
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --text-dim: #6B7280;
+
+    --glow-blue: #FF7A3D;
+    --glow-purple: #FFA35E;
+    --accent-text: #FFC9A3;
+    --accent-text-soft: #FDBA74;
+
+    --fire-1: #FBBF24;
+    --fire-2: #F97316;
+    --fire-3: #F87171;
+    --success: #4ADE80;
+    --danger: #FB7185;
+    --warn-text: #FBBF24;
+    --info-text: #93C5FD;
+    --purple-text: #C4B5FD;
+
+    --muscle-chest: #FF8F5E;
+    --muscle-shoulders: #FBBF24;
+    --muscle-back: #4ADE80;
+    --muscle-legs: #F59E0B;
+    --muscle-arms: #F472B6;
+    --muscle-core: #2DD4BF;
+  }
+}
+
+/* ===== ...or forced explicitly via the in-app theme toggle ===== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-deep: #0B0E13;
+  --bg-deep-2: #12161D;
+  --bg-deep-rgb: 11, 14, 19;
+  --media-bg: #171B22;
+
+  --card-glass: rgba(255, 255, 255, 0.055);
+  --card-glass-strong: rgba(255, 255, 255, 0.09);
+  --sheet-bg: rgba(19, 22, 28, 0.92);
+  --nav-pill-bg: rgba(255, 255, 255, 0.07);
+  --glass-sheen: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --border-soft: rgba(255, 255, 255, 0.09);
+
+  --ink: 255, 255, 255;
+
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-dim: #6B7280;
+
+  --glow-blue: #FF7A3D;
+  --glow-purple: #FFA35E;
+  --accent-text: #FFC9A3;
+  --accent-text-soft: #FDBA74;
+
+  --fire-1: #FBBF24;
+  --fire-2: #F97316;
+  --fire-3: #F87171;
+  --success: #4ADE80;
+  --danger: #FB7185;
+  --warn-text: #FBBF24;
+  --info-text: #93C5FD;
+  --purple-text: #C4B5FD;
+
+  --muscle-chest: #FF8F5E;
+  --muscle-shoulders: #FBBF24;
+  --muscle-back: #4ADE80;
   --muscle-legs: #F59E0B;
-  --muscle-arms: #EC4899;
-  --muscle-core: #14B8A6;
+  --muscle-arms: #F472B6;
+  --muscle-core: #2DD4BF;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }

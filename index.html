@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0B0F12" />
+    <meta name="theme-color" content="#F5F5F7" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="GYMAK" />
@@ -14,6 +14,20 @@
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="stylesheet" href="/fonts.css" />
     <title>GYMAK</title>
+    <script>
+      // Applied before first paint so there's no light/dark flash on load.
+      // Same resolution logic as useTheme.jsx: explicit override wins,
+      // otherwise falls back to system preference (handled by tokens.css
+      // media query, so we only need to set the attribute for overrides).
+      (function () {
+        try {
+          var pref = localStorage.getItem("gymak_theme_pref");
+          if (pref === "light" || pref === "dark") {
+            document.documentElement.setAttribute("data-theme", pref);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

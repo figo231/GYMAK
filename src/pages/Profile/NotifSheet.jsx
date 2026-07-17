@@ -57,7 +57,7 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
 
         <div className="edit-sheet-actions" style={{ marginTop: 14 }}>
           <button type="button" onClick={onClose}>إلغاء</button>
-          <button type="button" style={{ background: "linear-gradient(135deg,#FF6B2C,#FF9457)", color: "#fff" }} onClick={handleSave}>حفظ</button>
+          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }} onClick={handleSave}>حفظ</button>
         </div>
       </div>
     </div>

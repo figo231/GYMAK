@@ -209,19 +209,19 @@ export default function Profile() {
       </div>
       <div className="glass inbody-detail">
         <div className="inbody-row">
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#FF7A3D", color: "#FF7A3D" }} />الوزن الحالي</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--glow-blue)", color: "var(--glow-blue)" }} />الوزن الحالي</div>
           <div><span className="ib-val">{latest ? Store.formatWeight(latest.weight) : "—"}</span></div>
         </div>
         <div className="inbody-row">
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#22C55E", color: "#22C55E" }} />نسبة الدهون</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--success)", color: "var(--success)" }} />نسبة الدهون</div>
           <div><span className="ib-val">{latest && latest.bodyFat != null ? latest.bodyFat + "%" : "—"}</span></div>
         </div>
         <div className="inbody-row">
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#FFA35E", color: "#FFA35E" }} />مؤشر كتلة الجسم BMI</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--glow-purple)", color: "var(--glow-purple)" }} />مؤشر كتلة الجسم BMI</div>
           <div><span className="ib-val" style={{ cursor: "pointer" }} onClick={handleBMIClick}>{bmi != null ? bmi : "حدد طولك"}</span></div>
         </div>
         <div className="inbody-row">
-          <div className="ib-label"><span className="ib-dot" style={{ background: "#F59E0B", color: "#F59E0B" }} />هدف الوزن</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--warn-text)", color: "var(--warn-text)" }} />هدف الوزن</div>
           <div><span className="ib-val" style={{ cursor: "pointer" }} onClick={handleGoalClick}>{goal != null ? Store.formatWeight(goal) : "حدد هدفك"}</span></div>
         </div>
       </div>
@@ -229,22 +229,22 @@ export default function Profile() {
       <div className="section-title" style={{ margin: "20px 4px 12px" }}><h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإعدادات</h2></div>
       <div className="glass" style={{ padding: "2px 14px" }}>
         <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowLang(true)}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFC9A3" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
           <span className="settings-name">اللغة والوحدات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
         <Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
           <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
         <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowNotif(true)}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFC9A3" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">الإشعارات والتذكيرات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
         <Link to="/programs" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFC9A3" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg></div>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg></div>
           <span className="settings-name">برامج التدريب الجاهزة</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
@@ -252,13 +252,13 @@ export default function Profile() {
           href={Store.getDeveloperWhatsAppUrl()} target="_blank" rel="noreferrer"
           className="settings-row" style={{ textDecoration: "none", color: "inherit" }}
         >
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" /></svg></div>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" /></svg></div>
           <span className="settings-name">تواصل مع المطور</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </a>
         <div className="settings-row" style={{ cursor: "pointer" }} onClick={handleReset}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
-          <span className="settings-name" style={{ color: "#F43F5E" }}>إعادة تعيين كل البيانات</span>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
+          <span className="settings-name" style={{ color: "var(--danger)" }}>إعادة تعيين كل البيانات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
       </div>

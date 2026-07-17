@@ -1,18 +1,18 @@
 import { useState } from "react";
 
 const MUSCLES = [
-  { m: "chest", color: "#FF7A3D", label: "صدر" },
-  { m: "back", color: "#22C55E", label: "ظهر" },
-  { m: "shoulders", color: "#FFA35E", label: "أكتاف" },
-  { m: "legs", color: "#F59E0B", label: "أرجل" },
-  { m: "arms", color: "#EC4899", label: "ذراعين" },
-  { m: "core", color: "#14B8A6", label: "بطن" },
+  { m: "chest", color: "var(--muscle-chest)", label: "صدر" },
+  { m: "back", color: "var(--muscle-back)", label: "ظهر" },
+  { m: "shoulders", color: "var(--muscle-shoulders)", label: "أكتاف" },
+  { m: "legs", color: "var(--muscle-legs)", label: "أرجل" },
+  { m: "arms", color: "var(--muscle-arms)", label: "ذراعين" },
+  { m: "core", color: "var(--muscle-core)", label: "بطن" },
 ];
 
 const fieldStyle = {
   width: "100%", boxSizing: "border-box", background: "rgba(17,24,39,0.045)",
   border: "1px solid var(--border-soft)", borderRadius: 12, padding: "11px 12px",
-  color: "#111827", fontFamily: "'Tajawal',sans-serif", fontSize: 14, marginBottom: 14,
+  color: "var(--text-primary)", fontFamily: "'Tajawal',sans-serif", fontSize: 14, marginBottom: 14,
 };
 const labelStyle = { fontSize: 11, color: "var(--text-dim)", fontWeight: 700, display: "block", marginBottom: 6 };
 

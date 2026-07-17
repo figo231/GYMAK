@@ -23,7 +23,7 @@ export default function WeightLogSheet({ initialWeight, initialBodyFat, unitLabe
             <input
               type="number" step="0.1" inputMode="decimal" value={weight} autoFocus
               onChange={(e) => setWeight(e.target.value)}
-              style={{ width: "100%", boxSizing: "border-box", background: "rgba(17,24,39,0.045)", border: "1px solid var(--border-soft)", borderRadius: 12, padding: "11px 12px", color: "#111827", fontFamily: "'Tajawal',sans-serif", fontSize: 15, fontWeight: 700 }}
+              style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),0.045)", border: "1px solid var(--border-soft)", borderRadius: 12, padding: "11px 12px", color: "var(--text-primary)", fontFamily: "'Tajawal',sans-serif", fontSize: 15, fontWeight: 700 }}
             />
           </div>
           <div style={{ flex: 1 }}>
@@ -33,7 +33,7 @@ export default function WeightLogSheet({ initialWeight, initialBodyFat, unitLabe
             <input
               type="number" step="0.1" inputMode="decimal" value={bodyFat}
               onChange={(e) => setBodyFat(e.target.value)}
-              style={{ width: "100%", boxSizing: "border-box", background: "rgba(17,24,39,0.045)", border: "1px solid var(--border-soft)", borderRadius: 12, padding: "11px 12px", color: "#111827", fontFamily: "'Tajawal',sans-serif", fontSize: 15, fontWeight: 700 }}
+              style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),0.045)", border: "1px solid var(--border-soft)", borderRadius: 12, padding: "11px 12px", color: "var(--text-primary)", fontFamily: "'Tajawal',sans-serif", fontSize: 15, fontWeight: 700 }}
             />
           </div>
         </div>

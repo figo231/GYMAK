@@ -28,7 +28,7 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
           <button
             type="button"
             className={isActive ? "applied" : ""}
-            style={isActive ? { background: "rgba(34,197,94,0.18)", color: "#4ADE80" } : { background: "linear-gradient(135deg,#FF6B2C,#FF9457)", color: "#fff" }}
+            style={isActive ? { background: "rgba(34,197,94,0.18)", color: "var(--success)" } : { background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }}
             onClick={onApply}
           >
             {isActive ? t("prog_applied") || "مطبّق" : t("prog_apply") || "تطبيق البرنامج"}

@@ -54,18 +54,30 @@ export default function Stats() {
 
       <div className="summary-grid">
         <div className="glass sum-card">
+          <div className="sum-icon" style={{ background: "rgba(255, 107, 44, 0.14)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg>
+          </div>
           <div className="sum-val">{summary.sets}</div>
           <div className="sum-label">مجموعة منجزة</div>
         </div>
         <div className="glass sum-card">
+          <div className="sum-icon" style={{ background: "rgba(34, 197, 94, 0.14)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19V5M10 19v-8M16 19V9M22 19V3" /></svg>
+          </div>
           <div className="sum-val">{summary.days}</div>
           <div className="sum-label">يوم تمرين</div>
         </div>
         <div className="glass sum-card">
+          <div className="sum-icon" style={{ background: summary.diffDisp > 0 ? "rgba(244, 63, 94, 0.14)" : "rgba(34, 197, 94, 0.14)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={summary.diffDisp > 0 ? "var(--danger)" : "var(--success)"} strokeWidth="2.2" strokeLinecap="round" style={{ transform: summary.diffDisp > 0 ? "none" : "rotate(180deg)" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>
+          </div>
           <div className="sum-val">{summary.diffDisp != null ? (summary.diffDisp > 0 ? "+" : "") + summary.diffDisp.toFixed(1) : "—"}</div>
           <div className="sum-label">{Store.unitLabel()} هذه الفترة</div>
         </div>
         <div className="glass sum-card">
+          <div className="sum-icon" style={{ background: "rgba(251, 191, 36, 0.16)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /></svg>
+          </div>
           <div className="sum-val">{summary.prCount}</div>
           <div className="sum-label">أرقام قياسية</div>
         </div>
@@ -93,7 +105,10 @@ export default function Stats() {
               <div className="strength-row" key={i}>
                 <div className="strength-head">
                   <b>{r.name}</b>
-                  <span>{fmt(Store.toDisplayWeight(r.from))} ← {fmt(Store.toDisplayWeight(r.to))} {Store.unitLabel()} ({r.pct > 0 ? "+" : ""}{r.pct}%)</span>
+                  <div className="strength-nums">
+                    <span>{fmt(Store.toDisplayWeight(r.from))} ← {fmt(Store.toDisplayWeight(r.to))} {Store.unitLabel()}</span>
+                    <span className={"pct-badge " + (r.pct >= 0 ? "pos" : "neg")}>{r.pct > 0 ? "+" : ""}{r.pct}%</span>
+                  </div>
                 </div>
                 <div className="strength-track">
                   <div className="strength-fill" style={{ width: `${width}%`, background: `linear-gradient(90deg,${STRENGTH_COLORS[i % STRENGTH_COLORS.length]})` }} />
@@ -115,7 +130,7 @@ export default function Stats() {
         prs.map((pr, i) => (
           <div className="glass pr-card" key={i}>
             <div className="pr-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M17 5h2a2 2 0 0 1 2 2v1a3 3 0 0 1-3 3M7 5H5a2 2 0 0 0-2 2v1a3 3 0 0 0 3 3" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M17 5h2a2 2 0 0 1 2 2v1a3 3 0 0 1-3 3M7 5H5a2 2 0 0 0-2 2v1a3 3 0 0 0 3 3" /></svg>
             </div>
             <div className="pr-info">
               <p className="pr-name">{pr.exerciseName}</p>
@@ -135,7 +150,7 @@ export default function Stats() {
       <div className="glass" style={{ padding: "4px 14px" }}>
         <div className="mini-row">
           <div className="mini-left">
-            <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFC9A3" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
+            <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
             <div>
               <div className="mini-name">إجمالي الأوزان المرفوعة</div>
               <div className="mini-sub">في الفترة المختارة</div>
@@ -145,7 +160,7 @@ export default function Stats() {
         </div>
         <div className="mini-row">
           <div className="mini-left">
-            <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19V5M10 19v-8M16 19V9M22 19V3" /></svg></div>
+            <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19V5M10 19v-8M16 19V9M22 19V3" /></svg></div>
             <div>
               <div className="mini-name">أيام تمرين</div>
               <div className="mini-sub">في الفترة المختارة</div>
@@ -155,7 +170,7 @@ export default function Stats() {
         </div>
         <div className="mini-row">
           <div className="mini-left">
-            <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FDBA74" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" /></svg></div>
+            <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" /></svg></div>
             <div>
               <div className="mini-name">أطول ستريك</div>
               <div className="mini-sub">أيام متتالية</div>
