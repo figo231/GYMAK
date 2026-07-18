@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import ExerciseCard from "./ExerciseCard";
 import AddExerciseSheet from "./AddExerciseSheet";
+import EmptyState from "../../components/ui/EmptyState";
 
 const FILTERS = [
   { m: "all", label: "الكل" },
@@ -99,9 +100,13 @@ export default function Exercises() {
       </div>
 
       {!filtered.length ? (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-dim)" }}>
-          <p style={{ fontSize: 13 }}>مفيش تمارين في القسم ده لسه.<br />دوس على + فوق عشان تضيف تمرين جديد.</p>
-        </div>
+        <EmptyState
+          type="search"
+          title="مفيش تمارين هنا لسه"
+          subtitle="جرّب فلتر تاني، أو دوس على + فوق عشان تضيف تمرين جديد لمكتبتك."
+          ctaLabel="+ إضافة تمرين"
+          onCta={() => setShowAdd(true)}
+        />
       ) : (
         Object.keys(groups).map((muscle) => {
           const meta = Store.getMuscleMeta(muscle);

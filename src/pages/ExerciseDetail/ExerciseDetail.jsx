@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import MoveGuide from "./MoveGuide";
+import MuscleIllustration from "../Exercises/MuscleIllustration";
 
 const BENCH_PRESS_STEPS = [
   "استلقِ على البنش والقدمين ثابتة على الأرض، والكتفين والمؤخرة ملاصقين للبنش.",
@@ -63,13 +64,20 @@ export default function ExerciseDetail() {
 
       {exercise && (
         <div className="glass muscle-card">
-          <div className="muscle-legend">
-            <div className="legend-item"><span className="legend-dot" style={{ background: "var(--accent-text)", color: "var(--accent-text)" }} />أساسية</div>
-            <div className="legend-item"><span className="legend-dot" style={{ background: "var(--text-secondary)", color: "var(--text-secondary)" }} />مساعدة</div>
-          </div>
-          <div className="muscle-tags">
-            <span className="m-tag primary">{exercise.muscleLabel}</span>
-            {exercise.secondary && <span className="m-tag secondary">{exercise.secondary}</span>}
+          <div className="muscle-card-row">
+            <div className="muscle-illo-frame" style={{ background: `radial-gradient(circle at 40% 30%, ${meta.color}22, transparent 70%)` }}>
+              <MuscleIllustration muscle={exercise.muscle} color={meta.color} size={54} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="muscle-legend">
+                <div className="legend-item"><span className="legend-dot" style={{ background: "var(--accent-text)", color: "var(--accent-text)" }} />أساسية</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: "var(--text-secondary)", color: "var(--text-secondary)" }} />مساعدة</div>
+              </div>
+              <div className="muscle-tags">
+                <span className="m-tag primary">{exercise.muscleLabel}</span>
+                {exercise.secondary && <span className="m-tag secondary">{exercise.secondary}</span>}
+              </div>
+            </div>
           </div>
         </div>
       )}

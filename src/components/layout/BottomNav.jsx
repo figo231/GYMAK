@@ -57,7 +57,7 @@ export default function BottomNav() {
             end={item.end}
             className={({ isActive }) => "nav-item" + (isActive ? " active" : "")}
           >
-            {item.icon}
+            <span className="nav-icon-chip">{item.icon}</span>
             <span>{t(item.key) || item.fallback}</span>
           </NavLink>
         ))}

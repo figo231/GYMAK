@@ -12,6 +12,8 @@ import AchievementsGrid from "./AchievementsGrid";
 import EditProfileSheet from "./EditProfileSheet";
 import LangUnitsSheet from "./LangUnitsSheet";
 import NotifSheet from "./NotifSheet";
+import AppearanceSheet from "./AppearanceSheet";
+import { useTheme } from "../../hooks/useTheme";
 
 export default function Profile() {
   const [version, setVersion] = useState(0);
@@ -21,10 +23,12 @@ export default function Profile() {
   const toast = useToast();
   const { lang: currentLang, setLang } = useI18n();
   const { user } = useAuth();
+  const { theme: activeTheme } = useTheme();
 
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
 
   const data = useMemo(() => {
     const profile = Store.getProfile();
@@ -233,6 +237,12 @@ export default function Profile() {
           <span className="settings-name">اللغة والوحدات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
+        <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowAppearance(true)}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--purple-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></div>
+          <span className="settings-name">المظهر</span>
+          <span className="settings-hint">{activeTheme === "dark" ? "داكن" : "فاتح"}</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div>
         <Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
           <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
@@ -296,6 +306,7 @@ export default function Profile() {
           onSaved={() => { setShowNotif(false); refresh(); }}
         />
       )}
+      {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}
     </>
   );
 }

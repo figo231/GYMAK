@@ -5,6 +5,18 @@ import { DetailTopBar } from "../../components/layout/DetailShell";
 import ProgramDetailSheet from "./ProgramDetailSheet";
 
 const LEVEL_CLASS = { "مبتدئ": "lvl-beginner", "متوسط": "lvl-inter", "متقدم": "lvl-advanced" };
+const LEVEL_BARS = { "مبتدئ": 1, "متوسط": 2, "متقدم": 3 };
+
+function LevelMeter({ level }) {
+  const filled = LEVEL_BARS[level] || 1;
+  return (
+    <div className="level-meter" aria-hidden="true">
+      {[1, 2, 3].map((i) => (
+        <span key={i} className={"level-bar" + (i <= filled ? " on" : "")} style={{ height: 6 + i * 4 }} />
+      ))}
+    </div>
+  );
+}
 
 export default function Programs() {
   const [version, setVersion] = useState(0);
@@ -46,14 +58,17 @@ export default function Programs() {
         const isActive = active && active.id === p.id;
         const isRecommended = recommendedId === p.id && !isActive;
         return (
-          <div className="glass prog-card" key={p.id}>
+          <div className={"glass prog-card" + (isActive ? " prog-card-active" : "")} key={p.id}>
             {isRecommended && <div className="rec-badge">★ {t("prog_recommended") || "موصى به"}</div>}
             <div className="prog-head">
               <div>
                 <p className="prog-name">{p.name}</p>
                 <div className="prog-days-count">{p.daysPerWeek}</div>
               </div>
-              <span className={"prog-level " + (LEVEL_CLASS[p.level] || "lvl-beginner")}>{p.level}</span>
+              <div className="prog-level-wrap">
+                <LevelMeter level={p.level} />
+                <span className={"prog-level " + (LEVEL_CLASS[p.level] || "lvl-beginner")}>{p.level}</span>
+              </div>
             </div>
             <div className="prog-days">
               {p.dayChips.map((c, i) => <span className="day-chip" key={i}>{c}</span>)}

@@ -67,7 +67,7 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
       onPointerCancel={cancelPress}
       onClick={onClick}
     >
-      <ExerciseThumb color={meta.color} />
+      <ExerciseThumb color={meta.color} muscle={ex.muscle} />
       <div className="ex-info">
         {/* JSX escapes ex.name automatically — this is what closes the stored-XSS
             hole flagged in the Phase 1 audit (the old innerHTML template didn't). */}
