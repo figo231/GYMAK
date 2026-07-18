@@ -168,6 +168,9 @@ a { color: inherit; }
 }
 .pwa-update-btn:active { transform: scale(0.95); }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.9s linear infinite; transform-origin: center; }
+
 .row-between { display: flex; align-items: center; justify-content: space-between; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
 

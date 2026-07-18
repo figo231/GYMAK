@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
+import UpdateService from "../../lib/update/UpdateService";
 import { fmt } from "../../lib/format";
 import { compressImage, MAX_UPLOAD_MB } from "../../lib/imageCompress";
 import { GRADIENTS } from "./badgeData";
@@ -29,6 +30,7 @@ export default function Profile() {
   const [showLang, setShowLang] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [showAppearance, setShowAppearance] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const data = useMemo(() => {
     const profile = Store.getProfile();
@@ -130,6 +132,26 @@ export default function Profile() {
     if (l === currentLang) return;
     setLang(l);
     refresh();
+  }
+
+  // ===== Manual update check =====
+  async function handleCheckUpdate() {
+    if (checkingUpdate) return;
+    setCheckingUpdate(true);
+    try {
+      const found = await UpdateService.checkForUpdate();
+      if (found) {
+        // Download + activate + reload — no extra confirmation needed here,
+        // the user already explicitly asked to update by tapping this row.
+        UpdateService.applyUpdate();
+      } else {
+        toast("أنت تستخدم أحدث إصدار");
+      }
+    } catch {
+      toast("تعذر التحقق من التحديثات، جرّب تاني.");
+    } finally {
+      setCheckingUpdate(false);
+    }
   }
 
   // ===== Reset data =====
@@ -251,6 +273,20 @@ export default function Profile() {
         <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowNotif(true)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">الإشعارات والتذكيرات</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div>
+        <div
+          className="settings-row"
+          style={{ cursor: checkingUpdate ? "default" : "pointer", opacity: checkingUpdate ? 0.6 : 1 }}
+          onClick={handleCheckUpdate}
+        >
+          <div className="settings-ic">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={checkingUpdate ? "spin" : ""}>
+              <path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 3v6h-6" />
+            </svg>
+          </div>
+          <span className="settings-name">التحقق من التحديثات</span>
+          {checkingUpdate && <span className="settings-hint">بيدور...</span>}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
         <Link to="/programs" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
