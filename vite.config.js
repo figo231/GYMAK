@@ -9,9 +9,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      // We call registerSW() ourselves in main.jsx (via the virtual:pwa-register
-      // module) for certainty, instead of relying on the default auto-injected
-      // registration script — so turn that off here to avoid double-registering.
+      // We call registerSW() ourselves (via the virtual:pwa-register module,
+      // in src/components/PWAUpdatePrompt.jsx) so we can drive an
+      // update-available toast and force periodic update checks — instead of
+      // relying on the default auto-injected registration script — so turn
+      // that off here to avoid double-registering.
       injectRegister: false,
       includeAssets: [
         "favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "favicon-48x48.png",
@@ -53,6 +55,12 @@ export default defineConfig({
         // needs to fall back to the app shell instead of failing outright.
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//],
+        // Explicit (not just implied by registerType) so this holds regardless
+        // of plugin defaults: a new SW takes over immediately instead of
+        // sitting "waiting" until every open tab/PWA instance is closed, and
+        // every stale precache from a previous deploy is deleted right after.
+        skipWaiting: true,
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
       },
     }),
