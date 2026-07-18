@@ -22,11 +22,12 @@ export default function AddExerciseSheet({ onClose, onSave }) {
   const [sets, setSets] = useState(3);
   const [reps, setReps] = useState(10);
   const [muscle, setMuscle] = useState("chest");
+  const [mediaUrl, setMediaUrl] = useState("");
 
   function handleSave() {
     const trimmed = name.trim();
     if (!trimmed) return;
-    onSave({ name: trimmed, muscle, secondary: secondary.trim(), sets, reps });
+    onSave({ name: trimmed, muscle, secondary: secondary.trim(), sets, reps, mediaUrl: mediaUrl.trim() });
   }
 
   return (
@@ -66,6 +67,9 @@ export default function AddExerciseSheet({ onClose, onSave }) {
             <input style={{ ...fieldStyle, marginBottom: 0 }} type="number" value={reps} onChange={(e) => setReps(e.target.value)} />
           </div>
         </div>
+
+        <label style={labelStyle}>رابط GIF / فيديو التمرين (اختياري)</label>
+        <input style={fieldStyle} type="text" placeholder="https://... (.gif, .mp4, أو رابط يوتيوب)" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} />
 
         <div className="sheet-actions" style={{ marginTop: 0 }}>
           <button className="btn btn-secondary" onClick={onClose}>إلغاء</button>

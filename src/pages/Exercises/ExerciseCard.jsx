@@ -55,6 +55,12 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
     navigate(`/exercise/${encodeURIComponent(ex.id)}`);
   }
 
+  async function onDeleteTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    await runDelete();
+  }
+
   return (
     <a
       href={`/exercise/${encodeURIComponent(ex.id)}`}
@@ -75,13 +81,20 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
         <div className="ex-tags">
           <span className="badge primary">{ex.muscleLabel}</span>
           {ex.secondary && <span className="badge secondary">{ex.secondary}</span>}
+          {ex.difficulty && (
+            <span className={"difficulty-pill diff-" + (ex.difficulty === "مبتدئ" ? "beg" : ex.difficulty === "متقدم" ? "adv" : "mid")}>
+              <span className="difficulty-dot" />{ex.difficulty}
+            </span>
+          )}
         </div>
       </div>
       <div className="ex-meta">
         <div className="ex-sets">{setsLabel}</div>
         <div className="ex-last">{lastLabel}</div>
       </div>
-      <svg className="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+      <button type="button" className="ex-delete-btn" aria-label={`حذف ${ex.name}`} onClick={onDeleteTap}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
+      </button>
     </a>
   );
 }

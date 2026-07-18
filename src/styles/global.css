@@ -180,7 +180,11 @@ a { color: inherit; }
   border-color: rgba(255, 178, 130, 0.25);
 }
 
-.ex-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 6px; }
+.ex-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; padding-inline-end: 44px;
+  margin-bottom: 6px; position: relative;
+}
 .ex-thumb {
   width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -320,19 +324,8 @@ a { color: inherit; }
   background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 20px;
 }
 
-.move-guide { width: 150px; height: 150px; }
-.mg-arm-up { animation: mgArmUp 1.6s ease-in-out infinite; transform-origin: 76px 70px; }
-@keyframes mgArmUp { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-38deg); } }
-.mg-arm-up2 { animation: mgArmUp2 1.6s ease-in-out infinite; transform-origin: 76px 70px; }
-@keyframes mgArmUp2 { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(38deg); } }
-.mg-squat { animation: mgSquat 1.8s ease-in-out infinite; transform-origin: 76px 60px; }
-@keyframes mgSquat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(14px) scaleY(0.9); } }
-.mg-pull { animation: mgPull 1.6s ease-in-out infinite; transform-origin: 76px 55px; }
-@keyframes mgPull { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-10px); } }
-.mg-flex { animation: mgFlex 1.4s ease-in-out infinite; transform-origin: 76px 75px; }
-@keyframes mgFlex { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-.mg-twist { animation: mgTwist 1.8s ease-in-out infinite; transform-origin: 76px 90px; }
-@keyframes mgTwist { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(8deg); } }
+.anatomy-frame { flex-direction: column; padding: 10px 6px 6px; color: var(--text-dim); }
+.anatomy-diagram { width: 100%; height: 100%; max-width: 300px; }
 
 .ex-title-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
 .ex-title { font-size: 20px; font-weight: 900; margin: 0 0 5px; }
@@ -780,3 +773,110 @@ a.glass:active, .glass[role="button"]:active, .prog-card:active { transform: sca
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 @keyframes skeleton-shimmer { 100% { transform: translateX(100%); } }
+
+/* =========================================================
+   Phase 3 — Splash, onboarding, auto-generated program days,
+   exercise difficulty/equipment indicators.
+   ========================================================= */
+
+/* ---- Splash screen ---- */
+.splash-screen {
+  position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--bg-deep); gap: 14px; animation: splash-fade-out .4s ease-in 0.85s forwards;
+}
+.splash-glow {
+  position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 107, 44, 0.32), transparent 70%); animation: splash-pulse 1.6s ease-in-out infinite;
+}
+.splash-logo-ring {
+  position: relative; padding: 5px; border-radius: 28px; background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple));
+  box-shadow: 0 16px 40px rgba(255, 107, 44, 0.35); animation: splash-pop .6s cubic-bezier(.34,1.56,.64,1);
+}
+.splash-logo-mark { width: 84px; height: 84px; border-radius: 24px; display: block; }
+.splash-wordmark { position: relative; font-family: 'Cairo', sans-serif; font-size: 24px; font-weight: 900; letter-spacing: 1.5px; margin: 2px 0 0; animation: fade-slide-up .5s ease .15s both; }
+.splash-tagline { position: relative; font-size: 12px; color: var(--text-secondary); font-weight: 600; margin: 0; animation: fade-slide-up .5s ease .25s both; }
+.splash-bar { position: relative; width: 90px; height: 3px; border-radius: 3px; background: rgba(var(--ink), 0.1); overflow: hidden; margin-top: 8px; }
+.splash-bar-fill { height: 100%; width: 40%; border-radius: 3px; background: linear-gradient(90deg, var(--glow-blue), var(--glow-purple)); animation: splash-bar-slide 0.9s ease-in-out infinite; }
+@keyframes splash-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes splash-pulse { 0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } }
+@keyframes splash-bar-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+@keyframes splash-fade-out { to { opacity: 0; visibility: hidden; } }
+
+/* ---- Onboarding ---- */
+.onboarding-screen {
+  position: fixed; inset: 0; z-index: 998; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--bg-deep); padding: 30px 26px; text-align: center;
+}
+.onboarding-skip { position: absolute; top: 22px; inset-inline-end: 20px; font-size: 12.5px; font-weight: 700; color: var(--text-dim); cursor: pointer; padding: 6px 10px; }
+.onboarding-slide { display: flex; flex-direction: column; align-items: center; animation: fade-slide-up .35s cubic-bezier(.22,1,.36,1); max-width: 320px; }
+.onboarding-illo { margin-bottom: 26px; filter: drop-shadow(0 12px 28px rgba(0,0,0,0.18)); }
+.onboarding-title { font-size: 19px; font-weight: 900; margin: 0 0 10px; }
+.onboarding-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.8; margin: 0; }
+.onboarding-dots { display: flex; gap: 6px; margin: 30px 0 22px; }
+.onboarding-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(var(--ink), 0.15); transition: all .25s ease; }
+.onboarding-dot.active { width: 22px; border-radius: 4px; background: linear-gradient(90deg, var(--glow-blue), var(--glow-purple)); }
+.onboarding-cta {
+  width: 100%; max-width: 280px; text-align: center; color: #fff; font-weight: 800; font-size: 14px; padding: 15px; border-radius: 18px;
+  cursor: pointer; box-shadow: 0 12px 26px rgba(255, 107, 44, 0.3); transition: transform .15s ease;
+}
+.onboarding-cta:active { transform: scale(0.96); }
+
+/* ---- Exercise: difficulty pill + equipment/info chips ---- */
+.difficulty-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; padding: 5px 10px; border-radius: 20px; }
+.difficulty-dot { width: 6px; height: 6px; border-radius: 50%; }
+.diff-beg { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+.diff-beg .difficulty-dot { background: var(--success); }
+.diff-mid { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+.diff-mid .difficulty-dot { background: #F59E0B; }
+.diff-adv { background: rgba(239, 68, 68, 0.12); color: #EF4444; }
+.diff-adv .difficulty-dot { background: #EF4444; }
+.ex-info-chips { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
+.info-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-secondary); background: rgba(var(--ink), 0.05); padding: 6px 12px; border-radius: 20px; }
+.ex-description { font-size: 12px; color: var(--text-secondary); line-height: 1.8; margin: -4px 0 12px; }
+
+/* ---- Programs: auto-generated day breakdown ---- */
+.prog-days-generated { display: flex; flex-direction: column; gap: 10px; }
+.prog-gen-day { background: rgba(var(--ink), 0.03); border: 1px solid var(--border-soft); border-radius: 16px; padding: 12px 14px; }
+.prog-gen-day-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: 800; font-size: 13px; }
+.prog-gen-ex-list { display: flex; flex-direction: column; gap: 6px; }
+.prog-gen-ex { display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 6px 8px; border-radius: 10px; background: rgba(var(--ink), 0.03); }
+.prog-gen-ex-name { font-weight: 700; }
+.prog-gen-ex-sr { color: var(--text-dim); font-weight: 700; font-size: 11px; }
+
+/* =========================================================
+   Phase 4 — Delete UX, exercise media (GIF/video), program
+   exercise scoping.
+   ========================================================= */
+
+/* ---- delete affordances ---- */
+.ex-delete-btn {
+  position: absolute; inset-inline-end: 8px; top: 8px; width: 26px; height: 26px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); color: #EF4444;
+  border: none; cursor: pointer; transition: transform .15s ease, background .15s ease; z-index: 2;
+}
+.ex-delete-btn:active { transform: scale(0.88); background: rgba(239, 68, 68, 0.22); }
+.top-bar-right { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; }
+.detail-delete-btn {
+  width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  background: rgba(239, 68, 68, 0.1); color: #EF4444; border: none; cursor: pointer; flex-shrink: 0; transition: transform .15s ease;
+}
+.detail-delete-btn:active { transform: scale(0.9); }
+.prog-gen-ex-del {
+  width: 22px; height: 22px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  background: none; color: var(--text-dim); border: none; cursor: pointer; flex-shrink: 0; margin-inline-start: 6px;
+  transition: color .15s ease, background .15s ease;
+}
+.prog-gen-ex-del:active { color: #EF4444; background: rgba(239, 68, 68, 0.12); }
+
+/* ---- exercise media: real GIF/video/YouTube, large premium frame ---- */
+.media-frame-lg { height: 260px; }
+.media-frame-sm { height: 150px; margin-top: -6px; }
+.media-real { width: 100%; height: 100%; object-fit: cover; border-radius: 26px; border: 0; display: block; }
+
+/* ---- Exercises: program-scoped view toggle ---- */
+.prog-scope-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+.prog-scope-opt {
+  flex: 1; text-align: center; font-size: 12px; font-weight: 800; padding: 9px; border-radius: 14px; cursor: pointer;
+  background: rgba(var(--ink), 0.04); border: 1px solid var(--border-soft); color: var(--text-secondary); transition: all .15s ease;
+}
+.prog-scope-opt.active { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: #fff; border-color: transparent; }

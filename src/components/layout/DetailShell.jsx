@@ -12,7 +12,7 @@ export function ChatShell() {
   );
 }
 
-export function DetailTopBar({ title, backTo }) {
+export function DetailTopBar({ title, backTo, right }) {
   const navigate = useNavigate();
   return (
     <div className="top-bar">
@@ -25,7 +25,8 @@ export function DetailTopBar({ title, backTo }) {
           <path d="M15 18l-6-6 6-6" />
         </svg>
       </button>
-      {title && <h1 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{title}</h1>}
+      {title && <h1 style={{ fontSize: 16, fontWeight: 800, margin: 0, flex: 1 }}>{title}</h1>}
+      {right && <div className="top-bar-right">{right}</div>}
     </div>
   );
 }

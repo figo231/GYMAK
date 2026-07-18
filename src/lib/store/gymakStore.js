@@ -36,6 +36,37 @@ const KEY = "gymak_state_v1";
 
   const KG_PER_LB = 0.45359237;
 
+  // ===== Ready-made program day templates =====
+  // Maps each program to its actual training days, each day referencing real
+  // exercise ids from SEED_EXERCISES — this is what lets "تطبيق البرنامج"
+  // generate a real, ready-to-train schedule instead of just category labels.
+  const PROGRAM_TEMPLATES = {
+    "arnold-split": [
+      { title: "صدر وظهر", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "cable-crossover", "lat-pulldown", "barbell-row"] },
+      { title: "أكتاف وذراعين", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "rear-delt-fly", "barbell-curl", "tricep-pushdown"] },
+      { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "romanian-deadlift", "calf-raise"] },
+      { title: "صدر وظهر (تكرار)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "lat-pulldown", "deadlift"] },
+      { title: "أكتاف وذراعين (تكرار)", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "hammer-curl", "dips"] },
+      { title: "أرجل (تكرار)", exerciseIds: ["squat-barbell", "leg-press", "calf-raise"] },
+    ],
+    "push-pull-legs": [
+      { title: "دفع (صدر/أكتاف/ترايسبس)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "shoulder-press-barbell", "lateral-raise", "tricep-pushdown"] },
+      { title: "سحب (ظهر/بايسبس)", exerciseIds: ["deadlift", "lat-pulldown", "barbell-row", "barbell-curl", "hammer-curl"] },
+      { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "romanian-deadlift", "calf-raise"] },
+    ],
+    "upper-lower": [
+      { title: "علوي 1", exerciseIds: ["bench-press-barbell", "barbell-row", "shoulder-press-barbell", "barbell-curl", "tricep-pushdown"] },
+      { title: "سفلي 1", exerciseIds: ["squat-barbell", "romanian-deadlift", "leg-press", "calf-raise"] },
+      { title: "علوي 2", exerciseIds: ["incline-dumbbell-press", "lat-pulldown", "lateral-raise", "hammer-curl", "dips"] },
+      { title: "سفلي 2", exerciseIds: ["leg-press", "romanian-deadlift", "calf-raise", "plank"] },
+    ],
+    "full-body": [
+      { title: "جسم كامل A", exerciseIds: ["squat-barbell", "bench-press-barbell", "lat-pulldown", "plank"] },
+      { title: "جسم كامل B", exerciseIds: ["leg-press", "shoulder-press-barbell", "barbell-row", "hanging-leg-raise"] },
+      { title: "جسم كامل C", exerciseIds: ["romanian-deadlift", "pushup", "pullup", "cable-crunch"] },
+    ],
+  };
+
   const PROGRAMS = [
     {
       id: "arnold-split", name: "Arnold Split", level: "متقدم", daysPerWeek: "6 أيام / أسبوع",
@@ -270,13 +301,39 @@ const KEY = "gymak_state_v1";
   }
 
   const SEED_EXERCISES = [
-    { id: "bench-press-barbell", name: "بنش برس بار", muscle: "chest", muscleLabel: "صدر", secondary: "ترايسبس", sets: 4, reps: 8, custom: false },
-    { id: "incline-dumbbell-press", name: "بنش برس دمبل مائل", muscle: "chest", muscleLabel: "صدر علوي", secondary: "أكتاف", sets: 3, reps: 10, custom: false },
-    { id: "cable-crossover", name: "كابل كروس أوفر", muscle: "chest", muscleLabel: "صدر داخلي", secondary: "", sets: 3, reps: 12, custom: false },
-    { id: "shoulder-press-barbell", name: "ضغط أكتاف بار", muscle: "shoulders", muscleLabel: "أكتاف أمامية", secondary: "", sets: 3, reps: 10, custom: false },
-    { id: "lateral-raise", name: "رفرفة جانبية دمبل", muscle: "shoulders", muscleLabel: "أكتاف جانبية", secondary: "", sets: 4, reps: 15, custom: false },
-    { id: "lat-pulldown", name: "سحب أمامي (Lat Pulldown)", muscle: "back", muscleLabel: "ظهر علوي", secondary: "بايسبس", sets: 4, reps: 10, custom: false },
-    { id: "deadlift", name: "ديدليفت", muscle: "back", muscleLabel: "ظهر سفلي", secondary: "أرجل خلفية", sets: 4, reps: 6, custom: false },
+    // ===== صدر =====
+    { id: "bench-press-barbell", name: "بنش برس بار", muscle: "chest", muscleLabel: "صدر", secondary: "ترايسبس", sets: 4, reps: 8, custom: false, equipment: "بار", difficulty: "متوسط", description: "الحركة الأساسية لبناء الصدر بالكامل، وأفضل حركة لقياس تقدمك في قوة الدفع.", instructions: ["استلقِ على البنش والقدمين ثابتين على الأرض.", "امسك البار بمسافة أعرض من الكتفين قليلًا.", "أنزل البار ببطء لمنتصف الصدر.", "ادفع البار لأعلى بقوة حتى فرد الذراعين بالكامل."] },
+    { id: "incline-dumbbell-press", name: "بنش برس دمبل مائل", muscle: "chest", muscleLabel: "صدر علوي", secondary: "أكتاف", sets: 3, reps: 10, custom: false, equipment: "دمبل", difficulty: "متوسط", description: "يستهدف الجزء العلوي من الصدر بزاوية ميل 30-45 درجة.", instructions: ["اضبط البنش بزاوية 30-45 درجة.", "امسك الدمبلين فوق الصدر العلوي.", "أنزل الدمبلين ببطء لجانب الصدر.", "ادفع لأعلى مع الحفاظ على انقباض الصدر."] },
+    { id: "cable-crossover", name: "كابل كروس أوفر", muscle: "chest", muscleLabel: "صدر داخلي", secondary: "", sets: 3, reps: 12, custom: false, equipment: "كابل", difficulty: "متوسط", description: "حركة عزل ممتازة لنحت الخط الداخلي للصدر.", instructions: ["اضبط البكرات لأعلى نقطة.", "اسحب المقابض لأسفل وللداخل أمام الجسم.", "اضغط في منتصف الصدر لثانية.", "ارجع ببطء لوضع البداية."] },
+    { id: "pushup", name: "ضغط (Push-up)", muscle: "chest", muscleLabel: "صدر", secondary: "ترايسبس", sets: 3, reps: 15, custom: false, equipment: "وزن الجسم", difficulty: "مبتدئ", description: "حركة أساسية لا تحتاج معدات، رائعة للمبتدئين وللإحماء.", instructions: ["ابدأ في وضع اللوح الخشبي (Plank).", "اليدين أعرض من الكتفين قليلًا.", "انزل بجسمك كله كوحدة واحدة.", "ادفع لأعلى حتى فرد الذراعين."] },
+
+    // ===== ظهر =====
+    { id: "lat-pulldown", name: "سحب أمامي (Lat Pulldown)", muscle: "back", muscleLabel: "ظهر علوي", secondary: "بايسبس", sets: 4, reps: 10, custom: false, equipment: "جهاز", difficulty: "مبتدئ", description: "بديل ممتاز للعقلة، يبني عرض الظهر (اللاتس).", instructions: ["امسك البار بمسافة أعرض من الكتفين.", "اجلس وثبّت الركبتين تحت الوسادة.", "اسحب البار لأعلى الصدر مع فتح الصدر.", "ارجع ببطء لوضع البداية دون ارتداد."] },
+    { id: "deadlift", name: "ديدليفت", muscle: "back", muscleLabel: "ظهر سفلي", secondary: "أرجل خلفية", sets: 4, reps: 6, custom: false, equipment: "بار", difficulty: "متقدم", description: "من أقوى حركات بناء القوة الكلية، تشغّل الظهر والأرجل والجذع معًا.", instructions: ["قف والبار قريب من قصبة الرجل.", "امسك البار والظهر مستقيم تمامًا.", "ادفع بالأرض وارفع البار قريبًا من الجسم.", "قف بشكل كامل ثم أنزل ببطء وتحكم."] },
+    { id: "barbell-row", name: "باربل رو (انحناء)", muscle: "back", muscleLabel: "ظهر أوسط", secondary: "بايسبس", sets: 4, reps: 10, custom: false, equipment: "بار", difficulty: "متوسط", description: "يبني سمك الظهر الأوسط ويحسّن القوة السحبية بشكل عام.", instructions: ["انحنِ للأمام بزاوية 45 درجة والظهر مستقيم.", "امسك البار بيد مقلوبة قليلًا.", "اسحب البار تجاه البطن.", "أنزل ببطء وتحكم تام."] },
+    { id: "pullup", name: "عقلة (Pull-up)", muscle: "back", muscleLabel: "ظهر علوي", secondary: "بايسبس", sets: 3, reps: 8, custom: false, equipment: "وزن الجسم", difficulty: "متقدم", description: "من أفضل حركات وزن الجسم لبناء عرض الظهر والقوة السحبية.", instructions: ["علّق نفسك من البار بمسك أعرض من الكتفين.", "اسحب جسمك لأعلى حتى الذقن فوق البار.", "انزل ببطء وتحكم كامل.", "حافظ على الجذع مشدود طول الحركة."] },
+
+    // ===== أكتاف =====
+    { id: "shoulder-press-barbell", name: "ضغط أكتاف بار", muscle: "shoulders", muscleLabel: "أكتاف أمامية", secondary: "", sets: 3, reps: 10, custom: false, equipment: "بار", difficulty: "متوسط", description: "الحركة الأساسية لبناء حجم وقوة الأكتاف بالكامل.", instructions: ["اجلس أو قف والبار عند مستوى الأكتاف.", "ادفع البار لأعلى حتى فرد الذراعين.", "تجنب قوس الظهر الزائد.", "أنزل ببطء لمستوى الأكتاف."] },
+    { id: "lateral-raise", name: "رفرفة جانبية دمبل", muscle: "shoulders", muscleLabel: "أكتاف جانبية", secondary: "", sets: 4, reps: 15, custom: false, equipment: "دمبل", difficulty: "مبتدئ", description: "حركة عزل لتوسيع الكتف الجانبي وإعطاء شكل أعرض للجسم.", instructions: ["قف والدمبلين بجانب الجسم.", "ارفع الذراعين للجانب حتى مستوى الكتف.", "لا تستخدم زخم الجسم.", "أنزل ببطء وتحكم."] },
+    { id: "rear-delt-fly", name: "رفرفة خلفية (Rear Delt Fly)", muscle: "shoulders", muscleLabel: "أكتاف خلفية", secondary: "ظهر أوسط", sets: 3, reps: 15, custom: false, equipment: "دمبل", difficulty: "مبتدئ", description: "تستهدف الكتف الخلفي المهمل غالبًا، وتحسّن وضعية الظهر.", instructions: ["انحنِ للأمام قليلًا والذراعين متدليتين.", "ارفع الذراعين للجانب مع الشد على الكتف الخلفي.", "اضغط الكتفين معًا لثانية.", "أنزل ببطء."] },
+
+    // ===== أرجل =====
+    { id: "squat-barbell", name: "سكوات بار", muscle: "legs", muscleLabel: "أرجل (كواد)", secondary: "مؤخرة", sets: 4, reps: 8, custom: false, equipment: "بار", difficulty: "متوسط", description: "ملك حركات الأرجل، يبني القوة والحجم لكامل الجزء السفلي.", instructions: ["ضع البار على أعلى الظهر (Traps).", "انزل بالمؤخرة للخلف وللأسفل.", "حافظ على الركبتين في اتجاه القدمين.", "ادفع بالأرض للصعود لوضع الوقوف."] },
+    { id: "leg-press", name: "ليج برس (Leg Press)", muscle: "legs", muscleLabel: "أرجل (كواد)", secondary: "مؤخرة", sets: 4, reps: 12, custom: false, equipment: "جهاز", difficulty: "مبتدئ", description: "بديل آمن للسكوات، ممتاز لزيادة الحجم بدون ضغط كبير على الظهر.", instructions: ["اجلس والقدمين على المنصة بعرض الكتفين.", "افرد الركبتين دون قفل كامل.", "انزل حتى زاوية 90 درجة.", "ادفع للأعلى بالكعبين."] },
+    { id: "romanian-deadlift", name: "رومانيان ديدليفت", muscle: "legs", muscleLabel: "أرجل خلفية", secondary: "مؤخرة", sets: 3, reps: 10, custom: false, equipment: "بار", difficulty: "متوسط", description: "يستهدف عضلات الفخذ الخلفية (Hamstrings) والمؤخرة بشكل مباشر.", instructions: ["امسك البار والركبتين مثنيّة قليلًا فقط.", "انزل البار مع دفع المؤخرة للخلف.", "حافظ على الظهر مستقيم طول الحركة.", "ارجع للوقوف بالضغط على المؤخرة."] },
+    { id: "calf-raise", name: "رفرفة سمانة (Calf Raise)", muscle: "legs", muscleLabel: "سمانة", secondary: "", sets: 4, reps: 15, custom: false, equipment: "جهاز", difficulty: "مبتدئ", description: "حركة عزل لبناء عضلة السمانة السفلية.", instructions: ["قف وأطراف القدم على حافة مرتفعة.", "انزل الكعبين لأقصى مدى.", "ارتفع على أطراف الأصابع لأعلى نقطة.", "اثبت لثانية ثم انزل ببطء."] },
+
+    // ===== ذراعين =====
+    { id: "barbell-curl", name: "كيرل بار (Barbell Curl)", muscle: "arms", muscleLabel: "بايسبس", secondary: "", sets: 3, reps: 10, custom: false, equipment: "بار", difficulty: "مبتدئ", description: "الحركة الأساسية والأشهر لبناء حجم البايسبس.", instructions: ["قف والبار ممسوك بمسافة الكتفين.", "ارفع البار لأعلى مع تثبيت المرفقين.", "اضغط البايسبس في القمة.", "أنزل ببطء وتحكم."] },
+    { id: "tricep-pushdown", name: "تراي بوش داون (كابل)", muscle: "arms", muscleLabel: "ترايسبس", secondary: "", sets: 3, reps: 12, custom: false, equipment: "كابل", difficulty: "مبتدئ", description: "حركة عزل فعّالة لبناء الرأس الجانبي للترايسبس.", instructions: ["قف قريبًا من البكرة والمرفقين ثابتين بجانب الجسم.", "ادفع البار لأسفل حتى فرد الذراعين.", "اضغط الترايسبس في الأسفل.", "ارجع ببطء للأعلى."] },
+    { id: "hammer-curl", name: "هامر كيرل (Hammer Curl)", muscle: "arms", muscleLabel: "بايسبس وساعد", secondary: "", sets: 3, reps: 12, custom: false, equipment: "دمبل", difficulty: "مبتدئ", description: "يستهدف البايسبس والساعد معًا بمسكة محايدة.", instructions: ["امسك الدمبلين بمسكة محايدة (كف لكف).", "ارفع الذراعين مع تثبيت المرفقين.", "اضغط لثانية في القمة.", "أنزل ببطء وتحكم."] },
+    { id: "dips", name: "ديبس (Dips)", muscle: "arms", muscleLabel: "ترايسبس وصدر", secondary: "صدر", sets: 3, reps: 10, custom: false, equipment: "وزن الجسم", difficulty: "متقدم", description: "حركة مركبة قوية لبناء الترايسبس والصدر السفلي.", instructions: ["ارفع جسمك على متوازي القضبان بذراعين مفرودتين.", "انزل ببطء حتى زاوية 90 درجة بالمرفق.", "ادفع لأعلى حتى فرد الذراعين بالكامل.", "حافظ على الجذع منتصبًا قليلًا لاستهداف الترايسبس."] },
+
+    // ===== بطن =====
+    { id: "plank", name: "بلانك (Plank)", muscle: "core", muscleLabel: "بطن", secondary: "", sets: 3, reps: 30, custom: false, equipment: "وزن الجسم", difficulty: "مبتدئ", description: "حركة ثبات أساسية لبناء قوة الجذع والاستقرار.", instructions: ["استلقِ على البطن ثم ارتفع على الساعدين.", "حافظ على الجسم في خط مستقيم واحد.", "شد عضلات البطن طول الوقت.", "تنفس بشكل طبيعي وثبّت المدة المطلوبة (بالثواني)."] },
+    { id: "hanging-leg-raise", name: "رفع أرجل معلق", muscle: "core", muscleLabel: "بطن سفلي", secondary: "", sets: 3, reps: 12, custom: false, equipment: "وزن الجسم", difficulty: "متقدم", description: "يستهدف البطن السفلي بشكل مباشر وفعّال جدًا.", instructions: ["علّق نفسك من البار بذراعين مفرودتين.", "ارفع الأرجل لأعلى دون تأرجح.", "اضغط البطن في القمة.", "أنزل ببطء وتحكم تام."] },
+    { id: "cable-crunch", name: "كرانش كابل", muscle: "core", muscleLabel: "بطن علوي", secondary: "", sets: 3, reps: 15, custom: false, equipment: "كابل", difficulty: "متوسط", description: "يسمح بإضافة مقاومة تدريجية على البطن العلوي.", instructions: ["اركع أمام البكرة وامسك الحبل خلف الرقبة.", "انحنِ للأمام بالانقباض على البطن فقط.", "لا تستخدم الذراعين أو الوركين للسحب.", "ارجع ببطء للوضع المستقيم."] },
   ];
 
   const MUSCLE_META = {
@@ -423,6 +480,28 @@ const KEY = "gymak_state_v1";
       if (parsed.settings.notifTime === undefined) parsed.settings.notifTime = "19:00";
       if (parsed.settings.lang === undefined) parsed.settings.lang = "ar";
       if (!parsed.foodLog) parsed.foodLog = [];
+      if (!parsed.deletedExerciseIds) parsed.deletedExerciseIds = [];
+      // Backfill: merge any newly-added built-in exercises (and new fields on
+      // already-known ones) into existing users' libraries. Never touches
+      // custom exercises the user added themselves, and respects exercises
+      // they deliberately deleted (deletedExerciseIds tombstones).
+      {
+        const tombstoned = new Set(parsed.deletedExerciseIds);
+        const byId = new Map(parsed.exercises.map((e) => [e.id, e]));
+        SEED_EXERCISES.forEach((seed) => {
+          if (tombstoned.has(seed.id)) return;
+          const existing = byId.get(seed.id);
+          if (!existing) {
+            parsed.exercises.push({ ...seed });
+          } else {
+            // add any new metadata fields (equipment/difficulty/etc.) without
+            // overwriting anything the user may have customized.
+            for (const k of ["equipment", "difficulty", "description", "instructions"]) {
+              if (existing[k] === undefined && seed[k] !== undefined) existing[k] = seed[k];
+            }
+          }
+        });
+      }
       return parsed;
     } catch (e) {
       const s = defaultState();
@@ -464,7 +543,7 @@ const KEY = "gymak_state_v1";
       return list.find((e) => e.id === id) || null;
     },
 
-    addExercise({ name, muscle, secondary, sets, reps }) {
+    addExercise({ name, muscle, secondary, sets, reps, mediaUrl }) {
       const s = load();
       if (!s.exercises) s.exercises = SEED_EXERCISES.slice();
       const meta = MUSCLE_META[muscle] || MUSCLE_META.chest;
@@ -477,6 +556,7 @@ const KEY = "gymak_state_v1";
         sets: Number(sets) || 3,
         reps: Number(reps) || 10,
         custom: true,
+        mediaUrl: (mediaUrl || "").trim() || null,
       };
       s.exercises.push(ex);
       save(s);
@@ -941,9 +1021,51 @@ const KEY = "gymak_state_v1";
       return PROGRAMS.find((p) => p.id === s.activeProgramId) || null;
     },
 
+    // Resolves a program's day-by-day template into real exercise records
+    // (name, muscle, sets, reps, equipment...) so the UI can render a ready
+    // "start training now" schedule instead of just category labels.
+    // Exercises the user has deliberately deleted are respected here too —
+    // they won't reappear just because a program template references them.
+    getProgramDays(id) {
+      const s = load();
+      const byId = new Map(s.exercises.map((e) => [e.id, e]));
+      const tombstoned = new Set(s.deletedExerciseIds || []);
+      const template = PROGRAM_TEMPLATES[id] || [];
+      return template.map((day) => ({
+        title: day.title,
+        exercises: day.exerciseIds
+          .filter((eid) => !tombstoned.has(eid))
+          .map((eid) => byId.get(eid) || SEED_EXERCISES.find((e) => e.id === eid))
+          .filter(Boolean),
+      }));
+    },
+
+    // Flat set of every exercise id that belongs to a given program's
+    // template — used to scope the Exercises tab to "this program + my own
+    // custom exercises" instead of the entire library.
+    getProgramExerciseIds(id) {
+      const template = PROGRAM_TEMPLATES[id] || [];
+      return new Set(template.flatMap((d) => d.exerciseIds));
+    },
+
     applyProgram(id) {
       const s = load();
       s.activeProgramId = id;
+      // Auto-generate: make sure every exercise this program's days call for
+      // actually exists (and isn't tombstoned) in the user's library, so they
+      // can start logging sets immediately with no manual setup.
+      const template = PROGRAM_TEMPLATES[id] || [];
+      const neededIds = new Set(template.flatMap((d) => d.exerciseIds));
+      const byId = new Map(s.exercises.map((e) => [e.id, e]));
+      const tombstoned = new Set(s.deletedExerciseIds || []);
+      neededIds.forEach((eid) => {
+        tombstoned.delete(eid);
+        if (!byId.has(eid)) {
+          const seed = SEED_EXERCISES.find((e) => e.id === eid);
+          if (seed) s.exercises.push({ ...seed });
+        }
+      });
+      s.deletedExerciseIds = Array.from(tombstoned);
       save(s);
       return this.getActiveProgram();
     },

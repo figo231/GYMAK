@@ -1,23 +1,37 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
-import MoveGuide from "./MoveGuide";
+import { useConfirm } from "../../hooks/useDialog";
+import MuscleAnatomy from "./MuscleAnatomy";
 import MuscleIllustration from "../Exercises/MuscleIllustration";
 
-const BENCH_PRESS_STEPS = [
-  "استلقِ على البنش والقدمين ثابتة على الأرض، والكتفين والمؤخرة ملاصقين للبنش.",
-  "امسك البار بمسافة أعرض من الكتفين شوية، وانزله ببطء لمنتصف الصدر.",
-  "ادفع البار لأعلى بقوة مع الزفير، من غير ما ترفع المؤخرة عن البنش.",
-  "كرر الحركة بشكل متحكم، وحافظ على المرفقين بزاوية 45 درجة مش مفرودين بالكامل جانبًا.",
-];
+// Classifies a user-supplied media URL so we know whether to render a
+// <video>, an <img> (gif/still), or a YouTube embed. Anything we can't
+// confidently classify falls back to the illustration — never a broken
+// or low-quality placeholder.
+function getMediaKind(url) {
+  if (!url) return null;
+  const clean = url.split("?")[0].toLowerCase();
+  if (clean.endsWith(".mp4") || clean.endsWith(".webm") || clean.endsWith(".mov")) return "video";
+  if (clean.endsWith(".gif") || clean.endsWith(".jpg") || clean.endsWith(".jpeg") || clean.endsWith(".png") || clean.endsWith(".webp")) return "image";
+  if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
+  return "image";
+}
+function toYouTubeEmbed(url) {
+  const m = url.match(/(?:youtu\.be\/|v=)([\w-]{6,})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+}
 
 export default function ExerciseDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const confirmAsync = useConfirm();
   const exerciseId = id || "bench-press-barbell";
   const exercise = Store.getExerciseById(exerciseId);
   const meta = Store.getMuscleMeta(exercise ? exercise.muscle : "chest");
   const last = Store.getLastExerciseLog(exerciseId);
+  const mediaKind = exercise ? getMediaKind(exercise.mediaUrl) : null;
 
   const [weight, setWeight] = useState(() => (last ? Store.toDisplayWeight(last.weight) : (exercise ? 80 : 80)));
   const [sets, setSets] = useState(() => (last ? last.sets : exercise ? exercise.sets : 4));
@@ -39,16 +53,53 @@ export default function ExerciseDetail() {
     setTimeout(() => setShowFeedback(false), 2500);
   }
 
-  const isSeededBenchPress = exercise && exercise.id === "bench-press-barbell";
+  async function handleDelete() {
+    if (!exercise) return;
+    const ok = await confirmAsync({
+      title: `تحذف "${exercise.name}" نهائيًا من مكتبة تمارينك؟`,
+      danger: true, confirmLabel: "حذف", cancelLabel: "إلغاء",
+    });
+    if (ok) {
+      Store.deleteExercise(exercise.id);
+      navigate("/exercises");
+    }
+  }
 
   return (
     <>
-      <DetailTopBar title="مكتبة التمارين" backTo="/exercises" />
+      <DetailTopBar
+        title="مكتبة التمارين"
+        backTo="/exercises"
+        right={
+          exercise && (
+            <button type="button" className="detail-delete-btn" aria-label="حذف التمرين" onClick={handleDelete}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
+            </button>
+          )
+        }
+      />
 
-      <div className="media-frame">
-        <span className="media-tag">توضيح الحركة</span>
-        <MoveGuide muscle={exercise ? exercise.muscle : "chest"} color={meta.color} />
+      <div className="media-frame media-frame-lg anatomy-frame">
+        <span className="media-tag">خريطة العضلات</span>
+        <MuscleAnatomy
+          muscle={exercise ? exercise.muscle : "chest"}
+          muscleLabel={exercise ? exercise.muscleLabel : ""}
+          secondary={exercise ? exercise.secondary : ""}
+          color={meta.color}
+        />
       </div>
+
+      {mediaKind && (
+        <div className="media-frame media-frame-sm">
+          {mediaKind === "video" ? (
+            <video className="media-real" src={exercise.mediaUrl} autoPlay loop muted playsInline controls />
+          ) : mediaKind === "youtube" ? (
+            <iframe className="media-real" src={toYouTubeEmbed(exercise.mediaUrl)} title={exercise.name} allow="autoplay; encrypted-media" allowFullScreen />
+          ) : (
+            <img className="media-real" src={exercise.mediaUrl} alt={exercise.name} />
+          )}
+        </div>
+      )}
 
       <div className="ex-title-row">
         <div>
@@ -61,6 +112,22 @@ export default function ExerciseDetail() {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21c-5-3.5-9-6.9-9-11.2C3 6.6 5.5 4 8.5 4c1.7 0 3.2.8 4.2 2 1-1.2 2.5-2 4.2-2 3 0 5.5 2.6 5.5 5.8 0 4.3-4 7.7-9 11.2Z" /></svg>
         </div>
       </div>
+
+      {exercise && (exercise.equipment || exercise.difficulty) && (
+        <div className="ex-info-chips">
+          {exercise.equipment && (
+            <div className="info-chip">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="9" width="4" height="6" rx="1" /><rect x="18" y="9" width="4" height="6" rx="1" /><path d="M6 12h12" /></svg>
+              {exercise.equipment}
+            </div>
+          )}
+          {exercise.difficulty && (
+            <div className={"info-chip difficulty-pill diff-" + (exercise.difficulty === "مبتدئ" ? "beg" : exercise.difficulty === "متقدم" ? "adv" : "mid")}>
+              <span className="difficulty-dot" />{exercise.difficulty}
+            </div>
+          )}
+        </div>
+      )}
 
       {exercise && (
         <div className="glass muscle-card">
@@ -82,11 +149,12 @@ export default function ExerciseDetail() {
         </div>
       )}
 
-      {isSeededBenchPress ? (
+      {exercise && exercise.instructions?.length ? (
         <div>
           <p className="section-title">طريقة الأداء الصحيح</p>
+          {exercise.description && <p className="ex-description">{exercise.description}</p>}
           <div className="glass steps-card">
-            {BENCH_PRESS_STEPS.map((step, i) => (
+            {exercise.instructions.map((step, i) => (
               <div className="step-row" key={i}>
                 <div className="step-num">{i + 1}</div>
                 <div className="step-txt">{step}</div>
@@ -97,7 +165,7 @@ export default function ExerciseDetail() {
             <div className="tip-ic">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /><circle cx="12" cy="12" r="4" /></svg>
             </div>
-            <div className="tip-txt"><b>نصيحة:</b> لو حسيت بألم في الكتف، قلل مدى الحركة وركّز على الانقباض في أعلى الحركة بدل ما تزود الوزن.</div>
+            <div className="tip-txt"><b>نصيحة:</b> لو حسيت بألم في المفصل، قلل مدى الحركة وركّز على الانقباض في أعلى الحركة بدل ما تزود الوزن.</div>
           </div>
         </div>
       ) : (

@@ -20,13 +20,26 @@ export default function Exercises() {
   const [activeMuscle, setActiveMuscle] = useState("all");
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [scope, setScope] = useState("program"); // "program" (program + my own) | "all" (full library)
 
   const refresh = () => setVersion((v) => v + 1);
 
   const all = useMemo(() => Store.getExercises(), [version]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);
+  const programExerciseIds = useMemo(
+    () => (activeProgram ? Store.getProgramExerciseIds(activeProgram.id) : null),
+    [activeProgram, version]
+  );
 
-  const filtered = all.filter((ex) => {
+  // When a program is active and the user hasn't asked to see everything,
+  // only show this program's own exercises plus anything they added
+  // themselves — never exercises that belong to a *different* program.
+  const scopedList = useMemo(() => {
+    if (scope === "all" || !activeProgram || !programExerciseIds) return all;
+    return all.filter((ex) => ex.custom || programExerciseIds.has(ex.id));
+  }, [all, scope, activeProgram, programExerciseIds]);
+
+  const filtered = scopedList.filter((ex) => {
     const matchMuscle = activeMuscle === "all" || ex.muscle === activeMuscle;
     const matchSearch = !search || ex.name.toLowerCase().includes(search.toLowerCase());
     return matchMuscle && matchSearch;
@@ -38,7 +51,7 @@ export default function Exercises() {
     groups[ex.muscle].push(ex);
   });
 
-  const muscleCount = new Set(all.map((ex) => ex.muscle)).size;
+  const muscleCount = new Set(scopedList.map((ex) => ex.muscle)).size;
 
   function handleAddSave(payload) {
     Store.addExercise(payload);
@@ -51,7 +64,7 @@ export default function Exercises() {
       <div className="page-head">
         <div>
           <h1 className="page-title">التمارين</h1>
-          <div className="page-count">{all.length} تمرين · {muscleCount} مجموعات عضلية</div>
+          <div className="page-count">{scopedList.length} تمرين · {muscleCount} مجموعات عضلية</div>
         </div>
         <div className="add-btn" style={{ cursor: "pointer" }} onClick={() => setShowAdd(true)}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -59,7 +72,7 @@ export default function Exercises() {
       </div>
 
       {activeProgram && (
-        <div className="glass" style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", marginBottom: 14 }}>
+        <div className="glass" style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", marginBottom: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
           </div>
@@ -73,6 +86,17 @@ export default function Exercises() {
             </div>
           </div>
           <Link to="/programs" style={{ textDecoration: "none", fontSize: 11, fontWeight: 800, color: "var(--accent-text)", background: "rgba(147,197,253,0.12)", padding: "6px 10px", borderRadius: 12, flexShrink: 0 }}>تغيير</Link>
+        </div>
+      )}
+
+      {activeProgram && (
+        <div className="prog-scope-toggle">
+          <div className={"prog-scope-opt" + (scope === "program" ? " active" : "")} onClick={() => setScope("program")}>
+            برنامجي + تماريني الخاصة
+          </div>
+          <div className={"prog-scope-opt" + (scope === "all" ? " active" : "")} onClick={() => setScope("all")}>
+            كل المكتبة
+          </div>
         </div>
       )}
 
@@ -96,7 +120,7 @@ export default function Exercises() {
       </div>
 
       <div className="page-count" style={{ textAlign: "center", marginBottom: 8, opacity: 0.7 }}>
-        اضغط مطوّل على أي تمرين لحذفه
+        دوس على أيقونة السلة 🗑️ فوق أي تمرين لحذفه
       </div>
 
       {!filtered.length ? (
