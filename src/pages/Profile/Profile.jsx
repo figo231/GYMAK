@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import UpdateService from "../../lib/update/UpdateService";
 import { fmt } from "../../lib/format";
-import { compressImage, MAX_UPLOAD_MB } from "../../lib/imageCompress";
+import { compressImage, compressImageToBlob, MAX_UPLOAD_MB } from "../../lib/imageCompress";
+import { uploadProfileImage } from "../../lib/imageUpload";
 import { GRADIENTS } from "./badgeData";
 import { usePrompt, useConfirm } from "../../hooks/useDialog";
 import { useToast } from "../../hooks/useToast";
 import { useI18n } from "../../hooks/useI18n";
 import { useAuth } from "../../hooks/useAuth";
+import { useStoreVersion } from "../../hooks/useStoreVersion";
 import AchievementsGrid from "./AchievementsGrid";
 import EditProfileSheet from "./EditProfileSheet";
 import LangUnitsSheet from "./LangUnitsSheet";
@@ -17,8 +19,7 @@ import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
 
 export default function Profile() {
-  const [version, setVersion] = useState(0);
-  const refresh = () => setVersion((v) => v + 1);
+  const [version, refresh] = useStoreVersion();
   const promptAsync = usePrompt();
   const confirmAsync = useConfirm();
   const toast = useToast();
@@ -50,18 +51,37 @@ export default function Profile() {
   const { profile, achievements, unlockedCount, latest, bmi, goal, settings } = data;
 
   // ===== Avatar / cover upload =====
+  // Signed-in users: try Storage first (small URL synced instead of a large
+  // base64 blob). Any failure there (offline, RLS, network) falls back
+  // silently to the original local-only workflow — same result the user
+  // always got before this Sprint. Not signed in: local workflow only,
+  // unchanged, exactly as before.
+  //
+  // Concurrency guard: if the user picks a second image before the first
+  // one's compress+upload finishes, the first one's result must never win.
+  // Each call bumps its kind's token and captures the value at call time;
+  // when the async work resolves, the result is only applied if the token
+  // is still the latest one issued for that kind. No promise is cancelled
+  // (uploads already in flight still complete normally, e.g. Storage still
+  // gets the file) — the stale result is simply ignored client-side.
+  const avatarUploadToken = useRef(0);
+  const coverUploadToken = useRef(0);
+
   async function handleAvatarFile(file) {
     if (!file) return;
     if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
       toast(`الصورة كبيرة قوي، اختار صورة أصغر من ${MAX_UPLOAD_MB} ميجا.`);
       return;
     }
+    const myToken = ++avatarUploadToken.current;
     try {
-      const dataUrl = await compressImage(file, 400, 0.82);
-      const res = Store.setAvatar(dataUrl);
+      const avatarValue = await resolveUploadedOrLocal(file, "avatar", 400, 0.82);
+      if (myToken !== avatarUploadToken.current) return; // a newer pick already superseded this one
+      const res = Store.setAvatar(avatarValue);
       if (!res.ok) toast("مساحة التخزين المحلي ممتلئة. جرّب تمسح بيانات قديمة أو تستخدم صورة أصغر.");
       refresh();
     } catch {
+      if (myToken !== avatarUploadToken.current) return;
       toast("تعذر تحميل الصورة، جرّب صورة تانية.");
     }
   }
@@ -72,14 +92,34 @@ export default function Profile() {
       toast(`الصورة كبيرة قوي، اختار صورة أصغر من ${MAX_UPLOAD_MB} ميجا.`);
       return;
     }
+    const myToken = ++coverUploadToken.current;
     try {
-      const dataUrl = await compressImage(file, 900, 0.78);
-      const res = Store.setCover(dataUrl);
+      const coverValue = await resolveUploadedOrLocal(file, "cover", 900, 0.78);
+      if (myToken !== coverUploadToken.current) return; // a newer pick already superseded this one
+      const res = Store.setCover(coverValue);
       if (!res.ok) toast("مساحة التخزين المحلي ممتلئة. جرّب تمسح بيانات قديمة أو تستخدم صورة أصغر.");
       refresh();
     } catch {
+      if (myToken !== coverUploadToken.current) return;
       toast("تعذر تحميل الصورة، جرّب صورة تانية.");
     }
+  }
+
+  // Tries Supabase Storage (only when signed in); on ANY failure, or when
+  // not signed in, falls back to the pre-existing local base64 path so the
+  // user experience never changes. maxDim/quality match the previous
+  // hard-coded values in each caller — unchanged this Sprint per the
+  // approved decision to defer quality tuning.
+  async function resolveUploadedOrLocal(file, kind, maxDim, quality) {
+    if (user?.id) {
+      try {
+        const blob = await compressImageToBlob(file, maxDim, quality);
+        return await uploadProfileImage(user.id, blob, kind);
+      } catch {
+        // fall through to local workflow below
+      }
+    }
+    return compressImage(file, maxDim, quality);
   }
 
   function handleGradientPick(id) {

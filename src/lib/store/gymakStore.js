@@ -453,7 +453,56 @@ const KEY = "gymak_state_v1";
       .slice(0, 40) + "-" + Math.random().toString(36).slice(2, 6);
   }
 
+  // =========================================================
+  // In-memory cache (Sprint 3 — performance).
+  //
+  // Lifecycle: `cachedState` is the single in-memory representation of the
+  // current state once populated. It starts `null` (cold — nothing loaded
+  // yet). The first load() call parses localStorage once, runs the same
+  // migration/backfill logic as before, and populates the cache. Every
+  // subsequent load() call — from any getter, any mutator, any sync merge —
+  // returns that same cached object directly: zero JSON.parse.
+  //
+  // Synchronization guarantee: save() is the ONLY path that persists to
+  // localStorage, and it updates `cachedState` to the exact state object
+  // being saved BEFORE notifying changeListeners (Sprint 1's useStoreVersion
+  // and syncManager's push-scheduling both rely on listeners firing only
+  // after the cache already reflects the new state). Since mutators do
+  // `const s = load(); /* mutate s */ ; save(s);`, and load() now returns
+  // the live cached object, `s` IS `cachedState` — mutations are visible
+  // immediately, and save() simply confirms/persists them.
+  //
+  // Getters must never be given a reason to mutate what they read (none in
+  // this file do — verified: every getter that builds a list allocates its
+  // own new array before sorting/pushing into it). Consuming code (pages)
+  // must treat anything returned from a Store getter as read-only for the
+  // same reason — this was already implicitly true before caching (mutating
+  // a stale snapshot did nothing), and is now load-bearing.
+  //
+  // Invalidation: normally never needed — every mutation path in this file
+  // already flows through save(), which keeps the cache correct across
+  // local writes, remote sync merges (mergeXFromRemote), migration, and
+  // resetAllData() (all of them end in save()). If save() itself fails
+  // (e.g. localStorage quota exceeded), the cache is invalidated so the
+  // next load() re-derives from whatever is actually on disk, rather than
+  // keeping an in-memory mutation that never made it to persistent storage.
+  // For any other exceptional case (tests, future direct-storage tooling),
+  // call invalidateCache() below instead of resetting cache state ad hoc
+  // elsewhere in the codebase.
+  let cachedState = null;
+
+  /** Explicit escape hatch: forces the next load() to re-read from
+      localStorage instead of serving the in-memory cache. Not used by any
+      normal code path in this file today (every mutation already goes
+      through save(), which keeps the cache correct) — this exists as the
+      single, documented place to invalidate the cache for exceptional
+      cases, instead of scattering `cachedState = null` throughout. */
+  function invalidateCache() {
+    cachedState = null;
+  }
+
   function load() {
+    if (cachedState) return cachedState;
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) {
@@ -502,7 +551,7 @@ const KEY = "gymak_state_v1";
           }
         });
       }
-      return parsed;
+      return (cachedState = parsed);
     } catch (e) {
       const s = defaultState();
       save(s);
@@ -513,12 +562,22 @@ const KEY = "gymak_state_v1";
   function save(state) {
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
+      // Update the cache BEFORE notifying listeners (Sprint 1's
+      // useStoreVersion and syncManager both react to onChange, and must
+      // see the new state as already-current when they do).
+      cachedState = state;
       changeListeners.forEach((fn) => {
         try { fn(state); } catch (e) { console.error("gymak store change listener failed", e); }
       });
       return true;
     } catch (e) {
       console.error("gymak store save failed", e);
+      // The write to localStorage did not happen, so the in-memory cache
+      // must not be trusted as "the current state" either — invalidate it
+      // so the next load() re-derives from whatever is actually persisted
+      // on disk, instead of silently keeping an unpersisted mutation live
+      // in memory until the app is closed and reopened.
+      invalidateCache();
       return false;
     }
   }
@@ -1133,6 +1192,16 @@ const KEY = "gymak_state_v1";
     onChange(fn) {
       changeListeners.add(fn);
       return () => changeListeners.delete(fn);
+    },
+
+    /** Sprint 3: explicit escape hatch to force the next read to re-parse
+        from localStorage instead of serving the in-memory cache. Not
+        needed by any normal flow (every mutation already goes through
+        save(), which keeps the cache correct) — this exists so any future
+        exceptional case has one documented place to invalidate, instead of
+        resetting cache state ad hoc elsewhere in the codebase. */
+    invalidateCache() {
+      cachedState = null;
     },
 
     /** True if there's nothing a first-login migration would need to upload. */

@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { usePrompt } from "../../hooks/useDialog";
+import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
 
 const DAY_LETTERS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]; // Sun..Sat
 
 export default function Dashboard() {
-  const [version, setVersion] = useState(0);
-  const refresh = () => setVersion((v) => v + 1);
+  const [version, refresh] = useStoreVersion();
   const promptAsync = usePrompt();
   const [showWeightSheet, setShowWeightSheet] = useState(false);
 

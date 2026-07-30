@@ -1,38 +1,71 @@
-# GYMAK — React + Vite migration (Phase 2)
+# GYMAK — gym workout, weight, and nutrition tracker
 
-This is the React/Vite rebuild of the original static HTML app, described in
-`gymak-phase1-audit-report.md`. It preserves all data, all workout plans, all
-exercises, and all functionality from the original 7-page app.
+A local-first, Arabic-language fitness tracking app: React + Vite for the
+web/PWA build, wrapped with Capacitor for the Android app, with optional
+Supabase-backed account sign-in and cross-device cloud sync.
 
-## Branding
+## Architecture: local-first + sync
 
-The app is branded **GYMAK** — neon lime (`#D7FF2F`), white, and a dark
-background (`#0B0F12`). All icons live in `public/`:
+The app works **fully offline** with no account at all — every read/write
+goes through a single data layer, `src/lib/store/gymakStore.js`, backed by
+`localStorage`. Signing in is optional and adds cloud sync on top of the
+same local data; it never replaces it.
 
-| File | Used for |
-|---|---|
-| `icon-192.png`, `icon-512.png`, `icon-1024.png` | PWA manifest (`any` + `maskable`) |
-| `apple-touch-icon.png` (180×180) | iOS home-screen icon |
-| `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png` | Browser tab / bookmark icon |
+- **Store (`src/lib/store/gymakStore.js`)** — the only place that reads or
+  writes the app's data. Exposes plain getter/setter methods (e.g.
+  `getProfile()`, `addWeight()`, `logSet()`) and an `onChange(fn)`
+  subscription used by the UI to react to any update. Since a recent
+  optimization, the store keeps one in-memory copy of the current state
+  (populated on first read) so repeated reads don't re-parse localStorage —
+  every write still persists immediately, and remote sync updates the same
+  in-memory copy before notifying listeners, so the UI is never stale.
+- **Sync (`src/lib/sync/`)** — only active when signed in. `syncManager.js`
+  schedules push/pull cycles (push-before-pull, so a device's own pending
+  local changes are never clobbered by a pull); `domains.js` has one
+  push/pull pair per data type (profile, weight logs, food log, exercises,
+  exercise logs, PR history, workout days); `validate.js` rejects malformed
+  rows before they're written either direction; `deterministicId.js` gives
+  append-only records a stable id so re-syncing never creates duplicates.
+  First sign-in on a device with existing local data triggers a one-time
+  migration that uploads it to the user's new Supabase account.
+- **UI reacts to both local and remote changes** — every page subscribes to
+  the Store's `onChange` (via `src/hooks/useStoreVersion.js`), so a page
+  update fired by a background sync pull (another device's changes arriving)
+  shows up immediately, the same way a local edit does.
 
-The favicon uses a glyph-only version of the mark (no "GYMAK" wordmark) since
-the full lockup is illegible at 16–32px — every other icon size uses the full
-glyph + wordmark. The PWA manifest's `theme_color`/`background_color` are set
-to the brand's dark background (`#0B0F12`) to match the icon art and avoid a
-color-flash on install/splash. **Note:** this only re-branded the icon set,
-manifest, and app name/metadata — the in-app UI itself (cards, accent colors)
-is unchanged from its existing light theme; a full visual re-theme to the new
-dark/lime palette would be a separate, larger design task.
+## Supabase setup
 
-## Setup
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run the SQL files in `supabase/migrations/` in order (`0001` → `0003`) via
+   the SQL editor or the Supabase CLI. They create the data tables with Row
+   Level Security (every user can only read/write their own rows), plus the
+   `avatars` Storage bucket and its policies.
+3. Copy `.env.example` to `.env` and fill in your project's URL and anon key
+   (Project Settings → API in the Supabase dashboard).
+
+Without a configured Supabase project, the app runs entirely offline —
+`src/lib/supabaseClient.js` simply exports `null` and every sync-related
+call becomes a no-op.
+
+## Storage (avatar / cover images)
+
+Profile pictures uploaded while signed in go to the `avatars` Storage bucket
+(one file per user per kind, at a deterministic path — re-uploading replaces
+the previous file, so nothing accumulates) and only the resulting URL is
+stored in the `profiles` row. Uploading while offline, or without an
+account, falls back to storing a compressed image directly as a data URL —
+existing profiles from before this feature was added keep working exactly
+as they always did; nothing is migrated automatically.
+
+## Environment setup
 
 ```bash
 npm install
-cp .env.example .env   # optional — only needed once Supabase auth/sync is wired in (Phase 3)
+cp .env.example .env   # fill in your Supabase URL/anon key — optional, see above
 npm run dev
 ```
 
-Then open the printed local URL (typically `http://localhost:5173`).
+Open the printed local URL (typically `http://localhost:5173`).
 
 To build for production:
 
@@ -41,57 +74,41 @@ npm run build
 npm run preview   # serve the production build locally to sanity-check it
 ```
 
-**Note on this delivery:** this sandbox has no network access, so `npm install`
-and `npm run build` could not actually be executed here to produce a compiled
-bundle. Everything was verified statically instead (see the Phase 2 final
-report for exactly what that covered) — you'll want to run `npm install &&
-npm run build` yourself as the first step, before anything else.
+## Android build (Capacitor)
 
-## Data migration for existing users
+```bash
+npm run build
+npx cap sync android
+npx cap open android   # opens the project in Android Studio
+```
 
-If someone already used the original static app in their browser, their data
-lives in `localStorage["gymak_state_v1"]`. This app reads that exact same key
-with the exact same shape (`src/lib/store/gymakStore.js` is a verbatim port of
-the original `app-data.js`), so opening this app in the same browser picks up
-their existing profile, weights, exercises, programs, and achievements
-automatically. Nothing to migrate manually.
-
-## What's implemented (Phase 2)
-
-- All 7 original pages, ported to React Router routes with lazy loading
-- Shared design system (`src/styles/tokens.css`, `global.css`) instead of the
-  original's 7 copies of near-identical CSS
-- Every `prompt()`/`alert()`/`confirm()` replaced with accessible in-app
-  dialogs (`src/hooks/useDialog.jsx`, `useToast.jsx`)
-- The stored-XSS bug from the Phase 1 audit (unescaped exercise names via
-  `innerHTML`) is fixed — all user-provided text now renders through JSX,
-  which escapes by default
-- Supabase client scaffolded (`src/lib/supabaseClient.js`, `.env.example`) —
-  not wired to any UI yet, that's Phase 3
-
-## What's next (Phase 3)
-
-See the "Migration plan" section of `gymak-phase1-audit-report.md` for the
-full feature rollout order: Supabase auth + cloud sync first, then workout
-session mode, calculators, calendar/heatmap, progress photos, exports,
-barcode scanner, and social/leaderboards last.
+From Android Studio: `Build → Generate Signed Bundle / APK` for a release
+build. Release signing (keystore, Play App Signing) isn't configured yet in
+this repository — set that up in Android Studio or via Gradle before the
+first Play Store upload.
 
 ## Project structure
 
 ```
+supabase/
+  migrations/            — SQL: tables, RLS policies, avatars Storage bucket
 src/
   lib/
-    store/gymakStore.js   — ported data layer (localStorage-backed)
-    supabaseClient.js     — Phase 3 scaffold
-    format.js, imageCompress.js
+    store/gymakStore.js  — the single local data layer (localStorage-backed, in-memory cached)
+    sync/                — syncManager.js, domains.js (push/pull per table), validate.js, deterministicId.js
+    update/              — PWA vs. native-APK update detection/prompt logic
+    supabaseClient.js    — Supabase client (null if not configured — app stays offline-only)
+    imageCompress.js, imageUpload.js — client-side image resize + Supabase Storage upload
+    authErrors.js, format.js
   hooks/
-    useI18n.jsx, useToast.jsx, useDialog.jsx
-  components/layout/
-    TabShell.jsx           — layout for Dashboard/Exercises/Stats/Profile
-    DetailShell.jsx         — layout for ExerciseDetail/Programs (+ ChatShell for AI Coach)
-    BottomNav.jsx
+    useAuth.jsx           — Supabase auth session (sign in/up/out, password reset)
+    useStoreVersion.js    — subscribes a page to Store changes (local or remote)
+    useSyncStatus.jsx, useTheme.jsx, useI18n.jsx, useToast.jsx, useDialog.jsx
+  components/
+    layout/               — TabShell, DetailShell, BottomNav
+    ErrorBoundary.jsx, PWAUpdatePrompt.jsx, Onboarding.jsx, SplashScreen.jsx, ProtectedRoute.jsx, RouteError.jsx
   pages/
-    Dashboard/, Exercises/, ExerciseDetail/, Stats/, Profile/, Programs/, AiCoach/
+    Dashboard/, Exercises/, ExerciseDetail/, Stats/, Profile/, Programs/, AiCoach/, Auth/
   styles/
     tokens.css, global.css
 ```

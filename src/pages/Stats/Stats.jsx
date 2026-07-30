@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
+import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightChart from "./WeightChart";
 
 const PERIODS = [
@@ -13,11 +14,12 @@ const PERIODS = [
 const STRENGTH_COLORS = ["#FF7A3D,#FFC9A3", "#22C55E,#86EFAC", "#FFA35E,#FFE0C7", "#F59E0B,#FDE68A", "#EC4899,#FBCFE8"];
 
 export default function Stats() {
+  const [version] = useStoreVersion();
   const [periodDays, setPeriodDays] = useState(30);
 
-  const history = useMemo(() => Store.getWeightHistory(12), []);
-  const strengthRows = useMemo(() => Store.getStrengthProgress(5), []);
-  const prs = useMemo(() => Store.getRecentPRs(5), []);
+  const history = useMemo(() => Store.getWeightHistory(12), [version]);
+  const strengthRows = useMemo(() => Store.getStrengthProgress(5), [version]);
+  const prs = useMemo(() => Store.getRecentPRs(5), [version]);
 
   const summary = useMemo(() => {
     const days = Store.getWorkoutDaysInRange(periodDays);
@@ -28,7 +30,7 @@ export default function Stats() {
     const diffDisp = diffInfo ? +(Store.toDisplayWeight(diffInfo.to) - Store.toDisplayWeight(diffInfo.from)).toFixed(1) : null;
     const tonnage = fmt(Math.round(Store.toDisplayWeight(Store.getTonnage(periodDays)))) + " " + Store.unitLabel();
     return { days, sets, prCount, diffDisp, tonnage };
-  }, [periodDays]);
+  }, [periodDays, version]);
 
   const maxPct = strengthRows.length ? Math.max(...strengthRows.map((r) => Math.abs(r.pct)), 1) : 1;
 

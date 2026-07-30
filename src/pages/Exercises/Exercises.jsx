@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
+import { useStoreVersion } from "../../hooks/useStoreVersion";
 import ExerciseCard from "./ExerciseCard";
 import AddExerciseSheet from "./AddExerciseSheet";
 import EmptyState from "../../components/ui/EmptyState";
@@ -16,13 +17,11 @@ const FILTERS = [
 ];
 
 export default function Exercises() {
-  const [version, setVersion] = useState(0); // bumped to force re-read from Store after mutations
+  const [version, refresh] = useStoreVersion(); // bumped locally after mutations, and remotely after a sync pull
   const [activeMuscle, setActiveMuscle] = useState("all");
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [scope, setScope] = useState("program"); // "program" (program + my own) | "all" (full library)
-
-  const refresh = () => setVersion((v) => v + 1);
 
   const all = useMemo(() => Store.getExercises(), [version]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);

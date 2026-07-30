@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { reportError } from "../lib/crashReporting";
 
 /* Error boundaries must be class components — React has no hook equivalent
    for componentDidCatch/getDerivedStateFromError yet. This is a gap the
@@ -18,6 +19,7 @@ export default class ErrorBoundary extends Component {
   componentDidCatch(error, info) {
     // eslint-disable-next-line no-console
     console.error("[gymak] render error caught by ErrorBoundary:", error, info);
+    reportError(error, { source: "ErrorBoundary", componentStack: info?.componentStack });
   }
 
   handleReload = () => {
