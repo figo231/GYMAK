@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { syncManager } from "../lib/sync/syncManager";
+import { registerForPush, removePushToken } from "../lib/push/pushService";
 
 const AuthContext = createContext(null);
 
@@ -56,6 +57,19 @@ export function AuthProvider({ children }) {
       syncManager.start(userId);
     } else {
       syncManager.stop();
+    }
+  }, [session?.user?.id, isPasswordRecovery]);
+
+  // Push notification token lifecycle, driven off the same session state —
+  // kept as its own effect (not merged into the one above) so this and the
+  // sync engine remain independently failing/succeeding: a push-setup
+  // error can never affect sync starting, and vice versa.
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (userId && !isPasswordRecovery) {
+      registerForPush(userId);
+    } else {
+      removePushToken();
     }
   }, [session?.user?.id, isPasswordRecovery]);
 
