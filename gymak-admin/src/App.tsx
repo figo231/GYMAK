@@ -8,6 +8,7 @@ import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import CampaignsList from "./pages/Campaigns/CampaignsList";
 import CampaignDetail from "./pages/Campaigns/CampaignDetail";
+import SendNotification from "./pages/Sender/SendNotification";
 
 export default function App() {
   return (
@@ -42,6 +43,16 @@ export default function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <CampaignDetail />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/send"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <SendNotification />
                   </AppShell>
                 </ProtectedRoute>
               }
