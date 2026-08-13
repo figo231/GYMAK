@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import CampaignsList from "./pages/Campaigns/CampaignsList";
 import CampaignDetail from "./pages/Campaigns/CampaignDetail";
 import SendNotification from "./pages/Sender/SendNotification";
+import TemplatesList from "./pages/Templates/TemplatesList";
 
 export default function App() {
   return (
@@ -53,6 +54,16 @@ export default function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <SendNotification />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/templates"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <TemplatesList />
                   </AppShell>
                 </ProtectedRoute>
               }

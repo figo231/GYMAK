@@ -20,7 +20,7 @@ const items: NavItem[] = [
   { label: "الرئيسية", to: "/", icon: LayoutDashboard },
   { label: "الحملات", to: "/campaigns", icon: Megaphone },
   { label: "إرسال إشعار", to: "/send", icon: Send },
-  { label: "القوالب", icon: FileText },
+  { label: "القوالب", to: "/templates", icon: FileText },
   { label: "المواضيع", icon: Hash },
   { label: "التحليلات", icon: BarChart3 },
   { label: "المسؤولون", icon: Users },
