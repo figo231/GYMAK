@@ -10,6 +10,8 @@ import CampaignsList from "./pages/Campaigns/CampaignsList";
 import CampaignDetail from "./pages/Campaigns/CampaignDetail";
 import SendNotification from "./pages/Sender/SendNotification";
 import TemplatesList from "./pages/Templates/TemplatesList";
+import TopicsList from "./pages/Topics/TopicsList";
+import TopicDetail from "./pages/Topics/TopicDetail";
 
 export default function App() {
   return (
@@ -64,6 +66,26 @@ export default function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <TemplatesList />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/topics"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <TopicsList />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/topics/:id"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <TopicDetail />
                   </AppShell>
                 </ProtectedRoute>
               }
