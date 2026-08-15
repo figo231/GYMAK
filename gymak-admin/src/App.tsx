@@ -12,6 +12,7 @@ import SendNotification from "./pages/Sender/SendNotification";
 import TemplatesList from "./pages/Templates/TemplatesList";
 import TopicsList from "./pages/Topics/TopicsList";
 import TopicDetail from "./pages/Topics/TopicDetail";
+import Analytics from "./pages/Analytics/Analytics";
 
 export default function App() {
   return (
@@ -86,6 +87,16 @@ export default function App() {
                 <ProtectedRoute>
                   <AppShell>
                     <TopicDetail />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <AppShell>
+                    <Analytics />
                   </AppShell>
                 </ProtectedRoute>
               }
