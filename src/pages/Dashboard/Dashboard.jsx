@@ -87,7 +87,7 @@ export default function Dashboard() {
           </p>
           <div className="xp-track"><div className="xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
         </div>
-        <Link to="/profile" className="header-icon-btn" style={{ textDecoration: "none" }} aria-label="الإشعارات">
+        <Link to="/profile?notif=1" className="header-icon-btn" style={{ textDecoration: "none" }} aria-label="الإشعارات">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
         </Link>
       </div>
