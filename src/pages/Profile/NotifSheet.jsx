@@ -71,6 +71,7 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
           <div className="trow-label" style={{ marginBottom: 8 }}>إشعارات التطبيق</div>
           {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
           {perm === "prompt" && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 8 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
+          {localStorage.getItem("gymak_push_err") && <p className="notif-note" style={{ direction: "ltr", fontSize: 10.5 }}>{localStorage.getItem("gymak_push_err")}</p>}
           {inbox.length === 0 ? (
             <p className="notif-note">مفيش إشعارات لسه. أي إشعار يتبعت من التطبيق هيظهر هنا.</p>
           ) : (
