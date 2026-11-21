@@ -15,6 +15,7 @@ import AchievementsGrid from "./AchievementsGrid";
 import EditProfileSheet from "./EditProfileSheet";
 import LangUnitsSheet from "./LangUnitsSheet";
 import NotifSheet from "./NotifSheet";
+import ReminderSheet from "./ReminderSheet";
 import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -30,6 +31,7 @@ export default function Profile() {
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showReminder, setShowReminder] = useState(false);
   const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
   const [showAppearance, setShowAppearance] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
@@ -313,9 +315,9 @@ export default function Profile() {
           <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
-        <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowNotif(true)}>
+        <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowReminder(true)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
-          <span className="settings-name">الإشعارات والتذكيرات</span>
+          <span className="settings-name">التذكير اليومي</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
         <div
@@ -385,10 +387,15 @@ export default function Profile() {
       )}
       {showNotif && (
         <NotifSheet
+          onClose={() => { setShowNotif(false); if (searchParams.get("notif")) setSearchParams({}, { replace: true }); }}
+        />
+      )}
+      {showReminder && (
+        <ReminderSheet
           initialEnabled={settings.notifEnabled}
           initialTime={settings.notifTime}
-          onClose={() => { setShowNotif(false); if (searchParams.get("notif")) setSearchParams({}, { replace: true }); }}
-          onSaved={() => { setShowNotif(false); if (searchParams.get("notif")) setSearchParams({}, { replace: true }); refresh(); }}
+          onClose={() => setShowReminder(false)}
+          onSaved={() => { setShowReminder(false); refresh(); }}
         />
       )}
       {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}

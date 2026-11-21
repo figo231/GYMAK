@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
-import { getInbox, importDelivered, getPushPermission, initBroadcastPush } from "../../lib/push/pushService";
-import Store from "../../lib/store/gymakStore";
+import { getInbox, importDelivered, getPushPermission, initBroadcastPush, deleteInboxItem, clearInbox } from "../../lib/push/pushService";
+import { isOwnerAdmin, sendBroadcast } from "../../lib/push/ownerBroadcast";
+import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
-import { isNative, enableNativeReminder, disableNativeReminder } from "../../lib/push/nativeReminder";
 
-export default function NotifSheet({ initialEnabled, initialTime, onClose, onSaved }) {
-  const [enabled, setEnabled] = useState(initialEnabled);
-  const [time, setTime] = useState(initialTime || "19:00");
+/* Notifications only: a clean inbox (delete one / clear all). The daily
+   reminder lives in its own settings row (ReminderSheet). Owners also get a
+   compose box to broadcast a notification from inside the app. */
+export default function NotifSheet({ onClose }) {
   const toast = useToast();
+  const { user } = useAuth();
   const [inbox, setInbox] = useState(getInbox());
   const [perm, setPerm] = useState(null);
+  const [owner, setOwner] = useState(false);
+  const [compose, setCompose] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+
   useEffect(() => {
     const upd = () => setInbox(getInbox());
     window.addEventListener("gymak-inbox", upd);
@@ -17,102 +25,78 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
     getPushPermission().then(setPerm);
     return () => window.removeEventListener("gymak-inbox", upd);
   }, []);
+  useEffect(() => { isOwnerAdmin(user?.id).then(setOwner); }, [user?.id]);
+
   async function enablePush() {
     await initBroadcastPush();
     setPerm(await getPushPermission());
   }
 
-  async function handleSave() {
-    if (isNative()) {
-      // Android app: the web Notification API does not exist here, use native notifications.
-      if (enabled) {
-        let ok = false;
-        try { ok = await enableNativeReminder(time, Store.getLang ? Store.getLang() : "ar"); } catch (e) { ok = false; }
-        if (!ok) {
-          toast("محتاجين إذنك للإشعارات. فعّلها من إعدادات الموبايل ثم جرب تاني.");
-          Store.setNotifSettings({ enabled: false });
-          onClose();
-          return;
-        }
-      } else {
-        await disableNativeReminder();
-      }
-      Store.setNotifSettings({ enabled, time });
-      onSaved();
-      return;
-    }
-    if (enabled && !("Notification" in window)) {
-      toast("متصفحك مش بيدعم الإشعارات.");
-      Store.setNotifSettings({ enabled: false });
-      onClose();
-      return;
-    }
-    if (enabled && Notification.permission !== "granted") {
-      const perm = await Notification.requestPermission();
-      if (perm !== "granted") {
-        toast("محتاجين إذنك للإشعارات عشان نقدر نفعّل التذكير.");
-        Store.setNotifSettings({ enabled: false });
-        onClose();
-        return;
-      }
-    }
-    Store.setNotifSettings({ enabled, time });
-    Store.scheduleReminder();
-    onSaved();
+  async function send() {
+    if (!title.trim() || !body.trim() || sending) return;
+    setSending(true);
+    try {
+      await sendBroadcast({ title: title.trim(), body: body.trim() });
+      toast("اتبعت الإشعار لكل المستخدمين ✅");
+      setTitle(""); setBody(""); setCompose(false);
+    } catch (e) {
+      toast("معرفناش نبعت الإشعار: " + (e?.message || "خطأ"));
+    } finally { setSending(false); }
   }
 
   return (
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-sheet">
+      <div className="edit-sheet" style={{ maxHeight: "86vh", overflowY: "auto" }}>
         <div className="edit-sheet-handle" />
-        <h3>الإشعارات والتذكيرات</h3>
+        <h3>الإشعارات</h3>
 
-        <div style={{ marginBottom: 14 }}>
-          <div className="trow-label" style={{ marginBottom: 8 }}>إشعارات التطبيق</div>
-          {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
-          {perm === "prompt" && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 8 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
-          {localStorage.getItem("gymak_push_err") && <p className="notif-note" style={{ direction: "ltr", fontSize: 10.5 }}>{localStorage.getItem("gymak_push_err")}</p>}
-          {inbox.length === 0 ? (
-            <p className="notif-note">مفيش إشعارات لسه. أي إشعار يتبعت من التطبيق هيظهر هنا.</p>
-          ) : (
-            <div style={{ maxHeight: 180, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+        {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
+        {perm === "prompt" && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 10 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
+
+        {owner && (
+          <div style={{ marginBottom: 12 }}>
+            {!compose ? (
+              <button type="button" className="btn-apply" style={{ width: "100%" }} onClick={() => setCompose(true)}>+ إشعار جديد لكل المستخدمين</button>
+            ) : (
+              <div style={{ padding: 12, borderRadius: 14, border: "1px solid var(--border-soft)", background: "rgba(var(--ink), .04)" }}>
+                <div className="edit-field"><label>العنوان</label><input value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} /></div>
+                <div className="edit-field"><label>النص</label><textarea rows={3} maxLength={240} value={body} onChange={(e) => setBody(e.target.value)} style={{ width: "100%", font: "inherit" }} /></div>
+                <div className="edit-sheet-actions">
+                  <button type="button" onClick={() => setCompose(false)}>إلغاء</button>
+                  <button type="button" disabled={sending || !title.trim() || !body.trim()} onClick={send} style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "var(--on-acc, #111)" }}>{sending ? "بيتبعت..." : "إرسال"}</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {inbox.length === 0 ? (
+          <p className="notif-note">مفيش إشعارات لسه. أي إشعار هيوصلك هيظهر هنا.</p>
+        ) : (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {inbox.map((n) => (
-                <div key={n.id} style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(var(--ink), .05)", border: "1px solid var(--border-soft)" }}>
-                  <div style={{ fontWeight: 800, fontSize: 13 }}>{n.title}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{n.body}</div>
-                  <div style={{ fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>{new Date(n.ts).toLocaleString("ar-EG")}</div>
+                <div key={n.id} style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(var(--ink), .05)", border: "1px solid var(--border-soft)", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: 13 }}>{n.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{n.body}</div>
+                    <div style={{ fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>{new Date(n.ts).toLocaleString("ar-EG")}</div>
+                  </div>
+                  <button type="button" aria-label="مسح الإشعار" onClick={() => deleteInboxItem(n.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: 4 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>
+                  </button>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        <div className="toggle-row">
-          <div>
-            <div className="trow-label">تذكير يومي بالتمرين</div>
-            <div className="trow-sub">هيوصلك إشعار في الميعاد اللي تحدده</div>
-          </div>
-          <label className="switch">
-            <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
-            <span className="switch-track" />
-          </label>
-        </div>
-
-        <div className={"edit-field time-field" + (enabled ? " show" : "")}>
-          <label htmlFor="notifTime">ميعاد التذكير</label>
-          <input type="time" id="notifTime" value={time} onChange={(e) => setTime(e.target.value)} />
-        </div>
-
-        <p className="notif-note">
-          {isNative()
-            ? "التذكير بيوصلك كل يوم في الميعاد ده حتى لو التطبيق مقفول. لازم تسمح بالإشعارات للتطبيق."
-            : "الإشعار بيتبعت من المتصفح، فلازم تسمح بالإشعارات وتسيب التطبيق مفتوح (أو في الخلفية على الموبايل) عشان يوصلك في الميعاد."}
-        </p>
-
-        <div className="edit-sheet-actions" style={{ marginTop: 14 }}>
-          <button type="button" onClick={onClose}>إلغاء</button>
-          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "var(--on-acc, #fff)" }} onClick={handleSave}>حفظ</button>
-        </div>
+            <div className="edit-sheet-actions" style={{ marginTop: 12 }}>
+              <button type="button" onClick={clearInbox}>مسح الكل</button>
+              <button type="button" onClick={onClose}>إغلاق</button>
+            </div>
+          </>
+        )}
+        {inbox.length === 0 && (
+          <div className="edit-sheet-actions" style={{ marginTop: 12 }}><button type="button" onClick={onClose}>إغلاق</button></div>
+        )}
       </div>
     </div>
   );

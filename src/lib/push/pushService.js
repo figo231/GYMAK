@@ -84,11 +84,33 @@ const INBOX_KEY = "gymak_inbox_v1";
 export function getInbox() {
   try { return JSON.parse(localStorage.getItem(INBOX_KEY) || "[]"); } catch { return []; }
 }
+const DISMISSED_KEY = "gymak_inbox_dismissed_v1";
+function getDismissed() {
+  try { return JSON.parse(localStorage.getItem(DISMISSED_KEY) || "[]"); } catch { return []; }
+}
+function dismiss(ids) {
+  const set = new Set([...getDismissed(), ...ids]);
+  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set].slice(-300)));
+}
+function notifyInbox() { try { window.dispatchEvent(new Event("gymak-inbox")); } catch { /* ignore */ } }
+/** Delete one notification from the inbox (it will not come back on re-import). */
+export function deleteInboxItem(id) {
+  dismiss([id]);
+  localStorage.setItem(INBOX_KEY, JSON.stringify(getInbox().filter((x) => x.id !== id)));
+  notifyInbox();
+}
+/** Clear the whole inbox. */
+export function clearInbox() {
+  dismiss(getInbox().map((x) => x.id));
+  localStorage.setItem(INBOX_KEY, "[]");
+  notifyInbox();
+}
 function addInbox(n) {
   if (!n || (!n.title && !n.body)) return;
   const list = getInbox();
   const id = n.id || `${n.title || ""}|${n.body || ""}`;
   if (list.some((x) => x.id === id)) return;
+  if (getDismissed().includes(id)) return;
   list.unshift({ id, title: n.title || "", body: n.body || "", ts: Date.now() });
   localStorage.setItem(INBOX_KEY, JSON.stringify(list.slice(0, 50)));
   try { window.dispatchEvent(new Event("gymak-inbox")); } catch { /* ignore */ }
