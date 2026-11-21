@@ -4,6 +4,14 @@
 -- Assumes public.is_admin(uuid) already exists (used by 0016/0017).
 -- Everything here is additive. Rollback notes at the bottom.
 
+-- 0. Make sure the owner is an admin (idempotent). Needs the owner to have
+-- signed up in the app once with this email. Assumes admin_users(user_id, role)
+-- as used by supabase/functions/_shared/verifyAdmin.ts.
+insert into public.admin_users (user_id, role)
+select u.id, 'super_admin' from auth.users u
+where lower(u.email) = 'kareemmohamed7392@gmail.com'
+  and not exists (select 1 from public.admin_users a where a.user_id = u.id);
+
 -- ---------------------------------------------------------------------------
 -- 1. Editable content (owner panel). Public read, admin write.
 -- ---------------------------------------------------------------------------
