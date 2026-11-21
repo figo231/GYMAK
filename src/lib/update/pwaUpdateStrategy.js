@@ -24,11 +24,27 @@ export const pwaUpdateStrategy = {
   init(notify) {
     if (updateSWFn) return; // already initialized — app-lifetime singleton
 
+    // Auto-reload: when a NEW service worker takes control of an app that was
+    // already controlled by an old one, reload once so the user sees the new
+    // version immediately (no tap needed). Guarded against reload loops.
+    if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+      const hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController) return;
+        const last = Number(sessionStorage.getItem("gymak_sw_reload") || 0);
+        if (Date.now() - last < 30000) return;
+        sessionStorage.setItem("gymak_sw_reload", String(Date.now()));
+        window.location.reload();
+      });
+    }
+
     updateSWFn = registerSW({
       immediate: true,
       onNeedRefresh() {
         pendingUpdate = true;
         notify({ type: "available" });
+        // Waiting worker found: activate it now; controllerchange reloads the page.
+        setTimeout(() => { try { updateSWFn && updateSWFn(true); } catch (e) { /* ignore */ } }, 1200);
       },
       onRegisteredSW(swUrl, registration) {
         if (!registration) return;
