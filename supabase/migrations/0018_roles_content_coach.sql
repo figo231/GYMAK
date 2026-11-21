@@ -131,3 +131,6 @@ create policy "workout_days: coach read" on public.workout_days for select to au
 --   select tablename, policyname from pg_policies where policyname like '%coach%' or tablename like 'content_%';
 -- Rollback (manual): drop the "coach read" policies, then drop tables coach_links, coach_grants,
 -- content_foods, content_exercises and functions coach_can_see, is_coach.
+
+-- Make the API see the new tables immediately.
+notify pgrst, 'reload schema';
