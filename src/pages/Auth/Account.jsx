@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useSyncStatus } from "../../hooks/useSyncStatus";
+import { supabase } from "../../lib/supabaseClient";
+import { useConfirm } from "../../hooks/useDialog";
+import { useToast } from "../../hooks/useToast";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
 const STATUS_LABEL = {
@@ -30,6 +33,26 @@ export default function Account() {
   const { status, lastSyncAt, lastError, lastErrorKind, lastDroppedCount, pendingChangeCount, isMigrated, lastMigration, syncNow } = useSyncStatus();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const confirmAsync = useConfirm();
+  const toast = useToast();
+
+  async function handleDeleteAccount() {
+    const ok = await confirmAsync({
+      title: "هيتمسح حسابك وكل بياناتك من السيرفر نهائيًا ومفيش رجوع. متأكد؟",
+      danger: true, confirmLabel: "حذف حسابي", cancelLabel: "إلغاء",
+    });
+    if (!ok || !supabase) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account", { body: {} });
+      if (error) throw error;
+      await signOut();
+      toast("اتمسح حسابك");
+      navigate("/profile", { replace: true });
+    } catch {
+      toast("معرفناش نحذف الحساب دلوقتي، جرب تاني أو ابعتلنا على الإيميل.");
+    } finally { setBusy(false); }
+  }
 
   async function handleSignOut() {
     setBusy(true);
@@ -118,6 +141,12 @@ export default function Account() {
         style={{ width: "100%", background: "rgba(244,63,94,0.12)", color: "var(--danger)", padding: 13, borderRadius: 14, border: "none", fontWeight: 800, fontSize: 13.5, cursor: "pointer" }}
       >
         {busy ? "جاري الخروج..." : "تسجيل الخروج"}
+      </button>
+      <button
+        type="button" className="btn" onClick={handleDeleteAccount} disabled={busy}
+        style={{ width: "100%", marginTop: 10, background: "none", color: "var(--danger)", padding: 12, borderRadius: 14, border: "1px solid rgba(244,63,94,0.35)", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}
+      >
+        حذف حسابي وبياناتي نهائيًا
       </button>
     </>
   );
