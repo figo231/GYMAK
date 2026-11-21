@@ -26,3 +26,6 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 ## Known gaps
 - Owner broadcast composer hidden until the notifications backend exists (migration 0019 pending)
 - Not device-tested: notifications sheet, owner panel, coach tab, Play build gate
+
+## Database steps for coach program assignments
+- [ ] Run `supabase/migrations/0019_coach_assignments.sql` in the Supabase SQL editor (after 0018). Until then the coach "send program" button shows an error and the trainee card stays hidden. Nothing else breaks.
