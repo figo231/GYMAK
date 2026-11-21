@@ -1,4 +1,5 @@
 import { EXTRA_B } from "./extraExercisesB";
+import { EXTRA_C } from "./extraExercisesC";
 
 // Extra built-in exercises (Arabic). Images mapped in ../exerciseImages.js
 export const EXTRA_EXERCISES = [
@@ -22,4 +23,5 @@ export const EXTRA_EXERCISES = [
   {"id": "dumbbell-lunges", "name": "لانجز دمبل", "muscle": "legs", "muscleLabel": "فخذ ومؤخرة", "secondary": "", "sets": 3, "reps": 10, "custom": false, "equipment": "دمبل", "difficulty": "مبتدئ", "description": "بيقوّي الرجلين ويحسّن التوازن.", "instructions": ["امسك دمبلين وقف مستقيم.", "اخطُ خطوة كبيرة وانزل بالركبة الخلفية.", "ركبة الأمام فوق الكاحل.", "ادفع بالرجل الأمامية للرجوع."]},
   {"id": "goblet-squat", "name": "جوبلت سكوات", "muscle": "legs", "muscleLabel": "فخذ ومؤخرة", "secondary": "", "sets": 3, "reps": 12, "custom": false, "equipment": "دمبل/كيتل بل", "difficulty": "مبتدئ", "description": "أفضل سكوات للمبتدئين لتعلّم الحركة.", "instructions": ["امسك دمبل قدام الصدر.", "انزل بالحوض لأسفل وظهرك مستقيم.", "الركبة في اتجاه الأصابع.", "قم بدفع الأرض."]},
   ...EXTRA_B,
+  ...EXTRA_C,
 ];
