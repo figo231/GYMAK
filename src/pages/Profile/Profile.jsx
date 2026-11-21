@@ -17,6 +17,7 @@ import LangUnitsSheet from "./LangUnitsSheet";
 import NotifSheet from "./NotifSheet";
 import ReminderSheet from "./ReminderSheet";
 import { isOwnerAdmin } from "../../lib/push/ownerBroadcast";
+import { REST_OPTIONS, getRestSettings, setRestSettings, fmtClock } from "../../lib/rest/restTimer";
 import { isCoach } from "../../lib/coach/coachApi";
 import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
@@ -36,6 +37,13 @@ export default function Profile() {
   const [showReminder, setShowReminder] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
+  const [rest, setRest] = useState(getRestSettings);
+  function cycleRest() {
+    const opts = [0, ...REST_OPTIONS];
+    const cur = rest.enabled ? rest.sec : 0;
+    const nxt = opts[(opts.indexOf(cur) + 1) % opts.length];
+    setRest(nxt === 0 ? setRestSettings({ enabled: false }) : setRestSettings({ enabled: true, sec: nxt }));
+  }
   useEffect(() => { if (user) isCoach().then(setShowCoach); }, [user?.id]);
   useEffect(() => { isOwnerAdmin(user?.id).then(setIsOwner); }, [user?.id]);
   const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
@@ -321,6 +329,11 @@ export default function Profile() {
           <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
+        <div className="settings-row" style={{ cursor: "pointer" }} onClick={cycleRest}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" /></svg></div>
+          <span className="settings-name">مؤقت الراحة بين المجموعات</span>
+          <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 700 }}>{rest.enabled ? fmtClock(rest.sec) : "إيقاف"}</span>
+        </div>
         <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowReminder(true)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">التذكير اليومي</span>

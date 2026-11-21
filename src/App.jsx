@@ -11,6 +11,7 @@ import SplashScreen from "./components/SplashScreen";
 import Onboarding from "./components/Onboarding";
 import PWAUpdatePrompt from "./components/PWAUpdatePrompt";
 import ApkUpdateSheet from "./components/ApkUpdateSheet";
+import RestTimer from "./components/RestTimer";
 
 const ONBOARD_KEY = "gymak_onboarded_v1";
 
@@ -55,6 +56,7 @@ export default function App() {
                 <Suspense fallback={<RouteFallback />}>
                   <RouterProvider router={router} />
                 </Suspense>
+                <RestTimer />
                 {showSplash && <SplashScreen />}
                 {!showSplash && !onboarded && <Onboarding onFinish={finishOnboarding} />}
               </AuthProvider>

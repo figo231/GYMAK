@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useConfirm } from "../../hooks/useDialog";
+import { startRest } from "../../lib/rest/restTimer";
 import MuscleAnatomy from "./MuscleAnatomy";
 import ExerciseAnim, { hasExerciseAnim } from "../../components/ExerciseAnim";
 import MuscleIllustration from "../Exercises/MuscleIllustration";
@@ -50,6 +51,7 @@ export default function ExerciseDetail() {
     const r = parseInt(reps) || 0;
     if (wDisplay <= 0 || s <= 0 || r <= 0) return;
     Store.logSet(exerciseId, Store.fromDisplayWeight(wDisplay), s, r);
+    startRest();
     setShowFeedback(true);
     setTimeout(() => setShowFeedback(false), 2500);
   }
