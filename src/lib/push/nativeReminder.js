@@ -8,13 +8,13 @@ const REMINDER_ID = 4101;
 
 async function plugin() {
   const mod = await import("@capacitor/local-notifications");
-  return mod.LocalNotifications;
+  return { LN: mod.LocalNotifications }; // never return the plugin proxy from async (awaiting it hangs)
 }
 
 export const isNative = () => Capacitor.isNativePlatform();
 
 export async function enableNativeReminder(time, lang = "ar") {
-  const LN = await plugin();
+  const { LN } = await plugin();
   let perm = await LN.checkPermissions();
   if (perm.display !== "granted") perm = await LN.requestPermissions();
   if (perm.display !== "granted") return false;
@@ -33,7 +33,7 @@ export async function enableNativeReminder(time, lang = "ar") {
 
 export async function disableNativeReminder() {
   try {
-    const LN = await plugin();
+    const { LN } = await plugin();
     await LN.cancel({ notifications: [{ id: REMINDER_ID }] });
   } catch (e) { /* plugin unavailable */ }
 }
