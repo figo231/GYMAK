@@ -12,6 +12,8 @@ import { useI18n } from "../../hooks/useI18n";
 import { useAuth } from "../../hooks/useAuth";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import AchievementsGrid from "./AchievementsGrid";
+import ShareCardSheet from "./ShareCardSheet";
+import { weightCardData, prCardData } from "../../lib/share/shareCard";
 import EditProfileSheet from "./EditProfileSheet";
 import LangUnitsSheet from "./LangUnitsSheet";
 import NotifSheet from "./NotifSheet";
@@ -37,6 +39,14 @@ export default function Profile() {
   const [showReminder, setShowReminder] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
+  const [card, setCard] = useState(null);
+  function openCard(kind) {
+    const d = kind === "weight"
+      ? weightCardData(Store.getWeightEntries(), Store.unitLabel(), (x) => Store.toDisplayWeight(x))
+      : prCardData(Store.getRecentPRs(1)[0], Store.unitLabel(), (x) => Store.toDisplayWeight(x));
+    if (!d) { toast(kind === "weight" ? "سجّل وزنك مرتين على الأقل الأول." : "لسه معندكش رقم قياسي."); return; }
+    setCard(d);
+  }
   const [rest, setRest] = useState(getRestSettings);
   function cycleRest() {
     const opts = [0, ...REST_OPTIONS];
@@ -286,6 +296,11 @@ export default function Profile() {
             مشاركة
           </div>
         </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <button type="button" onClick={() => openCard("weight")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت الوزن (صورة)</button>
+          <button type="button" onClick={() => openCard("pr")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت رقم قياسي (صورة)</button>
+        </div>
+        {card && <ShareCardSheet data={card} name={profile.name} onClose={() => setCard(null)} />}
       </div>
 
       <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
