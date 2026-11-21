@@ -5,6 +5,7 @@ import { fmt } from "../../lib/format";
 import { usePrompt } from "../../hooks/useDialog";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
+import WaterCard from "./WaterCard";
 
 const DAY_LETTERS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]; // Sun..Sat
 
@@ -161,6 +162,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <WaterCard />
 
       <div className="section-title">
         <h2>قياسات الجسم</h2>
