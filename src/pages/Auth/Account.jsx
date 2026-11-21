@@ -7,6 +7,9 @@ import { useConfirm } from "../../hooks/useDialog";
 import { useToast } from "../../hooks/useToast";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
+/* Flip to true after the delete-account edge function is deployed and verified with a disposable account. */
+const DELETE_ACCOUNT_ENABLED = false;
+
 const STATUS_LABEL = {
   idle: { text: "جاهز", color: "var(--text-dim)" },
   migrating: { text: "بننقل بياناتك القديمة...", color: "var(--warn-text)" },
@@ -142,12 +145,14 @@ export default function Account() {
       >
         {busy ? "جاري الخروج..." : "تسجيل الخروج"}
       </button>
+      {DELETE_ACCOUNT_ENABLED && (
       <button
         type="button" className="btn" onClick={handleDeleteAccount} disabled={busy}
         style={{ width: "100%", marginTop: 10, background: "none", color: "var(--danger)", padding: 12, borderRadius: 14, border: "1px solid rgba(244,63,94,0.35)", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}
       >
         حذف حسابي وبياناتي نهائيًا
       </button>
+      )}
     </>
   );
 }

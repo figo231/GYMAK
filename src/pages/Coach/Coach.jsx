@@ -70,7 +70,7 @@ export default function Coach() {
       {invites.map((i) => (
         <div key={i.id} style={card}>
           <div dir="ltr" style={{ fontSize: 13, marginBottom: 6 }}>{i.coach_email || "مدرب"}</div>
-          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>{i.status === "pending" ? "عايز يتابع تمرينك ووزنك وأكلك (للقراءة بس). تقبل؟" : "بيتابعك دلوقتي (بيشوف تمرينك ووزنك وأكلك بس)."}</div>
+          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>{i.status === "pending" ? "لو قبلت، المدرب هيشوف (للقراءة بس): اسمك وطولك، أيام تمرينك، وزنك، أكلك وسعراتك، وأرقامك القياسية. مش هيشوف إيميلك. تقدر توقف في أي وقت. تقبل؟" : "بيتابعك دلوقتي: بيشوف اسمك وطولك وتمرينك ووزنك وأكلك وأرقامك القياسية (للقراءة بس)."}</div>
           <div style={{ display: "flex", gap: 8 }}>
             {i.status === "pending" && <button type="button" className="btn btn-primary" style={{ flex: 1, padding: 9, borderRadius: 10 }} onClick={() => answer(i.id, true)}>قبول</button>}
             <button type="button" style={{ ...ghost, flex: 1 }} onClick={() => answer(i.id, false)}>{i.status === "pending" ? "رفض" : "إيقاف المتابعة"}</button>

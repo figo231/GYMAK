@@ -20,4 +20,4 @@ GYMAK تطبيقك الشخصي للجيم والتغذية، مصمم بالع�
 **Category:** Health & Fitness  **Contact email:** kareemmohamed7392@gmail.com
 **Privacy policy URL:** https://gymak-eight.vercel.app/privacy.html
 **Content rating (IARC) expected answers:** no violence, no sexual content, no gambling, no user-generated public content, no location sharing. Expected rating: Everyone.
-**Data safety:** collects email, name, health & fitness info (weight, workouts, food), photos (optional profile photo), device push token. Encrypted in transit. Users can request deletion by email. Not shared with third parties for marketing; processors: Supabase, Firebase.
+**Data safety:** collects email, name, health & fitness info (weight, workouts, food), photos (optional profile photo), device push token. Encrypted in transit. Users can request deletion by email. Not shared with third parties for marketing; processors: Supabase, Firebase. Data is shared with a coach (another user) ONLY after the user accepts that coach's invite, read-only (name, height, workout days, weight, food/calories, PRs), revocable any time in-app. Declare as optional, user-initiated sharing.

@@ -9,10 +9,10 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 - [x] In-app GitHub updater turns off when versionName contains "play"
 - [x] Privacy policy page: /privacy.html (covers data, processors, coach sharing, deletion by email)
 - [x] Listing text draft: docs/play/listing-ar.md
-- [x] Account deletion in the app (button + delete-account edge function)
+- [x] Account deletion code (button hidden behind flag + delete-account edge function, not yet deployed)
 
 ## Before upload (owner or us)
-- [ ] Deploy and verify delete-account with a disposable account (do NOT claim in-app deletion works publicly until verified)
+- [ ] Deploy the delete-account edge function (Supabase > Edge Functions), verify with a disposable account, THEN set DELETE_ACCOUNT_ENABLED = true in src/pages/Auth/Account.jsx (the button is hidden until then). Do not claim in-app deletion publicly before this
 - [ ] Owner gives an explicit yes to the public support email on the listing and privacy page
 - [ ] Play Developer account ($25). Personal accounts created after Nov 13 2023 need a closed test with 12+ testers opted in for 14 days before applying for production
 - [ ] Create app in Play Console, upload AAB to Closed testing
