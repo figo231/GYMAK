@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ExerciseAnim from "../../components/ExerciseAnim";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
 
@@ -47,6 +48,7 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
                 <div className="prog-gen-ex-list">
                   {day.exercises.map((ex) => (
                     <div className="prog-gen-ex" key={ex.id}>
+                      <span className="prog-gen-ex-thumb"><ExerciseAnim exerciseId={ex.id} still alt={ex.name} /></span>
                       <span className="prog-gen-ex-name">{ex.name}</span>
                       <span className="prog-gen-ex-sr">{ex.sets}×{ex.reps}</span>
                       <button

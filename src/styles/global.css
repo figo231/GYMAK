@@ -917,3 +917,17 @@ body::before {
   content: ""; position: fixed; top: 0; left: 0; right: 0; height: var(--sat);
   background: var(--bg-deep); z-index: 2000; pointer-events: none;
 }
+
+/* ===== Exercise photo animation (2 frames crossfade) ===== */
+.ex-anim { position: relative; overflow: hidden; background: #fff; border-radius: inherit; width: 100%; height: 100%; }
+.ex-anim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ex-anim .ex-anim-b { animation: exFrame 2.4s steps(1, end) infinite; }
+@keyframes exFrame { 0%, 45% { opacity: 0; } 50%, 95% { opacity: 1; } 100% { opacity: 0; } }
+.ex-anim.still .ex-anim-b { display: none; }
+.ex-thumb .ex-anim { border-radius: 13px; }
+.media-frame .ex-anim { border-radius: inherit; }
+.media-tag { z-index: 2; }
+@media (prefers-reduced-motion: reduce) { .ex-anim .ex-anim-b { animation: none; opacity: 0; } }
+.prog-gen-ex-thumb { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: rgba(var(--ink), 0.05); display: inline-flex; margin-inline-end: 10px; }
+.prog-gen-ex-thumb:empty { display: none; }
+.prog-gen-ex-name { flex: 1; }

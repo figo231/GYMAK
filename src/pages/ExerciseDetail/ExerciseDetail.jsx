@@ -4,6 +4,7 @@ import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useConfirm } from "../../hooks/useDialog";
 import MuscleAnatomy from "./MuscleAnatomy";
+import ExerciseAnim, { hasExerciseAnim } from "../../components/ExerciseAnim";
 import MuscleIllustration from "../Exercises/MuscleIllustration";
 
 // Classifies a user-supplied media URL so we know whether to render a
@@ -78,6 +79,13 @@ export default function ExerciseDetail() {
           )
         }
       />
+
+      {exercise && hasExerciseAnim(exercise.id) && (
+        <div className="media-frame media-frame-lg">
+          <span className="media-tag">طريقة الأداء</span>
+          <ExerciseAnim exerciseId={exercise.id} alt={exercise.name} />
+        </div>
+      )}
 
       <div className="media-frame media-frame-lg anatomy-frame">
         <span className="media-tag">خريطة العضلات</span>
@@ -219,4 +227,4 @@ export default function ExerciseDetail() {
       )}
     </>
   );
-}
+              }
