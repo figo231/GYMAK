@@ -10,6 +10,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SplashScreen from "./components/SplashScreen";
 import Onboarding from "./components/Onboarding";
 import PWAUpdatePrompt from "./components/PWAUpdatePrompt";
+import ApkUpdateSheet from "./components/ApkUpdateSheet";
 
 const ONBOARD_KEY = "gymak_onboarded_v1";
 
@@ -47,6 +48,7 @@ export default function App() {
       <ThemeProvider>
         <I18nProvider>
           <PWAUpdatePrompt />
+          <ApkUpdateSheet />
           <ToastProvider>
             <DialogProvider>
               <AuthProvider>
