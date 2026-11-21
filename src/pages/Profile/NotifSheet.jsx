@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getInbox, importDelivered, getPushPermission, initBroadcastPush, deleteInboxItem, clearInbox } from "../../lib/push/pushService";
-import { isOwnerAdmin, sendBroadcast } from "../../lib/push/ownerBroadcast";
+import { BROADCAST_ENABLED, isOwnerAdmin, sendBroadcast } from "../../lib/push/ownerBroadcast";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 
@@ -25,7 +25,7 @@ export default function NotifSheet({ onClose }) {
     getPushPermission().then(setPerm);
     return () => window.removeEventListener("gymak-inbox", upd);
   }, []);
-  useEffect(() => { isOwnerAdmin(user?.id).then(setOwner); }, [user?.id]);
+  useEffect(() => { if (BROADCAST_ENABLED) isOwnerAdmin(user?.id).then(setOwner); }, [user?.id]);
 
   async function enablePush() {
     await initBroadcastPush();

@@ -2,6 +2,9 @@ import { supabase } from "../supabaseClient";
 
 /* Owner-only helpers. Admin-ness is decided server side (admin_users + RLS +
    the send-notification edge function); the app only hides the UI. */
+/* Flip to true once the send-notification backend (notifications tables + edge function + FCM secret) exists. */
+export const BROADCAST_ENABLED = false;
+
 export async function isOwnerAdmin(userId) {
   if (!supabase || !userId) return false;
   try {
