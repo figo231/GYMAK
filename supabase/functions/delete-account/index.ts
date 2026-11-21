@@ -22,6 +22,12 @@ Deno.serve(async (req: Request) => {
   const { data, error } = await service.auth.getUser(jwt);
   if (error || !data?.user) return new Response(JSON.stringify({ error: "Invalid session" }), { status: 401, headers: cors });
 
+  // Storage objects are not removed by the auth cascade: delete the user's avatar folder first.
+  try {
+    const { data: files } = await service.storage.from("avatars").list(data.user.id, { limit: 100 });
+    if (files?.length) await service.storage.from("avatars").remove(files.map((f) => `${data.user.id}/${f.name}`));
+  } catch (_) { /* best effort; account deletion proceeds */ }
+
   // Only ever the caller's own id, taken from the verified token.
   const { error: delError } = await service.auth.admin.deleteUser(data.user.id);
   if (delError) return new Response(JSON.stringify({ error: delError.message }), { status: 500, headers: cors });
