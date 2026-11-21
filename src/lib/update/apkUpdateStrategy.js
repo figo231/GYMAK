@@ -1,30 +1,74 @@
-// Placeholder for the future APK build, selected by UpdateService when the
-// app detects it's running inside the TWA (Trusted Web Activity) wrapper
-// rather than a plain browser tab or installed PWA.
-//
-// When APK auto-update ships, this should:
-//   1. On init(): read the installed APK's versionCode (exposed via a JS
-//      bridge injected by the TWA wrapper, or a value baked into the build).
-//   2. On checkForUpdate(): fetch a small /version.json (or hit the Play
-//      Store's own update API) and compare against the installed version.
-//   3. On applyUpdate(): either deep-link to the Play Store listing, or
-//      trigger a direct APK download (e.g. MediaFire/GitHub release URL)
-//      matching how GYMAK is currently distributed to testers.
-//
-// Kept as a no-op today so UpdateService and the Settings screen can call
-// into it unconditionally without branching on platform anywhere else —
-// swapping this file's internals later won't require touching UI code.
+// In-app update for the Android app. The installed build number (versionCode)
+// is the CI run number; every CI build publishes a GitHub Release tagged
+// apk-<run number>. We compare the latest tag with the installed build and,
+// when newer, offer a one-tap download of the public APK link.
+const LATEST_API = "https://api.github.com/repos/figo231/GYMAK/releases/latest";
+export const APK_URL = "https://github.com/figo231/GYMAK/releases/latest/download/GYMAK.apk";
+const SEEN_KEY = "gymak_apk_seen";
+const PENDING_KEY = "gymak_apk_pending";
+
+let latest = null; // { build, name }
+
+async function installedBuild() {
+  const mod = await import("@capacitor/app");
+  const info = await mod.App.getInfo(); // never return the plugin proxy from async
+  return Number(info.build) || 0;
+}
+
+async function fetchLatest() {
+  const res = await fetch(LATEST_API, { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" });
+  if (!res.ok) throw new Error("release check failed");
+  const data = await res.json();
+  const m = /apk-(\d+)/.exec(data.tag_name || "");
+  if (!m) throw new Error("bad tag");
+  return { build: Number(m[1]), name: data.name || data.tag_name };
+}
+
+async function check() {
+  const [mine, remote] = await Promise.all([installedBuild(), fetchLatest()]);
+  if (remote.build > mine) {
+    latest = remote;
+    localStorage.setItem(PENDING_KEY, String(remote.build));
+    return true;
+  }
+  latest = null;
+  localStorage.removeItem(PENDING_KEY);
+  return false;
+}
+
 export const apkUpdateStrategy = {
-  init(_notify) {
-    // No-op until APK auto-update is implemented.
+  init(notify) {
+    check()
+      .then((found) => {
+        if (!found) return;
+        // Auto prompt once per version; the settings dot stays until updated.
+        if (localStorage.getItem(SEEN_KEY) !== String(latest.build)) {
+          localStorage.setItem(SEEN_KEY, String(latest.build));
+          notify({ type: "apk-available", auto: true });
+        }
+      })
+      .catch(() => {});
   },
 
   async checkForUpdate(notify) {
-    notify({ type: "none" });
-    return false;
+    try {
+      const found = await check();
+      if (found) notify({ type: "apk-available" });
+      else notify({ type: "none" });
+      return found;
+    } catch (error) {
+      notify({ type: "error", error });
+      return false;
+    }
   },
 
-  applyUpdate() {
-    // No-op until APK auto-update is implemented.
+  async applyUpdate() {
+    const mod = await import("@capacitor/browser");
+    const B = mod.Browser;
+    await B.open({ url: APK_URL });
+  },
+
+  hasPending() {
+    return !!localStorage.getItem(PENDING_KEY);
   },
 };
