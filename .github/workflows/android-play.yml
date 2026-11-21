@@ -1,0 +1,47 @@
+name: Build Play AAB
+
+# Run by hand: Actions > Build Play AAB > Run workflow.
+# Produces a signed release bundle (AAB) for Google Play under Artifacts.
+# Needs secrets: GOOGLE_SERVICES_JSON, GYMAK_PLAY_KEYSTORE_B64, GYMAK_PLAY_KEYSTORE_PASSWORD.
+on:
+  workflow_dispatch:
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then echo "Missing GOOGLE_SERVICES_JSON secret" >&2; exit 1; fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+      - name: Restore upload key
+        env:
+          KS_B64: ${{ secrets.GYMAK_PLAY_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "Missing GYMAK_PLAY_KEYSTORE_B64 secret" >&2; exit 1; fi
+          printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/play-upload.jks"
+          echo "GYMAK_PLAY_KEYSTORE_PATH=$RUNNER_TEMP/play-upload.jks" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.${{ github.run_number }}-play" >> "$GITHUB_ENV"
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Build release AAB
+        working-directory: android
+        env:
+          GYMAK_PLAY_KEYSTORE_PASSWORD: ${{ secrets.GYMAK_PLAY_KEYSTORE_PASSWORD }}
+        run: bash ./gradlew bundleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gymak-play-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab

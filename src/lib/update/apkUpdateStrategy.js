@@ -9,10 +9,10 @@ const PENDING_KEY = "gymak_apk_pending";
 
 let latest = null; // { build, name }
 
-async function installedBuild() {
+async function installedInfo() {
   const mod = await import("@capacitor/app");
   const info = await mod.App.getInfo(); // never return the plugin proxy from async
-  return Number(info.build) || 0;
+  return { build: Number(info.build) || 0, version: String(info.version || "") };
 }
 
 async function fetchLatest() {
@@ -25,8 +25,11 @@ async function fetchLatest() {
 }
 
 async function check() {
-  const [mine, remote] = await Promise.all([installedBuild(), fetchLatest()]);
-  if (remote.build > mine) {
+  const me = await installedInfo();
+  // Google Play builds update through Play, never through GitHub APKs.
+  if (/play/i.test(me.version)) { latest = null; localStorage.removeItem(PENDING_KEY); return false; }
+  const remote = await fetchLatest();
+  if (remote.build > me.build) {
     latest = remote;
     localStorage.setItem(PENDING_KEY, String(remote.build));
     return true;

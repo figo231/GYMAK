@@ -27,6 +27,17 @@ android {
             }
         }
     }
+    signingConfigs {
+        play {
+            def pk = System.getenv("GYMAK_PLAY_KEYSTORE_PATH")
+            if (pk) {
+                storeFile file(pk)
+                storePassword System.getenv("GYMAK_PLAY_KEYSTORE_PASSWORD")
+                keyAlias "gymak-upload"
+                keyPassword System.getenv("GYMAK_PLAY_KEYSTORE_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         debug {
             if (System.getenv("GYMAK_KEYSTORE_PATH")) {
@@ -34,6 +45,9 @@ android {
             }
         }
         release {
+            if (System.getenv("GYMAK_PLAY_KEYSTORE_PATH")) {
+                signingConfig signingConfigs.play
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
