@@ -156,10 +156,39 @@ async function saveToken(token) {
  * permission prompt and never joined "all_users".
  */
 let broadcastStarted = false;
+function logPushErr(where, err) {
+  try { localStorage.setItem("gymak_push_err", `${where}: ${(err && err.message) || err}`); } catch { /* ignore */ }
+  // eslint-disable-next-line no-console
+  console.error("[gymak push]", where, err);
+}
+/** Step 1, independent of Firebase: ask the OS for the notification permission
+    (Android 13+ POST_NOTIFICATIONS) through the local-notifications plugin, which
+    is known to work in this app. Safe no-op on Android < 13 (nothing to ask). */
+async function askOsPermission() {
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const st = await LocalNotifications.checkPermissions();
+    if (st.display === "granted") return true;
+    if (st.display === "denied") return false;
+    const req = await LocalNotifications.requestPermissions();
+    return req.display === "granted";
+  } catch (err) { logPushErr("os-permission", err); return false; }
+}
 export async function initBroadcastPush() {
   requestWebPermissionOnce();
-  if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || broadcastStarted) return;
-  broadcastStarted = true;
+  if (!PUSH_ENABLED || !Capacitor.isNativePlatform()) return;
+  // Re-ask whenever the app comes back to the foreground until it is answered.
+  if (!initBroadcastPush._vis) {
+    initBroadcastPush._vis = true;
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && !broadcastStarted) initBroadcastPush();
+    });
+  }
+  if (broadcastStarted) return;
+  const osGranted = await askOsPermission();
+  if (!osGranted) {
+    // Prompt not answered yet or denied: Firebase step below may still work on older Android.
+  }
   try {
     const FirebaseMessaging = await getMessaging();
     const status = await FirebaseMessaging.checkPermissions();
@@ -168,7 +197,11 @@ export async function initBroadcastPush() {
       const req = await FirebaseMessaging.requestPermissions();
       granted = req.receive === "granted";
     }
-    if (!granted) { broadcastStarted = false; return; }
+    if (!granted && !osGranted) return;
+  } catch (err) { logPushErr("firebase-permission", err); }
+  broadcastStarted = true;
+  try {
+    const FirebaseMessaging = await getMessaging();
     if (!listenersRegistered) {
       listenersRegistered = true;
       FirebaseMessaging.addListener("tokenReceived", (event) => { saveToken(event.token); });
@@ -185,8 +218,7 @@ export async function initBroadcastPush() {
     importDelivered();
   } catch (err) {
     broadcastStarted = false;
-    // eslint-disable-next-line no-console
-    console.error("[gymak push] broadcast setup failed", err);
+    logPushErr("subscribe", err);
   }
 }
 
