@@ -5,5 +5,11 @@
   "server": {
     "url": "https://gymak-eight.vercel.app",
     "cleartext": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK"
+    }
   }
 }
