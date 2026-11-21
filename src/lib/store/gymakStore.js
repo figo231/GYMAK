@@ -4,6 +4,7 @@
    (المفتاح الداخلي فضل زي ما هو لتوافق بيانات المستخدمين الحاليين)
    ========================================================= */
 import { EXTRA_EXERCISES } from "./extraExercises";
+import { EGYPT_FOODS } from "./egyptFoods";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
    (IIFE -> ES module) so existing users' data loads unchanged. */
@@ -97,6 +98,7 @@ const KEY = "gymak_state_v1";
   // ===== Food database (approximate values per 100g, unless pieceWeight given) =====
   // kcal/protein/carbs/fat per 100g. pieceWeight (grams) used when someone counts by حبة/رغيف/etc.
   const FOOD_DB = [
+    ...EGYPT_FOODS,
     { names: ["فراخ مشوية", "صدور فراخ", "صدر فراخ", "فراخ مسلوقة", "chicken grilled", "فراخ"], per100: { kcal: 165, protein: 31, carbs: 0, fat: 3.6 } },
     { names: ["فراخ مقلية", "فراخ بانيه"], per100: { kcal: 260, protein: 22, carbs: 12, fat: 15 } },
     { names: ["لحمة مفرومة", "كفتة", "لحمة"], per100: { kcal: 250, protein: 26, carbs: 0, fat: 17 } },
