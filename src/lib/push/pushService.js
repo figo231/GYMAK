@@ -71,7 +71,10 @@ const PUSH_ENABLED = import.meta.env.VITE_PUSH_ENABLED !== "false";
 /** Loaded lazily so the web/PWA bundle never pulls in the Firebase SDK. */
 async function getMessaging() {
   const mod = await import("@capacitor-firebase/messaging");
-  return mod.FirebaseMessaging;
+  // NEVER return the plugin proxy itself from an async function: awaiting it calls
+  // proxy.then(), which Capacitor treats as a native method call; it rejects and the
+  // promise never resolves (this silently killed every Firebase call before).
+  return { FM: mod.FirebaseMessaging };
 }
 
 const BROADCAST_TOPIC = "all_users";
@@ -93,7 +96,7 @@ function addInbox(n) {
 export async function importDelivered() {
   if (!Capacitor.isNativePlatform()) return;
   try {
-    const FirebaseMessaging = await getMessaging();
+    const { FM: FirebaseMessaging } = await getMessaging();
     const { notifications } = await FirebaseMessaging.getDeliveredNotifications();
     (notifications || []).forEach((n) => addInbox({ id: n.id, title: n.title, body: n.body }));
   } catch { /* ignore */ }
@@ -190,7 +193,7 @@ export async function initBroadcastPush() {
     // Prompt not answered yet or denied: Firebase step below may still work on older Android.
   }
   try {
-    const FirebaseMessaging = await getMessaging();
+    const { FM: FirebaseMessaging } = await getMessaging();
     const status = await FirebaseMessaging.checkPermissions();
     let granted = status.receive === "granted";
     if (!granted && status.receive !== "denied") {
@@ -201,7 +204,7 @@ export async function initBroadcastPush() {
   } catch (err) { logPushErr("firebase-permission", err); }
   broadcastStarted = true;
   try {
-    const FirebaseMessaging = await getMessaging();
+    const { FM: FirebaseMessaging } = await getMessaging();
     if (!listenersRegistered) {
       listenersRegistered = true;
       FirebaseMessaging.addListener("tokenReceived", (event) => { saveToken(event.token); });
@@ -226,7 +229,7 @@ export async function initBroadcastPush() {
 export async function getPushPermission() {
   if (!Capacitor.isNativePlatform()) return "unsupported";
   try {
-    const FirebaseMessaging = await getMessaging();
+    const { FM: FirebaseMessaging } = await getMessaging();
     return (await FirebaseMessaging.checkPermissions()).receive;
   } catch { return "unsupported"; }
 }
@@ -242,7 +245,7 @@ export async function registerForPush(userId) {
   currentUserId = userId;
 
   try {
-    const FirebaseMessaging = await getMessaging();
+    const { FM: FirebaseMessaging } = await getMessaging();
     const status = await FirebaseMessaging.checkPermissions();
     let granted = status.receive === "granted";
     if (!granted && status.receive !== "denied") {
