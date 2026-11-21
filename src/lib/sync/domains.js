@@ -16,6 +16,18 @@ import {
    filtered out for failing validation — so syncManager.js can surface a
    "N records were skipped" diagnostic instead of that silently vanishing. */
 
+// Deletes the remote rows for entries the user removed locally, then clears
+// them from the pending list. `toMatch` turns a pending key into an eq-filter
+// object. A failed delete throws, so the key stays pending and is retried.
+async function flushDeletes(userId, table, list, toMatch) {
+  const keys = Store.getPendingDeletes()[list].slice();
+  for (const key of keys) {
+    const { error } = await supabase.from(table).delete().eq("user_id", userId).match(toMatch(key));
+    if (error) throw error;
+  }
+  if (keys.length) Store.clearPendingDeletes(list, keys);
+}
+
 // ---------------------------------------------------------------------------
 // profile (single row, last-write-wins via push-before-pull + server now())
 // ---------------------------------------------------------------------------
@@ -61,6 +73,7 @@ export async function pullProfile(userId) {
 // ---------------------------------------------------------------------------
 export async function pushWeightLogs(userId) {
   const s = Store.getRawStateForSync();
+  await flushDeletes(userId, "weight_logs", "weight", (date) => ({ date }));
   const valid = s.weightLogs.filter(validateWeightLog);
   const dropped = s.weightLogs.length - valid.length;
   if (!valid.length) return { dropped };
@@ -87,6 +100,7 @@ export async function pullWeightLogs(userId) {
 // ---------------------------------------------------------------------------
 export async function pushFoodLog(userId) {
   const s = Store.getRawStateForSync();
+  await flushDeletes(userId, "food_log", "food", (date) => ({ date }));
   const valid = s.foodLog.filter(validateFoodLog);
   const dropped = s.foodLog.length - valid.length;
   if (!valid.length) return { dropped };
@@ -148,6 +162,10 @@ export async function pullExercises(userId) {
 // ---------------------------------------------------------------------------
 export async function pushExerciseLogs(userId) {
   const s = Store.getRawStateForSync();
+  await flushDeletes(userId, "exercise_logs", "exerciseLogs", (key) => {
+    const [exerciseId, date, weight, sets, reps] = key.split("|");
+    return { id: deterministicId("exercise_log", userId, exerciseId, date, Number(weight), Number(sets), Number(reps)) };
+  });
   const rows = [];
   let dropped = 0;
   Object.entries(s.exerciseLogs).forEach(([exerciseId, logs]) => {
@@ -180,6 +198,10 @@ export async function pullExerciseLogs(userId) {
 // ---------------------------------------------------------------------------
 export async function pushPRHistory(userId) {
   const s = Store.getRawStateForSync();
+  await flushDeletes(userId, "pr_history", "prs", (key) => {
+    const [exerciseId, date, weight, prevWeight] = key.split("|");
+    return { id: deterministicId("pr", userId, exerciseId, date, Number(weight), Number(prevWeight)) };
+  });
   const valid = s.prHistory.filter(validatePR);
   const dropped = s.prHistory.length - valid.length;
   if (!valid.length) return { dropped };
