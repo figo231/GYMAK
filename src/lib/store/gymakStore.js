@@ -3,6 +3,7 @@
    كل حاجة بتتخزن في localStorage تحت بادئة gymak_
    (المفتاح الداخلي فضل زي ما هو لتوافق بيانات المستخدمين الحاليين)
    ========================================================= */
+import { EXTRA_EXERCISES } from "./extraExercises";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
    (IIFE -> ES module) so existing users' data loads unchanged. */
@@ -45,28 +46,28 @@ const KEY = "gymak_state_v1";
   // generate a real, ready-to-train schedule instead of just category labels.
   const PROGRAM_TEMPLATES = {
     "arnold-split": [
-      { title: "صدر وظهر", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "cable-crossover", "lat-pulldown", "barbell-row"] },
-      { title: "أكتاف وذراعين", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "rear-delt-fly", "barbell-curl", "tricep-pushdown"] },
-      { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "romanian-deadlift", "calf-raise"] },
+      { title: "صدر وظهر", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "cable-crossover", "dumbbell-fly", "lat-pulldown", "barbell-row", "seated-cable-row"] },
+      { title: "أكتاف وذراعين", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "rear-delt-fly", "front-raise", "barbell-curl", "tricep-pushdown", "skullcrusher"] },
+      { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "leg-extension", "lying-leg-curl", "calf-raise"] },
       { title: "صدر وظهر (تكرار)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "lat-pulldown", "deadlift"] },
-      { title: "أكتاف وذراعين (تكرار)", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "hammer-curl", "dips"] },
-      { title: "أرجل (تكرار)", exerciseIds: ["squat-barbell", "leg-press", "calf-raise"] },
+      { title: "أكتاف وذراعين (تكرار)", exerciseIds: ["dumbbell-shoulder-press", "lateral-raise", "hammer-curl", "dips", "preacher-curl"] },
+      { title: "أرجل (تكرار)", exerciseIds: ["squat-barbell", "dumbbell-lunges", "hip-thrust", "seated-calf-raise"] },
     ],
     "push-pull-legs": [
-      { title: "دفع (صدر/أكتاف/ترايسبس)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "shoulder-press-barbell", "lateral-raise", "tricep-pushdown"] },
-      { title: "سحب (ظهر/بايسبس)", exerciseIds: ["deadlift", "lat-pulldown", "barbell-row", "barbell-curl", "hammer-curl"] },
-      { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "romanian-deadlift", "calf-raise"] },
+      { title: "دفع (صدر/أكتاف/ترايسبس)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "shoulder-press-barbell", "lateral-raise", "tricep-pushdown", "dumbbell-triceps-extension"] },
+      { title: "سحب (ظهر/بايسبس)", exerciseIds: ["deadlift", "lat-pulldown", "barbell-row", "seated-cable-row", "face-pull", "barbell-curl", "hammer-curl"] },
+      { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "romanian-deadlift", "leg-extension", "calf-raise"] },
     ],
     "upper-lower": [
       { title: "علوي 1", exerciseIds: ["bench-press-barbell", "barbell-row", "shoulder-press-barbell", "barbell-curl", "tricep-pushdown"] },
       { title: "سفلي 1", exerciseIds: ["squat-barbell", "romanian-deadlift", "leg-press", "calf-raise"] },
       { title: "علوي 2", exerciseIds: ["incline-dumbbell-press", "lat-pulldown", "lateral-raise", "hammer-curl", "dips"] },
-      { title: "سفلي 2", exerciseIds: ["leg-press", "romanian-deadlift", "calf-raise", "plank"] },
+      { title: "سفلي 2", exerciseIds: ["leg-press", "romanian-deadlift", "hip-thrust", "calf-raise", "plank", "crunch"] },
     ],
     "full-body": [
-      { title: "جسم كامل A", exerciseIds: ["squat-barbell", "bench-press-barbell", "lat-pulldown", "plank"] },
+      { title: "جسم كامل A", exerciseIds: ["goblet-squat", "dumbbell-bench-press", "lat-pulldown", "plank"] },
       { title: "جسم كامل B", exerciseIds: ["leg-press", "shoulder-press-barbell", "barbell-row", "hanging-leg-raise"] },
-      { title: "جسم كامل C", exerciseIds: ["romanian-deadlift", "pushup", "pullup", "cable-crunch"] },
+      { title: "جسم كامل C", exerciseIds: ["romanian-deadlift", "pushup", "pullup", "one-arm-dumbbell-row", "cable-crunch"] },
     ],
   };
 
@@ -337,6 +338,7 @@ const KEY = "gymak_state_v1";
     { id: "plank", name: "بلانك (Plank)", muscle: "core", muscleLabel: "بطن", secondary: "", sets: 3, reps: 30, custom: false, equipment: "وزن الجسم", difficulty: "مبتدئ", description: "حركة ثبات أساسية لبناء قوة الجذع والاستقرار.", instructions: ["استلقِ على البطن ثم ارتفع على الساعدين.", "حافظ على الجسم في خط مستقيم واحد.", "شد عضلات البطن طول الوقت.", "تنفس بشكل طبيعي وثبّت المدة المطلوبة (بالثواني)."] },
     { id: "hanging-leg-raise", name: "رفع أرجل معلق", muscle: "core", muscleLabel: "بطن سفلي", secondary: "", sets: 3, reps: 12, custom: false, equipment: "وزن الجسم", difficulty: "متقدم", description: "يستهدف البطن السفلي بشكل مباشر وفعّال جدًا.", instructions: ["علّق نفسك من البار بذراعين مفرودتين.", "ارفع الأرجل لأعلى دون تأرجح.", "اضغط البطن في القمة.", "أنزل ببطء وتحكم تام."] },
     { id: "cable-crunch", name: "كرانش كابل", muscle: "core", muscleLabel: "بطن علوي", secondary: "", sets: 3, reps: 15, custom: false, equipment: "كابل", difficulty: "متوسط", description: "يسمح بإضافة مقاومة تدريجية على البطن العلوي.", instructions: ["اركع أمام البكرة وامسك الحبل خلف الرقبة.", "انحنِ للأمام بالانقباض على البطن فقط.", "لا تستخدم الذراعين أو الوركين للسحب.", "ارجع ببطء للوضع المستقيم."] },
+    ...EXTRA_EXERCISES,
   ];
 
   const MUSCLE_META = {
