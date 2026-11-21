@@ -4,6 +4,8 @@ import { useI18n } from "../../hooks/useI18n";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import ProgramDetailSheet from "./ProgramDetailSheet";
 
+const GOALS = [["all", "الكل"], ["bulk", "تضخيم"], ["cut", "تنشيف"], ["strength", "قوة"], ["fitness", "لياقة"]];
+const GOAL_LABEL = Object.fromEntries(GOALS);
 const LEVEL_CLASS = { "مبتدئ": "lvl-beginner", "متوسط": "lvl-inter", "متقدم": "lvl-advanced" };
 const LEVEL_BARS = { "مبتدئ": 1, "متوسط": 2, "متقدم": 3 };
 
@@ -23,10 +25,12 @@ export default function Programs() {
   const refresh = () => setVersion((v) => v + 1);
   const { t } = useI18n();
   const [detailId, setDetailId] = useState(null);
+  const [goal, setGoal] = useState("all");
 
   const programs = useMemo(() => Store.getPrograms(), [version]);
   const active = useMemo(() => Store.getActiveProgram(), [version]);
   const recommendedId = useMemo(() => Store.getRecommendedProgramId(), [version]);
+  const shown = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
   const detailProgram = detailId ? programs.find((p) => p.id === detailId) : null;
 
   function handleApply(id) {
@@ -54,7 +58,15 @@ export default function Programs() {
         </div>
       )}
 
-      {programs.map((p) => {
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "4px 0 10px" }} role="tablist" aria-label="الهدف">
+        {GOALS.map(([id, label]) => (
+          <button key={id} type="button" role="tab" aria-selected={goal === id} onClick={() => setGoal(id)}
+            style={{ whiteSpace: "nowrap", padding: "7px 14px", borderRadius: 999, fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit",
+              border: "1px solid var(--border-soft)", background: goal === id ? "var(--accent-text)" : "none", color: goal === id ? "#fff" : "inherit" }}>{label}</button>
+        ))}
+      </div>
+
+      {shown.map((p) => {
         const isActive = active && active.id === p.id;
         const isRecommended = recommendedId === p.id && !isActive;
         return (
@@ -63,7 +75,7 @@ export default function Programs() {
             <div className="prog-head">
               <div>
                 <p className="prog-name">{p.name}</p>
-                <div className="prog-days-count">{p.daysPerWeek}</div>
+                <div className="prog-days-count">{p.daysPerWeek}{p.goal ? ` · ${GOAL_LABEL[p.goal]}` : ""}</div>
               </div>
               <div className="prog-level-wrap">
                 <LevelMeter level={p.level} />

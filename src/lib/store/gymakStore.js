@@ -47,6 +47,17 @@ const KEY = "gymak_state_v1";
   // exercise ids from SEED_EXERCISES — this is what lets "تطبيق البرنامج"
   // generate a real, ready-to-train schedule instead of just category labels.
   const PROGRAM_TEMPLATES = {
+    "strength-5x5": [
+      { title: "قوة A", exerciseIds: ["squat-barbell", "bench-press-barbell", "barbell-row"] },
+      { title: "قوة B", exerciseIds: ["squat-barbell", "shoulder-press-barbell", "deadlift"] },
+      { title: "قوة C", exerciseIds: ["squat-barbell", "bench-press-barbell", "barbell-row"] },
+    ],
+    "fat-loss": [
+      { title: "جسم كامل 1", exerciseIds: ["goblet-squat", "pushup", "one-arm-dumbbell-row", "plank"] },
+      { title: "جسم كامل 2", exerciseIds: ["leg-press", "dumbbell-bench-press", "lat-pulldown", "hanging-leg-raise"] },
+      { title: "جسم كامل 3", exerciseIds: ["romanian-deadlift", "shoulder-press-barbell", "seated-cable-row", "cable-crunch"] },
+      { title: "كور وتحمل", exerciseIds: ["dumbbell-lunges", "pushup", "plank", "hanging-leg-raise", "crunch"] },
+    ],
     "arnold-split": [
       { title: "صدر وظهر", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "cable-crossover", "dumbbell-fly", "lat-pulldown", "barbell-row", "seated-cable-row"] },
       { title: "أكتاف وذراعين", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "rear-delt-fly", "front-raise", "barbell-curl", "tricep-pushdown", "skullcrusher"] },
@@ -75,24 +86,34 @@ const KEY = "gymak_state_v1";
 
   const PROGRAMS = [
     {
-      id: "arnold-split", name: "Arnold Split", level: "متقدم", daysPerWeek: "6 أيام / أسبوع",
+      id: "arnold-split", goal: "bulk", name: "Arnold Split", level: "متقدم", daysPerWeek: "6 أيام / أسبوع",
       dayChips: ["صدر وظهر", "أكتاف وذراعين", "أرجل", "×2 تكرار"],
       desc: "برنامج آرنولد شوارزنيغر الكلاسيكي، يركّز على تدريب كل عضلة مرتين أسبوعيًا بحجم تدريبي عالي. مناسب لمن عنده خبرة سابقة وقادر على التمرين 6 أيام.",
     },
     {
-      id: "push-pull-legs", name: "Push Pull Legs", level: "متوسط", daysPerWeek: "5-6 أيام / أسبوع",
+      id: "push-pull-legs", goal: "bulk", name: "Push Pull Legs", level: "متوسط", daysPerWeek: "5-6 أيام / أسبوع",
       dayChips: ["دفع (صدر/أكتاف/ترايسبس)", "سحب (ظهر/بايسبس)", "أرجل"],
       desc: "تقسيم شائع وفعّال بيقسم التمارين حسب حركة العضلة (دفع/سحب/أرجل) بدل العضلة نفسها، وده بيدي راحة أفضل وتكرار مناسب.",
     },
     {
-      id: "upper-lower", name: "Upper Lower", level: "مبتدئ", daysPerWeek: "4 أيام / أسبوع",
+      id: "upper-lower", goal: "strength", name: "Upper Lower", level: "مبتدئ", daysPerWeek: "4 أيام / أسبوع",
       dayChips: ["علوي 1", "سفلي 1", "علوي 2", "سفلي 2"],
       desc: "تقسيم بسيط يناسب اللي وقته محدود — 4 أيام بس في الأسبوع، وبيدي توازن كويس بين الجزء العلوي والسفلي مع راحة كافية.",
     },
     {
-      id: "full-body", name: "Full Body", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع",
+      id: "full-body", goal: "fitness", name: "Full Body", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع",
       dayChips: ["جسم كامل A", "جسم كامل B", "جسم كامل C"],
       desc: "أفضل اختيار لو بتبدأ لأول مرة أو وقتك محدود جدًا. كل جلسة بتشغّل الجسم كله بحركات أساسية مركّبة.",
+    },
+    {
+      id: "strength-5x5", goal: "strength", name: "Strength 5x5", level: "متوسط", daysPerWeek: "3 أيام / أسبوع",
+      dayChips: ["قوة A", "قوة B", "قوة C"],
+      desc: "برنامج قوة بسيط: حركات تقيلة أساسية (سكوات، بنش، ديدلفت) وزيادة الوزن شوية كل جلسة. مناسب لو هدفك تزود قوتك بسرعة.",
+    },
+    {
+      id: "fat-loss", goal: "cut", name: "تنشيف وحرق دهون", level: "مبتدئ", daysPerWeek: "4 أيام / أسبوع",
+      dayChips: ["جسم كامل 1", "جسم كامل 2", "جسم كامل 3", "كور وتحمل"],
+      desc: "تمارين مركبة براحة قليلة تحرق سعرات أكتر، مع يوم كور. اتبعه مع عجز بسيط في السعرات ومشي يومي عشان النتيجة تبان.",
     },
   ];
 
