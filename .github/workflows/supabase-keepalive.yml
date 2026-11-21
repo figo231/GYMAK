@@ -1,0 +1,22 @@
+name: Supabase keep-alive
+
+# Supabase free-tier projects pause after ~7 days without activity.
+# This pings the project's public REST endpoint twice a week so it never idles.
+on:
+  schedule:
+    - cron: "17 6 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        env:
+          # Public client values (already shipped in the web bundle). Never put the service_role key here.
+          SUPABASE_URL: https://ybkeshztehjeoeonpkih.supabase.co
+          SUPABASE_KEY: sb_publishable_31f3-3abpX_TJnYLo6VLPw_CehzA88G
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/")
+          echo "HTTP $code"
+          case "$code" in 2*|401|403|404) exit 0 ;; *) exit 1 ;; esac
