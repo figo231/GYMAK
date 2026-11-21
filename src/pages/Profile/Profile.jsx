@@ -390,4 +390,4 @@ export default function Profile() {
       {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}
     </>
   );
-    }
+}
