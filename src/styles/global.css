@@ -29,7 +29,7 @@ a { color: inherit; }
     var(--bg-deep);
 }
 
-.app { max-width: 480px; margin: 0 auto; padding: calc(14px + var(--sat)) calc(14px + var(--sar)) 100px calc(14px + var(--sal)); position: relative; }
+.app { max-width: 480px; margin: 0 auto; padding: calc(14px + var(--sat)) calc(14px + var(--sar)) calc(130px + var(--sab)) calc(14px + var(--sal)); position: relative; }
 
 /* ===== Glass card base ===== */
 .glass {
