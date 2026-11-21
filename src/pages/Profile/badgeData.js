@@ -11,7 +11,7 @@ export const BADGE_STYLE = {
 };
 
 export const GRADIENTS = {
-  g1: "linear-gradient(120deg, rgba(37,99,235,0.85), rgba(124,58,237,0.85))",
+  g1: "linear-gradient(120deg, rgba(20,17,10,0.95), rgba(166,124,46,0.85) 60%, rgba(230,200,119,0.9))",
   g2: "linear-gradient(120deg, rgba(236,72,153,0.85), rgba(249,115,22,0.85))",
   g3: "linear-gradient(120deg, rgba(20,184,166,0.85), rgba(59,130,246,0.85))",
   g4: "linear-gradient(120deg, rgba(239,68,68,0.85), rgba(234,179,8,0.85))",
