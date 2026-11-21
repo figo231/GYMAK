@@ -55,22 +55,22 @@ export default function RestTimer() {
   return (
     <div role="status" aria-live="polite" style={{
       position: "fixed", insetInline: 12, bottom: "calc(84px + env(safe-area-inset-bottom, 0px))", zIndex: 60,
-      background: "rgba(20,18,12,.94)", border: "1px solid var(--border-soft)", borderRadius: 16, padding: "10px 14px",
+      background: "rgba(20,18,12,.96)", color: "#f6efdc", border: "1px solid rgba(217,184,99,.35)", borderRadius: 16, padding: "10px 14px",
       display: "flex", alignItems: "center", gap: 12, backdropFilter: "blur(12px)", boxShadow: "0 8px 30px rgba(0,0,0,.45)",
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, opacity: 0.75 }}>{finished ? "الراحة خلصت، كمّل المجموعة الجاية 💪" : "وقت الراحة"}</div>
-        <div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: "var(--accent-text)" }}>{fmtClock(left)}</div>
+        <div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: "#e3c06a" }}>{fmtClock(left)}</div>
         <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,.1)", marginTop: 4 }}>
-          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: "var(--accent-text)", transition: "width .25s linear" }} />
+          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: "#e3c06a", transition: "width .25s linear" }} />
         </div>
       </div>
       {!finished && (
         <button type="button" onClick={() => { const n = endAt + 15000; setEndAt(n); setTotal((t) => t + 15); }}
-          style={{ background: "none", border: "1px solid var(--border-soft)", color: "inherit", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>+15</button>
+          style={{ background: "none", border: "1px solid rgba(217,184,99,.5)", color: "#f6efdc", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>+15</button>
       )}
       <button type="button" onClick={() => setEndAt(0)}
-        style={{ background: "none", border: "1px solid var(--border-soft)", color: "inherit", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>{finished ? "تمام" : "تخطي"}</button>
+        style={{ background: "none", border: "1px solid rgba(217,184,99,.5)", color: "#f6efdc", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>{finished ? "تمام" : "تخطي"}</button>
     </div>
   );
 }
