@@ -1,3 +1,5 @@
+@import "./tokens.css";
+
 :root {
   /* Safe-area insets: browsers/iOS expose env(); the Capacitor SystemBars plugin
      injects --safe-area-inset-* on Android. Take whichever is larger (never sum). */
@@ -6,7 +8,6 @@
   --sal: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
   --sar: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
 }
-@import "./tokens.css";
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { margin: 0; padding: 0; background: var(--bg-deep); min-height: 100vh; }
@@ -910,3 +911,9 @@ a.glass:active, .glass[role="button"]:active, .prog-card:active { transform: sca
   background: rgba(var(--ink), 0.04); border: 1px solid var(--border-soft); color: var(--text-secondary); transition: all .15s ease;
 }
 .prog-scope-opt.active { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: #fff; border-color: transparent; }
+
+/* Solid strip behind the Android status bar so scrolled content never shows under its icons. */
+body::before {
+  content: ""; position: fixed; top: 0; left: 0; right: 0; height: var(--sat);
+  background: var(--bg-deep); z-index: 2000; pointer-events: none;
+}
