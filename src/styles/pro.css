@@ -1,37 +1,39 @@
 /* =========================================================
-   GYMAK Pro look (applied app-wide).
-   Turned on by adding the class "pro-ui" to <html>.
-   Direction: solid graphite cards, hairline borders, big tabular
-   numbers, one electric-orange accent plus lime for progress.
+   GYMAK Luxe: champagne gold on near-black (app-wide).
+   Turned on by the class "pro-ui" on <html>.
+   Change the accent by editing --glow-blue / --glow-purple / --acc-rgb / --acc2-rgb / --on-acc only.
    ========================================================= */
 html.pro-ui {
-  --bg-deep: #F6F5F2; --bg-deep-2: #FFFFFF; --bg-deep-rgb: 246, 245, 242;
+  --bg-deep: #F7F4EC; --bg-deep-2: #FFFFFF; --bg-deep-rgb: 247, 244, 236;
   --card-glass: #FFFFFF; --card-glass-strong: #FFFFFF;
-  --border-soft: #E7E4DE; --glass-shadow: 0 1px 2px rgba(20,18,14,.05); --glass-sheen: transparent;
-  --nav-pill-bg: #FFFFFF;
-  --text-primary: #16140F; --text-secondary: #5E5A52; --text-dim: #8F8A80;
-  --glow-blue: #FF5A1F; --accent-text: #D9430A; --accent-text-soft: #E8501A;
+  --border-soft: #E8E0CC; --glass-shadow: 0 1px 2px rgba(60,44,10,.06); --glass-sheen: transparent;
+  --nav-pill-bg: #FFFFFF; --media-bg: #EFE9D8;
+  --text-primary: #1A1608; --text-secondary: #62594A; --text-dim: #8C8370;
+  --glow-blue: #A67C2E; --glow-purple: #D4B160; --acc-rgb: 166, 124, 46; --acc2-rgb: 212, 177, 96;
+  --accent-text: #85601A; --accent-text-soft: #9A7224; --on-acc: #1A1408;
   --lime: #4D7C0F; --lime-bg: rgba(101, 163, 13, .13);
+  --toast-bg: rgba(18, 17, 16, .95);
 }
-html.pro-ui:not([data-theme="light"]) { }
 @media (prefers-color-scheme: dark) {
   html.pro-ui:not([data-theme="light"]) {
-    --bg-deep: #0A0A0B; --bg-deep-2: #141416; --bg-deep-rgb: 10, 10, 11;
-    --card-glass: #141416; --card-glass-strong: #1A1A1D;
-    --border-soft: #26262B; --glass-shadow: none; --glass-sheen: transparent;
-    --nav-pill-bg: #141416;
-    --text-primary: #F5F5F4; --text-secondary: #A3A3A8; --text-dim: #6C6C73;
-    --glow-blue: #FF5A1F; --accent-text: #FF8A5C; --accent-text-soft: #FF7A45;
+    --bg-deep: #070706; --bg-deep-2: #0F0E0C; --bg-deep-rgb: 7, 7, 6; --media-bg: #171510;
+    --card-glass: #121110; --card-glass-strong: #1A1814;
+    --border-soft: #2A2418; --glass-shadow: none; --glass-sheen: transparent;
+    --nav-pill-bg: #121110;
+    --text-primary: #F5EFE0; --text-secondary: #B9AE96; --text-dim: #7D7461;
+    --glow-blue: #C9A24B; --glow-purple: #E6C877; --acc-rgb: 201, 162, 75; --acc2-rgb: 230, 200, 119;
+    --accent-text: #E6C877; --accent-text-soft: #D4B160; --on-acc: #1A1408;
     --lime: #C6F135; --lime-bg: rgba(198, 241, 53, .12);
   }
 }
 html.pro-ui[data-theme="dark"] {
-  --bg-deep: #0A0A0B; --bg-deep-2: #141416; --bg-deep-rgb: 10, 10, 11;
-  --card-glass: #141416; --card-glass-strong: #1A1A1D;
-  --border-soft: #26262B; --glass-shadow: none; --glass-sheen: transparent;
-  --nav-pill-bg: #141416;
-  --text-primary: #F5F5F4; --text-secondary: #A3A3A8; --text-dim: #6C6C73;
-  --glow-blue: #FF5A1F; --accent-text: #FF8A5C; --accent-text-soft: #FF7A45;
+  --bg-deep: #070706; --bg-deep-2: #0F0E0C; --bg-deep-rgb: 7, 7, 6; --media-bg: #171510;
+  --card-glass: #121110; --card-glass-strong: #1A1814;
+  --border-soft: #2A2418; --glass-shadow: none; --glass-sheen: transparent;
+  --nav-pill-bg: #121110;
+  --text-primary: #F5EFE0; --text-secondary: #B9AE96; --text-dim: #7D7461;
+  --glow-blue: #C9A24B; --glow-purple: #E6C877; --acc-rgb: 201, 162, 75; --acc2-rgb: 230, 200, 119;
+  --accent-text: #E6C877; --accent-text-soft: #D4B160; --on-acc: #1A1408;
   --lime: #C6F135; --lime-bg: rgba(198, 241, 53, .12);
 }
 
@@ -46,7 +48,7 @@ html.pro-ui .glass::before { display: none; }
 /* header */
 html.pro-ui .header { padding: 6px 2px 18px; gap: 14px; }
 html.pro-ui .avatar-ring { background: none; border: 2px solid var(--glow-blue); padding: 2px; }
-html.pro-ui .level-badge { background: var(--glow-blue); color: #fff; border: 2px solid var(--bg-deep); font-weight: 800; }
+html.pro-ui .level-badge { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: var(--on-acc); border: 2px solid var(--bg-deep); font-weight: 800; }
 html.pro-ui .header-name { font-size: 19px; font-weight: 800; letter-spacing: 0; }
 html.pro-ui .header-sub { font-size: 11.5px; }
 html.pro-ui .xp-track { height: 6px; background: var(--border-soft); }
@@ -55,11 +57,11 @@ html.pro-ui .header-icon-btn { border-radius: 14px; background: var(--card-glass
 
 /* streak: the hero card */
 html.pro-ui .streak-card { padding: 18px 16px; border-radius: 20px; background: var(--card-glass); }
-html.pro-ui .streak-flame { background: rgba(255, 90, 31, .12); border: none; width: 52px; height: 52px; border-radius: 16px; }
+html.pro-ui .streak-flame { background: rgba(var(--acc-rgb), .14); border: none; width: 52px; height: 52px; border-radius: 16px; }
 html.pro-ui .streak-num { font-size: 40px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 html.pro-ui .streak-label { font-size: 13px; }
 html.pro-ui .sw-day { border-radius: 10px; background: transparent; border: 1px solid var(--border-soft); color: var(--text-dim); }
-html.pro-ui .sw-day.on { background: var(--glow-blue); color: #fff; border-color: var(--glow-blue); box-shadow: none; }
+html.pro-ui .sw-day.on { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: var(--on-acc); border-color: var(--glow-blue); box-shadow: none; }
 html.pro-ui .sw-day.today { box-shadow: 0 0 0 2px var(--bg-deep), 0 0 0 3.5px var(--glow-blue); transform: none; }
 html.pro-ui .streak-record { border-right: 1px solid var(--border-soft); }
 html.pro-ui .rec-num { color: var(--text-primary); font-weight: 900; }
@@ -70,10 +72,10 @@ html.pro-ui .weight-num { font-size: 44px; font-variant-numeric: tabular-nums; l
 html.pro-ui .weight-diff.down { color: var(--lime); background: var(--lime-bg); }
 html.pro-ui .weight-diff.up { color: var(--danger); background: rgba(244, 63, 94, .12); }
 html.pro-ui .qa-tile { border-radius: 18px; background: var(--card-glass); }
-html.pro-ui .qa-tile-icon { background: rgba(255, 90, 31, .12) !important; border-radius: 12px; }
-html.pro-ui .qa-tile:first-child { background: var(--glow-blue); border-color: var(--glow-blue); color: #fff; }
-html.pro-ui .qa-tile:first-child .qa-tile-icon { background: rgba(255,255,255,.2) !important; }
-html.pro-ui .qa-tile:first-child svg { stroke: #fff; }
+html.pro-ui .qa-tile-icon { background: rgba(var(--acc-rgb), .14) !important; border-radius: 12px; }
+html.pro-ui .qa-tile:first-child { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); border-color: var(--glow-blue); color: var(--on-acc); }
+html.pro-ui .qa-tile:first-child .qa-tile-icon { background: rgba(26,20,8,.15) !important; }
+html.pro-ui .qa-tile:first-child svg { stroke: var(--on-acc); }
 
 /* section headings */
 html.pro-ui .section-title { margin: 26px 2px 12px; }
@@ -93,11 +95,11 @@ html.pro-ui .plan-weight { color: var(--text-primary); font-size: 13px; font-var
 html.pro-ui .bottom-nav { background: linear-gradient(to top, var(--bg-deep) 70%, transparent); }
 html.pro-ui .bottom-nav-inner { border-radius: 20px; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; background: var(--card-glass); padding: 6px; }
 html.pro-ui .nav-item { border-radius: 14px; }
-html.pro-ui .nav-item.active { background: rgba(255, 90, 31, .14); color: var(--accent-text); box-shadow: none; }
+html.pro-ui .nav-item.active { background: rgba(var(--acc-rgb), .16); color: var(--accent-text); box-shadow: none; }
 
 /* ---- rollout: other screens ---- */
 html.pro-ui .chip { background: var(--card-glass); border: 1px solid var(--border-soft); box-shadow: none; border-radius: 12px; }
-html.pro-ui .chip.active { background: var(--glow-blue); color: #fff; border-color: var(--glow-blue); box-shadow: none; }
+html.pro-ui .chip.active { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: var(--on-acc); border-color: var(--glow-blue); box-shadow: none; }
 html.pro-ui .chip .dot { box-shadow: none; }
 html.pro-ui .page-title { font-weight: 900; letter-spacing: 0; }
 html.pro-ui .back-btn { background: var(--card-glass); border-color: var(--border-soft); border-radius: 14px; box-shadow: none; }
@@ -105,11 +107,21 @@ html.pro-ui .top-bar { border-bottom-color: var(--border-soft); }
 html.pro-ui .modal-backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(0,0,0,.55); }
 html.pro-ui .detail-sheet, html.pro-ui .sheet { background: var(--bg-deep-2); border-color: var(--border-soft); box-shadow: none; }
 html.pro-ui .pwa-update-toast { background: var(--card-glass-strong); border: 1px solid var(--border-soft); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
-html.pro-ui .pwa-update-btn { background: var(--glow-blue); color: #fff; border: none; }
+html.pro-ui .pwa-update-btn { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: var(--on-acc); border: none; }
 html.pro-ui .bottom-nav-inner { border: 1px solid var(--border-soft); }
 html.pro-ui input, html.pro-ui select, html.pro-ui textarea { border-radius: 12px; }
 html.pro-ui .btn-primary, html.pro-ui .btn-apply { background: var(--glow-blue); box-shadow: none; }
 html.pro-ui .sheet-panel { background: var(--bg-deep-2); border-color: var(--border-soft); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 html.pro-ui .sheet-overlay { backdrop-filter: none; -webkit-backdrop-filter: none; }
-html.pro-ui .add-btn { background: var(--glow-blue); border: none; color: #fff; box-shadow: none; border-radius: 14px; }
-html.pro-ui .add-btn svg { stroke: #fff; }
+html.pro-ui .add-btn { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); border: none; color: var(--on-acc); box-shadow: none; border-radius: 14px; }
+html.pro-ui .add-btn svg { stroke: var(--on-acc); }
+
+/* gold buttons: dark text, gradient */
+html.pro-ui .btn-primary, html.pro-ui .btn-apply, html.pro-ui .add-btn, html.pro-ui .seg-option.active,
+html.pro-ui .share-btn, html.pro-ui .prog-scope-opt.active, html.pro-ui .detail-day-num, html.pro-ui .send-btn,
+html.pro-ui .msg-row.me .msg-bubble, html.pro-ui .level-badge, html.pro-ui .m-tag.hot { color: var(--on-acc); }
+html.pro-ui .btn-primary, html.pro-ui .btn-apply, html.pro-ui .pwa-update-btn { background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); color: var(--on-acc); font-weight: 800; }
+html.pro-ui .send-btn svg, html.pro-ui .coach-ic svg { stroke: var(--on-acc); }
+html.pro-ui .toast { border: 1px solid rgba(var(--acc-rgb), .35); }
+html.pro-ui .badge-card.locked { opacity: .55; }
+html.pro-ui .pwa-update-toast { border-color: rgba(var(--acc-rgb), .4); }

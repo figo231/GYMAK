@@ -11,7 +11,7 @@ const PERIODS = [
   { days: 365, label: "سنة" },
 ];
 
-const STRENGTH_COLORS = ["#FF7A3D,#FFC9A3", "#22C55E,#86EFAC", "#FFA35E,#FFE0C7", "#F59E0B,#FDE68A", "#EC4899,#FBCFE8"];
+const STRENGTH_COLORS = ["#C9A24B,#F1DFA8", "#22C55E,#86EFAC", "#A67C2E,#E6C877", "#F59E0B,#FDE68A", "#EC4899,#FBCFE8"];
 
 export default function Stats() {
   const [version] = useStoreVersion();
@@ -56,7 +56,7 @@ export default function Stats() {
 
       <div className="summary-grid">
         <div className="glass sum-card">
-          <div className="sum-icon" style={{ background: "rgba(255, 107, 44, 0.14)" }}>
+          <div className="sum-icon" style={{ background: "rgba(var(--acc-rgb), 0.14)" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg>
           </div>
           <div className="sum-val">{summary.sets}</div>
@@ -183,4 +183,4 @@ export default function Stats() {
       </div>
     </>
   );
-}
+                                                     }
