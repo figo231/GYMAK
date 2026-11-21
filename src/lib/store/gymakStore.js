@@ -1149,15 +1149,26 @@ const KEY = "gymak_state_v1";
       const goalHit = s.goalWeight != null && s.weightLogs.length > 0 &&
         Math.abs(s.weightLogs.at(-1).weight - s.goalWeight) <= 0.5;
 
+      const days = s.workoutDays.length;
+      const foodDays = (s.foodLog || []).length;
+      const weighIns = s.weightLogs.length;
+      const prs = s.prHistory.length;
+      const tier = (id, name, cur, target) => ({ id, name, unlocked: cur >= target, progress: Math.min(cur, target), target });
       return [
-        { id: "streak7", name: "أسبوع كامل", unlocked: bestStreak >= 7 },
-        { id: "streak14", name: "14 يوم متتالي", unlocked: bestStreak >= 14 },
-        { id: "streak30", name: "30 يوم متتالي", unlocked: bestStreak >= 30 },
-        { id: "sets10", name: "10 مجموعات مسجّلة", unlocked: totalSets >= 10 },
-        { id: "sets50", name: "50 مجموعة مسجّلة", unlocked: totalSets >= 50 },
-        { id: "sets100", name: "100 مجموعة مسجّلة", unlocked: totalSets >= 100 },
-        { id: "level5", name: "مستوى 5", unlocked: level >= 5 },
-        { id: "firstPR", name: "أول رقم قياسي", unlocked: hasPR },
+        tier("streak7", "أسبوع كامل", bestStreak, 7),
+        tier("streak14", "14 يوم متتالي", bestStreak, 14),
+        tier("streak30", "30 يوم متتالي", bestStreak, 30),
+        tier("sets10", "10 مجموعات مسجّلة", totalSets, 10),
+        tier("sets50", "50 مجموعة مسجّلة", totalSets, 50),
+        tier("sets100", "100 مجموعة مسجّلة", totalSets, 100),
+        tier("days10", "10 أيام تمرين", days, 10),
+        tier("days30", "30 يوم تمرين", days, 30),
+        tier("days100", "100 يوم تمرين", days, 100),
+        tier("food7", "سجّلت أكلك 7 أيام", foodDays, 7),
+        tier("weigh7", "7 مرات وزن", weighIns, 7),
+        tier("level5", "مستوى 5", level, 5),
+        tier("firstPR", "أول رقم قياسي", prs, 1),
+        tier("pr5", "5 أرقام قياسية", prs, 5),
         { id: "goal", name: "تحقيق هدف الوزن", unlocked: goalHit },
       ];
     },

@@ -8,11 +8,13 @@ function BadgePaths({ path, fill }) {
   );
 }
 
+const FALLBACK = { days10: "sets10", days30: "sets50", days100: "sets100", food7: "streak7", weigh7: "streak14", pr5: "firstPR" };
+
 export default function AchievementsGrid({ achievements }) {
   return (
     <div className="badge-grid">
       {achievements.map((a) => {
-        const style = BADGE_STYLE[a.id];
+        const style = BADGE_STYLE[a.id] || BADGE_STYLE[FALLBACK[a.id]] || BADGE_STYLE.streak7;
         if (a.unlocked) {
           return (
             <div className="badge-card" key={a.id}>
@@ -32,6 +34,7 @@ export default function AchievementsGrid({ achievements }) {
               </svg>
             </div>
             <div className="badge-name">{a.name}</div>
+            {a.target > 1 && <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>{a.progress}/{a.target}</div>}
           </div>
         );
       })}
