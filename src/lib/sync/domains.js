@@ -179,7 +179,7 @@ export async function pushExerciseLogs(userId) {
     });
   });
   if (!rows.length) return { dropped };
-  const { error } = await supabase.from("exercise_logs").upsert(rows, { onConflict: "id" });
+  const { error } = await supabase.from("exercise_logs").upsert(rows, { onConflict: "id", ignoreDuplicates: true });
   if (error) throw error;
   return { dropped };
 }
@@ -209,7 +209,7 @@ export async function pushPRHistory(userId) {
     id: deterministicId("pr", userId, p.exerciseId, p.date, p.weight, p.prevWeight),
     user_id: userId, exercise_id: p.exerciseId, exercise_name: p.exerciseName, weight: p.weight, prev_weight: p.prevWeight, date: p.date,
   }));
-  const { error } = await supabase.from("pr_history").upsert(rows, { onConflict: "id" });
+  const { error } = await supabase.from("pr_history").upsert(rows, { onConflict: "id", ignoreDuplicates: true });
   if (error) throw error;
   return { dropped };
 }
@@ -232,7 +232,7 @@ export async function pushWorkoutDays(userId) {
   const dropped = s.workoutDays.length - valid.length;
   if (!valid.length) return { dropped };
   const rows = valid.map((date) => ({ user_id: userId, date }));
-  const { error } = await supabase.from("workout_days").upsert(rows, { onConflict: "user_id,date" });
+  const { error } = await supabase.from("workout_days").upsert(rows, { onConflict: "user_id,date", ignoreDuplicates: true });
   if (error) throw error;
   return { dropped };
 }
@@ -264,4 +264,4 @@ export async function pullAll(userId) {
     pullExerciseLogs(userId), pullPRHistory(userId), pullWorkoutDays(userId),
   ]);
   return results.reduce((sum, r) => sum + r.dropped, 0);
-}
+                         }
