@@ -31,6 +31,9 @@ const KEY = "gymak_state_v1";
       activeProgramId: null,
       foodLog: [], // {date, items:[{name,grams,kcal,protein,carbs,fat}], totalKcal, totalProtein, totalCarbs, totalFat}
       settings: { unit: "kg", notifEnabled: false, notifTime: "19:00", lang: "ar" },
+      // Local deletions not yet confirmed on the server (see Store.deleteXxx and sync/domains.js).
+      // Stops a pull from resurrecting a row the user deleted while offline.
+      pendingDeletes: { weight: [], food: [], exerciseLogs: [], prs: [] },
     };
   }
 
@@ -530,6 +533,8 @@ const KEY = "gymak_state_v1";
       if (parsed.settings.lang === undefined) parsed.settings.lang = "ar";
       if (!parsed.foodLog) parsed.foodLog = [];
       if (!parsed.deletedExerciseIds) parsed.deletedExerciseIds = [];
+      if (!parsed.pendingDeletes) parsed.pendingDeletes = { weight: [], food: [], exerciseLogs: [], prs: [] };
+      for (const k of ["weight", "food", "exerciseLogs", "prs"]) if (!parsed.pendingDeletes[k]) parsed.pendingDeletes[k] = [];
       // Backfill: merge any newly-added built-in exercises (and new fields on
       // already-known ones) into existing users' libraries. Never touches
       // custom exercises the user added themselves, and respects exercises
@@ -1174,6 +1179,200 @@ const KEY = "gymak_state_v1";
     t(key) { return tr(key); },
     applyI18n() { applyI18n(); },
 
+    // =========================================================
+    // Edit / delete log entries (with undo)
+    // Every delete* returns an undo snapshot; pass it to restore(). Deletes
+    // are also recorded in s.pendingDeletes so the sync layer can remove the
+    // remote row and so a pull can't bring the row back in the meantime.
+    // =========================================================
+    _tomb(s, list, key) {
+      if (!s.pendingDeletes[list].includes(key)) s.pendingDeletes[list].push(key);
+    },
+    _untomb(s, list, key) {
+      s.pendingDeletes[list] = s.pendingDeletes[list].filter((k) => k !== key);
+    },
+    getPendingDeletes() {
+      return load().pendingDeletes;
+    },
+    clearPendingDeletes(list, keys) {
+      const s = load();
+      const drop = new Set(keys);
+      s.pendingDeletes[list] = s.pendingDeletes[list].filter((k) => !drop.has(k));
+      save(s);
+    },
+
+    /** Newest first. */
+    getWeightEntries() {
+      return load().weightLogs.slice().reverse();
+    },
+    deleteWeightEntry(date) {
+      const s = load();
+      const entry = s.weightLogs.find((w) => w.date === date);
+      if (!entry) return null;
+      s.weightLogs = s.weightLogs.filter((w) => w.date !== date);
+      this._tomb(s, "weight", date);
+      save(s);
+      return { kind: "weight", entry: { ...entry } };
+    },
+    updateWeightEntry(date, weight, bodyFat) {
+      const s = load();
+      const entry = s.weightLogs.find((w) => w.date === date);
+      const w = Number(weight);
+      if (!entry || !(w > 0)) return null;
+      const before = { ...entry };
+      entry.weight = w;
+      if (bodyFat !== undefined) entry.bodyFat = bodyFat == null || bodyFat === "" ? null : Number(bodyFat);
+      save(s);
+      return { kind: "weight-edit", entry: before };
+    },
+
+    /** Today and past days that have food entries, newest first, with each item's index. */
+    getFoodDays() {
+      return load().foodLog.filter((f) => f.items && f.items.length).slice().reverse();
+    },
+    _recalcFoodDay(day) {
+      const sum = (k) => day.items.reduce((a, i) => a + (Number(i[k]) || 0), 0);
+      day.totalKcal = Math.round(sum("kcal"));
+      day.totalProtein = Math.round(sum("protein") * 10) / 10;
+      day.totalCarbs = Math.round(sum("carbs") * 10) / 10;
+      day.totalFat = Math.round(sum("fat") * 10) / 10;
+    },
+    deleteFoodItem(date, index) {
+      const s = load();
+      const day = s.foodLog.find((f) => f.date === date);
+      if (!day || !day.items[index]) return null;
+      const item = day.items[index];
+      day.items.splice(index, 1);
+      if (day.items.length === 0) {
+        s.foodLog = s.foodLog.filter((f) => f.date !== date);
+        this._tomb(s, "food", date);
+      } else {
+        this._recalcFoodDay(day);
+      }
+      save(s);
+      return { kind: "food", date, index, item: { ...item } };
+    },
+    /** Change the grams of one item; kcal/macros scale linearly. */
+    updateFoodItemGrams(date, index, grams) {
+      const s = load();
+      const day = s.foodLog.find((f) => f.date === date);
+      const g = Number(grams);
+      if (!day || !day.items[index] || !(g > 0)) return null;
+      const item = day.items[index];
+      const before = { ...item };
+      const ratio = item.grams > 0 ? g / item.grams : 1;
+      item.grams = g;
+      item.kcal = Math.round(item.kcal * ratio);
+      item.protein = Math.round(item.protein * ratio * 10) / 10;
+      item.carbs = Math.round(item.carbs * ratio * 10) / 10;
+      item.fat = Math.round(item.fat * ratio * 10) / 10;
+      this._recalcFoodDay(day);
+      save(s);
+      return { kind: "food-edit", date, index, item: before };
+    },
+
+    /** Flat list of every logged set, newest first. `i` is the index in that exercise's array. */
+    getExerciseLogEntries(limit = 200) {
+      const s = load();
+      const out = [];
+      Object.entries(s.exerciseLogs).forEach(([exerciseId, logs]) => {
+        const ex = (s.exercises || []).find((e) => e.id === exerciseId);
+        logs.forEach((l, i) => out.push({ exerciseId, name: ex ? ex.name : exerciseId, i, ...l }));
+      });
+      out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.i - a.i));
+      return out.slice(0, limit);
+    },
+    _logKey(exerciseId, l) {
+      return `${exerciseId}|${l.date}|${l.weight}|${l.sets}|${l.reps}`;
+    },
+    deleteExerciseLog(exerciseId, index) {
+      const s = load();
+      const logs = s.exerciseLogs[exerciseId];
+      if (!logs || !logs[index]) return null;
+      const [removed] = logs.splice(index, 1);
+      if (!logs.length) delete s.exerciseLogs[exerciseId];
+      const key = this._logKey(exerciseId, removed);
+      // another identical set may remain; only tombstone when none are left
+      const stillThere = (s.exerciseLogs[exerciseId] || []).some((l) => this._logKey(exerciseId, l) === key);
+      if (!stillThere) this._tomb(s, "exerciseLogs", key);
+      // drop the PR this set created, if any
+      let removedPR = null;
+      const pi = s.prHistory.findIndex((p) => p.exerciseId === exerciseId && p.date === removed.date && p.weight === removed.weight);
+      if (pi >= 0 && !stillThere) {
+        [removedPR] = s.prHistory.splice(pi, 1);
+        this._tomb(s, "prs", `${removedPR.exerciseId}|${removedPR.date}|${removedPR.weight}|${removedPR.prevWeight}`);
+      }
+      save(s);
+      return { kind: "exerciseLog", exerciseId, index, log: { ...removed }, pr: removedPR };
+    },
+    updateExerciseLog(exerciseId, index, { weight, sets, reps }) {
+      const s = load();
+      const logs = s.exerciseLogs[exerciseId];
+      if (!logs || !logs[index]) return null;
+      const w = Number(weight), st = Number(sets), r = Number(reps);
+      if (!(w >= 0) || !(st > 0) || !(r > 0)) return null;
+      const old = { ...logs[index] };
+      // delete the old row (tombstoned for sync), then write the new values in place
+      const oldKey = this._logKey(exerciseId, old);
+      logs[index] = { date: old.date, weight: w, sets: st, reps: r };
+      const stillThere = logs.some((l) => this._logKey(exerciseId, l) === oldKey);
+      if (!stillThere) this._tomb(s, "exerciseLogs", oldKey);
+      this._untomb(s, "exerciseLogs", this._logKey(exerciseId, logs[index]));
+      save(s);
+      return { kind: "exerciseLog-edit", exerciseId, index, log: old };
+    },
+
+    /** Undo anything returned by the delete and update methods above. */
+    restore(snap) {
+      if (!snap) return false;
+      const s = load();
+      if (snap.kind === "weight") {
+        s.weightLogs.push(snap.entry);
+        s.weightLogs.sort((a, b) => (a.date > b.date ? 1 : -1));
+        this._untomb(s, "weight", snap.entry.date);
+      } else if (snap.kind === "weight-edit") {
+        const e = s.weightLogs.find((w) => w.date === snap.entry.date);
+        if (e) Object.assign(e, snap.entry);
+      } else if (snap.kind === "food") {
+        let day = s.foodLog.find((f) => f.date === snap.date);
+        if (!day) {
+          day = { date: snap.date, items: [], totalKcal: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 };
+          s.foodLog.push(day);
+          s.foodLog.sort((a, b) => (a.date > b.date ? 1 : -1));
+        }
+        day.items.splice(Math.min(snap.index, day.items.length), 0, snap.item);
+        this._recalcFoodDay(day);
+        this._untomb(s, "food", snap.date);
+      } else if (snap.kind === "food-edit") {
+        const day = s.foodLog.find((f) => f.date === snap.date);
+        if (day && day.items[snap.index]) {
+          day.items[snap.index] = snap.item;
+          this._recalcFoodDay(day);
+        }
+      } else if (snap.kind === "exerciseLog") {
+        if (!s.exerciseLogs[snap.exerciseId]) s.exerciseLogs[snap.exerciseId] = [];
+        const arr = s.exerciseLogs[snap.exerciseId];
+        arr.splice(Math.min(snap.index, arr.length), 0, snap.log);
+        this._untomb(s, "exerciseLogs", this._logKey(snap.exerciseId, snap.log));
+        if (snap.pr) {
+          s.prHistory.push(snap.pr);
+          s.prHistory.sort((a, b) => (a.date < b.date ? 1 : -1));
+          this._untomb(s, "prs", `${snap.pr.exerciseId}|${snap.pr.date}|${snap.pr.weight}|${snap.pr.prevWeight}`);
+        }
+      } else if (snap.kind === "exerciseLog-edit") {
+        const arr = s.exerciseLogs[snap.exerciseId];
+        if (arr && arr[snap.index]) {
+          const cur = arr[snap.index];
+          arr[snap.index] = snap.log;
+          this._untomb(s, "exerciseLogs", this._logKey(snap.exerciseId, snap.log));
+          const curKey = this._logKey(snap.exerciseId, cur);
+          if (!arr.some((l) => this._logKey(snap.exerciseId, l) === curKey)) this._tomb(s, "exerciseLogs", curKey);
+        }
+      } else return false;
+      save(s);
+      return true;
+    },
+
     // ===== Danger zone =====
     resetAllData() {
       const fresh = defaultState();
@@ -1257,7 +1456,9 @@ const KEY = "gymak_state_v1";
     mergeWeightLogsFromRemote(remoteRows) {
       const s = load();
       const byDate = new Map(s.weightLogs.map((w) => [w.date, w]));
+      const gone = new Set(s.pendingDeletes.weight);
       remoteRows.forEach((r) => {
+        if (gone.has(r.date)) return; // deleted locally, delete not yet confirmed remotely
         byDate.set(r.date, { date: r.date, weight: Number(r.weight), bodyFat: r.body_fat != null ? Number(r.body_fat) : null });
       });
       s.weightLogs = Array.from(byDate.values()).sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -1267,7 +1468,9 @@ const KEY = "gymak_state_v1";
     mergeFoodLogFromRemote(remoteRows) {
       const s = load();
       const byDate = new Map(s.foodLog.map((f) => [f.date, f]));
+      const gone = new Set(s.pendingDeletes.food);
       remoteRows.forEach((r) => {
+        if (gone.has(r.date)) return;
         byDate.set(r.date, {
           date: r.date, items: r.items || [],
           totalKcal: Number(r.total_kcal) || 0, totalProtein: Number(r.total_protein) || 0,
@@ -1314,8 +1517,10 @@ const KEY = "gymak_state_v1";
       Object.entries(s.exerciseLogs).forEach(([exId, arr]) => {
         arr.forEach((l) => seen.add(`${exId}|${l.date}|${l.weight}|${l.sets}|${l.reps}`));
       });
+      const gone = new Set(s.pendingDeletes.exerciseLogs);
       remoteRows.forEach((r) => {
         const key = `${r.exercise_id}|${r.date}|${r.weight}|${r.sets}|${r.reps}`;
+        if (gone.has(key)) return;
         if (seen.has(key)) return;
         seen.add(key);
         if (!s.exerciseLogs[r.exercise_id]) s.exerciseLogs[r.exercise_id] = [];
@@ -1329,8 +1534,10 @@ const KEY = "gymak_state_v1";
     mergePRHistoryFromRemote(remoteRows) {
       const s = load();
       const seen = new Set(s.prHistory.map((p) => `${p.exerciseId}|${p.date}|${p.weight}|${p.prevWeight}`));
+      const gone = new Set(s.pendingDeletes.prs);
       remoteRows.forEach((r) => {
         const key = `${r.exercise_id}|${r.date}|${r.weight}|${r.prev_weight}`;
+        if (gone.has(key)) return;
         if (seen.has(key)) return;
         seen.add(key);
         s.prHistory.push({ exerciseId: r.exercise_id, exerciseName: r.exercise_name, weight: Number(r.weight), prevWeight: Number(r.prev_weight), date: r.date });
