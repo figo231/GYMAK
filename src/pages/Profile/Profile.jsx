@@ -181,7 +181,9 @@ export default function Profile() {
     setCheckingUpdate(true);
     try {
       const found = await UpdateService.checkForUpdate();
-      if (found) {
+      if (found && UpdateService.platform() === "apk") {
+        // The update sheet opens from the service event; nothing to apply here.
+      } else if (found) {
         // Download + activate + reload — no extra confirmation needed here,
         // the user already explicitly asked to update by tapping this row.
         UpdateService.applyUpdate();
@@ -328,6 +330,7 @@ export default function Profile() {
           </div>
           <span className="settings-name">التحقق من التحديثات</span>
           {checkingUpdate && <span className="settings-hint">بيدور...</span>}
+          {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
         <Link to="/history" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
@@ -391,4 +394,4 @@ export default function Profile() {
       {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}
     </>
   );
-            }
+                                      }
