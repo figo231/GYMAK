@@ -1,4 +1,3 @@
-import { PushNotifications } from "@capacitor/push-notifications";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "../supabaseClient";
 import pkg from "../../../package.json";
@@ -7,7 +6,7 @@ import pkg from "../../../package.json";
  * Push notification token lifecycle — Phase 1 scope only.
  *
  * Handles: requesting the Android 13+ notification permission, generating
- * an FCM token via Capacitor's PushNotifications plugin, keeping it fresh
+ * an FCM token via the @capacitor-firebase/messaging plugin, keeping it fresh
  * on rotation, persisting it to Supabase (public.push_tokens), and removing
  * it on logout.
  *
@@ -17,7 +16,7 @@ import pkg from "../../../package.json";
  * Note: Android's FCM SDK already delivers notifications to the system
  * tray automatically when the app is backgrounded or killed — that base
  * "receiving" behavior requires no JS code at all and works today, purely
- * from `PushNotifications.register()` having been called successfully.
+ * from `FirebaseMessaging.getToken()` having been called successfully.
  * Phase 3's "receiving" work is about *customizing* that behavior
  * (foreground in-app presentation, tap → deep link), not enabling it.
  *
@@ -29,7 +28,7 @@ import pkg from "../../../package.json";
  * is a sign the change belongs in the Admin Dashboard instead.
  *
  * Firebase-configured guard (critical — do not remove): calling
- * PushNotifications.register() when Firebase hasn't actually been set up
+ * FirebaseMessaging.getToken() when Firebase hasn't actually been set up
  * (no google-services.json at build time) crashes the app natively —
  * FirebaseMessaging throws IllegalStateException("Default FirebaseApp is
  * not initialized") deep inside the plugin's native code, on a thread this
@@ -65,7 +64,17 @@ import pkg from "../../../package.json";
     (the common case up through Phase 1) never attempts to touch FCM at
     all, which is what prevents the native crash at its source rather than
     trying to catch it after the fact. */
-const PUSH_ENABLED = import.meta.env.VITE_PUSH_ENABLED === "true";
+const PUSH_ENABLED = import.meta.env.VITE_PUSH_ENABLED !== "false";
+
+/** FCM topic every signed-in device joins. Must match the topic name used by
+    supabase/functions/send-notification ("everyone" audience). */
+/** Loaded lazily so the web/PWA bundle never pulls in the Firebase SDK. */
+async function getMessaging() {
+  const mod = await import("@capacitor-firebase/messaging");
+  return mod.FirebaseMessaging;
+}
+
+const BROADCAST_TOPIC = "all_users";
 
 const DEVICE_ID_KEY = "gymak_device_id_v1";
 
@@ -117,26 +126,29 @@ export async function registerForPush(userId) {
   currentUserId = userId;
 
   try {
-    const status = await PushNotifications.checkPermissions();
+    const FirebaseMessaging = await getMessaging();
+    const status = await FirebaseMessaging.checkPermissions();
     let granted = status.receive === "granted";
     if (!granted && status.receive !== "denied") {
-      const req = await PushNotifications.requestPermissions();
+      const req = await FirebaseMessaging.requestPermissions();
       granted = req.receive === "granted";
     }
     if (!granted) return; // user declined — nothing else to do this session
 
     if (!listenersRegistered) {
       listenersRegistered = true;
-      PushNotifications.addListener("registration", (token) => {
-        saveToken(token.value);
-      });
-      PushNotifications.addListener("registrationError", (err) => {
-        // eslint-disable-next-line no-console
-        console.error("[gymak push] registration error", err);
+      // Fires when FCM rotates the token. Keep the saved row fresh.
+      FirebaseMessaging.addListener("tokenReceived", (event) => {
+        saveToken(event.token);
       });
     }
 
-    await PushNotifications.register();
+    const { token } = await FirebaseMessaging.getToken();
+    await saveToken(token);
+
+    // Broadcast topic: lets the admin send to every user (Firebase Console or the
+    // send-notification function, which targets this same topic name).
+    await FirebaseMessaging.subscribeToTopic({ topic: BROADCAST_TOPIC });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[gymak push] setup failed", err);
@@ -151,6 +163,8 @@ export async function removePushToken() {
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
   try {
     await supabase.from("push_tokens").delete().eq("device_id", getDeviceId());
+    const FirebaseMessaging = await getMessaging();
+    await FirebaseMessaging.unsubscribeFromTopic({ topic: BROADCAST_TOPIC });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[gymak push] failed to remove token on logout", err);

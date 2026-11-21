@@ -17,6 +17,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then echo "Missing GOOGLE_SERVICES_JSON secret" >&2; exit 1; fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npx cap sync android
