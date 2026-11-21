@@ -11,7 +11,7 @@ const SLIDES = [
         <rect x="34" y="42" width="12" height="36" rx="4" fill="#fff" opacity="0.95" />
         <rect x="74" y="42" width="12" height="36" rx="4" fill="#fff" opacity="0.95" />
         <rect x="46" y="54" width="28" height="12" rx="5" fill="#fff" opacity="0.8" />
-        <defs><linearGradient id="ob-g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#FF6B2C" /><stop offset="100%" stopColor="#7C3AED" /></linearGradient></defs>
+        <defs><linearGradient id="ob-g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#E6C877" /><stop offset="100%" stopColor="#A67C2E" /></linearGradient></defs>
       </svg>
     ),
   },
@@ -36,10 +36,10 @@ const SLIDES = [
         <circle cx="60" cy="60" r="52" fill="url(#ob-g3)" />
         <rect x="34" y="40" width="52" height="34" rx="12" fill="#fff" opacity="0.95" />
         <path d="M46 74v10l14-10" fill="#fff" opacity="0.95" />
-        <circle cx="48" cy="57" r="4" fill="#7C3AED" />
-        <circle cx="60" cy="57" r="4" fill="#7C3AED" />
-        <circle cx="72" cy="57" r="4" fill="#7C3AED" />
-        <defs><linearGradient id="ob-g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#A855F7" /><stop offset="100%" stopColor="#EC4899" /></linearGradient></defs>
+        <circle cx="48" cy="57" r="4" fill="#A67C2E" />
+        <circle cx="60" cy="57" r="4" fill="#A67C2E" />
+        <circle cx="72" cy="57" r="4" fill="#A67C2E" />
+        <defs><linearGradient id="ob-g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#C9A24B" /><stop offset="100%" stopColor="#8A6420" /></linearGradient></defs>
       </svg>
     ),
   },
