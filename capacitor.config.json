@@ -1,5 +1,9 @@
 {
   "appId": "com.gymak.app",
   "appName": "GYMAK",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "https://gymak-eight.vercel.app",
+    "cleartext": false
+  }
 }
