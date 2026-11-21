@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getInbox, importDelivered, getPushPermission, initBroadcastPush } from "../../lib/push/pushService";
 import Store from "../../lib/store/gymakStore";
 import { useToast } from "../../hooks/useToast";
 import { isNative, enableNativeReminder, disableNativeReminder } from "../../lib/push/nativeReminder";
@@ -7,6 +8,19 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
   const [enabled, setEnabled] = useState(initialEnabled);
   const [time, setTime] = useState(initialTime || "19:00");
   const toast = useToast();
+  const [inbox, setInbox] = useState(getInbox());
+  const [perm, setPerm] = useState(null);
+  useEffect(() => {
+    const upd = () => setInbox(getInbox());
+    window.addEventListener("gymak-inbox", upd);
+    importDelivered().then(upd);
+    getPushPermission().then(setPerm);
+    return () => window.removeEventListener("gymak-inbox", upd);
+  }, []);
+  async function enablePush() {
+    await initBroadcastPush();
+    setPerm(await getPushPermission());
+  }
 
   async function handleSave() {
     if (isNative()) {
@@ -53,6 +67,25 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
         <div className="edit-sheet-handle" />
         <h3>الإشعارات والتذكيرات</h3>
 
+        <div style={{ marginBottom: 14 }}>
+          <div className="trow-label" style={{ marginBottom: 8 }}>إشعارات التطبيق</div>
+          {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
+          {perm === "prompt" && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 8 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
+          {inbox.length === 0 ? (
+            <p className="notif-note">مفيش إشعارات لسه. أي إشعار يتبعت من التطبيق هيظهر هنا.</p>
+          ) : (
+            <div style={{ maxHeight: 180, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+              {inbox.map((n) => (
+                <div key={n.id} style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(var(--ink), .05)", border: "1px solid var(--border-soft)" }}>
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>{n.title}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{n.body}</div>
+                  <div style={{ fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>{new Date(n.ts).toLocaleString("ar-EG")}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="toggle-row">
           <div>
             <div className="trow-label">تذكير يومي بالتمرين</div>
@@ -77,9 +110,9 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
 
         <div className="edit-sheet-actions" style={{ marginTop: 14 }}>
           <button type="button" onClick={onClose}>إلغاء</button>
-          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }} onClick={handleSave}>حفظ</button>
+          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "var(--on-acc, #fff)" }} onClick={handleSave}>حفظ</button>
         </div>
       </div>
     </div>
   );
-            }
+}
