@@ -78,3 +78,21 @@ export async function traineeReport(traineeId) {
     errors: [prof, days, weights, foods, prs].some((r) => r.error),
   };
 }
+
+/* ---- program assignments (migration 0019; every call fails soft if the table is missing) ---- */
+export async function assignProgram(traineeId, programId, note = "") {
+  const u = await me();
+  const { error } = await supabase.from("coach_assignments").insert({
+    coach_id: u.id, coach_email: u.email, trainee_id: traineeId, program_id: programId, note: note.trim().slice(0, 500) || null,
+  });
+  if (error) throw new Error(error.message);
+}
+export async function latestAssignment() {
+  try {
+    const u = await me();
+    const { data, error } = await supabase.from("coach_assignments").select("id,coach_email,program_id,note,created_at")
+      .eq("trainee_id", u.id).order("created_at", { ascending: false }).limit(1);
+    if (error) return null;
+    return data?.[0] || null;
+  } catch { return null; }
+}

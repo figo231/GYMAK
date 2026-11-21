@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useToast } from "../../hooks/useToast";
-import { isCoach, myInvites, respondInvite, inviteTrainee, myTrainees, revokeLink, traineeReport } from "../../lib/coach/coachApi";
+import Store from "../../lib/store/gymakStore";
+import { assignProgram, latestAssignment, isCoach, myInvites, respondInvite, inviteTrainee, myTrainees, revokeLink, traineeReport } from "../../lib/coach/coachApi";
 
 const card = { padding: 12, borderRadius: 14, border: "1px solid var(--border-soft)", background: "rgba(var(--ink), .04)", marginBottom: 10 };
 const ghost = { background: "none", border: "1px solid var(--border-soft)", borderRadius: 10, padding: "6px 12px", cursor: "pointer", color: "inherit", fontWeight: 700, fontSize: 12 };
@@ -9,6 +10,12 @@ const dot = (n) => ({ width: 10, height: 10, borderRadius: 10, display: "inline-
 
 function Detail({ trainee, onClose }) {
   const [r, setR] = useState(null);
+  const toast = useToast();
+  const [prog, setProg] = useState(() => Store.getPrograms()[0]?.id);
+  async function send() {
+    try { await assignProgram(trainee.trainee_id, prog); toast("اتبعت البرنامج للمتدرب ✅"); }
+    catch (e) { toast("فشل الإرسال: " + e.message); }
+  }
   useEffect(() => { traineeReport(trainee.trainee_id).then(setR).catch(() => setR({ errors: true })); }, [trainee.trainee_id]);
   const Row = ({ k, v }) => (<div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-soft)", fontSize: 13 }}><span style={{ opacity: 0.7 }}>{k}</span><b>{v}</b></div>);
   return (
@@ -29,6 +36,13 @@ function Detail({ trainee, onClose }) {
             {r.prs.map((p, i) => (<Row key={i} k={p.exercise_name} v={`${p.weight} كجم`} />))}
           </>
         )}
+        <div style={{ marginTop: 14, fontWeight: 800, fontSize: 13 }}>ابعتله برنامج تدريب</div>
+        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+          <select value={prog} onChange={(e) => setProg(e.target.value)} style={{ flex: 1, padding: 9, borderRadius: 10, border: "1px solid var(--border-soft)", fontFamily: "inherit" }}>
+            {Store.getPrograms().map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <button type="button" className="btn btn-primary" style={{ padding: "9px 14px", borderRadius: 10 }} onClick={send}>إرسال</button>
+        </div>
         <div className="edit-sheet-actions" style={{ marginTop: 12 }}><button type="button" onClick={onClose}>إغلاق</button></div>
       </div>
     </div>
@@ -43,12 +57,14 @@ export default function Coach() {
   const [reports, setReports] = useState({});
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(null);
+  const [assign, setAssign] = useState(null);
 
   async function load() {
     try {
       const c = await isCoach();
       setCoach(c);
       setInvites(await myInvites());
+      setAssign(await latestAssignment());
       if (c) {
         const t = await myTrainees();
         setTrainees(t);
@@ -77,6 +93,17 @@ export default function Coach() {
           </div>
         </div>
       ))}
+
+      {assign && Store.getPrograms().some((p) => p.id === assign.program_id) && (
+        <div style={card}>
+          <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>برنامج من مدربك</div>
+          <div dir="ltr" style={{ fontSize: 12, opacity: 0.7 }}>{assign.coach_email}</div>
+          <div style={{ fontSize: 14, fontWeight: 800, margin: "6px 0" }}>{Store.getPrograms().find((p) => p.id === assign.program_id).name}</div>
+          {assign.note && <div style={{ fontSize: 12.5, marginBottom: 8 }}>{assign.note}</div>}
+          <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 9, borderRadius: 10 }}
+            onClick={() => { Store.applyProgram(assign.program_id); toast("اتطبّق البرنامج على جدولك ✅"); }}>تطبيق البرنامج</button>
+        </div>
+      )}
 
       {coach && (
         <>
