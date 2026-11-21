@@ -76,6 +76,39 @@ async function getMessaging() {
 
 const BROADCAST_TOPIC = "all_users";
 
+/* ---- in-app inbox of server (FCM) notifications ---- */
+const INBOX_KEY = "gymak_inbox_v1";
+export function getInbox() {
+  try { return JSON.parse(localStorage.getItem(INBOX_KEY) || "[]"); } catch { return []; }
+}
+function addInbox(n) {
+  if (!n || (!n.title && !n.body)) return;
+  const list = getInbox();
+  const id = n.id || `${n.title || ""}|${n.body || ""}`;
+  if (list.some((x) => x.id === id)) return;
+  list.unshift({ id, title: n.title || "", body: n.body || "", ts: Date.now() });
+  localStorage.setItem(INBOX_KEY, JSON.stringify(list.slice(0, 50)));
+  try { window.dispatchEvent(new Event("gymak-inbox")); } catch { /* ignore */ }
+}
+export async function importDelivered() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const FirebaseMessaging = await getMessaging();
+    const { notifications } = await FirebaseMessaging.getDeliveredNotifications();
+    (notifications || []).forEach((n) => addInbox({ id: n.id, title: n.title, body: n.body }));
+  } catch { /* ignore */ }
+}
+
+/** Web/PWA: ask for the browser notification permission once, on first launch. */
+export function requestWebPermissionOnce() {
+  try {
+    if (Capacitor.isNativePlatform() || !("Notification" in window)) return;
+    if (Notification.permission !== "default" || localStorage.getItem("gymak_notif_asked_v1")) return;
+    localStorage.setItem("gymak_notif_asked_v1", "1");
+    setTimeout(() => { Notification.requestPermission().catch(() => {}); }, 2500);
+  } catch { /* ignore */ }
+}
+
 const DEVICE_ID_KEY = "gymak_device_id_v1";
 
 /** Stable per-install id, independent of the FCM token itself (which
@@ -124,6 +157,7 @@ async function saveToken(token) {
  */
 let broadcastStarted = false;
 export async function initBroadcastPush() {
+  requestWebPermissionOnce();
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || broadcastStarted) return;
   broadcastStarted = true;
   try {
@@ -138,8 +172,17 @@ export async function initBroadcastPush() {
     if (!listenersRegistered) {
       listenersRegistered = true;
       FirebaseMessaging.addListener("tokenReceived", (event) => { saveToken(event.token); });
+      FirebaseMessaging.addListener("notificationReceived", (event) => {
+        const n = event.notification || {};
+        addInbox({ id: n.id, title: n.title, body: n.body });
+      });
+      FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
+        const n = (event && event.notification) || {};
+        addInbox({ id: n.id, title: n.title, body: n.body });
+      });
     }
     await FirebaseMessaging.subscribeToTopic({ topic: BROADCAST_TOPIC });
+    importDelivered();
   } catch (err) {
     broadcastStarted = false;
     // eslint-disable-next-line no-console
