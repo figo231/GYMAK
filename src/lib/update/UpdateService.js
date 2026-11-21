@@ -6,6 +6,10 @@
 import { pwaUpdateStrategy } from "./pwaUpdateStrategy";
 import { apkUpdateStrategy } from "./apkUpdateStrategy";
 
+function isNativeApp() {
+  return typeof window !== "undefined" && !!window.Capacitor?.isNativePlatform?.();
+}
+
 function isTWA() {
   // Android's Trusted Web Activity wrapper (what PWABuilder produces)
   // launches the app with this referrer — the standard way to distinguish
@@ -14,7 +18,7 @@ function isTWA() {
 }
 
 function getStrategy() {
-  return isTWA() ? apkUpdateStrategy : pwaUpdateStrategy;
+  return isNativeApp() || isTWA() ? apkUpdateStrategy : pwaUpdateStrategy;
 }
 
 const listeners = new Set();
@@ -62,9 +66,14 @@ const UpdateService = {
     return getStrategy().applyUpdate();
   },
 
+  /** Android app only: is a newer build known and not installed yet (drives the settings dot). */
+  hasPendingApk() {
+    return isNativeApp() && !!apkUpdateStrategy.hasPending?.();
+  },
+
   /** Which strategy is active — exposed in case UI ever needs to label things differently per platform. */
   platform() {
-    return isTWA() ? "apk" : "pwa";
+    return isNativeApp() || isTWA() ? "apk" : "pwa";
   },
 };
 
