@@ -41,8 +41,9 @@
   --text-dim: #9CA3AF;
 
   /* ---- brand / accent ---- */
-  --glow-blue: #FF6B2C;
-  --glow-purple: #FF9457;
+  --acc-rgb: 201, 162, 75; --acc2-rgb: 230, 200, 119; --on-acc: #1A1408;
+  --glow-blue: #C9A24B;
+  --glow-purple: #E6C877;
   --accent-text: #C2410C;
   --accent-text-soft: #EA580C;
 
