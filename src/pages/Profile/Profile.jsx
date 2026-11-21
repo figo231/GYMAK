@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import UpdateService from "../../lib/update/UpdateService";
 import { fmt } from "../../lib/format";
@@ -29,7 +29,8 @@ export default function Profile() {
 
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
-  const [showNotif, setShowNotif] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
   const [showAppearance, setShowAppearance] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
@@ -383,11 +384,11 @@ export default function Profile() {
         <NotifSheet
           initialEnabled={settings.notifEnabled}
           initialTime={settings.notifTime}
-          onClose={() => setShowNotif(false)}
-          onSaved={() => { setShowNotif(false); refresh(); }}
+          onClose={() => { setShowNotif(false); if (searchParams.get("notif")) setSearchParams({}, { replace: true }); }}
+          onSaved={() => { setShowNotif(false); if (searchParams.get("notif")) setSearchParams({}, { replace: true }); refresh(); }}
         />
       )}
       {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}
     </>
   );
-}
+            }
