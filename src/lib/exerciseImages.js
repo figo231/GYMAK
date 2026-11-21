@@ -135,7 +135,10 @@ const IMAGE_IDS = {
   "farmers-walk": "Farmers_Walk"
 };
 
+import { remoteExerciseFrames } from "./content/remoteContent";
 export function getExerciseFrames(id) {
+  const rf = remoteExerciseFrames(id);
+  if (rf) return rf;
   const k = IMAGE_IDS[id];
   return k ? [BASE + k + "/0.jpg", BASE + k + "/1.jpg"] : null;
 }

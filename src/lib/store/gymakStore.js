@@ -5,6 +5,7 @@
    ========================================================= */
 import { EXTRA_EXERCISES } from "./extraExercises";
 import { EGYPT_FOODS } from "./egyptFoods";
+import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
    (IIFE -> ES module) so existing users' data loads unchanged. */
@@ -250,7 +251,7 @@ const KEY = "gymak_state_v1";
     const items = [];
     const usedRanges = [];
     const lower = normalizeDigits(rawText);
-    for (const food of FOOD_DB) {
+    for (const food of [...activeRemoteFoods(), ...FOOD_DB]) {
       for (const alias of food.names) {
         let idx = lower.indexOf(alias);
         if (idx === -1) continue;
@@ -603,7 +604,7 @@ const KEY = "gymak_state_v1";
 
     // ===== Exercise catalog =====
     getExercises() {
-      return load().exercises || SEED_EXERCISES.slice();
+      return mergeExercises(load().exercises || SEED_EXERCISES.slice());
     },
 
     getExerciseById(id) {

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import UpdateService from "../../lib/update/UpdateService";
@@ -16,6 +16,7 @@ import EditProfileSheet from "./EditProfileSheet";
 import LangUnitsSheet from "./LangUnitsSheet";
 import NotifSheet from "./NotifSheet";
 import ReminderSheet from "./ReminderSheet";
+import { isOwnerAdmin } from "../../lib/push/ownerBroadcast";
 import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -32,6 +33,8 @@ export default function Profile() {
   const [showLang, setShowLang] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [showReminder, setShowReminder] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  useEffect(() => { isOwnerAdmin(user?.id).then(setIsOwner); }, [user?.id]);
   const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
   const [showAppearance, setShowAppearance] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
@@ -335,6 +338,13 @@ export default function Profile() {
           {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
+        {isOwner && (
+          <Link to="/owner" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
+            <span className="settings-name">لوحة المالك</span>
+            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+          </Link>
+        )}
         <Link to="/history" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg></div>
           <span className="settings-name">سجل التمارين والأكل والوزن</span>
