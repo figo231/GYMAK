@@ -1,16 +1,32 @@
 -- 0018_roles_content_coach.sql
 -- Owner panel (editable content) + coach roles + coach/trainee links.
 -- Run once in the Supabase dashboard: SQL Editor > New query > paste > Run.
--- Assumes public.is_admin(uuid) already exists (used by 0016/0017).
 -- Everything here is additive. Rollback notes at the bottom.
 
--- 0. Make sure the owner is an admin (idempotent). Needs the owner to have
--- signed up in the app once with this email. Assumes admin_users(user_id, role)
--- as used by supabase/functions/_shared/verifyAdmin.ts.
+-- 0. Admin foundation (self-contained: the live project had no admin_users
+-- table or is_admin function), then make the owner an admin (idempotent).
+-- Needs the owner to have signed up in the app once with this email.
+create table if not exists public.admin_users (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  role text not null default 'sender' check (role in ('super_admin','sender')),
+  created_at timestamptz not null default now()
+);
+alter table public.admin_users enable row level security;
+drop policy if exists "admin_users: read own" on public.admin_users;
+create policy "admin_users: read own" on public.admin_users for select to authenticated
+  using (user_id = auth.uid());
+
+create or replace function public.is_admin(uid uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.admin_users a where a.user_id = uid);
+$$;
+revoke all on function public.is_admin(uuid) from public, anon;
+grant execute on function public.is_admin(uuid) to authenticated, service_role;
+
 insert into public.admin_users (user_id, role)
 select u.id, 'super_admin' from auth.users u
 where lower(u.email) = 'kareemmohamed7392@gmail.com'
-  and not exists (select 1 from public.admin_users a where a.user_id = u.id);
+on conflict (user_id) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- 1. Editable content (owner panel). Public read, admin write.
@@ -131,6 +147,12 @@ create policy "workout_days: coach read" on public.workout_days for select to au
 --   select tablename, policyname from pg_policies where policyname like '%coach%' or tablename like 'content_%';
 -- Rollback (manual): drop the "coach read" policies, then drop tables coach_links, coach_grants,
 -- content_foods, content_exercises and functions coach_can_see, is_coach.
+
+-- Hardening: clients may only change status/trainee_id on a link (not coach_id or emails).
+revoke update on public.coach_links from authenticated, anon;
+grant update (status, trainee_id) on public.coach_links to authenticated;
+revoke all on public.coach_links, public.coach_grants, public.content_exercises, public.content_foods from anon;
+grant select on public.content_exercises, public.content_foods to anon;
 
 -- Make the API see the new tables immediately.
 notify pgrst, 'reload schema';
