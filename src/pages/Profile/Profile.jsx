@@ -17,6 +17,7 @@ import LangUnitsSheet from "./LangUnitsSheet";
 import NotifSheet from "./NotifSheet";
 import ReminderSheet from "./ReminderSheet";
 import { isOwnerAdmin } from "../../lib/push/ownerBroadcast";
+import { isCoach } from "../../lib/coach/coachApi";
 import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -34,6 +35,8 @@ export default function Profile() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showReminder, setShowReminder] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
+  useEffect(() => { if (user) isCoach().then(setShowCoach); }, [user?.id]);
   useEffect(() => { isOwnerAdmin(user?.id).then(setIsOwner); }, [user?.id]);
   const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
   const [showAppearance, setShowAppearance] = useState(false);
@@ -338,6 +341,13 @@ export default function Profile() {
           {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
+        {user && (
+          <Link to="/coach" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" /><path d="M17 7.5a3 3 0 0 1 0 5M19 20c0-2.2-.9-3.8-2.4-4.8" /></svg></div>
+            <span className="settings-name">{showCoach ? "المدربين ومتدربيني" : "مدربيني"}</span>
+            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+          </Link>
+        )}
         {isOwner && (
           <Link to="/owner" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>

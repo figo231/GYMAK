@@ -21,6 +21,7 @@ const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
 const Account = lazy(() => import("./pages/Auth/Account"));
 const OwnerPanel = lazy(() => import("./pages/Owner/OwnerPanel"));
+const Coach = lazy(() => import("./pages/Coach/Coach"));
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "/history", element: <History /> },
       { path: "/programs", element: <Programs /> },
       { path: "/account", element: <ProtectedRoute><Account /></ProtectedRoute> },
+      { path: "/coach", element: <ProtectedRoute><Coach /></ProtectedRoute> },
       { path: "/owner", element: <ProtectedRoute><OwnerPanel /></ProtectedRoute> },
     ],
   },

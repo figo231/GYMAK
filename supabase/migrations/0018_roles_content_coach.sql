@@ -76,12 +76,14 @@ create policy "coach_grants: coach sees self" on public.coach_grants for select 
 create table if not exists public.coach_links (
   id uuid primary key default gen_random_uuid(),
   coach_id uuid not null references auth.users (id) on delete cascade,
+  coach_email text,
   trainee_email text not null check (trainee_email = lower(trainee_email)),
   trainee_id uuid references auth.users (id) on delete cascade,
   status text not null default 'pending' check (status in ('pending','active','revoked')),
   created_at timestamptz not null default now(),
   unique (coach_id, trainee_email)
 );
+alter table public.coach_links add column if not exists coach_email text;
 alter table public.coach_links enable row level security;
 
 -- Coach: create invites and see/revoke their own links (only if they are a coach).
@@ -90,7 +92,8 @@ create policy "coach_links: coach read" on public.coach_links for select to auth
   using (coach_id = auth.uid() or trainee_email = lower(auth.jwt() ->> 'email') or public.is_admin(auth.uid()));
 drop policy if exists "coach_links: coach invite" on public.coach_links;
 create policy "coach_links: coach invite" on public.coach_links for insert to authenticated
-  with check (coach_id = auth.uid() and public.is_coach(auth.uid()) and status = 'pending' and trainee_id is null);
+  with check (coach_id = auth.uid() and public.is_coach(auth.uid()) and status = 'pending' and trainee_id is null
+    and coach_email = lower(auth.jwt() ->> 'email'));
 drop policy if exists "coach_links: coach revoke" on public.coach_links;
 create policy "coach_links: coach revoke" on public.coach_links for update to authenticated
   using (coach_id = auth.uid()) with check (coach_id = auth.uid() and status = 'revoked');
