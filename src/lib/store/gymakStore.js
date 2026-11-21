@@ -342,12 +342,12 @@ const KEY = "gymak_state_v1";
   ];
 
   const MUSCLE_META = {
-    chest: { label: "صدر", color: "#3B82F6", light: "#93C5FD" },
-    back: { label: "ظهر", color: "#22C55E", light: "#86EFAC" },
-    shoulders: { label: "أكتاف", color: "#A855F7", light: "#DDD6FE" },
-    legs: { label: "أرجل", color: "#F59E0B", light: "#FDE68A" },
-    arms: { label: "ذراعين", color: "#EC4899", light: "#FBCFE8" },
-    core: { label: "بطن", color: "#14B8A6", light: "#99F6E4" },
+    chest: { label: "صدر", color: "#E6C877", light: "#F4E6B8" },
+    back: { label: "ظهر", color: "#7FB58A", light: "#BFE0C5" },
+    shoulders: { label: "أكتاف", color: "#D08B5B", light: "#EBC2A3" },
+    legs: { label: "أرجل", color: "#B8923F", light: "#E0C885" },
+    arms: { label: "ذراعين", color: "#C27C8A", light: "#E6B8C1" },
+    core: { label: "بطن", color: "#6FB5AE", light: "#B5DDD9" },
   };
 
   // ===== i18n dictionary (interface chrome — labels/buttons/nav) =====
