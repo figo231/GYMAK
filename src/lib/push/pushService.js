@@ -116,6 +116,47 @@ async function saveToken(token) {
 }
 
 /**
+ * Runs on every app start in the native shell, signed in or not: asks for the
+ * notification permission (Android 13+ POST_NOTIFICATIONS), subscribes the
+ * device to the broadcast topic, and keeps the token fresh. Before this, push
+ * only started after sign-in, so a device that never logged in never got a
+ * permission prompt and never joined "all_users".
+ */
+let broadcastStarted = false;
+export async function initBroadcastPush() {
+  if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || broadcastStarted) return;
+  broadcastStarted = true;
+  try {
+    const FirebaseMessaging = await getMessaging();
+    const status = await FirebaseMessaging.checkPermissions();
+    let granted = status.receive === "granted";
+    if (!granted && status.receive !== "denied") {
+      const req = await FirebaseMessaging.requestPermissions();
+      granted = req.receive === "granted";
+    }
+    if (!granted) { broadcastStarted = false; return; }
+    if (!listenersRegistered) {
+      listenersRegistered = true;
+      FirebaseMessaging.addListener("tokenReceived", (event) => { saveToken(event.token); });
+    }
+    await FirebaseMessaging.subscribeToTopic({ topic: BROADCAST_TOPIC });
+  } catch (err) {
+    broadcastStarted = false;
+    // eslint-disable-next-line no-console
+    console.error("[gymak push] broadcast setup failed", err);
+  }
+}
+
+/** Current notification permission for the settings screen ("granted" | "denied" | "prompt" | "unsupported"). */
+export async function getPushPermission() {
+  if (!Capacitor.isNativePlatform()) return "unsupported";
+  try {
+    const FirebaseMessaging = await getMessaging();
+    return (await FirebaseMessaging.checkPermissions()).receive;
+  } catch { return "unsupported"; }
+}
+
+/**
  * Call once after sign-in (mirrors syncManager.start()'s call site in
  * useAuth.jsx). No-op on web/PWA builds (no FCM path there yet) and when
  * Supabase isn't configured — matches the app's existing "silently degrade
@@ -162,9 +203,9 @@ export async function removePushToken() {
   currentUserId = null;
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
   try {
+    // Only the per-account token row is removed. The device stays on the
+    // broadcast topic (announcements are not account-specific).
     await supabase.from("push_tokens").delete().eq("device_id", getDeviceId());
-    const FirebaseMessaging = await getMessaging();
-    await FirebaseMessaging.unsubscribeFromTopic({ topic: BROADCAST_TOPIC });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[gymak push] failed to remove token on logout", err);

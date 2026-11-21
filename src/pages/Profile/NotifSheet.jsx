@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Store from "../../lib/store/gymakStore";
 import { useToast } from "../../hooks/useToast";
+import { isNative, enableNativeReminder, disableNativeReminder } from "../../lib/push/nativeReminder";
 
 export default function NotifSheet({ initialEnabled, initialTime, onClose, onSaved }) {
   const [enabled, setEnabled] = useState(initialEnabled);
@@ -8,6 +9,24 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
   const toast = useToast();
 
   async function handleSave() {
+    if (isNative()) {
+      // Android app: the web Notification API does not exist here, use native notifications.
+      if (enabled) {
+        let ok = false;
+        try { ok = await enableNativeReminder(time, Store.getLang ? Store.getLang() : "ar"); } catch (e) { ok = false; }
+        if (!ok) {
+          toast("محتاجين إذنك للإشعارات. فعّلها من إعدادات الموبايل ثم جرب تاني.");
+          Store.setNotifSettings({ enabled: false });
+          onClose();
+          return;
+        }
+      } else {
+        await disableNativeReminder();
+      }
+      Store.setNotifSettings({ enabled, time });
+      onSaved();
+      return;
+    }
     if (enabled && !("Notification" in window)) {
       toast("متصفحك مش بيدعم الإشعارات.");
       Store.setNotifSettings({ enabled: false });
@@ -51,8 +70,9 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
         </div>
 
         <p className="notif-note">
-          الإشعار بيتبعت من المتصفح، فلازم تسمح بالإشعارات وتسيب التطبيق مفتوح (أو في الخلفية على الموبايل) عشان يوصلك في الميعاد.
-          دلوقتي التذكير بيفضل شغال طول ما أي صفحة من التطبيق مفتوحة.
+          {isNative()
+            ? "التذكير بيوصلك كل يوم في الميعاد ده حتى لو التطبيق مقفول. لازم تسمح بالإشعارات للتطبيق."
+            : "الإشعار بيتبعت من المتصفح، فلازم تسمح بالإشعارات وتسيب التطبيق مفتوح (أو في الخلفية على الموبايل) عشان يوصلك في الميعاد."}
         </p>
 
         <div className="edit-sheet-actions" style={{ marginTop: 14 }}>
@@ -62,4 +82,4 @@ export default function NotifSheet({ initialEnabled, initialTime, onClose, onSav
       </div>
     </div>
   );
-}
+            }
