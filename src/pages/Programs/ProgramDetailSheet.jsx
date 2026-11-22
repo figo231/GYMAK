@@ -5,7 +5,7 @@ import { useConfirm } from "../../hooks/useDialog";
 
 const LEVEL_CLASS = { "مبتدئ": "lvl-beginner", "متوسط": "lvl-inter", "متقدم": "lvl-advanced" };
 
-export default function ProgramDetailSheet({ program, isActive, onClose, onApply, t }) {
+export default function ProgramDetailSheet({ program, isActive, onClose, onApply, onShare, t }) {
   const [version, setVersion] = useState(0);
   const confirmAsync = useConfirm();
   const days = Store.getProgramDays(program.id);
@@ -84,6 +84,7 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
 
         <div className="detail-actions">
           <button type="button" onClick={onClose}>إغلاق</button>
+          {onShare && <button type="button" onClick={onShare}>شارك</button>}
           <button
             type="button"
             className={isActive ? "applied" : "primary"}

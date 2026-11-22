@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
@@ -8,6 +7,7 @@ import { buzz } from "../../lib/haptics";
 import Store from "../../lib/store/gymakStore";
 import { useI18n } from "../../hooks/useI18n";
 import SectionNav from "../../components/layout/SectionNav";
+import { programLink, programIdFromSearch, shareText } from "../../lib/shareLink";
 import ProgramDetailSheet from "./ProgramDetailSheet";
 
 const GOALS = [["all", "الكل"], ["bulk", "تضخيم"], ["cut", "تنشيف"], ["strength", "قوة"], ["fitness", "لياقة"]];
@@ -40,6 +40,15 @@ export default function Programs() {
   const shown = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
   const detailProgram = detailId ? programs.find((p) => p.id === detailId) : null;
 
+  useEffect(() => {
+    const id = programIdFromSearch(window.location.search, Store.getPrograms().map((p) => p.id));
+    if (id) setDetailId(id);
+  }, []);
+  async function handleShare(p) {
+    const r = await shareText({ title: p.name, text: `برنامج ${p.name} على GYMAK`, url: programLink(p.id) });
+    if (r === "copied") toast("اتنسخ لينك البرنامج.");
+    else if (r === "failed") toast("معرفناش نشارك اللينك.");
+  }
   async function handleApply(id) {
     const prev = Store.getActiveProgram();
     if (prev && prev.id === id) { toast("البرنامج ده مطبّق بالفعل."); return; }
@@ -120,6 +129,7 @@ export default function Programs() {
           isActive={active?.id === detailProgram.id}
           onClose={() => setDetailId(null)}
           onApply={async () => { await handleApply(detailProgram.id); setDetailId(null); }}
+          onShare={() => handleShare(detailProgram)}
           t={t}
         />
       )}
