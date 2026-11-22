@@ -56,3 +56,8 @@ Steps: deploy the edge functions, add the broadcast tables migration (0020+), se
 - Water, measurements and rest-timer settings are device-local and not synced. A cloud sync for these would need new tables and RLS.
 - Share cards use navigator.share with files and fall back to a download. They are untested in a real Android WebView.
 - Leaked-password protection and Captcha are off in Supabase Auth. Optional hardening, owner's call.
+
+## Approved by Kareem (Nov 22, 06:39), next batch, not built today
+1. PR records: remember the heaviest weight per exercise, celebrate when a record is broken.
+2. 1RM calculator: estimate one-rep max from any set, use it to suggest working weights.
+3. Supplements guide page in Egyptian Arabic: creatine, whey, doses, timing, myths.
