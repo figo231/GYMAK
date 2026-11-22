@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addWater, getWater, lastDays, setWaterGoal, STEP } from "../../lib/water/water";
+import { addWater, getWater, lastDays, setWaterGoal, setWaterTotal, STEP } from "../../lib/water/water";
 import { usePrompt } from "../../hooks/useDialog";
 import { buzz } from "../../lib/haptics";
 import { useToast } from "../../hooks/useToast";
@@ -18,6 +18,12 @@ export default function WaterCard() {
     const v = await promptAsync({ title: "هدفك اليومي من المياه (مللي):", inputType: "number", defaultValue: goal });
     if (v === null || v === undefined || v === "") return;
     if (!setWaterGoal(v)) { toast("هدف المياه لازم يكون بين 500 و 10000 مل."); return; }
+    refresh();
+  }
+  async function editTotal() {
+    const v = await promptAsync({ title: "إجمالي مياه النهارده (مللي):", inputType: "number", defaultValue: ml });
+    if (v === null || v === undefined || v === "") return;
+    if (!setWaterTotal(v)) { toast("اكتب كمية بين 0 و 10000 مل."); return; }
     refresh();
   }
   async function addCustom() {
@@ -46,6 +52,7 @@ export default function WaterCard() {
         <button type="button" style={btn} onClick={() => { addWater(STEP); buzz(10); refresh(); }}>+{STEP} مل</button>
         <button type="button" style={btn} onClick={() => { addWater(500); buzz(10); refresh(); }}>+500 مل</button>
         <button type="button" style={btn} onClick={addCustom} aria-label="كمية تانية">أكتر</button>
+        <button type="button" style={btn} onClick={editTotal} aria-label="عدّل إجمالي اليوم">✎</button>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 38, marginTop: 12 }}>
         {days.map((d) => (

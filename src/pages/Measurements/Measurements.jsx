@@ -33,6 +33,12 @@ export default function Measurements() {
   const [date, setDate] = useState(today);
   const [errors, setErrors] = useState({});
   const [adding, setAdding] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
+  function startEdit(e) {
+    const v = {}; FIELDS.forEach(([k]) => { if (e[k] != null) v[k] = String(e[k]); });
+    setVals(v); setDate(e.date); setErrors({}); setEditingEntry(e); setAdding(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   const latest = entries[entries.length - 1];
   const deltas = useMemo(() => measureDeltas(entries), [entries]);
   const byField = useMemo(() => latestByField(entries), [entries]);
@@ -45,7 +51,9 @@ export default function Measurements() {
     if (!v.count) { toast("اكتب قياس واحد على الأقل (بالسنتيمتر)."); return; }
     if (date > today) { toast("مينفعش تسجّل قياس في تاريخ لسه ماجاش."); return; }
     const had = entries.find((e) => e.date === date);
+    if (editingEntry) deleteMeasure(editingEntry.date); // replace, so cleared fields are removed
     saveMeasure(vals, date);
+    setEditingEntry(null);
     reload(); setVals({}); setAdding(false); buzz(15);
     toast(had ? "اتحدّثت قياسات اليوم ده" : "اتسجلت القياسات", had ? { duration: 6000, action: { label: "تراجع", onClick: () => { restoreMeasure(had); reload(); } } } : undefined);
   }
@@ -65,7 +73,7 @@ export default function Measurements() {
           <div className="mx-title">قياسات الجسم</div>
           <div className="mx-sub">{latest ? `آخر قياس ${dayLabel(latest.date, today)}` : "لسه مفيش قياسات"}</div>
         </div>
-        <button type="button" className="mx-add" aria-expanded={adding || entries.length === 0} onClick={() => setAdding((v) => !v)}>{adding ? "إلغاء" : "+ قياس جديد"}</button>
+        <button type="button" className="mx-add" aria-expanded={adding || entries.length === 0} onClick={() => { if (adding) { setEditingEntry(null); setVals({}); setDate(today); } setAdding((v) => !v); }}>{adding ? "إلغاء" : "+ قياس جديد"}</button>
       </div>
 
       {Object.keys(byField).length > 0 && (
@@ -128,6 +136,7 @@ export default function Measurements() {
             <div className="hist-name">{dayLabel(e.date, today)}</div>
             <div className="hist-meta">{FIELDS.filter(([k]) => e[k] != null).map(([k, l]) => `${l} ${e[k]}`).join(" · ")}</div>
           </div>
+          <button type="button" className="hist-btn" aria-label={`تعديل قياسات ${dayLabel(e.date, today)}`} onClick={() => startEdit(e)}>✎</button>
           <button type="button" className="hist-btn danger" aria-label={`مسح قياسات ${dayLabel(e.date, today)}`} onClick={() => del(e)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
           </button>

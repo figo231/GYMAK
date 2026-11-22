@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import EditFoodSheet from "./EditFoodSheet";
 import SectionNav from "../../components/layout/SectionNav";
 import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
@@ -64,11 +65,12 @@ export default function Food() {
     const snap = Store.deleteFoodItem(day.date, i);
     if (snap) toast("تم المسح", { duration: 6000, action: { label: "تراجع", onClick: () => Store.restore(snap) } });
   }
-  async function edit(i, it) {
-    const v = await prompt({ title: "الكمية بالجرام", label: it.name, inputType: "number", defaultValue: it.grams });
-    if (v == null) return;
-    const snap = Store.updateFoodItemGrams(day.date, i, Number(v));
-    snap ? toast("تم التعديل", { duration: 6000, action: { label: "تراجع", onClick: () => Store.restore(snap) } }) : toast("القيمة مش صحيحة");
+  const [editing, setEditing] = useState(null);
+  function edit(i, it) { setEditing({ i, it }); }
+  function saveEdit(vals) {
+    const { i } = editing; setEditing(null);
+    const snap = Store.updateFoodItem(day.date, i, vals);
+    snap ? toast("تم التعديل", { duration: 6000, action: { label: "تراجع", onClick: () => Store.restore(snap) } }) : toast("القيم مش صحيحة");
   }
 
   return (
@@ -152,6 +154,7 @@ export default function Food() {
           <button type="button" className="hist-btn danger" aria-label={`مسح ${it.name}`} onClick={() => del(i, it)}>✕</button>
         </div>
       ))}
+      {editing && <EditFoodSheet item={editing.it} onClose={() => setEditing(null)} onSave={saveEdit} />}
       <p className="food-foot">القيم تقريبية. <Link to="/history">كل أيام الأكل في السجل</Link></p>
     </>
   );

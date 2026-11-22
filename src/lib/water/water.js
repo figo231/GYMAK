@@ -37,3 +37,8 @@ export function lastDays(n = 7, now = new Date()) {
     return { date: k, ml: Number(s.days[k]) || 0, goal: s.goal };
   });
 }
+export function setWaterTotal(ml, date = dayKey()) {
+  const n = Math.round(Number(ml));
+  if (!(n >= 0 && n <= 10000)) return false;
+  const s = load(); s.days[date] = n; save(s); return true;
+}

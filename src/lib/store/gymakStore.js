@@ -1596,6 +1596,24 @@ const KEY = "gymak_state_v1";
       return { kind: "food-edit", date, index, item: before };
     },
 
+    /** Edit any field of one food item. Validates ranges; returns an undo snapshot or null. */
+    updateFoodItem(date, index, patch) {
+      const s = load();
+      const day = s.foodLog.find((f) => f.date === date);
+      if (!day || !day.items[index] || !patch) return null;
+      const num = (v, max) => { const n = Number(v); return Number.isFinite(n) && n >= 0 && n <= max ? n : null; };
+      const name = String(patch.name ?? "").trim().slice(0, 60);
+      const grams = num(patch.grams, 5000), kcal = num(patch.kcal, 5000);
+      const protein = num(patch.protein ?? 0, 500), carbs = num(patch.carbs ?? 0, 1000), fat = num(patch.fat ?? 0, 500);
+      if (!name || !(grams > 0) || kcal == null || protein == null || carbs == null || fat == null) return null;
+      const item = day.items[index];
+      const before = { ...item };
+      Object.assign(item, { name, grams, kcal: Math.round(kcal), protein: Math.round(protein * 10) / 10, carbs: Math.round(carbs * 10) / 10, fat: Math.round(fat * 10) / 10 });
+      this._recalcFoodDay(day);
+      save(s);
+      return { kind: "food-edit", date, index, item: before };
+    },
+
     /** Flat list of every logged set, newest first. `i` is the index in that exercise's array. */
     getExerciseLogEntries(limit = 200) {
       const s = load();

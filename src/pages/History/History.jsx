@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
+import EditFoodSheet from "../Food/EditFoodSheet";
 import EditSetSheet from "./EditSetSheet";
 import { localISO } from "../../lib/dateKey";
 import { dayLabel, groupWorkoutsByDay, weightRowsWithDelta } from "../../lib/historyLogic";
@@ -54,12 +55,12 @@ export default function History() {
     const ok = await confirm({ title: "مسح الأكلة؟", label: `${it.name} (${it.grams}جم)`, confirmLabel: "مسح", danger: true });
     if (ok) withUndo(Store.deleteFoodItem(day.date, idx), "تم مسح الأكلة");
   }
-  async function editFood(day, idx) {
-    const it = day.items[idx];
-    const g = await prompt({ title: it.name, label: "الكمية بالجرام", inputType: "number", defaultValue: it.grams });
-    if (g == null) return;
-    const snap = Store.updateFoodItemGrams(day.date, idx, g);
-    snap ? withUndo(snap, "تم التعديل") : toast("القيمة مش صحيحة");
+  const [editingFood, setEditingFood] = useState(null);
+  function editFood(day, idx) { setEditingFood({ date: day.date, idx, it: day.items[idx] }); }
+  function saveFood(vals) {
+    const { date, idx } = editingFood; setEditingFood(null);
+    const snap = Store.updateFoodItem(date, idx, vals);
+    snap ? withUndo(snap, "تم التعديل") : toast("القيم مش صحيحة");
   }
 
   async function removeWeight(w) {
@@ -69,7 +70,11 @@ export default function History() {
   async function editWeight(w) {
     const v = await prompt({ title: "تعديل الوزن", label: `${dayLabel(w.date, today)} (${Store.unitLabel()})`, inputType: "number", defaultValue: Store.toDisplayWeight(w.weight) });
     if (v == null) return;
-    const snap = Store.updateWeightEntry(w.date, Store.fromDisplayWeight(Number(v)));
+    const bf = await prompt({ title: "نسبة الدهون % (اختياري)", label: "سيبها فاضية لو مش عايز تسجلها", inputType: "number", defaultValue: w.bodyFat ?? "" });
+    if (bf === null || bf === undefined) return;
+    const bfNum = bf === "" ? null : Number(bf);
+    if (bfNum !== null && !(bfNum >= 3 && bfNum <= 70)) { toast("نسبة الدهون لازم تكون بين 3 و 70."); return; }
+    const snap = Store.updateWeightEntry(w.date, Store.fromDisplayWeight(Number(v)), bfNum);
     snap ? withUndo(snap, "تم التعديل") : toast("القيمة مش صحيحة");
   }
 
@@ -169,6 +174,7 @@ export default function History() {
         </div>
       )))}
 
+      {editingFood && <EditFoodSheet item={editingFood.it} onClose={() => setEditingFood(null)} onSave={saveFood} />}
       {editing && <EditSetSheet entry={editing} onClose={() => setEditing(null)} onSave={saveWorkout} />}
     </>
   );
