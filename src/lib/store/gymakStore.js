@@ -12,6 +12,7 @@ import { normalizeExercise } from "../exerciseMeta";
 import { localISO, shiftISO, windowStart } from "../dateKey";
 import { celebrate, momentsFor } from "../celebrate";
 import { foodStreak, foodWeek, isAdherentDay } from "../stats/foodStreak";
+import { challenge30Complete } from "../challenge30";
 import { deleteExerciseMedia } from "../exerciseMedia";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
@@ -1548,6 +1549,7 @@ const KEY = "gymak_state_v1";
         tier("level5", "مستوى 5", level, 5),
         tier("firstPR", "أول رقم قياسي", prs, 1),
         tier("pr5", "5 أرقام قياسية", prs, 5),
+        tier("challenge30", "تحدي الـ30 يوم 🔥", challenge30Complete(s.workoutDays, s.cheatDays || []), 1),
         { id: "goal", name: "تحقيق هدف الوزن", unlocked: goalHit },
       ];
     },
