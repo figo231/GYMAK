@@ -1,3 +1,8 @@
+# Status 2026-11-22 05:45 (read first, supersedes the block below)
+Built locally on `deploy` (nothing pushed until after the Vercel window): redesign, delete-account (live), goal modes (+ female modes), CSV export, share cards, challenges, program links, meal plan, onboarding tour, saved meals, cheat day, contact us + admin dashboard with in-app replies (0022, 0023 run live), edit/delete everywhere, help/FAQ, warm-up/stretch, female program, workout calendar, share-the-app, Ramadan mode, extra reminders (native only, not device-tested), local backups, barcode logging, DB backup workflow (needs owner secrets, docs/db-backup.md).
+Still to do: English i18n (big), friends leaderboard (needs social backend), smartwatch, animated demos, camera barcode needs CAMERA permission + new APK, google-services.json for the APK (needs the owner's Google login or a download from the Firebase console).
+Live Supabase writes: 0019 verified, 0020, send-notification deploy, FIREBASE_SERVICE_ACCOUNT secret, 0021, delete-account deploy, 0022, 0023.
+
 # Status 2026-11-22 (read first)
 The owner unfroze the batch and asked for everything in one deploy. Now built on branch `deploy`/`batch2`:
 - Progress photos (device-local IndexedDB, before/after compare, src/lib/photos, /photos page). Local only by design, privacy page updated.

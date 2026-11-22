@@ -7,12 +7,12 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 - [x] Release signing config reads a separate upload key; Play upload keystore created, repo secrets GYMAK_PLAY_KEYSTORE_B64 and GYMAK_PLAY_KEYSTORE_PASSWORD set (alias gymak-upload). Back up the keystore with the owner.
 - [x] Workflow `.github/workflows/android-play.yml` (manual) builds a signed AAB. Needs to be on main to run.
 - [x] In-app GitHub updater turns off when versionName contains "play"
-- [x] Privacy policy page: /privacy.html (covers data, processors, coach sharing, deletion by email)
+- [x] Privacy policy page: /privacy.html (data, processors, coach sharing, in-app deletion, contact messages, barcode lookup via Open Food Facts, backups; updated 22 Nov 2026)
 - [x] Listing text draft: docs/play/listing-ar.md
-- [x] Account deletion code (button hidden behind flag + delete-account edge function, not yet deployed)
+- [x] Account deletion: delete-account edge function deployed and tested live (22 Nov 2026), DELETE_ACCOUNT_ENABLED = true, in-app button under Profile > Account
 
 ## Before upload (owner or us)
-- [ ] Deploy the delete-account edge function (Supabase > Edge Functions), verify with a disposable account, THEN set DELETE_ACCOUNT_ENABLED = true in src/pages/Auth/Account.jsx (the button is hidden until then). Do not claim in-app deletion publicly before this
+- [x] Delete-account deployed and verified (see above). Public wording about in-app deletion is the owner's call.
 - [ ] Owner gives an explicit yes to the public support email on the listing and privacy page
 - [ ] Play Developer account ($25). Personal accounts created after Nov 13 2023 need a closed test with 12+ testers opted in for 14 days before applying for production
 - [ ] Create app in Play Console, upload AAB to Closed testing
@@ -21,7 +21,8 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 - [ ] Content rating (IARC) questionnaire, target audience (not for under 13), ads: none
 - [ ] Account deletion URL in Play Console: the privacy page path, plus in-app route
 - [ ] Screenshots (phone), feature graphic 1024x500, 512px icon
-- [ ] Confirm the privacy page and Data safety match what ships (re-check after each feature batch)
+- [ ] Confirm the privacy page and Data safety match what ships (re-check after each feature batch). New since the last check: contact-us messages stored with the account, barcode numbers sent to Open Food Facts, encrypted server backups (30 days), CSV/JSON export, local backups
+- [ ] Data safety form: add "Messages (support)" as collected and linked to the user; barcode lookups send a product number only (no user data)
 
 ## Known gaps
 - Owner broadcast composer hidden until the notifications backend exists (migration 0019 pending)
@@ -37,3 +38,9 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 - [ ] After the web deploy: send one real broadcast from Profile > Notifications as the owner and confirm a device receives it. The Android APK must include google-services.json for the Firebase project gymak-9b6bd (kept out of the repo).
 
 - [x] Migration 0021_exercise_favorites.sql (favourite exercises sync) ran in the Supabase SQL editor. Safe to re-run. The app keeps working without it (favourites stay local).
+
+## Added 22 Nov 2026 batch
+- [x] Migration 0022_feedback.sql (contact us) and 0023_feedback_reply.sql (admin replies) ran live.
+- [ ] Android: camera barcode scanning needs the CAMERA permission in AndroidManifest and a new APK (manual barcode entry works without it). Local reminder types (meals, water, weigh-in, missed workout) use the plugin already in the APK, not device-tested.
+- [ ] Database backup workflow `.github/workflows/db-backup.yml`: owner adds repo secrets SUPABASE_DB_URL and BACKUP_PASSPHRASE (steps in docs/db-backup.md), then run it once (Actions > Database backup > Run workflow) and test a restore on a throwaway project.
+- [ ] google-services.json for gymak-9b6bd must be added to the APK build (kept out of the repo).
