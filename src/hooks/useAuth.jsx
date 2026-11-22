@@ -1,3 +1,4 @@
+import { flushEncouragementStop } from "../lib/encouragement";
 import { recordAppActivity,resetActivitySession } from '../lib/appActivity';
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
@@ -89,6 +90,13 @@ export function AuthProvider({ children }) {
     window.addEventListener('online',tick);
     const timer=setInterval(tick,15*60*1000);
     return ()=>{document.removeEventListener('visibilitychange',tick);window.removeEventListener('online',tick);clearInterval(timer);};
+  },[session?.user?.id,isPasswordRecovery]);
+
+  useEffect(()=>{
+    const id=session?.user?.id;if(!id||isPasswordRecovery)return;
+    const tick=()=>{flushEncouragementStop(id).catch(()=>{});};tick();
+    window.addEventListener('online',tick);document.addEventListener('visibilitychange',tick);
+    return()=>{window.removeEventListener('online',tick);document.removeEventListener('visibilitychange',tick);};
   },[session?.user?.id,isPasswordRecovery]);
 
   async function signUp(email, password) {

@@ -95,6 +95,8 @@ export interface FcmMessagePayload {
   deepLink?: string | null;
   notificationId: string;
   priority?: "normal" | "high";
+  ttlSeconds?: number;
+  collapseKey?: string;
 }
 
 export type FcmResult =
@@ -116,6 +118,8 @@ function buildMessageBody(target: { token: string } | { topic: string }, payload
       },
       android: {
         priority: payload.priority === "high" ? "high" : "normal",
+        ...(payload.ttlSeconds != null ? { ttl: `${payload.ttlSeconds}s` } : {}),
+        ...(payload.collapseKey ? { collapse_key: payload.collapseKey } : {}),
       },
     },
   };

@@ -74,3 +74,50 @@ end $$;
 revoke all on function public.my_encouragement(),public.set_my_encouragement(boolean,text),public.owner_encouragement_preview(),public.pause_encouragement() from public,anon;
 grant execute on function public.my_encouragement(),public.set_my_encouragement(boolean,text),public.owner_encouragement_preview(),public.pause_encouragement() to authenticated;
 notify pgrst,'reload schema';
+
+alter table public.encouragement_config add column approved_text_hash text;
+create function public.encouragement_text_hash() returns text language sql stable security definer set search_path=public,pg_temp as $$
+ select md5(string_agg(id::text||':'||title||':'||body,'|' order by id)) from public.encouragement_messages
+$$;
+create function public.set_encouragement_draft_time(p_time time) returns void language plpgsql security definer set search_path=public,pg_temp as $$
+begin
+ if not public.chat_is_owner() then raise exception 'owner_only'; end if;
+ if p_time is null then raise exception 'invalid_time'; end if;
+ update public.encouragement_config set local_time=p_time,enabled=false,approved_text_version=null,approved_text_hash=null,updated_at=now();
+ update public.encouragement_deliveries set status='skipped',completed_at=now() where status='claimed';
+end $$;
+-- Only the dedicated service sender can claim. Request time/day cannot be supplied.
+create function public.claim_encouragement() returns setof public.encouragement_deliveries language plpgsql security definer set search_path=public,pg_temp as $$
+declare c public.encouragement_config; wall timestamp; day date; mid smallint;
+begin
+ delete from public.encouragement_deliveries where local_day < (now() at time zone 'Africa/Cairo')::date-90;
+ select * into c from public.encouragement_config where id=true;
+ wall:=clock_timestamp() at time zone 'Africa/Cairo';day:=wall::date;
+ if not c.enabled or c.approved_text_version is distinct from 'encouragement-v1' or c.approved_text_hash is distinct from public.encouragement_text_hash() or wall < day+c.local_time or wall >= day+c.local_time+interval '15 minutes' then return; end if;
+ select id into mid from public.encouragement_messages order by id offset (extract(doy from day)::int % (select count(*) from public.encouragement_messages)) limit 1;
+ return query insert into public.encouragement_deliveries(user_id,local_day,token_id,message_id)
+ select p.user_id,day,t.id,mid from public.encouragement_preferences p join public.push_tokens t on t.user_id=p.user_id and t.device_id=p.device_id
+ where p.enabled and t.is_active and t.platform='android' and t.last_seen>now()-interval '7 days'
+ and not exists(select 1 from public.encouragement_deliveries d where d.user_id=p.user_id and d.local_day=day)
+ order by p.user_id limit 50 on conflict(user_id,local_day) do nothing returning *;
+end $$;
+-- Final authorization lookup immediately before FCM. Never returns stale token copies.
+create function public.encouragement_send_payload(p_claim uuid) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
+declare d public.encouragement_deliveries;c public.encouragement_config;wall timestamp;result jsonb;
+begin
+ select * into d from public.encouragement_deliveries where id=p_claim and status='claimed' for update;
+ if not found then return null; end if;
+ select * into c from public.encouragement_config where id=true;
+ wall:=clock_timestamp() at time zone 'Africa/Cairo';
+ if not c.enabled or c.approved_text_version is distinct from 'encouragement-v1' or c.approved_text_hash is distinct from public.encouragement_text_hash() or d.claimed_at<now()-interval '2 minutes' or d.local_day<>wall::date or wall<wall::date+c.local_time or wall>=wall::date+c.local_time+interval '15 minutes' then
+ update public.encouragement_deliveries set status='skipped',completed_at=now() where id=p_claim;return null;end if;
+ select jsonb_build_object('token',t.token,'title',m.title,'body',m.body,'notificationId',d.id,'collapseKey','encouragement-'||d.local_day::text)
+ into result from public.encouragement_preferences p join public.push_tokens t on t.user_id=p.user_id and t.device_id=p.device_id join public.encouragement_messages m on m.id=d.message_id
+ where p.user_id=d.user_id and p.enabled and t.id=d.token_id and t.is_active and t.platform='android' and t.last_seen>now()-interval '7 days';
+ -- Consume before network: timeouts, process death and duplicate invokes never retry.
+ update public.encouragement_deliveries set status=case when result is null then 'skipped' else 'outcome_unknown' end,completed_at=now() where id=p_claim;
+ return result;
+end $$;
+revoke all on function public.encouragement_text_hash(),public.claim_encouragement(),public.encouragement_send_payload(uuid),public.set_encouragement_draft_time(time) from public,anon,authenticated;
+grant execute on function public.set_encouragement_draft_time(time) to authenticated;
+grant execute on function public.encouragement_text_hash(),public.claim_encouragement(),public.encouragement_send_payload(uuid) to service_role;

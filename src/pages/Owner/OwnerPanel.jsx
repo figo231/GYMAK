@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import OwnerProfessionalCards from "./OwnerProfessionalCards";
 import OwnerChatRoles from "./OwnerChatRoles";
+import OwnerEncouragement from "./OwnerEncouragement";
 import OwnerReports from "./OwnerReports";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useAuth } from "../../hooks/useAuth";
@@ -98,19 +99,20 @@ function OwnerPanelSession() {
   useEffect(() => { isOwnerAdmin(user?.id).then(setOk); }, [user?.id]);
   if (ok === null) return <DetailTopBar backTo="/profile" title="لوحة المالك" />;
   if (!ok) return (<><DetailTopBar backTo="/profile" title="لوحة المالك" /><p className="notif-note" style={{ padding: 16 }}>الصفحة دي لحساب المالك بس.</p></>);
-  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"], ["suggestions", "المقترحين"], ["reports", "البلاغات"]];
+  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"], ["suggestions", "المقترحين"], ["reports", "البلاغات"], ["encouragement", "التشجيع"]];
   return (
     <>
       <DetailTopBar backTo="/profile" title="لوحة المالك" />
-      <div style={{ display: "flex", gap: 8, margin: "4px 0 12px" }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "4px 0 12px" }}>
         {tabs.map(([k, l]) => (
-          <button key={k} type="button" onClick={() => setTab(k)} className={"btn" + (tab === k ? " btn-primary" : "")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", cursor: "pointer", fontWeight: 800, background: tab === k ? undefined : "none", color: tab === k ? undefined : "inherit" }}>{l}</button>
+          <button key={k} type="button" onClick={() => setTab(k)} className={"btn" + (tab === k ? " btn-primary" : "")} style={{ flex: "1 0 28%", padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", cursor: "pointer", fontWeight: 800, background: tab === k ? undefined : "none", color: tab === k ? undefined : "inherit" }}>{l}</button>
         ))}
       </div>
       {tab === "exercises" && (<><ExerciseForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_exercises" label="تمارين" /></>)}
       {tab === "foods" && (<><FoodForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_foods" label="أكلات" /></>)}
       {tab === "coaches" && <OwnerChatRoles />}
       {tab === "suggestions" && <OwnerProfessionalCards />}
+      {tab === "encouragement" && <OwnerEncouragement />}
       {tab === "reports" && <OwnerReports />}
       <button type="button" className="btn" onClick={() => refreshRemoteContent()} style={{ width: "100%", marginTop: 8, background: "none", border: "1px solid var(--border-soft)", padding: 10, borderRadius: 12, color: "inherit", cursor: "pointer" }}>تحديث المحتوى على جهازي</button>
     </>

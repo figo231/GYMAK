@@ -4,6 +4,8 @@ import Store from "../../lib/store/gymakStore";
 import { useToast } from "../../hooks/useToast";
 import { isNative, applyExtraReminders, syncMissedReminder } from "../../lib/push/nativeReminder";
 
+import EncouragementPreference from "./EncouragementPreference";
+
 const ROWS = [
   { k: "meals", label: "تسجيل الأكل", sub: "تذكير يومي تسجل فيه أكلك", time: true },
   { k: "water", label: "شرب المياه", sub: "6 تذكيرات خلال اليوم، من 10 الصبح لـ 8 بالليل", time: false },
@@ -30,6 +32,7 @@ export default function Notifications() {
     <div className="help-page">
       <div className="section-head"><h1 className="section-title">التنبيهات</h1></div>
       {!native && <p className="notif-note">التنبيهات الإضافية بتشتغل في تطبيق الأندرويد. على المتصفح بنحفظ اختياراتك بس.</p>}
+      <EncouragementPreference />
       {ROWS.map((r) => (
         <div key={r.k} className="glass notif-row">
           <div className="toggle-row">

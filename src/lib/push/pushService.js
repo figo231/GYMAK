@@ -311,3 +311,19 @@ export async function removePushToken() {
     console.error("[gymak push] failed to remove token on logout", err);
   }
 }
+
+/** Explicit opt-in only. This path does not subscribe to any topic. */
+export async function prepareEncouragementDevice(userId) {
+  if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) throw new Error("android_required");
+  const { FM } = await getMessaging();
+  let permission = await FM.checkPermissions();
+  if (permission.receive !== "granted") permission = await FM.requestPermissions();
+  if (permission.receive !== "granted") throw new Error("permission_required");
+  const { data, error: authError } = await supabase.auth.getUser();
+  if (authError || data?.user?.id !== userId) throw new Error("session_changed");
+  const { token } = await FM.getToken();
+  const deviceId = getDeviceId();
+  const { error } = await supabase.from("push_tokens").upsert({user_id:userId,device_id:deviceId,token,platform:"android",app_version:pkg.version,is_active:true,last_seen:new Date().toISOString()},{onConflict:"device_id"});
+  if (error) throw error;
+  return deviceId;
+}
