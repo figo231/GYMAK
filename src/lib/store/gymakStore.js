@@ -1405,6 +1405,25 @@ const KEY = "gymak_state_v1";
       return [...totals.entries()].map(([label, sets]) => ({ label, sets })).sort((a, b) => b.sets - a.sets);
     },
 
+    // Same aggregation as getMuscleSetsInRange but keyed by the stable muscle
+    // key (chest/back/shoulders/arms/legs/core) for the body heatmap.
+    getMuscleKeySetsInRange(days, offsetDays = 0) {
+      const s = load();
+      const end = shiftISO(todayISO(), -offsetDays);
+      const cutoff = windowStart(end, days);
+      const byId = new Map((s.exercises || []).map((e) => [e.id, e]));
+      const totals = new Map();
+      Object.entries(s.exerciseLogs).forEach(([id, logs]) => {
+        const ex = byId.get(id);
+        const key = ex && ex.muscle;
+        if (!key) return;
+        logs.forEach((l) => {
+          if (l.date >= cutoff && l.date <= end) totals.set(key, (totals.get(key) || 0) + Math.max(1, Number(l.sets) || 1));
+        });
+      });
+      return Object.fromEntries(totals);
+    },
+
     // ===== Strength progress: best weight on the first day vs best weight ever =====
     // Needs two logged days at least a week apart; weightless and timed
     // exercises are skipped. A deload never shows as a loss.

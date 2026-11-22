@@ -8,6 +8,7 @@ import { localISO, shiftISO } from "../../lib/dateKey";
 import { PERIODS, arDate, capPct, fmtVolume, signed, weightTone } from "../../lib/stats/format";
 import WeightChart from "./WeightChart";
 import GoalCard, { goalTrajectory } from "./GoalCard";
+import MuscleHeatmap from "./MuscleHeatmap";
 import WeeklyCard from "./WeeklyCard";
 import TrendChart from "./TrendChart";
 import { loadMeasures, FIELDS } from "../../lib/measure/measure";
@@ -40,6 +41,7 @@ export default function Stats() {
   const strengthRows = useMemo(() => Store.getStrengthProgress(5), [version]);
   const prs = useMemo(() => Store.getRecentPRs(5), [version]);
   const muscles = useMemo(() => Store.getMuscleSetsInRange(periodDays).slice(0, 6), [periodDays, version]);
+  const muscleKeys = useMemo(() => Store.getMuscleKeySetsInRange(periodDays), [periodDays, version]);
   const prevMuscles = useMemo(() => new Map(Store.getMuscleSetsInRange(periodDays, periodDays).map((m) => [m.label, m.sets])), [periodDays, version]);
   const bodyFat = useMemo(() => {
     const from = windowStart(localISO(), periodDays);
@@ -244,6 +246,11 @@ export default function Stats() {
               </div>
             ))
           )}
+
+          <SectionTitle title="خريطة العضلات" sub={period.long} />
+          <div className="glass chart-card" style={{ padding: "16px 14px" }}>
+            <MuscleHeatmap sets={muscleKeys} />
+          </div>
 
           <SectionTitle title="توزيع المجموعات على العضلات" sub="مقارنة بالفترة اللي قبلها" />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
