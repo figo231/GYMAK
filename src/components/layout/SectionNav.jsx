@@ -10,11 +10,13 @@ const GROUPS = {
   food: [
     { to: "/food", label: "النهارده" },
     { to: "/meal-plan", label: "خطة الأسبوع" },
+    { to: "/supplements", label: "مكملات" },
   ],
   train: [
     { to: "/exercises", label: "التمارين" },
     { to: "/programs", label: "البرامج" },
     { to: "/warmup", label: "إحماء وإطالة" },
+    { to: "/strength", label: "قوتك" },
   ],
 };
 

@@ -495,3 +495,22 @@ html.ath.pro-ui .ad-actions .btn:not(.btn-primary), html.ath.pro-ui .ad-page > a
 html.ath.pro-ui .bc-video { width: 100%; max-height: 220px; border-radius: 14px; background: #000; margin-bottom: 10px; object-fit: cover; }
 html.ath.pro-ui .bc-result { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding: 12px; border-radius: 14px; border: 1px solid var(--border-soft); }
 html.ath.pro-ui .bc-result small { color: var(--text-secondary); line-height: 1.6; }
+
+/* Strength (PR records + 1RM) and supplements guide */
+html.ath.pro-ui .sr-row{width:100%;text-align:start;color:inherit;font:inherit;border:0;cursor:pointer}
+html.ath.pro-ui .sr-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+html.ath.pro-ui .sr-inputs label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700}
+html.ath.pro-ui .sr-inputs input{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:inherit;font:inherit;font-size:18px;font-weight:800;text-align:center}
+html.ath.pro-ui .sr-result{display:flex;justify-content:space-between;align-items:center;padding:14px;margin-bottom:10px;font-size:13px}
+html.ath.pro-ui .sr-result b{font-size:22px;color:#FF6A1A}
+html.ath.pro-ui .sr-zone{display:grid;grid-template-columns:44px 1fr auto auto;gap:10px;align-items:center;padding:10px 14px;margin-bottom:6px;font-size:13px}
+html.ath.pro-ui .sr-pct{font-weight:800;color:#FF8A3D}
+html.ath.pro-ui .sr-zone small{opacity:.6;min-width:70px;text-align:end}
+html.ath.pro-ui .sp-card{margin-bottom:8px;padding:0;overflow:hidden}
+html.ath.pro-ui .sp-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px;background:none;border:0;color:inherit;font:inherit;text-align:start;cursor:pointer}
+html.ath.pro-ui .sp-level{font-size:11px;font-weight:700;color:#FF8A3D}
+html.ath.pro-ui .sp-body{padding:0 14px 14px;font-size:13px;line-height:1.8}
+html.ath.pro-ui .sp-body p{margin:0 0 6px}
+html.ath.pro-ui .sp-body ul{margin:6px 0 0;padding-inline-start:18px;opacity:.85}
+html.ath.pro-ui .sp-myth{padding:12px 14px;margin-bottom:8px;font-size:13px}
+html.ath.pro-ui .sp-myth p{margin:6px 0 0;opacity:.8;line-height:1.7}

@@ -3,6 +3,7 @@
    كل حاجة بتتخزن في localStorage تحت بادئة gymak_
    (المفتاح الداخلي فضل زي ما هو لتوافق بيانات المستخدمين الحاليين)
    ========================================================= */
+import { personalRecords } from "../strength";
 import { normalizeReminders } from "../push/reminders";
 import { EXTRA_EXERCISES } from "./extraExercises";
 import { EGYPT_FOODS } from "./egyptFoods";
@@ -1302,6 +1303,16 @@ const KEY = "gymak_state_v1";
         .filter((p) => p.weight > 0 && !timed(p.exerciseId))
         .slice(0, limit)
         .map((p) => ({ ...p, exerciseName: normalizeExercise({ id: p.exerciseId, name: p.exerciseName }).name }));
+    },
+
+    // Heaviest weight per exercise (all time), newest record first.
+    getPersonalRecords() {
+      const s = load();
+      const timed = this._timedChecker(s);
+      return personalRecords(s.exerciseLogs, (id) => {
+        const ex = (s.exercises || []).find((e) => e.id === id);
+        return normalizeExercise({ id, name: ex ? ex.name : id }).name;
+      }, timed);
     },
 
     getWorkoutDays() {

@@ -29,6 +29,8 @@ const Warmup = lazy(() => import("./pages/Help/Warmup"));
 const Notifications = lazy(() => import("./pages/Profile/Notifications"));
 const Admin = lazy(() => import("./pages/Admin/Admin"));
 const Backups = lazy(() => import("./pages/Profile/Backups"));
+const Strength = lazy(() => import("./pages/Stats/Strength"));
+const Supplements = lazy(() => import("./pages/Help/Supplements"));
 const Help = lazy(() => import("./pages/Help/Help"));
 const Contact = lazy(() => import("./pages/Contact/Contact"));
 const MealPlan = lazy(() => import("./pages/Food/MealPlan"));
@@ -49,6 +51,8 @@ export const router = createBrowserRouter([
       { path: "/help", element: <Help /> },
       { path: "/backups", element: <Backups /> },
       { path: "/notifications", element: <Notifications /> },
+      { path: "/strength", element: <Strength /> },
+      { path: "/supplements", element: <Supplements /> },
       { path: "/warmup", element: <Warmup /> },
       { path: "/meal-plan", element: <MealPlan /> },
       { path: "/history", element: <History /> },
