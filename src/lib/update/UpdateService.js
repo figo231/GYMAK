@@ -1,8 +1,5 @@
-// UpdateService — single entry point the app uses for "is there a new
-// version, and how do I get it". Today only the PWA strategy does anything;
-// the APK strategy is a stub ready for when GYMAK ships as a wrapped app.
-// UI code (the settings row, the toast) only ever talks to this file, so
-// adding real APK support later means editing apkUpdateStrategy.js alone.
+// Web/PWA builds update through their service worker; native builds check
+// public GitHub release metadata and ask the person to install a newer APK.
 import { pwaUpdateStrategy } from "./pwaUpdateStrategy";
 import { apkUpdateStrategy } from "./apkUpdateStrategy";
 

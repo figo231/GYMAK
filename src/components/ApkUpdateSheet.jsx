@@ -4,6 +4,7 @@ import UpdateService from "../lib/update/UpdateService";
 export default function ApkUpdateSheet() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     UpdateService.init();
@@ -14,9 +15,10 @@ export default function ApkUpdateSheet() {
 
   async function go() {
     setBusy(true);
-    try { await UpdateService.applyUpdate(); } catch { /* ignore */ }
-    setBusy(false);
-    setOpen(false);
+    setError("");
+    try { await UpdateService.applyUpdate(); setOpen(false); }
+    catch { setError("اتصل بالإنترنت وحاول تاني. تقدر تكمل استخدام التطبيق دلوقتي."); }
+    finally { setBusy(false); }
   }
 
   return (
@@ -32,9 +34,10 @@ export default function ApkUpdateSheet() {
             فيه نسخة أحدث من GYMAK جاهزة. دوس تحميل، وبعد ما يخلص افتح الملف واختار تثبيت. بياناتك هتفضل زي ما هي.
           </p>
         </div>
+        {error && <p role="alert" style={{ fontSize: 13, textAlign: "center" }}>{error}</p>}
         <div className="edit-sheet-actions">
           <button type="button" onClick={() => setOpen(false)}>بعدين</button>
-          <button type="button" onClick={go} disabled={busy} style={{ background: "linear-gradient(135deg, var(--glow-blue), var(--glow-purple))", color: "var(--on-acc, #111)" }}>تحميل وتثبيت</button>
+          <button type="button" onClick={go} disabled={busy} style={{ background: "linear-gradient(135deg, var(--glow-blue), var(--glow-purple))", color: "var(--on-acc, #111)" }}>تحديث</button>
         </div>
       </div>
     </div>
