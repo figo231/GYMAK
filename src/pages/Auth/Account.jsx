@@ -6,7 +6,7 @@ import { useSyncStatus } from "../../hooks/useSyncStatus";
 import { supabase } from "../../lib/supabaseClient";
 import { useConfirm } from "../../hooks/useDialog";
 import { useToast } from "../../hooks/useToast";
-import { exportPayload, clearLocalData, parseBackup, applyBackup, timeAgoAr } from "../../lib/profileLogic";
+import { buildCsv, exportPayload, clearLocalData, parseBackup, applyBackup, timeAgoAr } from "../../lib/profileLogic";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
@@ -50,6 +50,16 @@ export default function Account() {
     } finally { setBusy(false); }
   }
 
+  function handleExportCsv() {
+    try {
+      const st = JSON.parse(localStorage.getItem("gymak_state_v1") || "null");
+      const url = URL.createObjectURL(new Blob([buildCsv(st)], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = "gymak-data.csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch { /* ignore */ }
+  }
   function handleExport() {
     const blob = new Blob([JSON.stringify(exportPayload(), null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -175,6 +185,7 @@ export default function Account() {
         <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>الحساب والبيانات</div>
         <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleChangePassword}>تغيير كلمة السر (بالإيميل)</button>
         <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExport}>تحميل نسخة من بياناتي</button>
+        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExportCsv}>تصدير Excel (CSV)</button>
         <button type="button" className="btn" style={{ width: "100%" }} onClick={() => importRef.current?.click()}>استرجاع من نسخة</button>
         <input ref={importRef} type="file" accept="application/json,.json" style={{ display: "none" }} onChange={(e) => { handleImportFile(e.target.files?.[0]); e.target.value = ""; }} />
       </div>

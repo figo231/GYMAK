@@ -294,7 +294,7 @@ const KEY = "gymak_state_v1";
         // the alias may carry a one-letter Arabic prefix (أرز, بالرز, وبيض): read the quantity before the whole word
         const tokStart = Math.max(lower.lastIndexOf(" ", idx - 1), lower.lastIndexOf("،", idx - 1), lower.lastIndexOf(",", idx - 1)) + 1;
         const prefix = lower.slice(tokStart, idx);
-        const wordStart = prefix.length <= 2 && /^[وبلكفاأ]*$/.test(prefix) ? tokStart : idx;
+        const wordStart = prefix.length <= 3 && /^[وبلكفاأ]*$/.test(prefix) ? tokStart : idx;
         const windowStart = Math.max(0, wordStart - 18);
         const before = lower.slice(windowStart, wordStart);
         let grams = null;
