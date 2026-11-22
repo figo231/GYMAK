@@ -4,6 +4,7 @@ import App from "./App";
 import "./styles/global.css";
 import "./styles/pro.css";
 import "./styles/athletic.css";
+import "./styles/reorganization.css";
 
 document.documentElement.classList.add("pro-ui");
 // Volt (athletic) look. Opt in/out with ?ui=ath or ?ui=classic; the choice is remembered on this device.

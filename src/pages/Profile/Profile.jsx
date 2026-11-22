@@ -32,7 +32,7 @@ import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arD
 // Keyboard + screen-reader support for clickable rows that are not <button>s.
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
 
-export default function Profile() {
+export default function Profile({ panel = null }) {
   const [version, refresh] = useStoreVersion();
   const promptAsync = usePrompt();
   const confirmAsync = useConfirm();
@@ -41,7 +41,6 @@ export default function Profile() {
   const { user } = useAuth();
   const { theme: activeTheme } = useTheme();
 
-  const [pTab, setPTab] = useState("me");
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -63,8 +62,8 @@ export default function Profile() {
     const nxt = opts[(opts.indexOf(cur) + 1) % opts.length];
     setRest(nxt === 0 ? setRestSettings({ enabled: false }) : setRestSettings({ enabled: true, sec: nxt }));
   }
-  useEffect(() => { if (user) isCoach().then(setShowCoach); }, [user?.id]);
-  useEffect(() => { isOwnerAdmin(user?.id).then(setIsOwner); }, [user?.id]);
+  useEffect(() => { if (user && panel !== "body" && panel !== "ach") isCoach().then(setShowCoach); }, [user?.id, panel]);
+  useEffect(() => { if (!panel) isOwnerAdmin(user?.id).then(setIsOwner); }, [user?.id, panel]);
   const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
   const [showAppearance, setShowAppearance] = useState(false);
   const [showLock, setShowLock] = useState(false);
@@ -263,8 +262,7 @@ export default function Profile() {
     : { backgroundImage: GRADIENTS[profile.coverGradient] || GRADIENTS.g1 };
 
   return (
-    <>
-      <div className="glass profile-head">
+    <>{!panel && <div className="ux-profile"><div className="glass profile-head">
         <div className="cover-wrap" style={coverStyle}>
           <button className="cover-edit-btn" aria-label="تغيير صورة الغلاف" onClick={() => document.getElementById("__coverPickTrigger")?.click()}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z" /><circle cx="12" cy="13" r="4" /></svg>
@@ -283,50 +281,82 @@ export default function Profile() {
           {profile.bio && <p className="p-bio">{profile.bio}</p>}
           <p className="p-role">عضو منذ {arDateFull(profile.memberSince)}</p>
 
-          <div className="p-stats-row">
+
+
+          <details className="ux-group"><summary>مستواك ونشاطك</summary><div className="ux-group-body"><div className="p-stats-row">
             <div className="p-stat"><span>{fmt(Store.getTotalWorkoutDays())}</span><label>يوم تمرين</label></div>
             <div className="p-stat"><span>{fmt(unlockedCount)}</span><label>إنجاز</label></div>
             <div className="p-stat"><span>{fmt(Store.getBestStreak())}</span><label>أفضل سلسلة</label></div>
           </div>
-
-          <button className="edit-profile-btn" onClick={() => setShowEdit(true)}>تعديل الملف الشخصي</button>
-
-          <div className="p-xp-wrap">
+<div className="p-xp-wrap">
             <div className="p-xp-nums"><span>{fmt(profile.xp)} XP</span><span>{fmt(profile.xpNext)} XP</span></div>
             <div className="p-xp-track"><div className="p-xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
             {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? "وصلت سقف الـXP النهارده. كمّل بكرة." : `فاضل ${x.exercises} ${exercisesWord(x.exercises)} للمستوى ${x.nextLevel}`}</div>; })()}
+          </div></div></details><button className="edit-profile-btn" onClick={() => setShowEdit(true)}>تعديل الملف الشخصي</button>
+
+
+        </div>
+      </div><details className="ux-group" ><summary>الحساب ومزامنة البيانات</summary><div className="ux-group-body"><Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
+          <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
+          {user && <span className="settings-hint">{syncStatus === "synced" ? `متزامن ${timeAgoAr(lastSyncAt)}` : syncStatus === "error" ? "فيه مشكلة" : syncStatus === "offline" ? "أوفلاين" : timeAgoAr(lastSyncAt)}</span>}
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link><Link to="/backups" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>النسخ الاحتياطي ←</Link><div className="settings-row" style={{ cursor: "pointer" }} {...press(handleReset)}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
+          <span className="settings-name" style={{ color: "var(--danger)" }}>إعادة تعيين كل البيانات</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div></div></details><details className="ux-group" ><summary>التفضيلات والخصوصية</summary><div className="ux-group-body"><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
+          <span className="settings-name">اللغة والوحدات</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowAppearance(true))}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--purple-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></div>
+          <span className="settings-name">المظهر</span>
+          <span className="settings-hint">{activeTheme === "dark" ? "داكن" : "فاتح"}</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLock(true))}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></div>
+          <span className="settings-name">قفل التطبيق</span>
+          <span className="settings-hint">{isLockEnabled() ? "شغال" : "مقفول"}</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowReminder(true))}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
+          <span className="settings-name">التذكير اليومي</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>التنبيهات ←</Link></div></details><details className="ux-group" ><summary>المساعدة والدعم</summary><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>المساعدة وأسئلة شائعة ←</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>تواصل معانا ←</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>جولة تعريفية بالتطبيق ←</Link><a
+          href={Store.getDeveloperWhatsAppUrl()} target="_blank" rel="noreferrer"
+          className="settings-row" style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" /></svg></div>
+          <span className="settings-name">تواصل مع المطور</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </a></div></details><details className="ux-group" ><summary>عن التطبيق والمشاركة</summary><div className="ux-group-body"><button type="button" className="glass coach-card" style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={async () => { const r = await shareText({ title: "GYMAK", text: "بتمرن وبتتابع أكلك؟ جرّب GYMAK، تطبيق جيم وتغذية بالعربي ببلاش.", url: APP_URL }); if (r === "copied") toast("اللينك اتنسخ"); }}>شارك التطبيق مع صحابك ←</button><div
+          className="settings-row"
+          style={{ cursor: checkingUpdate ? "default" : "pointer", opacity: checkingUpdate ? 0.6 : 1 }}
+          {...press(handleCheckUpdate)}
+        >
+          <div className="settings-ic">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={checkingUpdate ? "spin" : ""}>
+              <path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 3v6h-6" />
+            </svg>
           </div>
-        </div>
-      </div>
-
-      <div className="xd-tabs pf-tabs" role="tablist" aria-label="أقسام الحساب">
-        {[["me", "ملفي"], ["ach", "الإنجازات"], ["set", "الإعدادات"]].map(([id, l]) => (
-          <button key={id} type="button" role="tab" aria-selected={pTab === id} className={"xd-tab" + (pTab === id ? " on" : "")} onClick={() => setPTab(id)}>{l}</button>
-        ))}
-      </div>
-
-      {pTab === "me" && (<>
-      <button type="button" className="glass coach-card" style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={async () => { const r = await shareText({ title: "GYMAK", text: "بتمرن وبتتابع أكلك؟ جرّب GYMAK، تطبيق جيم وتغذية بالعربي ببلاش.", url: APP_URL }); if (r === "copied") toast("اللينك اتنسخ"); }}>شارك التطبيق مع صحابك ←</button>
-      <button type="button" className="glass coach-card" aria-pressed={Store.getRamadan()} style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={() => { const on = Store.setRamadan(!Store.getRamadan()); toast(on ? "وضع رمضان اتفعّل" : "وضع رمضان اتقفل"); }}>وضع رمضان: {Store.getRamadan() ? "شغّال" : "مقفول"}</button>
-      <Link to="/professionals" className="btn btn-secondary" style={{display:"block",textAlign:"center",marginBottom:12,padding:12}}>المدربين المقترحين وطلبات التواصل ←</Link>
-      <Link to="/messages" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>رسائل دكتور التغذية والمدرب (بشري) ←</Link>
-      <Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>التنبيهات ←</Link>
-      <Link to="/backups" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>النسخ الاحتياطي ←</Link>
-      <Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>المساعدة وأسئلة شائعة ←</Link>
-      <Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>تواصل معانا ←</Link>
-      <Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>جولة تعريفية بالتطبيق ←</Link>
-      <Link to="/ai-coach" className="glass coach-card" style={{ textDecoration: "none", color: "inherit" }}>
-        <div className="coach-ic">
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /><path d="M9 10.5s1 1 3 1 3-1 3-1" /></svg>
-        </div>
-        <div className="coach-info">
-          <p className="coach-title">مدرّبك الذكي</p>
-          <p className="coach-sub">{coachLine(Store.getWorkoutDays ? Store.getWorkoutDays() : [])}</p>
-        </div>
-        <svg className="coach-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-      </Link>
-
-      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
+          <span className="settings-name">التحقق من التحديثات</span>
+          {checkingUpdate && <span className="settings-hint">بيدور...</span>}
+          {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div></div></details><Link className="ux-destination glass" to="/training#training-settings">إعدادات التدريب ومدربيني ووضع رمضان ←</Link><Link className="ux-destination glass" to="/stats">قياساتك وإنجازاتك وصور تقدمك في تقدم ←</Link>{isOwner && <details className="ux-group" ><summary>إدارة التطبيق</summary><div className="ux-group-body">{isOwner && (
+          <Link to="/owner" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
+            <span className="settings-name">لوحة المالك</span>
+            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+          </Link>
+        )}{isOwner && (
+          <Link to="/admin" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
+            <span className="settings-name">لوحة الإدارة والرسايل</span>
+            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+          </Link>
+        )}</div></details>}</div>}{panel === "body" && <>      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>قياسات الجسم</h2>
         <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{latest ? `آخر تحديث: ${arDateFull(latest.date)}` : "لسه مفيش قياس"}</span>
       </div>
@@ -347,11 +377,15 @@ export default function Profile() {
           <div className="ib-label"><span className="ib-dot" style={{ background: "var(--warn-text)", color: "var(--warn-text)" }} />هدف الوزن</div>
           <div><span className="ib-val" style={{ cursor: "pointer" }} {...press(handleGoalClick)}>{goal != null ? Store.formatWeight(goal) : "حدد هدفك"}</span></div>
         </div>
-      </div>
-
-      </>)}
-      {pTab === "ach" && (<>
-      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
+      </div><Link to="/measurements" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17 17 3l4 4L7 21l-4-4Z" /><path d="m7 13 2 2M10 10l2 2M13 7l2 2" /></svg></div>
+          <span className="settings-name">قياسات الجسم (سم)</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link><Link to="/photos" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="15" rx="2" /><circle cx="12" cy="12.5" r="3.5" /><path d="M8 5l1.500-2h5L16 5" /></svg></div>
+          <span className="settings-name">صور التقدم</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link></>}{panel === "ach" && <>      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإنجازات</h2>
         <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{unlockedCount} من {achievements.length}</span>
       </div>
@@ -370,124 +404,39 @@ export default function Profile() {
           <button type="button" onClick={() => openCard("pr")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت رقم قياسي (صورة)</button>
         </div>
         {card && <ShareCardSheet data={card} name={profile.name} onClose={() => setCard(null)} />}
-      </div>
-
-      </>)}
-      {pTab === "set" && (<>
-      <div className="section-title" style={{ margin: "20px 4px 12px" }}><h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإعدادات</h2></div>
-      <div className="glass" style={{ padding: "2px 14px" }}>
-        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
-          <span className="settings-name">اللغة والوحدات</span>
+      </div><Link to="/history" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg></div>
+          <span className="settings-name">سجل التمارين والأكل والوزن</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link></>}{panel === "training" && <><button type="button" className="glass coach-card" aria-pressed={Store.getRamadan()} style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={() => { const on = Store.setRamadan(!Store.getRamadan()); toast(on ? "وضع رمضان اتفعّل" : "وضع رمضان اتقفل"); }}>وضع رمضان: {Store.getRamadan() ? "شغّال" : "مقفول"}</button><Link to="/ai-coach" className="glass coach-card" style={{ textDecoration: "none", color: "inherit" }}>
+        <div className="coach-ic">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /><path d="M9 10.5s1 1 3 1 3-1 3-1" /></svg>
         </div>
-        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowAppearance(true))}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--purple-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></div>
-          <span className="settings-name">المظهر</span>
-          <span className="settings-hint">{activeTheme === "dark" ? "داكن" : "فاتح"}</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        <div className="coach-info">
+          <p className="coach-title">مدرّبك الذكي</p>
+          <p className="coach-sub">{coachLine(Store.getWorkoutDays ? Store.getWorkoutDays() : [])}</p>
         </div>
-        <Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
-          <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
-          {user && <span className="settings-hint">{syncStatus === "synced" ? `متزامن ${timeAgoAr(lastSyncAt)}` : syncStatus === "error" ? "فيه مشكلة" : syncStatus === "offline" ? "أوفلاين" : timeAgoAr(lastSyncAt)}</span>}
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </Link>
-        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLock(true))}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></div>
-          <span className="settings-name">قفل التطبيق</span>
-          <span className="settings-hint">{isLockEnabled() ? "شغال" : "مقفول"}</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div>
-        <div className="settings-row" style={{ cursor: "pointer" }} {...press(cycleRest)}>
+        <svg className="coach-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+      </Link><div className="settings-row" style={{ cursor: "pointer" }} {...press(cycleRest)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" /></svg></div>
           <span className="settings-name">مؤقت الراحة بين المجموعات</span>
           <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 700 }}>{rest.enabled ? fmtClock(rest.sec) : "إيقاف"}</span>
-        </div>
-        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowReminder(true))}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
-          <span className="settings-name">التذكير اليومي</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div>
-        <div
-          className="settings-row"
-          style={{ cursor: checkingUpdate ? "default" : "pointer", opacity: checkingUpdate ? 0.6 : 1 }}
-          {...press(handleCheckUpdate)}
-        >
-          <div className="settings-ic">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={checkingUpdate ? "spin" : ""}>
-              <path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 3v6h-6" />
-            </svg>
-          </div>
-          <span className="settings-name">التحقق من التحديثات</span>
-          {checkingUpdate && <span className="settings-hint">بيدور...</span>}
-          {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div>
-        {user && (
+        </div>{user && (
           <Link to="/coach" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" /><path d="M17 7.5a3 3 0 0 1 0 5M19 20c0-2.2-.9-3.8-2.4-4.8" /></svg></div>
             <span className="settings-name">{showCoach ? "المدربين ومتدربيني" : "مدربيني"}</span>
             <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
           </Link>
-        )}
-        {isOwner && (
-          <Link to="/owner" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
-            <span className="settings-name">لوحة المالك</span>
-            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-          </Link>
-        )}
-        {isOwner && (
-          <Link to="/admin" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
-            <span className="settings-name">لوحة الإدارة والرسايل</span>
-            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-          </Link>
-        )}
-        <Link to="/history" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg></div>
-          <span className="settings-name">سجل التمارين والأكل والوزن</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </Link>
-        <Link to="/measurements" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17 17 3l4 4L7 21l-4-4Z" /><path d="m7 13 2 2M10 10l2 2M13 7l2 2" /></svg></div>
-          <span className="settings-name">قياسات الجسم (سم)</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </Link>
-        <Link to="/photos" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="15" rx="2" /><circle cx="12" cy="12.5" r="3.5" /><path d="M8 5l1.500-2h5L16 5" /></svg></div>
-          <span className="settings-name">صور التقدم</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </Link>
-        <Link to="/programs" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+        )}<Link to="/programs" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg></div>
           <span className="settings-name">برامج التدريب الجاهزة</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </Link>
-        <a
-          href={Store.getDeveloperWhatsAppUrl()} target="_blank" rel="noreferrer"
-          className="settings-row" style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" /></svg></div>
-          <span className="settings-name">تواصل مع المطور</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </a>
-        <div className="settings-row" style={{ cursor: "pointer" }} {...press(handleReset)}>
-          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
-          <span className="settings-name" style={{ color: "var(--danger)" }}>إعادة تعيين كل البيانات</span>
-          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div>
-      </div>
-      </>)}
-
-      {/* Hidden trigger so the cover-edit button (outside EditProfileSheet) can still open a picker before the sheet is mounted */}
-      <input
+        </Link></>}{/* Hidden trigger so the cover-edit button (outside EditProfileSheet) can still open a picker before the sheet is mounted */}
+<input
         id="__coverPickTrigger" type="file" accept="image/*" style={{ display: "none" }}
         onChange={(e) => handleCoverFile(e.target.files?.[0])}
       />
-
-      {showEdit && (
+{showEdit && (
         <EditProfileSheet
           profile={profile}
           onClose={() => setShowEdit(false)}
@@ -497,7 +446,7 @@ export default function Profile() {
           onPickGradient={handleGradientPick}
         />
       )}
-      {showLang && (
+{showLang && (
         <LangUnitsSheet
           unit={settings.unit}
           lang={currentLang}
@@ -506,12 +455,12 @@ export default function Profile() {
           onLangChange={handleLangChange}
         />
       )}
-      {showNotif && (
+{showNotif && (
         <NotifSheet
           onClose={() => { setShowNotif(false); if (searchParams.get("notif")) setSearchParams({}, { replace: true }); }}
         />
       )}
-      {showReminder && (
+{showReminder && (
         <ReminderSheet
           initialEnabled={settings.notifEnabled}
           initialTime={settings.notifTime}
@@ -519,8 +468,7 @@ export default function Profile() {
           onSaved={() => { setShowReminder(false); refresh(); }}
         />
       )}
-      {showLock && <AppLockSheet onClose={() => setShowLock(false)} onChanged={refresh} />}
-      {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}
-    </>
+{showLock && <AppLockSheet onClose={() => setShowLock(false)} onChanged={refresh} />}
+{showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}</>
   );
                                       }

@@ -116,8 +116,7 @@ export default function Dashboard() {
   const notifOff = typeof Notification !== "undefined" && Notification.permission === "default";
 
   return (
-    <div className="home">
-      <div className="header">
+    <div className="home ux-home"><div className="header">
         <div className="avatar-wrap">
           <div className="avatar-ring"><img src={profile.avatar || "/icon-192.png"} alt="صورتي" /></div>
           <div className="level-badge">Lv. {profile.level}</div>
@@ -136,8 +135,7 @@ export default function Dashboard() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
         </Link>
       </div>
-
-      <div className={"glass hero" + (hero.kind === "done" ? " is-done" : "")} data-testid="hero">
+<div className={"glass hero" + (hero.kind === "done" ? " is-done" : "")} data-testid="hero">
         <div className="hero-eyebrow">{hero.kind === "done" ? "تمرين النهارده" : hero.kind === "plan" ? "خطة النهارده" : hero.kind === "suggest" ? "مقترح النهارده" : "ابدأ"}</div>
         {hero.kind === "done" && (<>
           <div className="hero-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>خلصت النهارده</div>
@@ -161,99 +159,12 @@ export default function Dashboard() {
           <Link to="/exercises" className="btn btn-primary hero-cta">تسجيل تمرين</Link>
         </>)}
       </div>
-
-      {hero.kind !== "done" && (
-        <button type="button" className="glass quick-workout-btn" data-testid="quick-workout" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 14px", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", color: "inherit", margin: "0 0 10px" }}
-          onClick={() => {
-            const picked = pickQuickWorkout(Store.getExercises(), Store.getTodayKey());
-            if (!picked.length) { toast("ضيف تمارين الأول من صفحة التمارين."); return; }
-            Store.addManyToTodayPlan(picked.map((e) => e.id));
-            buzz(15);
-            toast(`جهزت لك تمرين سريع: ${picked.length} تمارين، حوالي ${quickWorkoutMinutes(picked)} دقيقة ⚡`);
-            refresh();
-          }}>
-          ⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز
-        </button>
-      )}
-
-      <Link to="/professionals" className="btn btn-secondary" style={{display:"block",textAlign:"center",marginBottom:12,padding:12}}>المدربين المقترحين وطلبات التواصل ←</Link>
-      <Link to="/messages" className="btn btn-secondary" style={{ display: "block", textAlign: "center", margin: "0 0 12px", padding: 12 }}>محادثة مع دكتور تغذية أو مدرب (بشري) ←</Link>
-      <div className="today-strip" data-testid="today-strip">
+<div className="today-strip" data-testid="today-strip">
         <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>تمارين</span></Link>
-        <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>مياه</span></button>
+        <button type="button" className="ts-item" onClick={() => { const d = document.getElementById('home-water'); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }}><b dir="ltr">{waterPct}%</b><span>مياه</span></button>
         <Link to="/food" className="ts-item"><b dir="ltr">{kcalToday}</b><span>سعرات</span></Link>
       </div>
-
-      <TipCard />
-      <WeeklyReportCard />
-
-      {recent.length === 0 && (
-        <div className="glass start-card" data-testid="start-card">
-          <div className="start-title">ابدأ في 3 خطوات</div>
-          {[
-            { done: !!latest, text: "سجّل وزنك", onClick: () => setShowWeightSheet(true) },
-            { done: !!hasProgram, text: "اختار برنامج", to: "/programs" },
-            { done: false, text: "سجّل أول تمرين", to: "/exercises" },
-          ].map((s, i) => {
-            const inner = (<><span className={"start-n" + (s.done ? " done" : "")}>{s.done ? "✓" : i + 1}</span><span className="start-t">{s.text}</span></>);
-            return s.to
-              ? <Link key={i} to={s.to} className="start-step">{inner}</Link>
-              : <div key={i} className="start-step" {...press(s.onClick)}>{inner}</div>;
-          })}
-        </div>
-      )}
-
-      <div className={"glass streak-card" + (trainedToday ? " lit" : "")}>
-        <div className="streak-flame">
-          <svg viewBox="0 0 24 24" width="30" height="30">
-            <defs>
-              <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stopColor="#EF4444" />
-                <stop offset="55%" stopColor="#F97316" />
-                <stop offset="100%" stopColor="#FBBF24" />
-              </linearGradient>
-            </defs>
-            <path fill="url(#flameGrad)" d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" />
-          </svg>
-        </div>
-        <div className="streak-body">
-          <div className="streak-num-row">
-            <span className="streak-num">{streak}</span>
-            <span className="streak-label">{streak === 0 ? "ابدأ سلسلتك النهارده" : "يوم متتالي"}</span>
-          </div>
-          <div className="streak-week">
-            {week.map((d) => {
-              const dow = new Date(d.date + "T00:00:00").getDay();
-              const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "اتمرنت" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
-            })}
-          </div>
-          {atRisk && <div className="streak-warn">سجّل تمرين النهارده عشان سلسلة الـ{streak} {streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"} متتقطعش</div>}
-        </div>
-        <div className="streak-record">
-          <span className="rec-num">{best}</span>
-          <span className="rec-txt">أطول سلسلة</span>
-        </div>
-      </div>
-
-      <div className={"glass streak-card food" + (nutritionWeek.at(-1)?.done ? " lit" : "")}>
-        <div className="streak-flame" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🍎</div>
-        <div className="streak-body">
-          <div className="streak-num-row">
-            <span className="streak-num">{nutritionStreak}</span>
-            <span className="streak-label">{nutritionStreak === 0 ? "سجّل أكلك النهارده" : "يوم التزام بالأكل"}</span>
-          </div>
-          <div className="streak-week">
-            {nutritionWeek.map((d) => {
-              const dow = new Date(d.date + "T00:00:00").getDay();
-              const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "ملتزم" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="top-row">
+<details className="ux-group" id="home-body"><summary>وزنك ومؤشرات جسمك</summary><div className="ux-group-body"><div className="top-row">
         <div className="glass weight-card">
           <div>
             {latest ? (<>
@@ -303,12 +214,7 @@ export default function Dashboard() {
             <span>تسجيل وزن</span>
           </div>
         </div>
-      </div>
-
-      <ChallengeCard version={version} />
-      <WaterCard />
-
-      <div className="home-body">
+      </div><div className="home-body">
       <div className="section-title">
         <h2>مؤشرات الجسم</h2>
         <Link to="/measurements">
@@ -355,9 +261,10 @@ export default function Dashboard() {
           </>)}
         </div>
       </div>
-      </div>
-
-      {todayList.length > 0 && (
+      </div></div></details>
+<details className="ux-group" ><summary>تقرير الأسبوع</summary><div className="ux-group-body"><WeeklyReportCard /></div></details>
+<details className="ux-group" id="home-water"><summary>المياه</summary><div className="ux-group-body"><WaterCard /></div></details>
+<details className="ux-group" ><summary>تمارين النهارده وآخر تسجيل</summary><div className="ux-group-body">{todayList.length > 0 && (
         <div className="home-plan">
           <div className="section-title"><h2>تمارين النهارده</h2></div>
           <div className="glass" style={{ padding: "4px 14px", marginBottom: 12 }}>
@@ -377,9 +284,7 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-      )}
-
-      <div className="home-last">
+      )}<div className="home-last">
       <div className="section-title">
         <h2>آخر تمرين مسجّل</h2>
         <Link to="/exercises">
@@ -411,9 +316,82 @@ export default function Dashboard() {
           ))
         )}
       </div>
-      </div>
-
-      {showWeightSheet && (
+      </div></div></details>
+<details className="ux-group" ><summary>نصائح وسلاسل وتحديات</summary><div className="ux-group-body"><TipCard />{recent.length === 0 && (
+        <div className="glass start-card" data-testid="start-card">
+          <div className="start-title">ابدأ في 3 خطوات</div>
+          {[
+            { done: !!latest, text: "سجّل وزنك", onClick: () => setShowWeightSheet(true) },
+            { done: !!hasProgram, text: "اختار برنامج", to: "/programs" },
+            { done: false, text: "سجّل أول تمرين", to: "/exercises" },
+          ].map((s, i) => {
+            const inner = (<><span className={"start-n" + (s.done ? " done" : "")}>{s.done ? "✓" : i + 1}</span><span className="start-t">{s.text}</span></>);
+            return s.to
+              ? <Link key={i} to={s.to} className="start-step">{inner}</Link>
+              : <div key={i} className="start-step" {...press(s.onClick)}>{inner}</div>;
+          })}
+        </div>
+      )}<div className={"glass streak-card" + (trainedToday ? " lit" : "")}>
+        <div className="streak-flame">
+          <svg viewBox="0 0 24 24" width="30" height="30">
+            <defs>
+              <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor="#EF4444" />
+                <stop offset="55%" stopColor="#F97316" />
+                <stop offset="100%" stopColor="#FBBF24" />
+              </linearGradient>
+            </defs>
+            <path fill="url(#flameGrad)" d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" />
+          </svg>
+        </div>
+        <div className="streak-body">
+          <div className="streak-num-row">
+            <span className="streak-num">{streak}</span>
+            <span className="streak-label">{streak === 0 ? "ابدأ سلسلتك النهارده" : "يوم متتالي"}</span>
+          </div>
+          <div className="streak-week">
+            {week.map((d) => {
+              const dow = new Date(d.date + "T00:00:00").getDay();
+              const isToday = d.date === localISO();
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "اتمرنت" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
+            })}
+          </div>
+          {atRisk && <div className="streak-warn">سجّل تمرين النهارده عشان سلسلة الـ{streak} {streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"} متتقطعش</div>}
+        </div>
+        <div className="streak-record">
+          <span className="rec-num">{best}</span>
+          <span className="rec-txt">أطول سلسلة</span>
+        </div>
+      </div><div className={"glass streak-card food" + (nutritionWeek.at(-1)?.done ? " lit" : "")}>
+        <div className="streak-flame" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🍎</div>
+        <div className="streak-body">
+          <div className="streak-num-row">
+            <span className="streak-num">{nutritionStreak}</span>
+            <span className="streak-label">{nutritionStreak === 0 ? "سجّل أكلك النهارده" : "يوم التزام بالأكل"}</span>
+          </div>
+          <div className="streak-week">
+            {nutritionWeek.map((d) => {
+              const dow = new Date(d.date + "T00:00:00").getDay();
+              const isToday = d.date === localISO();
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "ملتزم" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
+            })}
+          </div>
+        </div>
+      </div><ChallengeCard version={version} /></div></details>
+<details className="ux-group" ><summary>تمرين سريع</summary><div className="ux-group-body">{hero.kind !== "done" && (
+        <button type="button" className="glass quick-workout-btn" data-testid="quick-workout" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 14px", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", color: "inherit", margin: "0 0 10px" }}
+          onClick={() => {
+            const picked = pickQuickWorkout(Store.getExercises(), Store.getTodayKey());
+            if (!picked.length) { toast("ضيف تمارين الأول من صفحة التمارين."); return; }
+            Store.addManyToTodayPlan(picked.map((e) => e.id));
+            buzz(15);
+            toast(`جهزت لك تمرين سريع: ${picked.length} تمارين، حوالي ${quickWorkoutMinutes(picked)} دقيقة ⚡`);
+            refresh();
+          }}>
+          ⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز
+        </button>
+      )}</div></details>
+{showWeightSheet && (
         <WeightLogSheet
           initialWeight={latest ? Store.toDisplayWeight(latest.weight) : ""}
           lastBodyFat={bodyFat ? bodyFat.value : null}
@@ -421,7 +399,6 @@ export default function Dashboard() {
           onClose={() => setShowWeightSheet(false)}
           onSave={handleWeightSave}
         />
-      )}
-    </div>
+      )}</div>
   );
 }

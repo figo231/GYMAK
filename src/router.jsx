@@ -6,6 +6,7 @@ import RouteError from "./components/RouteError";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
+const Training = lazy(() => import("./pages/Exercises/Training"));
 const Exercises = lazy(() => import("./pages/Exercises/Exercises"));
 const Stats = lazy(() => import("./pages/Stats/Stats"));
 const Profile = lazy(() => import("./pages/Profile/Profile"));
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { path: "/", element: <Dashboard /> },
+      { path: "/training", element: <Training /> },
       { path: "/exercises", element: <Exercises /> },
       { path: "/stats", element: <Stats /> },
       { path: "/profile", element: <Profile /> },

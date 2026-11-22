@@ -41,3 +41,22 @@ adb shell am force-stop com.gymak.app
 adb shell pm clear com.gymak.app
 run_test freshOfflineInstall
 adb pull /sdcard/Android/data/com.gymak.app/files/fresh-offline.png verification/fresh-offline.png
+
+# Also exercise the version people currently have, not only the old web wrapper.
+adb shell cmd connectivity airplane-mode disable
+adb shell svc wifi enable
+curl --fail --location --retry 2 https://github.com/figo231/GYMAK/releases/download/apk-15/GYMAK.apk -o /tmp/gymak-previous.apk
+adb uninstall com.gymak.app.test
+adb uninstall com.gymak.app
+adb install -r -g /tmp/gymak-previous.apk
+adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+run_test seedLegacyData
+cp verification/seedLegacyData.txt verification/apk15-seed.txt
+adb shell am force-stop com.gymak.app
+adb shell svc wifi disable
+adb shell svc data disable
+adb shell cmd connectivity airplane-mode enable
+adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
+run_test keepsDataAndRunsOffline
+cp verification/keepsDataAndRunsOffline.txt verification/apk15-upgrade.txt
+adb pull /sdcard/Android/data/com.gymak.app/files/offline-upgrade.png verification/apk15-offline-upgrade.png

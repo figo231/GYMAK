@@ -77,19 +77,7 @@ export default function Food() {
   }
 
   return (
-    <>
-      <SectionNav group="food" title="الأكل" />
-
-      <RamadanCard kind="food" />
-      <div className="goal-modes" data-testid="goal-modes" role="group" aria-label="الهدف">
-        {Object.entries(modes).map(([k, v]) => (
-          <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{v.label}</button>
-        ))}
-      </div>
-      <button type="button" className={"cheat-toggle" + (cheat ? " on" : "")} aria-pressed={cheat} onClick={toggleCheat}>{cheat ? "النهارده يوم حر ✓ (سلسلتك محمية)" : "خلّي النهارده يوم حر"}</button>
-      {mode && <div className="goal-tip">{modes[mode].tip}{proteinTarget ? ` هدف البروتين: ${proteinTarget} جم.` : ""}</div>}
-
-      <div className="food-hero" data-testid="food-hero">
+    <><h1 className="page-title">أكل النهارده</h1><div className="food-hero" data-testid="food-hero">
         <div className="food-hero-top">
           <div>
             <div className="food-big" dir="ltr">{day.totalKcal}</div>
@@ -112,23 +100,7 @@ export default function Food() {
           <div><b dir="ltr">{m.c}</b><span>كارب جم</span></div>
           <div><b dir="ltr">{m.f}</b><span>دهون جم</span></div>
         </div>
-      </div>
-
-      {saved.length > 0 && (
-        <div className="saved-meals" data-testid="saved-meals">
-          <div className="section-sub">وجباتك المحفوظة</div>
-          {saved.map((m) => (
-            <div key={m.id} className="glass saved-meal">
-              <button type="button" className="saved-meal-main" onClick={() => logSaved(m)}>
-                <b>{m.name}</b><small dir="ltr">{m.items.reduce((a, x) => a + x.kcal, 0)} kcal</small>
-              </button>
-              <button type="button" className="hist-btn danger" aria-label={`مسح ${m.name}`} onClick={() => delSaved(m)}>✕</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="glass food-add">
+      </div><div className="glass food-add">
         <div className="food-add-title">كلت إيه؟</div>
         <textarea className="food-input" rows={2} value={text} placeholder="مثال: عيش بلدي وفراخ مشوية و٢ موز" onChange={(e) => { setText(e.target.value); setPreview(null); }} />
         <div className="food-chips">
@@ -146,10 +118,8 @@ export default function Food() {
             <button type="button" className="btn" style={{ width: "100%", marginTop: 8 }} onClick={saveCurrent}>احفظ كوجبة</button>
           </div>
         )}
-      </div>
-
-      <div className="section-sub">أكل النهارده</div>
-      {day.items.length === 0 ? (
+      </div><div className="section-sub">أكل النهارده</div>
+{day.items.length === 0 ? (
         <div className="glass food-empty">لسه مسجلتش أكل النهارده.</div>
       ) : day.items.map((it, i) => (
         <div className="glass food-row card" key={i}>
@@ -159,9 +129,24 @@ export default function Food() {
           <button type="button" className="hist-btn danger" aria-label={`مسح ${it.name}`} onClick={() => del(i, it)}>✕</button>
         </div>
       ))}
-      {editing && <EditFoodSheet item={editing.it} onClose={() => setEditing(null)} onSave={saveEdit} />}
-      <p className="food-foot">القيم تقريبية. <Link to="/history">كل أيام الأكل في السجل</Link></p>
-      {showBarcode && <BarcodeSheet onClose={() => setShowBarcode(false)} onAdd={(it) => { Store.logFoodEntries([it]); setShowBarcode(false); toast("اتسجّل"); }} />}
-    </>
+{editing && <EditFoodSheet item={editing.it} onClose={() => setEditing(null)} onSave={saveEdit} />}
+<p className="food-foot">القيم تقريبية. <Link to="/history">كل أيام الأكل في السجل</Link></p>
+{showBarcode && <BarcodeSheet onClose={() => setShowBarcode(false)} onAdd={(it) => { Store.logFoodEntries([it]); setShowBarcode(false); toast("اتسجّل"); }} />}<details className="ux-group" ><summary>وجباتك المحفوظة</summary><div className="ux-group-body">{saved.length > 0 && (
+        <div className="saved-meals" data-testid="saved-meals">
+          <div className="section-sub">وجباتك المحفوظة</div>
+          {saved.map((m) => (
+            <div key={m.id} className="glass saved-meal">
+              <button type="button" className="saved-meal-main" onClick={() => logSaved(m)}>
+                <b>{m.name}</b><small dir="ltr">{m.items.reduce((a, x) => a + x.kcal, 0)} kcal</small>
+              </button>
+              <button type="button" className="hist-btn danger" aria-label={`مسح ${m.name}`} onClick={() => delSaved(m)}>✕</button>
+            </div>
+          ))}
+        </div>
+      )}</div></details><details className="ux-group" ><summary>الهدف واليوم الحر ووضع رمضان</summary><div className="ux-group-body"><div className="goal-modes" data-testid="goal-modes" role="group" aria-label="الهدف">
+        {Object.entries(modes).map(([k, v]) => (
+          <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{v.label}</button>
+        ))}
+      </div><button type="button" className={"cheat-toggle" + (cheat ? " on" : "")} aria-pressed={cheat} onClick={toggleCheat}>{cheat ? "النهارده يوم حر ✓ (سلسلتك محمية)" : "خلّي النهارده يوم حر"}</button>{mode && <div className="goal-tip">{modes[mode].tip}{proteinTarget ? ` هدف البروتين: ${proteinTarget} جم.` : ""}</div>}<RamadanCard kind="food" /></div></details><details className="ux-group" ><summary>خطة الأسبوع والمكملات</summary><div className="ux-group-body"><SectionNav group="food" title="الأكل" /></div></details></>
   );
 }

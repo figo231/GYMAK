@@ -1,3 +1,4 @@
+import ChatNav from "../../components/layout/ChatNav";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
@@ -88,14 +89,14 @@ function Inbox() {
       {Number(r.unread) > 0 && <span className="pc-unread" aria-label={`${r.unread} رسالة غير مقروءة`}>{r.unread}</span>}
     </Link>)}</div>
     {more && <button type="button" className="pc-small" disabled={busy} onClick={older}>محادثات أقدم</button>}
-    <div className="pc-heading"><h2>ابدأ محادثة</h2></div>
+    <details className="ux-group"><summary>جهات التواصل المقبولة</summary><div className="ux-group-body"><div className="pc-heading"><h2>ابدأ محادثة</h2></div>
     <p className="pc-hint">الأشخاص اللي قبلوا طلب تواصلك، ومدربيك اللي وافقت على متابعتهم. الصفة مش توثيق مهني.</p>
     <div className="pc-list">{contacts.map((c) => <button type="button" className="pc-contact glass" key={`${c.user_id}-${c.kind}`} disabled={!!starting} onClick={() => open(c)}>
       <span><strong>{c.label}</strong><small>{CHAT_ROLE_LABELS[c.kind]}</small></span><span>{starting === c.user_id ? "بيفتح..." : "افتح المحادثة ←"}</span>
     </button>)}</div>
     {contactsMore && <button type="button" className="pc-small" disabled={busy || contactsBusy} onClick={moreContacts}>جهات محادثة أكتر</button>}
     {!busy && !contacts.length && <p className="pc-empty glass">مفيش حد متاح تبدأ معاه محادثة دلوقتي. لقبول دعوة مدربك، افتح <Link to="/coach">مدربيني</Link>.</p>}
-    <PrivacyNote />
+    </div></details><PrivacyNote />
   </>;
 }
 
@@ -193,7 +194,7 @@ function ChatSession({ userId }) {
   const [reload, setReload] = useState(0);
   useEffect(() => { let active = true; setBoot(null); setErr(""); chatBootstrap().then((b) => { if (active) setBoot(b); }).catch((e) => { if (active) setErr(chatError(e)); }); return () => { active = false; }; }, [userId, reload]);
   return <div className="pc-page" dir="rtl">
-    {!threadId && <><DetailTopBar title="رسائل الدكتور والمدرب" backTo="/profile" /><Link to="/professionals" className="pc-contact glass"><span><strong>المدربين المقترحين</strong><small>مدربين ودكاترة تغذية، وطلبات التواصل</small></span><span>شوف الاقتراحات ←</span></Link></>}
+    {!threadId && <><h1 className="page-title">دردشة</h1><ChatNav /></>}
     {err ? <><ErrorBox text={err} /><button type="button" className="pc-small" onClick={() => setReload((n) => n + 1)}>جرّب تاني</button><Link to="/profile" className="pc-small">حسابي</Link></> : !boot ? <p role="status" className="pc-hint">بنجهّز الرسائل...</p> : !boot.consent ? <Consent onAccept={() => setReload((n) => n + 1)} /> : threadId ? <Thread key={threadId} id={threadId} userId={userId} /> : <Inbox />}
   </div>;
 }

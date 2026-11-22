@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { createElement } from "react";
 
+vi.mock("../src/lib/update/UpdateService", () => ({ default: { hasPendingApk: () => false } }));
+
 // Regression: the body view used to crash with a goal + deadline because the
 // trajectory object ({from,to}) was passed to WeightChart as a flat point.
 describe("Stats body view with a goal deadline", () => {

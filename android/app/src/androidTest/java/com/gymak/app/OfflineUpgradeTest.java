@@ -55,6 +55,10 @@ public class OfflineUpgradeTest {
             // Lazy route chunks and exercise photos must also work without network.
             js(a, "location.assign('/exercises')");
             waitFor(a, "location.pathname === '/exercises' && document.querySelectorAll('.ex-card').length > 5");
+            js(a, "location.assign('/training')");
+            waitFor(a, "location.pathname === '/training' && document.querySelector('.ux-training-hero')");
+            assertEquals("6", js(a, "document.querySelectorAll('.bottom-nav .nav-item').length"));
+            assertEquals("true", js(a, "document.body.innerText.includes('تمرين النهارده')"));
             js(a, "location.assign('/photos')");
             waitFor(a, "location.pathname === '/photos' && document.querySelector('img[src^=\"blob:\"]')?.complete");
             js(a, "location.assign('/')");

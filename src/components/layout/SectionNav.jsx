@@ -2,6 +2,8 @@ import { NavLink } from "react-router-dom";
 
 const GROUPS = {
   progress: [
+    { to: "/strength", label: "الأرقام القياسية" },
+    { to: "/achievements", label: "الإنجازات" },
     { to: "/stats", label: "ملخص" },
     { to: "/history", label: "السجل" },
     { to: "/measurements", label: "القياسات" },
@@ -13,10 +15,11 @@ const GROUPS = {
     { to: "/supplements", label: "مكملات" },
   ],
   train: [
+    { to: "/training", label: "النهارده" },
     { to: "/exercises", label: "التمارين" },
     { to: "/programs", label: "البرامج" },
     { to: "/warmup", label: "إحماء وإطالة" },
-    { to: "/strength", label: "قوتك" },
+
   ],
 };
 
