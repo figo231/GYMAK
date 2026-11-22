@@ -354,6 +354,8 @@ const KEY = "gymak_state_v1";
   const GOAL_MODES = {
     bulk: { label: "ضخامة", kcal: 300, protein: 1.8, tip: "فائض سعرات خفيف وبروتين كفاية. ركّز على زيادة الأوزان تدريجيًا." },
     cut: { label: "تنشيف", kcal: -400, protein: 2.0, tip: "عجز سعرات معقول وبروتين عالي عشان تحافظ على العضل." },
+    tone: { label: "تشكيل", kcal: -150, protein: 1.8, only: "female", tip: "عجز بسيط وبروتين كفاية، مع تمارين مقاومة عشان الجسم يتشكّل من غير ما تخسّي بشكل زيادة." },
+    glutes: { label: "بناء الأرداف", kcal: 150, protein: 1.8, only: "female", tip: "فائض بسيط وبروتين كفاية. ركّز على هيب ثراست وسكوات وزوّد الأوزان تدريجيًا." },
     recomp: { label: "نحت", kcal: -100, protein: 2.2, tip: "سعرات قريبة من احتياجك وبروتين عالي. حدّ أدنى من التغيّر في الوزن مع تحسّن الشكل." },
   };
 
@@ -1229,7 +1231,7 @@ const KEY = "gymak_state_v1";
       if (!latest) return null;
       const perKgFactor = s.profile.gender === "female" ? 29 : 32;
       let base = latest.weight * perKgFactor;
-      const mode = s.profile.goalMode;
+      const mode = this.getGoalMode();
       const goal = s.goalWeight;
       if (mode && GOAL_MODES[mode]) base += GOAL_MODES[mode].kcal;
       else if (goal != null) {
@@ -1239,8 +1241,11 @@ const KEY = "gymak_state_v1";
       return Math.round(base);
     },
 
-    getGoalModes() { return GOAL_MODES; },
-    getGoalMode() { const m = load().profile.goalMode; return m && GOAL_MODES[m] ? m : null; },
+    getGoalModes() {
+      const g = load().profile.gender;
+      return Object.fromEntries(Object.entries(GOAL_MODES).filter(([, v]) => !v.only || v.only === g));
+    },
+    getGoalMode() { const p = load().profile; const m = p.goalMode; return m && GOAL_MODES[m] && (!GOAL_MODES[m].only || GOAL_MODES[m].only === p.gender) ? m : null; },
     setGoalMode(m) {
       const s = load();
       if (m && !GOAL_MODES[m]) return s.profile.goalMode || null;
@@ -1253,7 +1258,8 @@ const KEY = "gymak_state_v1";
       const latest = s.weightLogs.at(-1);
       if (!latest) return null;
       const m = s.profile.goalMode;
-      const perKg = m && GOAL_MODES[m] ? GOAL_MODES[m].protein : 1.8;
+      const gm = this.getGoalMode();
+      const perKg = gm ? GOAL_MODES[gm].protein : 1.8;
       return Math.round(latest.weight * perKg);
     },
 
