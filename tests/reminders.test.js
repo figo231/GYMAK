@@ -28,3 +28,17 @@ describe("reminders", () => {
     expect(missedNotification({ missed: { on: false } }, noon, false)).toBeNull();
   });
 });
+
+describe("supplement reminders", () => {
+  it("adds a daily supplement notification at the chosen time", () => {
+    const list = buildNotifications({ supplements: { on: true, time: "15:30" } });
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject({ id: 4106, schedule: { on: { hour: 15, minute: 30 } } });
+    expect(list[0].body).toContain("المكملات");
+  });
+  it("is off by default and normalizes a bad time", async () => {
+    const { normalizeReminders } = await import("../src/lib/push/reminders");
+    expect(buildNotifications({})).toEqual([]);
+    expect(normalizeReminders({ supplements: { on: true, time: "junk" } }).supplements.time).toBe("16:00");
+  });
+});

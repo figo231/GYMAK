@@ -7,6 +7,7 @@ const ROWS = [
   { k: "meals", label: "تسجيل الأكل", sub: "تذكير يومي تسجل فيه أكلك", time: true },
   { k: "water", label: "شرب المياه", sub: "6 تذكيرات خلال اليوم، من 10 الصبح لـ 8 بالليل", time: false },
   { k: "weigh", label: "وزنة الأسبوع", sub: "كل سبت في الميعاد ده", time: true },
+  { k: "supplements", label: "المكملات", sub: "تذكير يومي بمعاد مكملاتك (كرياتين، أوميجا...)", time: true },
   { k: "missed", label: "لو معملتش تمرين", sub: "تنبيه بالليل لو لسه متمرنتش النهاردة", time: true },
 ];
 
