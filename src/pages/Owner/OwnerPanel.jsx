@@ -1,4 +1,3 @@
-import OwnDevicePushTest from './OwnDevicePushTest';
 import { useEffect, useState } from "react";
 import OwnerProfessionalCards from "./OwnerProfessionalCards";
 import OwnerChatRoles from "./OwnerChatRoles";
@@ -102,7 +101,6 @@ function OwnerPanelSession() {
   return (
     <>
       <DetailTopBar backTo="/profile" title="لوحة المالك" />
-      <OwnDevicePushTest />
       <div style={{ display: "flex", gap: 8, margin: "4px 0 12px" }}>
         {tabs.map(([k, l]) => (
           <button key={k} type="button" onClick={() => setTab(k)} className={"btn" + (tab === k ? " btn-primary" : "")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", cursor: "pointer", fontWeight: 800, background: tab === k ? undefined : "none", color: tab === k ? undefined : "inherit" }}>{l}</button>
