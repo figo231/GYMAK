@@ -96,23 +96,41 @@ export default function History() {
         <EmptyState type="dumbbell" title="لسه مسجلتش أي تمرين" subtitle="أول مجموعة تسجلها هتظهر هنا." ctaLabel="ابدأ من التمارين" onCta={() => { navigate("/exercises"); }} />
       ) : (
         <>
-          {days.map((d) => (
-            <section key={d.date} className="hist-day" aria-label={dayLabel(d.date, today)}>
-              <div className="hist-day-head">
-                <span className="hist-day-name">{dayLabel(d.date, today)}</span>
-                <span className="hist-day-sum">{d.exercises} {d.exercises === 1 ? "تمرين" : "تمارين"} · {d.sets} مجموعة{d.volume > 0 ? ` · ${fmtKg(d.volume)}` : ""}</span>
-              </div>
-              {d.items.map((w) => (
-                <div className="glass hist-row" key={`${w.exerciseId}-${w.i}`}>
-                  <div className="hist-main">
-                    <Link to={`/exercise/${w.exerciseId}`} className="hist-name">{w.name}</Link>
-                    <div className="hist-meta">{w.weight > 0 ? fmtKg(w.weight) : "وزن الجسم"} · <bdi dir="ltr">{w.sets}×{w.reps}</bdi></div>
+          <div className="th-summary" data-testid="hist-summary">
+            <div><b>{days.length}</b><span>يوم تمرين</span></div>
+            <div><b>{days.reduce((a, d) => a + d.sets, 0)}</b><span>مجموعة</span></div>
+            <div><b>{new Set(workouts.map((w) => w.exerciseId)).size}</b><span>تمرين مختلف</span></div>
+          </div>
+          <div className="th-rail">
+          {days.map((d) => {
+            const dt = new Date(d.date + "T00:00:00");
+            const groups = [];
+            for (const w of d.items) {
+              let g = groups.find((x) => x.id === w.exerciseId);
+              if (!g) { g = { id: w.exerciseId, name: w.name, sets: [] }; groups.push(g); }
+              g.sets.push(w);
+            }
+            return (
+            <section key={d.date} className="th-day" aria-label={dayLabel(d.date, today)}>
+              <div className="th-date"><b>{dt.getDate()}</b><span>{dt.toLocaleDateString("ar-EG", { month: "short" })}</span></div>
+              <div className="th-card">
+                <div className="th-head"><span className="th-name">{dayLabel(d.date, today)}</span><span className="th-sum">{d.exercises} {d.exercises === 1 ? "تمرين" : "تمارين"} · {d.sets} مجموعة{d.volume > 0 ? ` · ${fmtKg(d.volume)}` : ""}</span></div>
+                {groups.map((g) => (
+                  <div className="th-ex" key={g.id}>
+                    <Link to={`/exercise/${g.id}`} className="th-ex-name">{g.name}</Link>
+                    {g.sets.map((w) => (
+                      <div className="th-set" key={w.i}>
+                        <span className="th-set-v"><b dir="ltr">{w.weight > 0 ? fmtKg(w.weight) : "وزن الجسم"}</b><i dir="ltr">{w.sets}×{w.reps}</i></span>
+                        {rowActions(() => editWorkout(w), () => removeWorkout(w), `مجموعة ${w.name}`)}
+                      </div>
+                    ))}
                   </div>
-                  {rowActions(() => editWorkout(w), () => removeWorkout(w), `مجموعة ${w.name}`)}
-                </div>
-              ))}
+                ))}
+              </div>
             </section>
-          ))}
+            );
+          })}
+          </div>
           {workouts.length >= limit && <button type="button" className="btn hist-more" onClick={() => setLimit((l) => l + 200)}>عرض أقدم</button>}
         </>
       ))}

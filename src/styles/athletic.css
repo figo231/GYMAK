@@ -215,3 +215,26 @@ html.ath.pro-ui[data-accent="teal"] {
 .xd-hrow { display: flex; justify-content: space-between; padding: 12px 14px; border-radius: 14px; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
 .xd-hrow b { color: var(--accent-text); }
 html.ath.pro-ui .log-card { border-radius: 24px; }
+
+/* ---- history: timeline ---- */
+.th-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 16px; }
+.th-summary div { background: linear-gradient(160deg, rgba(var(--acc-rgb), .18), rgba(var(--acc-rgb), .04)); border: 1px solid rgba(var(--acc-rgb), .28); border-radius: 18px; padding: 14px 8px; text-align: center; display: flex; flex-direction: column; }
+.th-summary b { font-size: 28px; font-weight: 900; line-height: 1; color: var(--accent-text); }
+.th-summary span { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-top: 4px; }
+.th-rail { position: relative; padding-inline-start: 0; }
+.th-day { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; position: relative; }
+.th-day::before { content: ""; position: absolute; top: 56px; bottom: -14px; right: 25px; width: 2px; background: linear-gradient(var(--border-soft), transparent); }
+.th-date { flex: none; width: 52px; height: 52px; border-radius: 16px; background: #14171C; border: 1px solid #262B34; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; }
+.th-date b { font-size: 20px; line-height: 1; font-weight: 900; color: var(--accent-text); }
+.th-date span { font-size: 10.5px; font-weight: 700; color: var(--text-dim); }
+.th-card { flex: 1; min-width: 0; background: #0F1215; border: 1px solid #1F232B; border-radius: 20px; padding: 12px 14px; }
+.th-head { display: flex; flex-direction: column; margin-bottom: 8px; }
+.th-name { font-weight: 900; font-size: 15px; }
+.th-sum { font-size: 11.5px; color: var(--text-dim); font-weight: 700; margin-top: 2px; }
+.th-ex { padding: 8px 0; border-top: 1px solid #1B1F26; }
+.th-ex-name { font-weight: 800; font-size: 14px; color: var(--text-primary); text-decoration: none; display: block; margin-bottom: 4px; }
+.th-set { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+.th-set-v { display: flex; gap: 10px; align-items: baseline; }
+.th-set-v b { font-size: 15px; font-weight: 900; color: var(--accent-text); }
+.th-set-v i { font-style: normal; font-size: 12.5px; color: var(--text-secondary); font-weight: 700; }
+.th-set .hist-btn { width: 32px; height: 32px; }
