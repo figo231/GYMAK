@@ -1,6 +1,7 @@
 import Store from "./lib/store/gymakStore";
 import { isNative, syncMissedReminder } from "./lib/push/nativeReminder";
 import { autoSnapshotIfDue } from "./lib/backup";
+import { initializeOta } from "./lib/update/otaUpdateStrategy";
 import { Suspense, useEffect, useState } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
@@ -42,6 +43,8 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem(ONBOARD_KEY) === "1" || !isNewInstall);
   const [showSplash, setShowSplash] = useState(true);
   const [locked, setLocked] = useState(() => isLockEnabled());
+
+  useEffect(() => { initializeOta().catch(()=>{}); }, []);
 
   useEffect(() => {
     let hiddenAt = 0;

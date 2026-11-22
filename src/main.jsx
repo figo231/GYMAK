@@ -20,10 +20,11 @@ try {
 
 import("./lib/push/pushService").then((m) => m.initBroadcastPush()).catch(() => {});
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+function renderApp(){ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-);
+);}
+import("./lib/update/otaUpdateStrategy").then(async m=>{const switching=await m.activateOtaBeforeRender();if(!switching)renderApp();}).catch(()=>renderApp());
 
 import("./lib/content/remoteContent").then((m) => m.refreshRemoteContent()).catch(() => {});
