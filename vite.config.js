@@ -29,14 +29,14 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         display: "standalone",
-        // Brand palette: neon lime #D7FF2F / white / dark #0B0F12.
+        // Brand palette: neon lime #D7FF2F / white / dark #0B0C0F.
         // Both fields use the dark background rather than the lime accent —
         // an install prompt or Android splash screen tinted bright lime would
         // clash with the icon itself, which is dark with a lime/white mark on
         // top of it. Matching the icon's own background keeps the splash
         // transition seamless instead of introducing a flash of accent color.
-        background_color: "#0B0F12",
-        theme_color: "#0B0F12",
+        background_color: "#0B0C0F",
+        theme_color: "#0B0C0F",
         orientation: "portrait",
         categories: ["health", "fitness", "lifestyle"],
         icons: [
