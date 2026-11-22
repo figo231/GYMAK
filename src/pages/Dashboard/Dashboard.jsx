@@ -265,6 +265,7 @@ export default function Dashboard() {
 
       <WaterCard />
 
+      <div className="home-body">
       <div className="section-title">
         <h2>مؤشرات الجسم</h2>
         <Link to="/measurements">
@@ -311,9 +312,10 @@ export default function Dashboard() {
           </>)}
         </div>
       </div>
+      </div>
 
       {todayList.length > 0 && (
-        <>
+        <div className="home-plan">
           <div className="section-title"><h2>تمارين النهارده</h2></div>
           <div className="glass" style={{ padding: "4px 14px", marginBottom: 12 }}>
             {todayList.map(({ ex, done }) => (
@@ -331,9 +333,10 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
 
+      <div className="home-last">
       <div className="section-title">
         <h2>آخر تمرين مسجّل</h2>
         <Link to="/exercises">
@@ -364,6 +367,7 @@ export default function Dashboard() {
             </div>
           ))
         )}
+      </div>
       </div>
 
       {showWeightSheet && (

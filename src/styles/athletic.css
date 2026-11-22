@@ -317,3 +317,37 @@ html.ath.pro-ui .exg .ex-actions { position: absolute !important; top: 8px; inse
 html.ath.pro-ui .exg .ex-act-btn { width: 36px; height: 36px; border-radius: 12px; background: rgba(8,9,12,.65); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.14); color: #fff; }
 html.ath.pro-ui .exg .ex-act-btn.on { color: var(--on-acc); background: var(--acc-hi); border-color: transparent; }
 html.ath.pro-ui .exg .ex-fav-btn.on { color: #FFB020; background: rgba(8,9,12,.65); border-color: rgba(255,176,32,.6); }
+
+/* ---- home: re-ordered into a training-first layout ---- */
+html.ath.pro-ui .home { display: flex; flex-direction: column; gap: 12px; }
+html.ath.pro-ui .home > * { margin-top: 0 !important; margin-bottom: 0 !important; }
+html.ath.pro-ui .home > .header { order: 0; }
+html.ath.pro-ui .home > .hero { order: 10; }
+html.ath.pro-ui .home > .start-card { order: 15; }
+html.ath.pro-ui .home > .today-strip { order: 20; }
+html.ath.pro-ui .home > .home-plan { order: 30; }
+html.ath.pro-ui .home > .top-row { order: 40; }
+html.ath.pro-ui .home > .streak-card { order: 50; }
+html.ath.pro-ui .home > [data-testid="water-card"], html.ath.pro-ui .home > .water-card { order: 60; }
+html.ath.pro-ui .home > .home-body { order: 70; }
+/* hero: poster */
+html.ath.pro-ui .hero { min-height: 210px; padding: 22px 20px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; overflow: hidden; border-radius: 30px; }
+html.ath.pro-ui .hero::before { content: ""; position: absolute; inset-inline-start: -30px; top: -20px; width: 190px; height: 190px; border-radius: 50%; border: 26px solid rgba(255,255,255,.12); pointer-events: none; }
+html.ath.pro-ui .hero-title { font-size: 34px; line-height: 1.15; font-weight: 700; }
+html.ath.pro-ui .hero-sub { font-size: 14px; opacity: .9; margin: 6px 0 16px; }
+/* plan list as a clean stack */
+html.ath.pro-ui .home-plan .section-title { margin: 0 4px 8px; }
+html.ath.pro-ui .home-plan .glass { border-radius: 22px; }
+/* quick actions: two wide buttons on top of the weight card */
+html.ath.pro-ui .top-row { display: flex; flex-direction: column; gap: 10px; }
+html.ath.pro-ui .top-row .side-actions { order: -1; display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; width: 100% !important; }
+html.ath.pro-ui .top-row .qa-tile { flex-direction: row !important; justify-content: center; gap: 10px; min-height: 56px; border-radius: 18px; }
+html.ath.pro-ui .top-row .weight-card { width: 100% !important; box-sizing: border-box; }
+html.ath.pro-ui .weight-num { font-size: 52px; font-weight: 700; }
+html.ath.pro-ui .spark { width: 140px; height: 44px; }
+/* streak: slim */
+html.ath.pro-ui .streak-card { padding: 14px; }
+html.ath.pro-ui .streak-record { display: none; }
+html.ath.pro-ui .streak-num { font-size: 44px; }
+html.ath.pro-ui .home-body .section-title { margin: 6px 4px 8px; }
+html.ath.pro-ui .home > .home-last { order: 80; } html.ath.pro-ui .home-last .section-title { margin: 0 4px 8px; }
