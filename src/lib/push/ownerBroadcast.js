@@ -2,8 +2,8 @@ import { supabase } from "../supabaseClient";
 
 /* Owner-only helpers. Admin-ness is decided server side (admin_users + RLS +
    the send-notification edge function); the app only hides the UI. */
-/* Flip to true once the send-notification backend (notifications tables + edge function + FCM secret) exists. */
-export const BROADCAST_ENABLED = false;
+/* Backend is live (migration 0020, send-notification edge function, FIREBASE_SERVICE_ACCOUNT secret). The first real send after deploy is the end-to-end test. */
+export const BROADCAST_ENABLED = true;
 
 export async function isOwnerAdmin(userId) {
   if (!supabase || !userId) return false;
@@ -22,5 +22,9 @@ export async function sendBroadcast({ title, body }) {
     .single();
   if (error) throw new Error(error.message);
   const { error: fnError } = await supabase.functions.invoke("send-notification", { body: { notificationId: inserted.id } });
-  if (fnError) throw new Error(fnError.message);
+  if (fnError) {
+    let detail = fnError.message;
+    try { const j = await fnError.context?.json?.(); if (j?.error) detail = j.error; } catch { /* keep generic message */ }
+    throw new Error(detail);
+  }
 }
