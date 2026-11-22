@@ -355,6 +355,7 @@ export default function Profile() {
       </div>
       <div className="glass" style={{ padding: 14 }}>
         <AchievementsGrid achievements={achievements} />
+        <Link to="/achievements" className="btn btn-secondary" style={{ display: "block", textAlign: "center", marginTop: 12 }}>صفحة الإنجازات الكاملة — شارك أي وسام 🏅</Link>
         <div className="share-row">
           <span className="share-txt">شارك تقدمك مع أصحابك</span>
           <div className="share-btn" style={{ cursor: "pointer" }} {...press(handleShare)}>

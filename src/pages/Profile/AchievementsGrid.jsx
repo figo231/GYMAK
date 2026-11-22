@@ -10,12 +10,23 @@ function BadgePaths({ path, fill }) {
 
 const FALLBACK = { days10: "sets10", days30: "sets50", days100: "sets100", food7: "streak7", weigh7: "streak14", pr5: "firstPR" };
 
-export default function AchievementsGrid({ achievements }) {
+export default function AchievementsGrid({ achievements, onShare = null }) {
   return (
     <div className="badge-grid">
       {achievements.map((a) => {
         const style = BADGE_STYLE[a.id] || BADGE_STYLE[FALLBACK[a.id]] || BADGE_STYLE.streak7;
         if (a.unlocked) {
+          if (onShare) {
+            return (
+              <button type="button" className="badge-card" key={a.id} onClick={() => onShare(a)} aria-label={`شارك وسام ${a.name}`} style={{ cursor: "pointer", border: "none", font: "inherit" }}>
+                <div className="badge-ic" style={{ background: style.grad }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24"><BadgePaths path={style.path} fill={style.fill} /></svg>
+                </div>
+                <div className="badge-name">{a.name}</div>
+                <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>شارك 📤</div>
+              </button>
+            );
+          }
           return (
             <div className="badge-card" key={a.id}>
               <div className="badge-ic" style={{ background: style.grad }}>

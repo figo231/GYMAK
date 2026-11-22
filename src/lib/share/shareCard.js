@@ -28,6 +28,17 @@ export function prCardData(pr, unit = "كجم", conv = (x) => x) {
   };
 }
 
+export function achievementCardData(a) {
+  if (!a || !a.unlocked) return null;
+  return {
+    kind: "badge",
+    title: "وسام افتُتح 🏅",
+    big: a.name,
+    unit: "",
+    sub: "صفحة الإنجازات في GYMAK",
+  };
+}
+
 function wrap(ctx, text, maxW) {
   const words = String(text).split(" "); const lines = []; let cur = "";
   for (const w of words) {

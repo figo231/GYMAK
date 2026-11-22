@@ -11,6 +11,7 @@ const Stats = lazy(() => import("./pages/Stats/Stats"));
 const Profile = lazy(() => import("./pages/Profile/Profile"));
 const ExerciseDetail = lazy(() => import("./pages/ExerciseDetail/ExerciseDetail"));
 const Measurements = lazy(() => import("./pages/Measurements/Measurements"));
+const Achievements = lazy(() => import("./pages/Achievements/Achievements"));
 const Photos = lazy(() => import("./pages/Photos/Photos"));
 const Programs = lazy(() => import("./pages/Programs/Programs"));
 const History = lazy(() => import("./pages/History/History"));
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       { path: "/meal-plan", element: <MealPlan /> },
       { path: "/history", element: <History /> },
       { path: "/measurements", element: <Measurements /> },
+      { path: "/achievements", element: <Achievements /> },
       { path: "/photos", element: <Photos /> },
       { path: "/programs", element: <Programs /> },
     ],

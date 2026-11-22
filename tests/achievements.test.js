@@ -35,3 +35,14 @@ describe("programs by goal", () => {
     expect(S.getActiveProgram().id).toBe("fat-loss");
   });
 });
+
+describe("shareable achievement card", () => {
+  it("builds card data only for unlocked badges", async () => {
+    const { achievementCardData } = await import("../src/lib/share/shareCard.js");
+    expect(achievementCardData({ id: "streak7", name: "أسبوع كامل", unlocked: false })).toBeNull();
+    expect(achievementCardData(null)).toBeNull();
+    const c = achievementCardData({ id: "streak7", name: "أسبوع كامل", unlocked: true });
+    expect(c).toMatchObject({ kind: "badge", big: "أسبوع كامل" });
+    expect(c.title).toContain("وسام");
+  });
+});
