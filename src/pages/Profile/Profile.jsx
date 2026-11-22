@@ -1,3 +1,4 @@
+import { shareText, APP_URL } from "../../lib/shareLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
@@ -305,6 +306,7 @@ export default function Profile() {
       </div>
 
       {pTab === "me" && (<>
+      <button type="button" className="glass coach-card" style={{ marginBottom: 10, padding: 14, display: "block", fontWeight: 700, width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={async () => { const r = await shareText({ title: "GYMAK", text: "بتمرن وبتتابع أكلك؟ جرّب GYMAK، تطبيق جيم وتغذية بالعربي ببلاش.", url: APP_URL }); if (r === "copied") toast("اللينك اتنسخ"); }}>شارك التطبيق مع صحابك ←</button>
       <Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>المساعدة وأسئلة شائعة ←</Link>
       <Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>تواصل معانا ←</Link>
       <Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>جولة تعريفية بالتطبيق ←</Link>
