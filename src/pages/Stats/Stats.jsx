@@ -29,6 +29,7 @@ export default function Stats() {
   const [version] = useStoreVersion();
   const [periodDays, setPeriodDays] = useState(30);
   const [mField, setMField] = useState(null);
+  const [view, setView] = useState("overview");
   const period = PERIODS.find((p) => p.days === periodDays) || PERIODS[1];
   const unit = Store.unitLabel();
 
@@ -94,8 +95,6 @@ export default function Stats() {
         </div>
       ) : (
         <>
-          <WeeklyCard />
-
           <div className="period-tabs" role="group" aria-label="الفترة الزمنية">
             {PERIODS.map((p) => (
               <button
@@ -110,37 +109,61 @@ export default function Stats() {
             ))}
           </div>
 
-          <div className="summary-grid">
-            <div className="glass sum-card" role="group" aria-label="المجموعات المنجزة">
-              <div className="sum-icon" style={{ background: "rgba(var(--acc-rgb), 0.14)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg>
-              </div>
-              <div className="sum-val num">{summary.sets}</div>
-              <div className="sum-label">مجموعة منجزة</div>
+          <div className="xd-tabs sx-tabs" role="tablist" aria-label="عرض الإحصائيات">
+            {[["overview", "نظرة عامة"], ["body", "الجسم"], ["strength", "القوة"]].map(([id, l]) => (
+              <button key={id} type="button" role="tab" aria-selected={view === id} className={"xd-tab" + (view === id ? " on" : "")} onClick={() => setView(id)}>{l}</button>
+            ))}
+          </div>
+
+          {view === "overview" && (<>
+          <div className="sx-hero" data-testid="stats-hero">
+            <div className="sx-hero-main">
+              <span className="sx-hero-cap">تغيّر الوزن · {period.long}</span>
+              <b className="sx-hero-num" dir="ltr">{summary.diffDisp != null ? signed(summary.diffDisp) : "—"}<small>{unit}</small></b>
             </div>
-            <div className="glass sum-card" role="group" aria-label="أيام التمرين">
-              <div className="sum-icon" style={{ background: "rgba(34, 197, 94, 0.14)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19V5M10 19v-8M16 19V9M22 19V3" /></svg>
-              </div>
-              <div className="sum-val num">{summary.days}</div>
-              <div className="sum-label">يوم تمرين</div>
-            </div>
-            <div className="glass sum-card" role="group" aria-label="تغيّر الوزن">
-              <div className="sum-icon" style={{ background: TONE_BG[summary.tone] }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TONE_COLOR[summary.tone]} strokeWidth="2.2" strokeLinecap="round" style={{ transform: summary.diffDisp > 0 ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>
-              </div>
-              <div className="sum-val num">{summary.diffDisp != null ? signed(summary.diffDisp) : "—"}</div>
-              <div className="sum-label">تغيّر الوزن ({unit})</div>
-            </div>
-            <div className="glass sum-card" role="group" aria-label="الأرقام القياسية">
-              <div className="sum-icon" style={{ background: "rgba(251, 191, 36, 0.16)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /></svg>
-              </div>
-              <div className="sum-val num">{summary.prCount}</div>
-              <div className="sum-label">رقم قياسي جديد</div>
+            <div className="sx-hero-row">
+              <div><b>{summary.days}</b><span>يوم تمرين</span></div>
+              <div><b>{summary.sets}</b><span>مجموعة</span></div>
+              <div><b>{summary.prCount}</b><span>رقم قياسي</span></div>
             </div>
           </div>
 
+          <WeeklyCard />
+
+          <SectionTitle title="أيام التمرين" sub="آخر 28 يوم" />
+          <div className="glass" style={{ padding: 14 }}>
+            <div className="heat-grid" role="img" aria-label={`تمرنت ${heat.filter((h) => h.on).length} يوم من آخر 28 يوم`}>
+              {heat.map((h) => (
+                <div key={h.date} className={"heat-cell" + (h.on ? " on" : "") + (h.today ? " today" : "")}>{+h.date.slice(8)}</div>
+              ))}
+            </div>
+          </div>
+
+          <SectionTitle title="ملخص الفترة" sub={period.long} />
+          <div className="glass" style={{ padding: "4px 14px" }}>
+            <div className="mini-row">
+              <div className="mini-left">
+                <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
+                <div>
+                  <div className="mini-name">إجمالي الأوزان المرفوعة</div>
+                  <div className="mini-sub">من غير تمارين الثواني</div>
+                </div>
+              </div>
+              <div className="mini-val" dir="ltr">{summary.tonnage}</div>
+            </div>
+            <div className="mini-row">
+              <div className="mini-left">
+                <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" /></svg></div>
+                <div>
+                  <div className="mini-name">أطول ستريك</div>
+                  <div className="mini-sub">أيام متتالية على الإطلاق</div>
+                </div>
+              </div>
+              <div className="mini-val">{Store.getBestStreak()} يوم</div>
+            </div>
+          </div>
+          </>)}
+          {view === "body" && (<>
           <SectionTitle title="تطور الوزن" sub={period.long} />
           <WeightChart history={history} goal={goal} periodLabel={period.long} />
 
@@ -167,6 +190,8 @@ export default function Stats() {
             </>
           )}
 
+          </>)}
+          {view === "strength" && (<>
           <SectionTitle title="تطور القوة" sub="أفضل وزن: أول مرة مقابل دلوقتي" />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!strengthRows.length ? (
@@ -232,38 +257,7 @@ export default function Stats() {
             ))}
           </div>
 
-          <SectionTitle title="أيام التمرين" sub="آخر 28 يوم" />
-          <div className="glass" style={{ padding: 14 }}>
-            <div className="heat-grid" role="img" aria-label={`تمرنت ${heat.filter((h) => h.on).length} يوم من آخر 28 يوم`}>
-              {heat.map((h) => (
-                <div key={h.date} className={"heat-cell" + (h.on ? " on" : "") + (h.today ? " today" : "")}>{+h.date.slice(8)}</div>
-              ))}
-            </div>
-          </div>
-
-          <SectionTitle title="ملخص الفترة" sub={period.long} />
-          <div className="glass" style={{ padding: "4px 14px" }}>
-            <div className="mini-row">
-              <div className="mini-left">
-                <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
-                <div>
-                  <div className="mini-name">إجمالي الأوزان المرفوعة</div>
-                  <div className="mini-sub">من غير تمارين الثواني</div>
-                </div>
-              </div>
-              <div className="mini-val" dir="ltr">{summary.tonnage}</div>
-            </div>
-            <div className="mini-row">
-              <div className="mini-left">
-                <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" /></svg></div>
-                <div>
-                  <div className="mini-name">أطول ستريك</div>
-                  <div className="mini-sub">أيام متتالية على الإطلاق</div>
-                </div>
-              </div>
-              <div className="mini-val">{Store.getBestStreak()} يوم</div>
-            </div>
-          </div>
+          </>)}
         </>
       )}
     </>

@@ -258,3 +258,14 @@ html.ath.pro-ui .log-card { border-radius: 24px; }
 .pg-apply { flex: none; width: 76px; border: none; border-inline-start: 1px solid #1F232B; background: rgba(var(--acc-rgb), .12); color: var(--accent-text); font: inherit; font-weight: 900; font-size: 14px; cursor: pointer; }
 .pg-apply.on { color: var(--text-dim); background: none; }
 .pg-card.feature .pg-apply { width: auto; min-height: 50px; border-inline-start: none; border-top: 1px solid rgba(var(--acc-rgb), .3); }
+
+/* ---- stats: hero + views ---- */
+.sx-hero { border-radius: 26px; padding: 20px; margin-bottom: 14px; background: linear-gradient(135deg, var(--acc-hi), var(--acc-lo)); color: var(--on-acc); }
+.sx-hero-cap { font-size: 13px; font-weight: 800; opacity: .85; display: block; }
+.sx-hero-num { font-size: 64px; line-height: 1.05; font-weight: 900; display: block; margin: 4px 0 14px; }
+.sx-hero-num small { font-size: 18px; margin-inline-start: 6px; font-weight: 800; opacity: .85; }
+.sx-hero-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sx-hero-row div { background: rgba(0,0,0,.22); border-radius: 14px; padding: 10px 6px; text-align: center; display: flex; flex-direction: column; }
+.sx-hero-row b { font-size: 22px; font-weight: 900; }
+.sx-hero-row span { font-size: 11px; font-weight: 700; opacity: .85; }
+.sx-tabs { grid-template-columns: 1fr 1fr 1fr; position: static; }
