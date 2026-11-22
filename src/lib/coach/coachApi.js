@@ -1,3 +1,4 @@
+import { localISO } from "../dateKey";
 import { supabase } from "../supabaseClient";
 
 const lower = (s) => String(s || "").trim().toLowerCase();
@@ -5,7 +6,7 @@ async function me() {
   const { data } = await supabase.auth.getUser();
   return { id: data?.user?.id, email: lower(data?.user?.email) };
 }
-const iso = (d) => d.toISOString().slice(0, 10);
+const iso = (d) => localISO(d);
 
 export async function isCoach() {
   if (!supabase) return false;

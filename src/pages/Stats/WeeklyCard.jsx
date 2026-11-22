@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { lastDays } from "../../lib/water/water";
 import { buildWeekly, headline, weeklyCardData } from "../../lib/stats/weekly";
@@ -24,6 +25,7 @@ export default function WeeklyCard() {
         <div><b dir="ltr">{fmtVolume(conv(w.tonnage), unit)}</b><span>حجم التمرين {tdelta && <bdi dir="ltr">{tdelta}</bdi>}</span></div>
       </div>
       {w.waterAvg > 0 && <div className="weekly-water">متوسط المياه {Math.round(w.waterAvg / 100) / 10} لتر/يوم · هدفك اتحقق {w.waterGoalDays} من 7 أيام</div>}
+      {w.empty && <Link to="/" className="btn" style={{ marginTop: 10, display: "block", textAlign: "center" }}>شوف خطة النهارده</Link>}
       {!w.empty && (
         <button type="button" className="btn" style={{ width: "100%", marginTop: 10 }} onClick={() => setCard(weeklyCardData(w, unit, conv))}>شارك أسبوعك</button>
       )}

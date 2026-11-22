@@ -7,6 +7,9 @@ import { localISO, shiftISO } from "../../lib/dateKey";
 import { PERIODS, arDate, capPct, fmtVolume, signed, weightTone } from "../../lib/stats/format";
 import WeightChart from "./WeightChart";
 import WeeklyCard from "./WeeklyCard";
+import TrendChart from "./TrendChart";
+import { loadMeasures, FIELDS } from "../../lib/measure/measure";
+import { windowStart } from "../../lib/dateKey";
 
 const STRENGTH_COLORS = ["#C9A24B,#F1DFA8", "#22C55E,#86EFAC", "#A67C2E,#E6C877", "#F59E0B,#FDE68A", "#EC4899,#FBCFE8"];
 const TONE_COLOR = { good: "var(--success)", bad: "var(--danger)", neutral: "var(--text-dim)" };
@@ -24,6 +27,7 @@ function SectionTitle({ title, sub }) {
 export default function Stats() {
   const [version] = useStoreVersion();
   const [periodDays, setPeriodDays] = useState(30);
+  const [mField, setMField] = useState(null);
   const period = PERIODS.find((p) => p.days === periodDays) || PERIODS[1];
   const unit = Store.unitLabel();
 
@@ -33,6 +37,21 @@ export default function Stats() {
   const strengthRows = useMemo(() => Store.getStrengthProgress(5), [version]);
   const prs = useMemo(() => Store.getRecentPRs(5), [version]);
   const muscles = useMemo(() => Store.getMuscleSetsInRange(periodDays).slice(0, 6), [periodDays, version]);
+  const prevMuscles = useMemo(() => new Map(Store.getMuscleSetsInRange(periodDays, periodDays).map((m) => [m.label, m.sets])), [periodDays, version]);
+  const bodyFat = useMemo(() => {
+    const from = windowStart(localISO(), periodDays);
+    const rows = Store.getWeightHistoryInRange(periodDays).filter((w) => w.bodyFat != null && w.date >= from);
+    // addWeight carries the last body-fat forward, so keep only real changes plus the ends
+    return rows.filter((w, i) => i === 0 || i === rows.length - 1 || w.bodyFat !== rows[i - 1].bodyFat).map((w) => ({ date: w.date, value: w.bodyFat }));
+  }, [periodDays, version]);
+  const measures = useMemo(() => loadMeasures(), [version]);
+  const measureFields = FIELDS.filter(([k]) => measures.filter((e) => typeof e[k] === "number").length >= 1);
+  const activeField = measureFields.find(([k]) => k === mField) ? mField : measureFields[0]?.[0];
+  const measurePts = useMemo(() => {
+    if (!activeField) return [];
+    const from = windowStart(localISO(), periodDays);
+    return measures.filter((e) => typeof e[activeField] === "number" && e.date >= from).map((e) => ({ date: e.date, value: e[activeField] }));
+  }, [measures, activeField, periodDays]);
   const heat = useMemo(() => {
     const today = localISO();
     const done = new Set(Store.getLast28DaysDone());
@@ -123,6 +142,29 @@ export default function Stats() {
           <SectionTitle title="تطور الوزن" sub={period.long} />
           <WeightChart history={history} goal={goal} periodLabel={period.long} />
 
+          {measureFields.length > 0 && (
+            <>
+              <SectionTitle title="قياسات الجسم" sub={period.long} />
+              <div className="glass chart-card" style={{ padding: "14px" }}>
+                <div className="chip-row" role="group" aria-label="القياس">
+                  {measureFields.map(([k, l]) => (
+                    <button type="button" key={k} className={"m-chip" + (k === activeField ? " on" : "")} aria-pressed={k === activeField} onClick={() => setMField(k)}>{l}</button>
+                  ))}
+                </div>
+                <TrendChart points={measurePts} unit="سم" label={FIELDS.find(([k]) => k === activeField)?.[1]} />
+              </div>
+            </>
+          )}
+
+          {bodyFat.length > 0 && (
+            <>
+              <SectionTitle title="نسبة الدهون" sub={period.long} />
+              <div className="glass chart-card" style={{ padding: "14px" }}>
+                <TrendChart points={bodyFat} unit="%" label="نسبة الدهون" />
+              </div>
+            </>
+          )}
+
           <SectionTitle title="تطور القوة" sub="أفضل وزن: أول مرة مقابل دلوقتي" />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!strengthRows.length ? (
@@ -174,7 +216,7 @@ export default function Stats() {
             ))
           )}
 
-          <SectionTitle title="توزيع المجموعات على العضلات" sub={period.long} />
+          <SectionTitle title="توزيع المجموعات على العضلات" sub="مقارنة بالفترة اللي قبلها" />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!muscles.length ? (
               <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "6px 0" }}>مفيش تمارين متسجلة في الفترة دي.</p>
@@ -183,6 +225,7 @@ export default function Stats() {
                 <span className="m-name">{m.label}</span>
                 <div className="m-track"><div className="m-fill" style={{ width: `${Math.max(6, (m.sets / maxMuscle) * 100)}%` }} /></div>
                 <span className="m-val">{m.sets}</span>
+                <span className="m-delta" dir="ltr">{(() => { const d = m.sets - (prevMuscles.get(m.label) || 0); return d === 0 ? "=" : signed(d, 0); })()}</span>
               </div>
             ))}
           </div>

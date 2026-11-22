@@ -66,3 +66,14 @@ describe("stats store", () => {
     expect(S.getPRCountInRange(7)).toBe(1);
   });
 });
+
+describe("muscle comparison", () => {
+  it("previous window does not overlap the current one", async () => {
+    const t = today();
+    const id = S.getExercises().find((e) => e.unit !== "sec").id;
+    await boot(logs({ [id]: [{ date: t, weight: 40, sets: 4, reps: 8 }, { date: shiftISO(t, -10), weight: 40, sets: 3, reps: 8 }] }));
+    const cur = S.getMuscleSetsInRange(7).reduce((a, m) => a + m.sets, 0);
+    const prev = S.getMuscleSetsInRange(7, 7).reduce((a, m) => a + m.sets, 0);
+    expect(cur).toBe(4); expect(prev).toBe(3);
+  });
+});

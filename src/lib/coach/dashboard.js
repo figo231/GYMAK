@@ -1,6 +1,7 @@
 /* Pure helpers for the coach dashboard. A "report" is what traineeReport() returns. */
+import { localISO } from "../dateKey";
 export const DAY = 86400000;
-const key = (d) => d.toISOString().slice(0, 10);
+const key = (d) => localISO(d);
 
 export function daysSince(dateStr, now = new Date()) {
   if (!dateStr) return null;

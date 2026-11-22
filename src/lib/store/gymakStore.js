@@ -1182,9 +1182,10 @@ const KEY = "gymak_state_v1";
     },
 
     // Sets per muscle group inside the window, biggest first.
-    getMuscleSetsInRange(days) {
+    getMuscleSetsInRange(days, offsetDays = 0) {
       const s = load();
-      const cutoff = windowStart(todayISO(), days);
+      const end = shiftISO(todayISO(), -offsetDays);
+      const cutoff = windowStart(end, days);
       const byId = new Map((s.exercises || []).map((e) => [e.id, e]));
       const totals = new Map();
       Object.entries(s.exerciseLogs).forEach(([id, logs]) => {
@@ -1192,7 +1193,7 @@ const KEY = "gymak_state_v1";
         const label = ex.muscleLabel || ex.muscle;
         if (!label) return;
         logs.forEach((l) => {
-          if (l.date >= cutoff) totals.set(label, (totals.get(label) || 0) + Math.max(1, Number(l.sets) || 1));
+          if (l.date >= cutoff && l.date <= end) totals.set(label, (totals.get(label) || 0) + Math.max(1, Number(l.sets) || 1));
         });
       });
       return [...totals.entries()].map(([label, sets]) => ({ label, sets })).sort((a, b) => b.sets - a.sets);
