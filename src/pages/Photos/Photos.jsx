@@ -51,57 +51,62 @@ export default function Photos() {
     await deletePhoto(p.id); setView(null); await refresh();
   }
   const cmp = compareSet(photos, filter);
-  const card = { padding: 14, marginBottom: 12 };
-  const chip = (on) => ({ padding: "6px 12px", borderRadius: 999, border: "1px solid var(--border-soft)", background: on ? "rgba(var(--acc-rgb), .18)" : "none", color: "inherit", fontWeight: on ? 800 : 600, fontSize: 12.5, cursor: "pointer" });
   return (
-    <>
+    <div className="ph-page">
       <SectionNav group="progress" title="تقدّمي" />
-      <div className="glass" style={card}>
-        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8 }}>صورة جديدة</div>
-        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-          {POSES.map(([k, l]) => <button key={k} type="button" style={chip(pose === k)} onClick={() => setPose(k)}>{l}</button>)}
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button type="button" className="btn btn-primary" style={{ flex: 1 }} disabled={busy} onClick={() => camRef.current?.click()}>{busy ? "بيحفظ..." : "تصوير"}</button>
-          <button type="button" className="btn" style={{ flex: 1 }} disabled={busy} onClick={() => galRef.current?.click()}>من المعرض</button>
-        </div>
-        <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={onPick} />
-        <input ref={galRef} type="file" accept="image/*" multiple hidden onChange={onPick} />
-        <p className="notif-note" style={{ marginTop: 10 }}>الصور بتتحفظ على جهازك بس. مبتترفعش على السيرفر ومبتتشاركش مع المدرب. لو مسحت بيانات التطبيق أو غيرت الموبايل هتضيع.</p>
+      <div className="ph-head">
+        <div><h1>صور التقدم</h1><p>{photos.length ? `${photos.length} صورة على جهازك` : "صوّر أول صورة النهاردة"}</p></div>
+        <span className="ph-lock">على جهازك بس</span>
       </div>
 
-      {photos.length >= 2 && (
-        <div className="glass" style={card}>
-          <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8 }}>قبل وبعد</div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-            {POSES.map(([k, l]) => <button key={k} type="button" style={chip(filter === k)} onClick={() => setFilter(k)}>{l}</button>)}
+      {cmp && (
+        <div className="ph-cmp">
+          <div className="ph-cmp-top">
+            <b>قبل وبعد</b>
+            <span className="ph-delta">{dayDiff(cmp.before.date, cmp.after.date)} يوم</span>
           </div>
-          {cmp ? (
-            <>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {[["بعد", cmp.after], ["قبل", cmp.before]].map(([lab, p]) => (
-                  <div key={p.id} style={{ textAlign: "center" }}>
-                    <img src={urls[p.id]} alt={lab} style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", borderRadius: 12 }} />
-                    <div style={{ fontSize: 12, marginTop: 4 }}><b>{lab}</b> · <span dir="ltr">{p.date}</span></div>
-                  </div>
-                ))}
+          <div className="ph-cmp-grid">
+            {[["قبل", cmp.before], ["بعد", cmp.after]].map(([lab, p]) => (
+              <div key={p.id} className={`ph-cmp-img ${lab === "بعد" ? "after" : ""}`}>
+                <img src={urls[p.id]} alt={lab} />
+                <span className="ph-tag">{lab}</span>
+                <span className="ph-date" dir="ltr">{p.date}</span>
               </div>
-              <p className="notif-note" style={{ textAlign: "center" }}>الفرق {dayDiff(cmp.before.date, cmp.after.date)} يوم</p>
-            </>
-          ) : <p className="notif-note">محتاج صورتين على الأقل من نفس الوضع عشان نقارن.</p>}
+            ))}
+          </div>
         </div>
       )}
 
-      <div style={{ fontWeight: 800, fontSize: 13.5, margin: "8px 0" }}>كل الصور ({photos.length})</div>
-      {photos.length === 0 && <p className="notif-note">لسه مفيش صور. صوّر أول صورة النهاردة وقارن بعد كام أسبوع.</p>}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
-        {photos.map((p) => (
-          <button key={p.id} type="button" onClick={() => setView(p)} style={{ padding: 0, border: "none", background: "none", position: "relative", cursor: "pointer" }}>
-            <img src={urls[p.id]} alt={p.date} loading="lazy" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", borderRadius: 10, display: "block" }} />
-            <span dir="ltr" style={{ position: "absolute", bottom: 4, insetInlineStart: 4, fontSize: 10, background: "rgba(0,0,0,.55)", color: "#fff", borderRadius: 6, padding: "1px 5px" }}>{p.date}</span>
-          </button>
-        ))}
+      <div className="ph-pose">
+        {POSES.map(([k, l]) => <button key={k} type="button" className={pose === k ? "on" : ""} onClick={() => { setPose(k); setFilter(k); }}>{l}</button>)}
       </div>
+      {photos.length >= 2 && !cmp && <p className="ph-hint">محتاج صورتين من نفس الوضع عشان نقارن.</p>}
+
+      <div className="ph-add">
+        <button type="button" className="ph-cam" disabled={busy} onClick={() => camRef.current?.click()}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          {busy ? "بيحفظ..." : "تصوير"}
+        </button>
+        <button type="button" className="ph-gal" disabled={busy} onClick={() => galRef.current?.click()}>من المعرض</button>
+      </div>
+      <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={onPick} />
+      <input ref={galRef} type="file" accept="image/*" multiple hidden onChange={onPick} />
+
+      {photos.length === 0 ? (
+        <div className="ph-empty"><div className="ph-ghost"><span /><span /><span /></div><p>لسه مفيش صور. صوّر أول صورة وقارن بعد كام أسبوع.</p></div>
+      ) : (
+        <>
+          <div className="ph-sec">كل الصور</div>
+          <div className="ph-grid">
+            {photos.map((p) => (
+              <button key={p.id} type="button" className="ph-thumb" onClick={() => setView(p)}>
+                <img src={urls[p.id]} alt={p.date} loading="lazy" />
+                <span dir="ltr">{p.date}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {view && (
         <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) setView(null); }}>
@@ -116,6 +121,6 @@ export default function Photos() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
