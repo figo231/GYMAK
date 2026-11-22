@@ -11,6 +11,7 @@ const Stats = lazy(() => import("./pages/Stats/Stats"));
 const Profile = lazy(() => import("./pages/Profile/Profile"));
 const ExerciseDetail = lazy(() => import("./pages/ExerciseDetail/ExerciseDetail"));
 const Measurements = lazy(() => import("./pages/Measurements/Measurements"));
+const Photos = lazy(() => import("./pages/Photos/Photos"));
 const Programs = lazy(() => import("./pages/Programs/Programs"));
 const History = lazy(() => import("./pages/History/History"));
 const AiCoach = lazy(() => import("./pages/AiCoach/AiCoach"));
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { path: "/exercise/:id", element: <ExerciseDetail /> },
       { path: "/history", element: <History /> },
       { path: "/measurements", element: <Measurements /> },
+      { path: "/photos", element: <Photos /> },
       { path: "/programs", element: <Programs /> },
       { path: "/account", element: <ProtectedRoute><Account /></ProtectedRoute> },
       { path: "/coach", element: <ProtectedRoute><Coach /></ProtectedRoute> },

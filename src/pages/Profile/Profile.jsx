@@ -393,6 +393,11 @@ export default function Profile() {
           <span className="settings-name">قياسات الجسم (سم)</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
+        <Link to="/photos" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="15" rx="2" /><circle cx="12" cy="12.5" r="3.5" /><path d="M8 5l1.500-2h5L16 5" /></svg></div>
+          <span className="settings-name">صور التقدم</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Link>
         <Link to="/programs" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg></div>
           <span className="settings-name">برامج التدريب الجاهزة</span>
