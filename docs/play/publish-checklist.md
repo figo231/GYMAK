@@ -29,3 +29,9 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 
 ## Database steps for coach program assignments
 - [ ] Run `supabase/migrations/0019_coach_assignments.sql` in the Supabase SQL editor (after 0018). Until then the coach "send program" button shows an error and the trainee card stays hidden. Nothing else breaks.
+
+## Broadcast backend (done 2026-11-22, verify after deploy)
+- [x] Migration 0020_broadcast_backend.sql run in the SQL editor.
+- [x] Edge function send-notification deployed, secret FIREBASE_SERVICE_ACCOUNT set.
+- [x] 0019 run and verified live.
+- [ ] After the web deploy: send one real broadcast from Profile > Notifications as the owner and confirm a device receives it. The Android APK must include google-services.json for the Firebase project gymak-9b6bd (kept out of the repo).
