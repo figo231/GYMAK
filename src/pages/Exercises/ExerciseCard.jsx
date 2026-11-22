@@ -4,9 +4,9 @@ import ExerciseThumb from "./ExerciseThumb";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
 import { useI18n } from "../../hooks/useI18n";
-import { unitLabel, setsRepsText } from "../../lib/exerciseMeta";
+import { unitLabel, setsRepsText, daysAgoLabel } from "../../lib/exerciseMeta";
 
-export default function ExerciseCard({ ex, meta, fav, onToggleFav, onDeleted }) {
+export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onToggleToday, onDeleted }) {
   const navigate = useNavigate();
   const confirmAsync = useConfirm();
   const { lang } = useI18n();
@@ -55,6 +55,12 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, onDeleted }) 
     navigate(`/exercise/${encodeURIComponent(ex.id)}`);
   }
 
+  function onTodayTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggleToday?.(ex.id);
+  }
+
   function onFavTap(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -91,18 +97,32 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, onDeleted }) 
       <div className="ex-meta">
         <div className="ex-sets" dir="ltr">{setsLabel}</div>
         <div className="ex-unit">{unitLabel(ex)}</div>
-        {last && <div className="ex-last">آخر مرة {last.weight} كجم</div>}
+        {last && <div className="ex-last">{daysAgoLabel(last.date, Store.getTodayKey())} · {last.weight} كجم</div>}
       </div>
+      <div className="ex-actions">
       <button
-        type="button"
-        className={"ex-fav-btn" + (fav ? " on" : "")}
-        aria-label={fav ? `شيل ${ex.name} من المفضلة` : `ضيف ${ex.name} للمفضلة`}
-        aria-pressed={!!fav}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={onFavTap}
-      >
-        <svg width="17" height="17" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
-      </button>
+          type="button"
+          className={"ex-act-btn ex-fav-btn" + (fav ? " on" : "")}
+          aria-label={fav ? `شيل ${ex.name} من المفضلة` : `ضيف ${ex.name} للمفضلة`}
+          aria-pressed={!!fav}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onFavTap}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
+        </button>
+        <button
+          type="button"
+          className={"ex-act-btn ex-today-btn" + (inToday ? " on" : "")}
+          aria-label={inToday ? `شيل ${ex.name} من تمارين النهارده` : `ضيف ${ex.name} لتمارين النهارده`}
+          aria-pressed={!!inToday}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onTodayTap}
+        >
+          {inToday
+            ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5 9-10" /></svg>
+            : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>}
+        </button>
+      </div>
     </a>
   );
 }

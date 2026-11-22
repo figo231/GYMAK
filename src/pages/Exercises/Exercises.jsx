@@ -46,6 +46,7 @@ export default function Exercises() {
   const [showFilters, setShowFilters] = useState(false);
   const [openMap, setOpenMap] = useState({});
   const [favs, setFavs] = useState(() => getFavs());
+  const todayIds = useMemo(() => new Set(Store.getTodayPlanIds()), [version]);
 
   const all = useMemo(() => Store.getExercises(), [version]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);
@@ -280,6 +281,8 @@ export default function Exercises() {
                     meta={meta}
                     fav={favs.has(ex.id)}
                     onToggleFav={(id) => setFavs(toggleFav(id))}
+                    inToday={todayIds.has(ex.id)}
+                    onToggleToday={(id) => { Store.toggleTodayPlan(id); refresh(); }}
                     onDeleted={refresh}
                   />
                 ))}

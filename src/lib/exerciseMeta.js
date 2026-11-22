@@ -134,3 +134,46 @@ export function validMediaUrl(u) {
     return x.protocol === "https:" || x.protocol === "http:";
   } catch { return false; }
 }
+
+// ----- last done -----
+export function daysAgoLabel(dateISO, todayISO) {
+  if (!dateISO || !todayISO) return "";
+  const d = Math.round((new Date(todayISO + "T00:00:00") - new Date(dateISO + "T00:00:00")) / 86400000);
+  if (!Number.isFinite(d) || d < 0) return "";
+  if (d === 0) return "النهارده";
+  if (d === 1) return "امبارح";
+  if (d === 2) return "من يومين";
+  if (d <= 10) return `من ${d} أيام`;
+  if (d < 30) { const w = Math.round(d / 7); return w === 2 ? "من أسبوعين" : `من ${w} أسابيع`; }
+  if (d < 365) { const m = Math.round(d / 30); return m === 1 ? "من شهر" : m === 2 ? "من شهرين" : `من ${m} شهور`; }
+  return "من أكتر من سنة";
+}
+
+// "3×12 تكرار" / "3×30 ثانية" as plain text (for sentences); use a dir="ltr" span in JSX.
+export function setsRepsFull(ex, sets = ex.sets, reps = ex.reps) {
+  return `${sets}×${reps} ${unitLabel(ex)}`;
+}
+
+// ----- exercise of the day -----
+export function dayNumber(dateISO) { return Math.floor(new Date(dateISO + "T00:00:00Z").getTime() / 86400000); }
+
+const GROUP_ROTATION = ["chest", "back", "legs", "shoulders", "arms", "core"];
+const GROUP_TITLE = { chest: "صدر", back: "ظهر", legs: "أرجل", shoulders: "أكتاف", arms: "ذراعين", core: "بطن" };
+
+/** Deterministic pick for a date: the program's day (rotating) or a muscle-group session. */
+export function pickExerciseOfTheDay({ dateISO, programDays, exercises }) {
+  const n = dayNumber(dateISO);
+  if (programDays && programDays.length) {
+    const days = programDays.filter((d) => d.exercises && d.exercises.length);
+    if (days.length) {
+      const day = days[n % days.length];
+      return { title: day.title, source: "program", exercises: day.exercises.slice(0, 6) };
+    }
+  }
+  const group = GROUP_ROTATION[n % GROUP_ROTATION.length];
+  const pool = (exercises || []).filter((e) => e.muscle === group && e.difficulty !== "متقدم");
+  const picks = [];
+  for (let i = 0; i < pool.length && picks.length < 4; i++) picks.push(pool[(n + i * 3) % pool.length]);
+  const uniq = [...new Map(picks.map((e) => [e.id, e])).values()];
+  return { title: `تمرين ${GROUP_TITLE[group]}`, source: "rotation", exercises: uniq };
+}

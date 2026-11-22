@@ -659,6 +659,34 @@ const KEY = "gymak_state_v1";
       return ex;
     },
 
+    // ===== Today's list (device-local) =====
+    getTodayKey() { return todayISO(); },
+    getTodayPlanIds() {
+      const t = load().todayPlan;
+      return t && t.date === todayISO() && Array.isArray(t.ids) ? t.ids.slice() : [];
+    },
+    toggleTodayPlan(id) {
+      const s = load();
+      const today = todayISO();
+      const cur = s.todayPlan && s.todayPlan.date === today && Array.isArray(s.todayPlan.ids) ? s.todayPlan.ids : [];
+      const has = cur.includes(id);
+      s.todayPlan = { date: today, ids: has ? cur.filter((x) => x !== id) : cur.concat(id) };
+      save(s);
+      return !has;
+    },
+    addManyToTodayPlan(ids) {
+      const s = load();
+      const today = todayISO();
+      const cur = s.todayPlan && s.todayPlan.date === today && Array.isArray(s.todayPlan.ids) ? s.todayPlan.ids : [];
+      s.todayPlan = { date: today, ids: cur.concat((ids || []).filter((x) => !cur.includes(x))) };
+      save(s);
+    },
+    isLoggedToday(exerciseId) {
+      const logs = load().exerciseLogs[exerciseId] || [];
+      const today = todayISO();
+      return logs.some((l) => l.date === today);
+    },
+
     setExerciseLocalMedia(id, kind) {
       const s = load();
       const ex = (s.exercises || []).find((e) => e.id === id && e.custom);
@@ -1141,7 +1169,8 @@ const KEY = "gymak_state_v1";
         exercises: day.exerciseIds
           .filter((eid) => !tombstoned.has(eid))
           .map((eid) => byId.get(eid) || SEED_EXERCISES.find((e) => e.id === eid))
-          .filter(Boolean),
+          .filter(Boolean)
+          .map(normalizeExercise),
       }));
     },
 
@@ -1213,10 +1242,10 @@ const KEY = "gymak_state_v1";
       const s = load();
       const rows = [];
       Object.keys(s.exerciseLogs).forEach((exerciseId) => {
-        const ex = (s.exercises || []).find((e) => e.id === exerciseId);
+        const ex = normalizeExercise((s.exercises || []).find((e) => e.id === exerciseId));
         (s.exerciseLogs[exerciseId] || []).forEach((l) => {
           rows.push({
-            exerciseId, date: l.date, weight: l.weight, sets: l.sets, reps: l.reps,
+            exerciseId, date: l.date, weight: l.weight, sets: l.sets, reps: l.reps, unit: ex ? ex.unit : "reps",
             name: ex ? ex.name : exerciseId,
             muscle: ex ? ex.muscle : "chest",
             muscleLabel: ex ? ex.muscleLabel : "",

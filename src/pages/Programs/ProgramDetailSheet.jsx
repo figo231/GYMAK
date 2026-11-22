@@ -50,7 +50,7 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
                     <div className="prog-gen-ex" key={ex.id}>
                       <span className="prog-gen-ex-thumb"><ExerciseAnim exerciseId={ex.id} still alt={ex.name} /></span>
                       <span className="prog-gen-ex-name">{ex.name}</span>
-                      <span className="prog-gen-ex-sr">{ex.sets}×{ex.reps}</span>
+                      <span className="prog-gen-ex-sr"><bdi dir="ltr">{ex.sets}×{ex.reps}</bdi> {ex.unit === "sec" ? "ثانية" : ""}</span>
                       <button
                         type="button"
                         className="prog-gen-ex-del"

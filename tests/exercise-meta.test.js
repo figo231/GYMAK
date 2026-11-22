@@ -38,3 +38,34 @@ describe("exerciseMeta", () => {
   });
   it("keeps sets x reps left to right text", () => { expect(setsRepsText(4, 8)).toBe("4×8"); });
 });
+
+import { daysAgoLabel, pickExerciseOfTheDay, setsRepsFull } from "../src/lib/exerciseMeta";
+describe("last done / exercise of the day", () => {
+  it("labels days ago in Arabic", () => {
+    expect(daysAgoLabel("2026-11-22", "2026-11-22")).toBe("النهارده");
+    expect(daysAgoLabel("2026-11-21", "2026-11-22")).toBe("امبارح");
+    expect(daysAgoLabel("2026-11-19", "2026-11-22")).toBe("من 3 أيام");
+    expect(daysAgoLabel("2026-10-01", "2026-11-22")).toBe("من شهرين");
+    expect(daysAgoLabel("2026-11-01", "2026-11-22")).toBe("من 3 أسابيع");
+    expect(daysAgoLabel("2026-12-01", "2026-11-22")).toBe("");
+  });
+  it("formats reps vs seconds in sentences", () => {
+    expect(setsRepsFull({ sets: 3, reps: 30, unit: "sec" })).toBe("3×30 ثانية");
+    expect(setsRepsFull({ sets: 4, reps: 8, unit: "reps" })).toBe("4×8 تكرار");
+  });
+  it("picks deterministically and rotates program days", () => {
+    const days = [{ title: "A", exercises: [{ id: "a" }] }, { title: "B", exercises: [{ id: "b" }] }];
+    const d1 = pickExerciseOfTheDay({ dateISO: "2026-11-22", programDays: days, exercises: [] });
+    const d2 = pickExerciseOfTheDay({ dateISO: "2026-11-22", programDays: days, exercises: [] });
+    const d3 = pickExerciseOfTheDay({ dateISO: "2026-11-23", programDays: days, exercises: [] });
+    expect(d1).toEqual(d2); expect(d1.title).not.toBe(d3.title); expect(d1.source).toBe("program");
+  });
+  it("falls back to a muscle-group session without a program", () => {
+    const ex = Array.from({ length: 12 }, (_, i) => ({ id: "c" + i, muscle: "chest", difficulty: "مبتدئ" }))
+      .concat(Array.from({ length: 12 }, (_, i) => ({ id: "b" + i, muscle: "back", difficulty: "متقدم" })));
+    const r = pickExerciseOfTheDay({ dateISO: "2026-11-22", programDays: null, exercises: ex });
+    expect(r.source).toBe("rotation");
+    expect(new Set(r.exercises.map((e) => e.id)).size).toBe(r.exercises.length);
+    expect(r.exercises.every((e) => e.difficulty !== "متقدم")).toBe(true);
+  });
+});

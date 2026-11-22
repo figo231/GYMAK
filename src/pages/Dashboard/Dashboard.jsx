@@ -6,6 +6,7 @@ import { usePrompt } from "../../hooks/useDialog";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
 import WaterCard from "./WaterCard";
+import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 
 const DAY_LETTERS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]; // Sun..Sat
 
@@ -27,10 +28,19 @@ export default function Dashboard() {
       monthDiff: Store.getWeightDiffOverDays(30),
       bmi: Store.getBMI(),
       recent: Store.getRecentExerciseLogs(3),
+      todayList: Store.getTodayPlanIds().map((id) => Store.getExerciseById(id)).filter(Boolean).map((ex) => ({ ex, done: Store.isLoggedToday(ex.id) })),
+      eotd: (() => {
+        const prog = Store.getActiveProgram();
+        return pickExerciseOfTheDay({
+          dateISO: Store.getTodayKey(),
+          programDays: prog ? Store.getProgramDays(prog.id) : null,
+          exercises: Store.getExercises(),
+        });
+      })(),
     };
   }, [version]);
 
-  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent } = data;
+  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd } = data;
 
   async function handleBMIClick() {
     const current = Store.getProfile().heightCm;
@@ -192,6 +202,43 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {todayList.length > 0 && (
+        <>
+          <div className="section-title"><h2>تمارين النهارده</h2></div>
+          <div className="glass" style={{ padding: "4px 14px", marginBottom: 12 }}>
+            {todayList.map(({ ex, done }) => (
+              <div className="today-row" key={ex.id}>
+                <Link to={`/exercise/${encodeURIComponent(ex.id)}`} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit", flex: 1, minWidth: 0 }}>
+                  <span className={"today-check" + (done ? " done" : "")} aria-label={done ? "اتسجل" : "لسه"}>
+                    {done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5 9-10" /></svg>}
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="plan-name">{ex.name}</div>
+                    <div className="plan-sub">{ex.muscleLabel} · <bdi dir="ltr">{ex.sets}×{ex.reps}</bdi> {unitLabel(ex)}</div>
+                  </div>
+                </Link>
+                <button type="button" className="today-x" aria-label={`شيل ${ex.name} من تمارين النهارده`} onClick={() => { Store.toggleTodayPlan(ex.id); refresh(); }}>×</button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {eotd.exercises.length > 0 && eotd.exercises.some((e) => !todayList.some((t) => t.ex.id === e.id)) && (
+        <div className="glass eotd">
+          <div style={{ fontSize: 10.5, color: "var(--text-dim)", fontWeight: 700 }}>تمرين اليوم</div>
+          <div style={{ fontSize: 15, fontWeight: 800, marginTop: 2 }}>{eotd.title}</div>
+          <div className="eotd-chips">
+            {eotd.exercises.map((e) => (
+              <Link key={e.id} className="eotd-chip" to={`/exercise/${encodeURIComponent(e.id)}`}>{e.name}</Link>
+            ))}
+          </div>
+          <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={() => { Store.addManyToTodayPlan(eotd.exercises.map((e) => e.id)); refresh(); }}>
+            ضيف الكل لتمارين النهارده
+          </button>
+        </div>
+      )}
+
       <div className="section-title">
         <h2>آخر تمرين مسجّل</h2>
         <Link to="/exercises">
@@ -213,7 +260,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="plan-name">{r.name}</div>
-                  <div className="plan-sub">{r.muscleLabel} · {r.sets} × {r.reps}</div>
+                  <div className="plan-sub">{r.muscleLabel} · <bdi dir="ltr">{r.sets}×{r.reps}</bdi> {r.unit === "sec" ? "ثانية" : "تكرار"}</div>
                 </div>
               </div>
               <span className="plan-weight">{Store.formatWeight(r.weight)}</span>

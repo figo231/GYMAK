@@ -87,7 +87,7 @@ export default function History() {
         <div className="glass" style={rowStyle} key={`${w.exerciseId}-${w.i}-${w.date}`}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: 14 }}>{w.name}</div>
-            <div style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>{w.date} · {Store.formatWeight(w.weight)} · {w.sets}×{w.reps}</div>
+            <div style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>{w.date} · {Store.formatWeight(w.weight)} · <bdi dir="ltr">{w.sets}×{w.reps}</bdi></div>
           </div>
           <button style={iconBtn} onClick={() => editWorkout(w)}>تعديل</button>
           <button style={{ ...iconBtn, color: "var(--danger)" }} onClick={() => removeWorkout(w)}>مسح</button>

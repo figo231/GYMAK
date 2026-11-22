@@ -1,5 +1,6 @@
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
+import { setsRepsFull } from "../../lib/exerciseMeta";
 
 export function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -69,8 +70,8 @@ export function answerFor(q) {
   const foundEx = findExerciseByName(text);
   if (foundEx && (text.includes("ازاي") || text.includes("طريقة") || text.includes("إزاي") || text.includes("اداء") || text.includes("أداء"))) {
     const last = Store.getLastExerciseLog(foundEx.id);
-    let msg = `${foundEx.name} بيستهدف ${foundEx.muscleLabel}${foundEx.secondary ? " ومعاه " + foundEx.secondary : ""}. الرينج المقترح ${foundEx.sets}×${foundEx.reps}.`;
-    if (last) msg += ` آخر مرة سجلت ${last.weight} كجم بـ ${last.sets}×${last.reps}.`;
+    let msg = `${foundEx.name} بيستهدف ${foundEx.muscleLabel}${foundEx.secondary ? " ومعاه " + foundEx.secondary : ""}. الرينج المقترح ${setsRepsFull(foundEx)}.`;
+    if (last) msg += ` آخر مرة سجلت ${last.weight} كجم بـ ${setsRepsFull(foundEx, last.sets, last.reps)}.`;
     msg += " تقدر تشوف خطوات الأداء بالتفصيل في صفحة التمرين نفسه.";
     return msg;
   }
