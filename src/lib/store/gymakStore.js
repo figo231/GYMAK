@@ -87,6 +87,11 @@ const KEY = "gymak_state_v1";
       { title: "علوي 2", exerciseIds: ["incline-dumbbell-press", "lat-pulldown", "lateral-raise", "hammer-curl", "dips"] },
       { title: "سفلي 2", exerciseIds: ["leg-press", "romanian-deadlift", "hip-thrust", "calf-raise", "plank", "crunch"] },
     ],
+    "glutes-tone": [
+      { title: "أرداف وأرجل", exerciseIds: ["hip-thrust", "goblet-squat", "romanian-deadlift", "dumbbell-lunges", "glute-bridge"] },
+      { title: "علوي وكور", exerciseIds: ["lat-pulldown", "dumbbell-shoulder-press", "seated-cable-row", "lateral-raise", "plank"] },
+      { title: "أرداف وسمانة", exerciseIds: ["leg-press", "hip-thrust", "lying-leg-curl", "calf-raise", "crunch"] },
+    ],
     "full-body": [
       { title: "جسم كامل A", exerciseIds: ["goblet-squat", "dumbbell-bench-press", "lat-pulldown", "plank"] },
       { title: "جسم كامل B", exerciseIds: ["leg-press", "shoulder-press-barbell", "barbell-row", "hanging-leg-raise"] },
@@ -109,6 +114,11 @@ const KEY = "gymak_state_v1";
       id: "upper-lower", goal: "strength", name: "Upper Lower", level: "مبتدئ", daysPerWeek: "4 أيام / أسبوع",
       dayChips: ["علوي 1", "سفلي 1", "علوي 2", "سفلي 2"],
       desc: "تقسيم بسيط يناسب اللي وقته محدود — 4 أيام بس في الأسبوع، وبيدي توازن كويس بين الجزء العلوي والسفلي مع راحة كافية.",
+    },
+    {
+      id: "glutes-tone", goal: "fitness", name: "أرداف وتشكيل", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع",
+      dayChips: ["أرداف وأرجل", "علوي وكور", "أرداف وسمانة"],
+      desc: "برنامج بيركز على الأرداف والأرجل مع يوم علوي وكور لتشكيل متوازن. مناسب للبنات وأي حد هدفه تشكيل الجزء السفلي.",
     },
     {
       id: "full-body", goal: "fitness", name: "Full Body", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع",
@@ -1107,7 +1117,7 @@ const KEY = "gymak_state_v1";
     // ===== Recommended program based on gender (personalization hint, not a rule) =====
     getRecommendedProgramId() {
       const s = load();
-      if (s.profile.gender === "female") return "full-body";
+      if (s.profile.gender === "female") return "glutes-tone";
       if (s.profile.gender === "male") return "push-pull-legs";
       return null;
     },
