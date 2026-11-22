@@ -48,7 +48,7 @@ export default function MealPlan() {
           {list.map((x) => (
             <label key={x.name} className={"mp-row" + (checked[x.name] ? " done" : "")}>
               <input type="checkbox" checked={!!checked[x.name]} onChange={() => setChecked((c) => ({ ...c, [x.name]: !c[x.name] }))} />
-              <span>{x.name}</span><b dir="ltr">{fmtGrams(x.grams)}</b>
+              <span>{x.name}</span><b>{fmtGrams(x.grams)}</b>
             </label>
           ))}
           <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} onClick={copyList}>شارك / انسخ القائمة</button>
