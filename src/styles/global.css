@@ -921,13 +921,20 @@ body::before {
 /* ===== Exercise photo animation (2 frames crossfade) ===== */
 .ex-anim { position: relative; overflow: hidden; background: #fff; border-radius: inherit; width: 100%; height: 100%; }
 .ex-anim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.ex-anim .ex-anim-b { animation: exFrame 2.4s steps(1, end) infinite; }
-@keyframes exFrame { 0%, 45% { opacity: 0; } 50%, 95% { opacity: 1; } 100% { opacity: 0; } }
+/* Smooth ping-pong morph between the start and end frames: the top frame
+   eases in and back out with a hold at each extreme, and both frames drift
+   with a subtle synced zoom so the pair reads as one moving demo instead of
+   a flipbook. Both imgs share the same zoom timing so they stay aligned. */
+.ex-anim .ex-anim-b { animation: exFrame 3.2s ease-in-out infinite alternate; }
+.ex-anim img { animation: exZoom 3.2s ease-in-out infinite alternate; will-change: transform; }
+@keyframes exFrame { 0%, 18% { opacity: 0; } 55% { opacity: 0.6; } 82%, 100% { opacity: 1; } }
+@keyframes exZoom { from { transform: scale(1); } to { transform: scale(1.045); } }
 .ex-anim.still .ex-anim-b { display: none; }
+.ex-anim.still img { animation: none; }
 .ex-thumb .ex-anim { border-radius: 13px; }
 .media-frame .ex-anim { border-radius: inherit; }
 .media-tag { z-index: 2; }
-@media (prefers-reduced-motion: reduce) { .ex-anim .ex-anim-b { animation: none; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ex-anim .ex-anim-b { animation: none; opacity: 0; } .ex-anim img { animation: none; } }
 .prog-gen-ex-thumb { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: rgba(var(--ink), 0.05); display: inline-flex; margin-inline-end: 10px; }
 .prog-gen-ex-thumb:empty { display: none; }
 .prog-gen-ex-name { flex: 1; }

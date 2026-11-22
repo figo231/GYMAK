@@ -1,7 +1,12 @@
 // Maps built-in exercise ids to free-exercise-db images (The Unlicense,
 // https://github.com/yuhonas/free-exercise-db). Two frames per exercise
-// (start / end position), served from jsDelivr pinned to a commit.
+// (start / end position). Bundled locally as downscaled WebP under
+// public/exercises/<id>/ (offline-first, lazy-loaded, cached by the SW after
+// first view — see vite.config.js). Regenerate with
+// scripts/generate-exercise-frames.sh, which pulls the originals from the
+// pinned commit below.
 const BASE = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5/exercises/";
+const LOCAL_BASE = "/exercises/";
 const IMAGE_IDS = {
   "bench-press-barbell": "Barbell_Bench_Press_-_Medium_Grip",
   "incline-dumbbell-press": "Incline_Dumbbell_Press",
@@ -139,6 +144,13 @@ import { remoteExerciseFrames } from "./content/remoteContent";
 export function getExerciseFrames(id) {
   const rf = remoteExerciseFrames(id);
   if (rf) return rf;
+  const k = IMAGE_IDS[id];
+  return k ? [LOCAL_BASE + id + "/0.webp", LOCAL_BASE + id + "/1.webp"] : null;
+}
+
+// Remote (jsDelivr) URLs for the same frames — kept for tools/tests and as a
+// manual fallback if a local asset ever goes missing.
+export function getRemoteExerciseFrames(id) {
   const k = IMAGE_IDS[id];
   return k ? [BASE + k + "/0.jpg", BASE + k + "/1.jpg"] : null;
 }

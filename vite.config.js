@@ -62,8 +62,20 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        // Exercise demo photos (free-exercise-db via jsDelivr): cache after first view so they work offline.
+        // Exercise demo photos: cache after first view so they work offline.
+        // The bundled WebP frames under /exercises/ are intentionally NOT in
+        // globPatterns above, so they stay out of the precache (4 MB the SW
+        // would otherwise fetch up front) and are lazy-loaded + cached on use.
         runtimeCaching: [
+          {
+            urlPattern: /\/exercises\/[\w-]+\/\d\.webp$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "exercise-frames",
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/yuhonas\/free-exercise-db@/,
             handler: "CacheFirst",
