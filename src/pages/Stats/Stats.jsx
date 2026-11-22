@@ -3,6 +3,7 @@ import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightChart from "./WeightChart";
+import WeeklyCard from "./WeeklyCard";
 
 const PERIODS = [
   { days: 7, label: "أسبوع" },
@@ -40,6 +41,8 @@ export default function Stats() {
         <h1 className="page-title">الإحصائيات</h1>
         <div className="page-count">تقدمك خلال آخر 3 أشهر</div>
       </div>
+
+      <WeeklyCard />
 
       <div className="period-tabs">
         {PERIODS.map((p) => (
