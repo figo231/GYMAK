@@ -24,6 +24,12 @@ export default function Food() {
   const m = macroSplit(day);
   const mode = useMemo(() => Store.getGoalMode(), [version]);
   const modes = Store.getGoalModes();
+  const cheat = useMemo(() => Store.isCheatDay(), [version]);
+  function toggleCheat() {
+    const r = Store.setCheatDay(day.date, !cheat);
+    if (!r.ok) toast("عندك يوم حر في آخر 7 أيام. يوم حر واحد في الأسبوع.");
+    else toast(r.on ? "النهارده يوم حر. سلسلتك محمية." : "اتلغى اليوم الحر.");
+  }
   const saved = useMemo(() => Store.getSavedMeals(), [version]);
   const proteinTarget = useMemo(() => Store.getProteinTarget(), [version]);
 
@@ -74,6 +80,7 @@ export default function Food() {
           <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{v.label}</button>
         ))}
       </div>
+      <button type="button" className={"cheat-toggle" + (cheat ? " on" : "")} aria-pressed={cheat} onClick={toggleCheat}>{cheat ? "النهارده يوم حر ✓ (سلسلتك محمية)" : "خلّي النهارده يوم حر"}</button>
       {mode && <div className="goal-tip">{modes[mode].tip}{proteinTarget ? ` هدف البروتين: ${proteinTarget} جم.` : ""}</div>}
 
       <div className="food-hero" data-testid="food-hero">
@@ -83,9 +90,9 @@ export default function Food() {
             <div className="food-cap">سعرة النهارده{target ? ` من ${target}` : ""}</div>
           </div>
           {left != null && (
-            <div className={"food-left" + (left < 0 ? " over" : "")}>
+            <div className={"food-left" + (left < 0 && !cheat ? " over" : "")}>
               <b dir="ltr">{Math.abs(left)}</b>
-              <span>{left < 0 ? "زيادة عن الهدف" : "فاضل"}</span>
+              <span>{left < 0 ? (cheat ? "يوم حر" : "زيادة عن الهدف") : "فاضل"}</span>
             </div>
           )}
         </div>

@@ -40,6 +40,7 @@ const KEY = "gymak_state_v1";
       exercises: SEED_EXERCISES.slice(),
       prHistory: [], // {exerciseId, exerciseName, weight, prevWeight, date}
       activeProgramId: null,
+      cheatDays: [], // ISO dates: free days that don't break the streak
       savedMeals: [], // {id, name, items:[{name,grams,kcal,protein,carbs,fat}]}
       foodLog: [], // {date, items:[{name,grams,kcal,protein,carbs,fat}], totalKcal, totalProtein, totalCarbs, totalFat}
       settings: { unit: "kg", notifEnabled: false, notifTime: "19:00", lang: "ar" },
@@ -588,6 +589,7 @@ const KEY = "gymak_state_v1";
       if (parsed.settings.lang === undefined) parsed.settings.lang = "ar";
       if (!parsed.foodLog) parsed.foodLog = [];
       if (!Array.isArray(parsed.savedMeals)) parsed.savedMeals = [];
+      if (!Array.isArray(parsed.cheatDays)) parsed.cheatDays = [];
       if (!parsed.deletedExerciseIds) parsed.deletedExerciseIds = [];
       if (!parsed.pendingDeletes) parsed.pendingDeletes = { weight: [], food: [], exerciseLogs: [], prs: [] };
       for (const k of ["weight", "food", "exerciseLogs", "prs"]) if (!parsed.pendingDeletes[k]) parsed.pendingDeletes[k] = [];
@@ -1014,8 +1016,10 @@ const KEY = "gymak_state_v1";
       let cursor = todayISO();
       // if today not logged yet, streak counts up to yesterday still (don't break it)
       if (!set.has(cursor)) cursor = shiftDate(cursor, -1);
-      while (set.has(cursor)) {
-        streak++;
+      const cheat = new Set(s.cheatDays || []);
+      // a cheat/rest day bridges the streak: it neither counts nor breaks it
+      while (set.has(cursor) || cheat.has(cursor)) {
+        if (set.has(cursor)) streak++;
         cursor = shiftDate(cursor, -1);
       }
       return streak;
@@ -1166,6 +1170,19 @@ const KEY = "gymak_state_v1";
       return dayEntry;
     },
 
+    isCheatDay(date = todayISO()) { return load().cheatDays.includes(date); },
+    // One free day per rolling 7 days. Returns { ok, on, reason? }.
+    setCheatDay(date, on) {
+      const s = load();
+      const has = s.cheatDays.includes(date);
+      if (!on) { if (has) { s.cheatDays = s.cheatDays.filter((d) => d !== date); save(s); } return { ok: true, on: false }; }
+      if (has) return { ok: true, on: true };
+      const near = s.cheatDays.some((d) => Math.abs((new Date(d) - new Date(date)) / 86400000) < 7);
+      if (near) return { ok: false, on: false, reason: "limit" };
+      s.cheatDays.push(date); s.cheatDays.sort();
+      save(s);
+      return { ok: true, on: true };
+    },
     getSavedMeals() { return load().savedMeals.slice(); },
     saveMeal(name, items) {
       const nm = String(name || "").trim().slice(0, 40);
