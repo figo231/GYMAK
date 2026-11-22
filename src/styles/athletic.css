@@ -446,3 +446,11 @@ html.ath.pro-ui .ct-done b{color:#FF8A3D;font-size:18px}
 html.ath.pro-ui .help-item{margin-bottom:8px;overflow:hidden}
 html.ath.pro-ui .help-q{width:100%;display:flex;justify-content:space-between;gap:12px;align-items:center;background:none;border:0;color:inherit;font:inherit;font-weight:700;padding:14px 16px;text-align:start;cursor:pointer}
 html.ath.pro-ui .help-a{margin:0;padding:0 16px 14px;font-size:13px;line-height:1.9;opacity:.8}
+html.ath.pro-ui .wu-groups{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+html.ath.pro-ui .wu-groups .goal-chip{flex:0 0 auto;padding:8px 14px}
+html.ath.pro-ui .wu-item{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
+html.ath.pro-ui .wu-body{flex:1;display:flex;flex-direction:column;gap:2px}
+html.ath.pro-ui .wu-body small{opacity:.7;font-size:12px;line-height:1.6}
+html.ath.pro-ui .wu-sec{color:#FF8A3D;font-weight:700;font-size:13px}
+html.ath.pro-ui .wu-item input{accent-color:#FF6A1A;width:20px;height:20px}
+html.ath.pro-ui .wu-item.done{opacity:.45}

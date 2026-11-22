@@ -14,6 +14,7 @@ const GROUPS = {
   train: [
     { to: "/exercises", label: "التمارين" },
     { to: "/programs", label: "البرامج" },
+    { to: "/warmup", label: "إحماء وإطالة" },
   ],
 };
 
