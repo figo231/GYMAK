@@ -1,6 +1,6 @@
 import { useState } from "react";
 import SectionNav from "../../components/layout/SectionNav";
-import { WARMUP, STRETCH, routineMinutes } from "../../lib/warmup";
+import { WARMUP, STRETCH, routineDurationLabel } from "../../lib/warmup";
 
 export default function Warmup() {
   const [tab, setTab] = useState("warm");
@@ -20,7 +20,7 @@ export default function Warmup() {
           {Object.entries(STRETCH).map(([k, g]) => <button key={k} type="button" className={"goal-chip" + (grp === k ? " on" : "")} aria-pressed={grp === k} onClick={() => setGrp(k)}>{g.label}</button>)}
         </div>
       )}
-      <p className="mp-note">حوالي {routineMinutes(items)} دقايق. لو حسيت بألم حاد وقّف. ده إرشاد عام مش بديل لمدرب أو دكتور.</p>
+      <p className="mp-note">حوالي {routineDurationLabel(items)}. لو حسيت بألم حاد وقّف. ده إرشاد عام مش بديل لمدرب أو دكتور.</p>
       {items.map((x) => (
         <label key={x.name} className={"glass wu-item" + (done[key(x.name)] ? " done" : "")}>
           <input type="checkbox" checked={!!done[key(x.name)]} onChange={() => setDone((d) => ({ ...d, [key(x.name)]: !d[key(x.name)] }))} />

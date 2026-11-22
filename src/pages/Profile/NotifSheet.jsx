@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getInbox, importDelivered, getPushPermission, initBroadcastPush, deleteInboxItem, clearInbox } from "../../lib/push/pushService";
 import { BROADCAST_ENABLED, isOwnerAdmin, sendBroadcast } from "../../lib/push/ownerBroadcast";
 import { useAuth } from "../../hooks/useAuth";
@@ -49,9 +50,12 @@ export default function NotifSheet({ onClose }) {
       <div className="edit-sheet" style={{ maxHeight: "86vh", overflowY: "auto" }}>
         <div className="edit-sheet-handle" />
         <h3>الإشعارات</h3>
+        <p className="notif-note">{perm === null ? "بنتحقق من إذن الإشعارات..." : perm === "unsupported" ? "إشعارات الدفع متاحة في تطبيق الأندرويد، مش المتصفح. إعدادات التذكير منفصلة عن الرسائل الواردة." : perm === "granted" ? "إذن الإشعارات مفعّل على الجهاز. ده مش تأكيد إن إشعار تجريبي وصل أو إن الإرسال من السيرفر شغّال." : "حالة إذن الإشعارات على الجهاز:"}</p>
+        <Link className="btn btn-secondary" style={{ display: "block", textAlign: "center", marginBottom: 10 }} to="/notifications" onClick={onClose}>إعدادات التذكير والتنبيهات</Link>
+        <h4>الرسائل الواردة</h4>
 
         {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
-        {perm === "prompt" && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 10 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
+        {(perm === "prompt" || perm === "prompt-with-rationale") && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 10 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
 
         {owner && (
           <div style={{ marginBottom: 12 }}>
@@ -71,7 +75,7 @@ export default function NotifSheet({ onClose }) {
         )}
 
         {inbox.length === 0 ? (
-          <p className="notif-note">مفيش إشعارات لسه. أي إشعار هيوصلك هيظهر هنا.</p>
+          <p className="notif-note">مفيش إشعارات محفوظة لسه. الإشعارات اللي يقدر التطبيق يلتقطها أو يستوردها من الجهاز هتظهر هنا.</p>
         ) : (
           <>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

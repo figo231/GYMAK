@@ -1,13 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Store from "../../lib/store/gymakStore";
 import { weeklyChallenge, monthlyBadges } from "../../lib/challenges";
 import { challengeStatus, joinChallenge, leaveChallenge, CHALLENGE_DAYS } from "../../lib/challenge30";
 
 export default function ChallengeCard({ version }) {
+  const [challengeVersion, setChallengeVersion] = useState(0);
+  function startChallenge() { joinChallenge(); setChallengeVersion(v => v + 1); }
   const { w, m, c30 } = useMemo(() => {
     const days = Store.getWorkoutDays();
     return { w: weeklyChallenge(days), m: monthlyBadges(days), c30: challengeStatus(days, Store.getCheatDays()) };
-  }, [version]);
+  }, [version, challengeVersion]);
   return (
     <div className="glass chal-card" data-testid="challenge-card">
       <div className="chal-top">
@@ -33,7 +35,7 @@ export default function ChallengeCard({ version }) {
         {!c30 && (
           <>
             <div className="chal-sub">تمرّن كل يوم لمدة 30 يوم متتاليين واكسب وسام التحدي 🔥</div>
-            <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} onClick={() => joinChallenge()}>ابدأ التحدي</button>
+            <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} onClick={startChallenge}>ابدأ التحدي</button>
           </>
         )}
         {c30 && !c30.complete && !c30.failed && (
@@ -46,7 +48,7 @@ export default function ChallengeCard({ version }) {
         {c30 && c30.failed && (
           <>
             <div className="chal-sub">التحدي خلص بـ{c30.done} يوم. جرّب تاني — المرة الجاية 👊</div>
-            <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} onClick={() => { leaveChallenge(); joinChallenge(); }}>ابدأ من الأول</button>
+            <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} onClick={() => { leaveChallenge(); startChallenge(); }}>ابدأ من الأول</button>
           </>
         )}
       </div>

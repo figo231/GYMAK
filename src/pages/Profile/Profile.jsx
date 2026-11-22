@@ -45,7 +45,7 @@ export default function Profile({ panel = null }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [showReminder, setShowReminder] = useState(false);
+  const [showReminder, setShowReminder] = useState(() => !panel && searchParams.get("reminder") === "1");
   const [isOwner, setIsOwner] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
   const [card, setCard] = useState(null);
@@ -465,8 +465,8 @@ export default function Profile({ panel = null }) {
         <ReminderSheet
           initialEnabled={settings.notifEnabled}
           initialTime={settings.notifTime}
-          onClose={() => setShowReminder(false)}
-          onSaved={() => { setShowReminder(false); refresh(); }}
+          onClose={() => { setShowReminder(false); if (searchParams.get("reminder")) setSearchParams({}, { replace: true }); }}
+          onSaved={() => { setShowReminder(false); if (searchParams.get("reminder")) setSearchParams({}, { replace: true }); refresh(); }}
         />
       )}
 {showLock && <AppLockSheet onClose={() => setShowLock(false)} onChanged={refresh} />}

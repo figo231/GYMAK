@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { useToast } from "../../hooks/useToast";
 import { isNative, applyExtraReminders, syncMissedReminder } from "../../lib/push/nativeReminder";
@@ -46,7 +47,7 @@ export default function Notifications() {
           )}
         </div>
       ))}
-      <p className="notif-note">تذكير التمرين اليومي بتظبطه من حسابي &gt; الإعدادات.</p>
+      <p className="notif-note">تذكير التمرين اليومي في حسابي &gt; التفضيلات والخصوصية &gt; التذكير اليومي. <Link to="/profile?reminder=1">افتح التذكير اليومي</Link></p>
     </div>
   );
 }

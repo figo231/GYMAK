@@ -17,3 +17,8 @@ export const STRETCH = {
   core: { label: "بطن وأسفل الظهر", items: [{ name: "إطالة الكوبرا", sec: 30, tip: "على بطنك وارفع صدرك بإيدك من غير ألم." }, { name: "لف الجذع وأنت نايم", sec: 30, tip: "ركبتك لجنب وكتافك على الأرض، كل جنب." }] },
 };
 export function routineMinutes(items) { return Math.max(1, Math.round(items.reduce((a, x) => a + x.sec, 0) / 60)); }
+
+export function routineDurationLabel(items) {
+  const n = routineMinutes(items);
+  return n === 1 ? "دقيقة واحدة" : n === 2 ? "دقيقتين" : n <= 10 ? `${n} دقايق` : `${n} دقيقة`;
+}
