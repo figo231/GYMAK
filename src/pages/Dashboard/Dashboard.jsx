@@ -14,6 +14,7 @@ import WeightLogSheet from "./WeightLogSheet";
 import WaterCard from "./WaterCard";
 import ChallengeCard from "./ChallengeCard";
 import TipCard from "./TipCard";
+import WeeklyReportCard from "./WeeklyReportCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
@@ -167,6 +168,7 @@ export default function Dashboard() {
       </div>
 
       <TipCard />
+      <WeeklyReportCard />
 
       {recent.length === 0 && (
         <div className="glass start-card" data-testid="start-card">

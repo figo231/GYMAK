@@ -11,7 +11,7 @@ import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
 import { normalizeExercise } from "../exerciseMeta";
 import { localISO, shiftISO, windowStart } from "../dateKey";
 import { celebrate, momentsFor } from "../celebrate";
-import { foodStreak, foodWeek } from "../stats/foodStreak";
+import { foodStreak, foodWeek, isAdherentDay } from "../stats/foodStreak";
 import { deleteExerciseMedia } from "../exerciseMedia";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
@@ -1625,6 +1625,13 @@ const KEY = "gymak_state_v1";
     getNutritionStreak() {
       const s = load();
       return foodStreak(s.foodLog, s.cheatDays || [], this.getDailyCalorieTarget());
+    },
+
+    getNutritionAdherentDays(days) {
+      const s = load();
+      const target = this.getDailyCalorieTarget();
+      const cutoff = windowStart(todayISO(), days);
+      return s.foodLog.filter((d) => d.date >= cutoff && isAdherentDay(d, target)).length;
     },
 
     getNutritionWeek() {

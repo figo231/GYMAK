@@ -31,3 +31,15 @@ describe("weekly summary", () => {
     expect(weeklyCardData(w).big).toBe("4"); expect(headline(w)).toMatch(/قياسي/);
   });
 });
+
+describe("weekly nutrition adherence + weight", () => {
+  it("includes food adherence days and exposes weightDiff for the report", () => {
+    const w = buildWeekly(mk({ getNutritionAdherentDays: (n) => (n === 7 ? 5 : 0) }), []);
+    expect(w.foodDays).toBe(5);
+    expect(w.weightDiff).toBe(-0.6);
+  });
+  it("foodDays stays null when the store has no nutrition method", () => {
+    const w = buildWeekly(mk(), []);
+    expect(w.foodDays).toBeNull();
+  });
+});

@@ -15,11 +15,12 @@ export function buildWeekly(store, waterDays = []) {
   const prs = store.getRecentPRs(1000).filter((x) => x.date >= cutKey).length;
   const wd = store.getWeightDiffOverDays(6);
   const weightDiff = wd ? Math.round((wd.to - wd.from) * 10) / 10 : null; // kg
+  const foodDays = typeof store.getNutritionAdherentDays === "function" ? store.getNutritionAdherentDays(7) : null;
   const logged = waterDays.filter((d) => d.ml > 0);
   const waterAvg = logged.length ? Math.round(logged.reduce((a, d) => a + d.ml, 0) / logged.length) : 0;
   const waterGoalDays = waterDays.filter((d) => d.ml >= d.goal && d.goal > 0).length;
   return {
-    days, sets, tonnage: ton, prs, weightDiff, waterAvg, waterGoalDays,
+    days, sets, tonnage: ton, prs, weightDiff, waterAvg, waterGoalDays, foodDays,
     streak: store.getStreak(), prev,
     daysDelta: days - prev.days, tonnageDelta: pctChange(ton, prev.tonnage),
     empty: days === 0 && sets === 0,

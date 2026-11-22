@@ -24,6 +24,8 @@ export default function WeeklyCard() {
         <div><b dir="ltr">{w.sets}</b><span>مجموعة</span></div>
         <div><b dir="ltr">{fmtVolume(conv(w.tonnage), unit)}</b><span>حجم التمرين {tdelta && <bdi dir="ltr">{tdelta}</bdi>}</span></div>
       </div>
+      {w.foodDays != null && <div className="weekly-water">🍎 التزام بالأكل {w.foodDays} من 7 أيام</div>}
+      {w.weightDiff != null && <div className="weekly-water">⚖️ الوزن {w.weightDiff > 0 ? "زاد" : "نزل"} <bdi dir="ltr">{Math.abs(conv(w.weightDiff)).toFixed(1)}</bdi> {unit} الأسبوع ده</div>}
       {w.waterAvg > 0 && <div className="weekly-water">متوسط المياه {Math.round(w.waterAvg / 100) / 10} لتر/يوم · هدفك اتحقق {w.waterGoalDays} من 7 أيام</div>}
       {w.empty && <Link to="/" className="btn" style={{ marginTop: 10, display: "block", textAlign: "center" }}>شوف خطة النهارده</Link>}
       {!w.empty && (
