@@ -130,3 +130,29 @@ html.ath.pro-ui[data-accent="blue"] {
 }
 html.ath.pro-ui[data-accent="blue"] .hero::after { background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(255,255,255,.07) 14px 28px); }
 html.ath.pro-ui[data-accent="blue"] .hero-eyebrow, html.ath.pro-ui[data-accent="blue"] .hero-sub { color: rgba(255,255,255,.82); }
+
+/* more accents */
+html.ath.pro-ui[data-accent="red"] {
+  --glow-blue: #E5173F; --glow-purple: #FF4D6A; --acc-rgb: 229, 23, 63; --acc2-rgb: 255, 77, 106;
+  --accent-text: #FF6B85; --accent-text-soft: #FF8FA3; --on-acc: #FFFFFF; --on-acc-rgb: 255, 255, 255;
+  --acc-hi: #FF3B5C; --acc-lo: #C70F32; --lime: #FF3B5C; --lime-bg: rgba(229, 23, 63, .14);
+}
+html.ath.pro-ui[data-accent="red"] .hero::after { background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(255,255,255,.07) 14px 28px); }
+html.ath.pro-ui[data-accent="red"] .hero-eyebrow, html.ath.pro-ui[data-accent="red"] .hero-sub { color: rgba(255,255,255,.82); }
+html.ath.pro-ui[data-accent="purple"] {
+  --glow-blue: #8B5CF6; --glow-purple: #A98BFF; --acc-rgb: 139, 92, 246; --acc2-rgb: 169, 139, 255;
+  --accent-text: #B69CFF; --accent-text-soft: #CBB9FF; --on-acc: #FFFFFF; --on-acc-rgb: 255, 255, 255;
+  --acc-hi: #9F78FF; --acc-lo: #6D3FE0; --lime: #9F78FF; --lime-bg: rgba(139, 92, 246, .14);
+}
+html.ath.pro-ui[data-accent="purple"] .hero::after { background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(255,255,255,.07) 14px 28px); }
+html.ath.pro-ui[data-accent="purple"] .hero-eyebrow, html.ath.pro-ui[data-accent="purple"] .hero-sub { color: rgba(255,255,255,.82); }
+html.ath.pro-ui[data-accent="gold"] {
+  --glow-blue: #F5B301; --glow-purple: #FFD04D; --acc-rgb: 245, 179, 1; --acc2-rgb: 255, 208, 77;
+  --accent-text: #FFC933; --accent-text-soft: #FFD966; --on-acc: #1A1200; --on-acc-rgb: 26, 18, 0;
+  --acc-hi: #FFC933; --acc-lo: #E09A00; --lime: #FFC933; --lime-bg: rgba(245, 179, 1, .14);
+}
+html.ath.pro-ui[data-accent="teal"] {
+  --glow-blue: #14D6C4; --glow-purple: #5FF0E2; --acc-rgb: 20, 214, 196; --acc2-rgb: 95, 240, 226;
+  --accent-text: #4DEBDC; --accent-text-soft: #7EF2E7; --on-acc: #031412; --on-acc-rgb: 3, 20, 18;
+  --acc-hi: #2BE5D3; --acc-lo: #0DB3A3; --lime: #2BE5D3; --lime-bg: rgba(20, 214, 196, .14);
+}

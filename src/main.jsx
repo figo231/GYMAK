@@ -11,10 +11,10 @@ try {
   const q = new URLSearchParams(window.location.search).get("ui");
   if (q === "ath" || q === "classic") localStorage.setItem("gymak_ui", q);
   const a = new URLSearchParams(window.location.search).get("accent");
-  if (a === "volt" || a === "ember" || a === "blue") localStorage.setItem("gymak_accent", a);
+  if (["volt","ember","blue","red","purple","gold","teal"].includes(a)) localStorage.setItem("gymak_accent", a);
   if (localStorage.getItem("gymak_ui") === "ath") document.documentElement.classList.add("ath");
   const acc = localStorage.getItem("gymak_accent");
-  if (acc === "ember" || acc === "blue") document.documentElement.setAttribute("data-accent", acc);
+  if (["ember","blue","red","purple","gold","teal"].includes(acc)) document.documentElement.setAttribute("data-accent", acc);
 } catch { /* storage unavailable: keep the classic look */ }
 
 import("./lib/push/pushService").then((m) => m.initBroadcastPush()).catch(() => {});
