@@ -262,7 +262,7 @@ export default function Dashboard() {
         </div>
       </div>
       </div></div></details>
-<details className="ux-group" ><summary>تقرير الأسبوع</summary><div className="ux-group-body"><WeeklyReportCard /></div></details>
+<details className="ux-group" ><summary>تقرير الأسبوع</summary><div className="ux-group-body"><WeeklyReportCard /><Link className="ux-destination" to="/stats">التقرير الكامل ومشاركته ←</Link></div></details>
 <details className="ux-group" id="home-water"><summary>المياه</summary><div className="ux-group-body"><WaterCard /></div></details>
 <details className="ux-group" ><summary>تمارين النهارده وآخر تسجيل</summary><div className="ux-group-body">{todayList.length > 0 && (
         <div className="home-plan">
@@ -378,7 +378,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div><ChallengeCard version={version} /></div></details>
-<details className="ux-group" ><summary>تمرين سريع</summary><div className="ux-group-body">{hero.kind !== "done" && (
+{hero.kind !== "done" && <details className="ux-group" ><summary>تمرين سريع</summary><div className="ux-group-body">{hero.kind !== "done" && (
         <button type="button" className="glass quick-workout-btn" data-testid="quick-workout" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 14px", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", color: "inherit", margin: "0 0 10px" }}
           onClick={() => {
             const picked = pickQuickWorkout(Store.getExercises(), Store.getTodayKey());
@@ -390,7 +390,7 @@ export default function Dashboard() {
           }}>
           ⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز
         </button>
-      )}</div></details>
+      )}</div></details>}
 {showWeightSheet && (
         <WeightLogSheet
           initialWeight={latest ? Store.toDisplayWeight(latest.weight) : ""}

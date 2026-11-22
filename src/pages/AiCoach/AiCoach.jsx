@@ -109,7 +109,7 @@ export default function AiCoach() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <DetailTopBar backTo="/profile" />
+      <DetailTopBar backTo="/training" />
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 14px 10px" }}>
         <div className="coach-avatar">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /><path d="M9 10.5s1 1 3 1 3-1 3-1" /></svg>

@@ -2,6 +2,10 @@ name: Build Android APK
 on:
   workflow_dispatch:
     inputs:
+      version_code:
+        description: Optional explicit APK version code for a verification retry
+        type: string
+        default: ""
       publish:
         description: Publish the verified APK release
         type: boolean
@@ -43,8 +47,8 @@ jobs:
           if [ -z "$KS_B64" ]; then echo "Missing signing key" >&2; exit 1; fi
           printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/gymak.jks"
           echo "GYMAK_KEYSTORE_PATH=$RUNNER_TEMP/gymak.jks" >> "$GITHUB_ENV"
-          echo "GYMAK_VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
-          echo "GYMAK_VERSION_NAME=1.${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=${{ inputs.version_code || github.run_number }}" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.${{ inputs.version_code || github.run_number }}" >> "$GITHUB_ENV"
       - run: npm install --no-audit --no-fund
       - name: Test and build bundled app
         run: |
@@ -91,4 +95,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk GYMAK.apk
-          gh release create "apk-${{ github.run_number }}" GYMAK.apk --latest --title "GYMAK ${{ github.run_number }}" --notes "Bundled offline app. Install over the existing app without uninstalling."
+          gh release create "apk-${GYMAK_VERSION_CODE}" GYMAK.apk --latest --title "GYMAK ${GYMAK_VERSION_CODE}" --notes "Bundled offline app. Install over the existing app without uninstalling."

@@ -131,7 +131,7 @@ export default function Food() {
       ))}
 {editing && <EditFoodSheet item={editing.it} onClose={() => setEditing(null)} onSave={saveEdit} />}
 <p className="food-foot">القيم تقريبية. <Link to="/history">كل أيام الأكل في السجل</Link></p>
-{showBarcode && <BarcodeSheet onClose={() => setShowBarcode(false)} onAdd={(it) => { Store.logFoodEntries([it]); setShowBarcode(false); toast("اتسجّل"); }} />}<details className="ux-group" ><summary>وجباتك المحفوظة</summary><div className="ux-group-body">{saved.length > 0 && (
+{showBarcode && <BarcodeSheet onClose={() => setShowBarcode(false)} onAdd={(it) => { Store.logFoodEntries([it]); setShowBarcode(false); toast("اتسجّل"); }} />}<details className="ux-group" ><summary>وجباتك المحفوظة</summary><div className="ux-group-body">{saved.length === 0 && <p className="food-note-dim">لسه مفيش وجبات محفوظة. حلّل أكلة واختار «احفظ كوجبة».</p>}{saved.length > 0 && (
         <div className="saved-meals" data-testid="saved-meals">
           <div className="section-sub">وجباتك المحفوظة</div>
           {saved.map((m) => (

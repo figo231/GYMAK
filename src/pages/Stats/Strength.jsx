@@ -20,7 +20,7 @@ export default function Strength() {
 
   return (
     <div className="wu-page">
-      <SectionNav group="train" title="تدريب" />
+      <SectionNav group="progress" title="تقدم" />
       <div className="mp-tabs">
         <button type="button" className={tab === "pr" ? "on" : ""} onClick={() => setTab("pr")}>أرقامي القياسية</button>
         <button type="button" className={tab === "calc" ? "on" : ""} onClick={() => setTab("calc")}>حاسبة 1RM</button>
