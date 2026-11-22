@@ -8,6 +8,21 @@ run_test() {
   adb shell am instrument -w -e class "com.gymak.app.OfflineUpgradeTest#$method" com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee "verification/$method.txt"
   grep -q 'OK (1 test)' "verification/$method.txt"
 }
+# Only the legacy wrapper seed needs internet. Check emulator DNS explicitly;
+# ICMP replies are not required, only successful hostname resolution.
+adb wait-for-device
+adb shell cmd connectivity airplane-mode disable
+adb shell svc wifi enable
+adb shell settings put global private_dns_mode off
+resolved=false
+for attempt in 1 2 3 4 5 6 7 8; do
+  adb shell ping -c 1 -W 1 gymak-eight.vercel.app > verification/network-before.txt 2>&1 || true
+  cat verification/network-before.txt
+  if grep -q '^PING ' verification/network-before.txt; then resolved=true; break; fi
+  sleep 2
+done
+if [ "$resolved" != true ]; then echo 'Emulator DNS preflight failed before legacy seeding' >&2; exit 1; fi
+curl --fail --location --connect-timeout 15 --max-time 30 --retry 2 https://gymak-eight.vercel.app/ -o /tmp/gymak-live-preflight.html
 adb shell wm size 360x800
 adb shell wm density 160
 curl --fail --location --retry 2 https://github.com/figo231/GYMAK/releases/download/apk-9/GYMAK.apk -o /tmp/gymak-legacy.apk
