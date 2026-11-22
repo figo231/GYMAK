@@ -1,0 +1,5 @@
+# Draft implementation status
+Branch feature/encouragement-draft based on unmerged UGC candidate b29d2b6.
+0028 is NOT applied. Config defaults disabled, individual preferences default disabled, no cron or activation RPC. Draft local time 12:00 Africa/Cairo remains subject to the final schedule/text review. Account daily cap through unique(user_id,local_day). New opt-in binds one Android device. Opt-out server-side invalidates unsent claims. Owner preview and kill switch only.
+Remaining before ready: SQL tests; account/session-safe client preference with offline opt-out retry; UI screenshot review; service-authenticated sender with atomic claims, final eligibility recheck, approval/version gate, current token lookup, stale-run prevention and ambiguous outcome no-retry; native capability registration; permission check before opt-in; privacy text; owner time controls; sender tests; combined APK18 native test. No activation before text/audience/time approval.
+FCM single own-device test accepted and receipt confirmed on 23 November 2026 at 01:41 Cairo, temporary endpoint removed. This does not validate broadcast/topic or scheduler behavior.
