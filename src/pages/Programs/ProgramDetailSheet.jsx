@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ExerciseAnim from "../../components/ExerciseAnim";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
@@ -22,9 +22,15 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
     }
   }
 
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="detail-sheet">
+      <div className="detail-sheet" role="dialog" aria-modal="true" aria-label={program.name}>
         <div className="detail-sheet-handle" />
         <div className="detail-head">
           <div>
@@ -80,11 +86,11 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
           <button type="button" onClick={onClose}>إغلاق</button>
           <button
             type="button"
-            className={isActive ? "applied" : ""}
-            style={isActive ? { background: "rgba(34,197,94,0.18)", color: "var(--success)" } : { background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }}
+            className={isActive ? "applied" : "primary"}
+            disabled={isActive}
             onClick={onApply}
           >
-            {isActive ? t("prog_applied") || "مطبّق" : t("prog_apply") || "ابدأ التمرين الآن"}
+            {isActive ? "✓ " + (t("prog_applied") || "مطبّق") : (t("prog_apply") || "تطبيق البرنامج")}
           </button>
         </div>
       </div>

@@ -1363,6 +1363,14 @@ const KEY = "gymak_state_v1";
       return this.getActiveProgram();
     },
 
+    stopProgram() {
+      const s = load();
+      const prev = s.activeProgramId || null;
+      s.activeProgramId = null;
+      save(s);
+      return prev;
+    },
+
     // ===== Achievements (computed live from real data, never hardcoded) =====
     getAchievements() {
       const s = load();

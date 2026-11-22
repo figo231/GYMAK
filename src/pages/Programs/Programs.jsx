@@ -1,4 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useStoreVersion } from "../../hooks/useStoreVersion";
+import { useToast } from "../../hooks/useToast";
+import { useConfirm } from "../../hooks/useDialog";
+import { buzz } from "../../lib/haptics";
 import Store from "../../lib/store/gymakStore";
 import { useI18n } from "../../hooks/useI18n";
 import { DetailTopBar } from "../../components/layout/DetailShell";
@@ -21,8 +27,9 @@ function LevelMeter({ level }) {
 }
 
 export default function Programs() {
-  const [version, setVersion] = useState(0);
-  const refresh = () => setVersion((v) => v + 1);
+  const [version] = useStoreVersion();
+  const toast = useToast();
+  const confirm = useConfirm();
   const { t } = useI18n();
   const [detailId, setDetailId] = useState(null);
   const [goal, setGoal] = useState("all");
@@ -33,9 +40,27 @@ export default function Programs() {
   const shown = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
   const detailProgram = detailId ? programs.find((p) => p.id === detailId) : null;
 
-  function handleApply(id) {
+  async function handleApply(id) {
+    const prev = Store.getActiveProgram();
+    if (prev && prev.id === id) { toast("البرنامج ده مطبّق بالفعل."); return; }
+    const target = programs.find((p) => p.id === id);
+    if (prev) {
+      const ok = await confirm({ title: "تغيّر البرنامج؟", label: `هتبدّل "${prev.name}" بـ "${target ? target.name : ""}". سجلاتك وتمارينك ما بتتمسحش.`, confirmLabel: "غيّر" });
+      if (!ok) return;
+    }
     Store.applyProgram(id);
-    refresh();
+    buzz(15);
+    toast(`اتطبّق: ${target ? target.name : ""}`, {
+      duration: 6000,
+      action: { label: "تراجع", onClick: () => { if (prev) Store.applyProgram(prev.id); else Store.stopProgram(); } },
+    });
+  }
+  async function handleStop() {
+    if (!active) return;
+    const ok = await confirm({ title: "توقّف البرنامج الحالي؟", label: "سجلاتك وتمارينك هتفضل زي ما هي.", confirmLabel: "إيقاف", danger: true });
+    if (!ok) return;
+    const prev = Store.stopProgram();
+    toast("البرنامج اتوقّف.", { duration: 6000, action: { label: "تراجع", onClick: () => { if (prev) Store.applyProgram(prev); } } });
   }
 
   return (
@@ -51,21 +76,24 @@ export default function Programs() {
           <div className="active-ic">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
           </div>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="active-name">البرنامج الحالي: {active.name}</div>
             <div className="active-sub">{active.daysPerWeek}</div>
+          </div>
+          <div className="active-actions">
+            <Link to="/exercises" className="btn btn-primary active-go">ابدأ</Link>
+            <button type="button" className="active-stop" onClick={handleStop}>إيقاف</button>
           </div>
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "4px 0 10px" }} role="tablist" aria-label="الهدف">
+      <div className="goal-tabs" role="tablist" aria-label="الهدف">
         {GOALS.map(([id, label]) => (
-          <button key={id} type="button" role="tab" aria-selected={goal === id} onClick={() => setGoal(id)}
-            style={{ whiteSpace: "nowrap", padding: "7px 14px", borderRadius: 999, fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit",
-              border: "1px solid var(--border-soft)", background: goal === id ? "var(--accent-text)" : "none", color: goal === id ? "#fff" : "inherit" }}>{label}</button>
+          <button key={id} type="button" role="tab" aria-selected={goal === id} className={"goal-tab" + (goal === id ? " on" : "")} onClick={() => setGoal(id)}>{label}</button>
         ))}
       </div>
 
+      {shown.length === 0 && <div className="glass" style={{ padding: 20, textAlign: "center", color: "var(--text-dim)", fontWeight: 700, fontSize: 13 }}>مفيش برامج بالهدف ده دلوقتي.</div>}
       {shown.map((p) => {
         const isActive = active && active.id === p.id;
         const isRecommended = recommendedId === p.id && !isActive;
@@ -87,16 +115,13 @@ export default function Programs() {
             </div>
             <p className="prog-desc">{p.desc}</p>
             <div className="prog-actions">
-              <div
-                className="btn-apply"
-                style={{ cursor: "pointer", opacity: isActive ? 0.7 : 1 }}
-                onClick={() => handleApply(p.id)}
-              >
-                {isActive ? (t("prog_applied") || "مطبّق") : (t("prog_apply") || "تطبيق البرنامج")}
-              </div>
-              <div className="btn-detail" style={{ cursor: "pointer" }} onClick={() => setDetailId(p.id)}>
+              <button type="button" className={"btn-apply" + (isActive ? " is-active" : "")} aria-disabled={isActive || undefined}
+                onClick={() => handleApply(p.id)}>
+                {isActive ? "✓ " + (t("prog_applied") || "مطبّق") : (t("prog_apply") || "تطبيق البرنامج")}
+              </button>
+              <button type="button" className="btn-detail" onClick={() => setDetailId(p.id)}>
                 {t("prog_details") || "التفاصيل"}
-              </div>
+              </button>
             </div>
           </div>
         );
@@ -107,7 +132,7 @@ export default function Programs() {
           program={detailProgram}
           isActive={active?.id === detailProgram.id}
           onClose={() => setDetailId(null)}
-          onApply={() => { handleApply(detailProgram.id); setDetailId(null); }}
+          onApply={async () => { await handleApply(detailProgram.id); setDetailId(null); }}
           t={t}
         />
       )}
