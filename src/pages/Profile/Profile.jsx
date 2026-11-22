@@ -23,7 +23,10 @@ import { REST_OPTIONS, getRestSettings, setRestSettings, fmtClock } from "../../
 import { isCoach } from "../../lib/coach/coachApi";
 import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
-import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, clearLocalData } from "../../lib/profileLogic";
+import { useSyncStatus } from "../../hooks/useSyncStatus";
+import AppLockSheet from "./AppLockSheet";
+import { isLockEnabled } from "../../lib/appLock";
+import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, clearLocalData, xpToNext, timeAgoAr } from "../../lib/profileLogic";
 
 // Keyboard + screen-reader support for clickable rows that are not <button>s.
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
@@ -62,6 +65,8 @@ export default function Profile() {
   useEffect(() => { isOwnerAdmin(user?.id).then(setIsOwner); }, [user?.id]);
   const [showNotif, setShowNotif] = useState(() => searchParams.get("notif") === "1");
   const [showAppearance, setShowAppearance] = useState(false);
+  const [showLock, setShowLock] = useState(false);
+  const { status: syncStatus, lastSyncAt } = useSyncStatus();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const data = useMemo(() => {
@@ -287,6 +292,7 @@ export default function Profile() {
           <div className="p-xp-wrap">
             <div className="p-xp-nums"><span>{fmt(profile.xp)} XP</span><span>{fmt(profile.xpNext)} XP</span></div>
             <div className="p-xp-track"><div className="p-xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
+            {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? "وصلت سقف الـXP النهارده. كمّل بكرة." : `فاضل ${x.exercises} ${x.exercises === 1 ? "تمرين" : "تمارين"} للمستوى ${x.nextLevel}`}</div>; })()}
           </div>
         </div>
       </div>
@@ -361,8 +367,15 @@ export default function Profile() {
         <Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
           <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
+          {user && <span className="settings-hint">{syncStatus === "synced" ? `متزامن ${timeAgoAr(lastSyncAt)}` : syncStatus === "error" ? "فيه مشكلة" : syncStatus === "offline" ? "أوفلاين" : timeAgoAr(lastSyncAt)}</span>}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
+        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLock(true))}>
+          <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></div>
+          <span className="settings-name">قفل التطبيق</span>
+          <span className="settings-hint">{isLockEnabled() ? "شغال" : "مقفول"}</span>
+          <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+        </div>
         <div className="settings-row" style={{ cursor: "pointer" }} {...press(cycleRest)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" /></svg></div>
           <span className="settings-name">مؤقت الراحة بين المجموعات</span>
@@ -475,6 +488,7 @@ export default function Profile() {
           onSaved={() => { setShowReminder(false); refresh(); }}
         />
       )}
+      {showLock && <AppLockSheet onClose={() => setShowLock(false)} onChanged={refresh} />}
       {showAppearance && <AppearanceSheet onClose={() => setShowAppearance(false)} />}
     </>
   );

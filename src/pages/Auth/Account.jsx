@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import UpdateService from "../../lib/update/UpdateService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useSyncStatus } from "../../hooks/useSyncStatus";
 import { supabase } from "../../lib/supabaseClient";
 import { useConfirm } from "../../hooks/useDialog";
 import { useToast } from "../../hooks/useToast";
-import { exportPayload, clearLocalData } from "../../lib/profileLogic";
+import { exportPayload, clearLocalData, parseBackup, applyBackup, timeAgoAr } from "../../lib/profileLogic";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
@@ -22,22 +23,12 @@ const STATUS_LABEL = {
   disabled: { text: "المزامنة مش متاحة دلوقتي", color: "var(--text-dim)" },
 };
 
-function timeAgo(ts) {
-  if (!ts) return "لسه محصلش مزامنة";
-  const diffSec = Math.round((Date.now() - ts) / 1000);
-  if (diffSec < 60) return "من كذا ثانية";
-  const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `من ${diffMin} دقيقة`;
-  const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `من ${diffHr} ساعة`;
-  return new Date(ts).toLocaleDateString("ar-EG");
-}
-
 export default function Account() {
   const { user, signOut, resetPasswordForEmail } = useAuth();
   const { status, lastSyncAt, lastError, lastErrorKind, lastDroppedCount, pendingChangeCount, isMigrated, lastMigration, syncNow } = useSyncStatus();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const importRef = useRef(null);
   const confirmAsync = useConfirm();
   const toast = useToast();
 
@@ -67,6 +58,20 @@ export default function Account() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     toast("اتحمّلت نسخة من بياناتك.");
+  }
+
+  async function handleImportFile(file) {
+    if (!file) return;
+    const parsed = parseBackup(await file.text());
+    if (!parsed.ok) { toast(parsed.error); return; }
+    const ok = await confirmAsync({
+      title: "هنستبدل بيانات الجهاز دلوقتي ببيانات النسخة اللي اخترتها. اللي على الجهاز هيتمسح. متأكد؟",
+      danger: true, confirmLabel: "استرجاع", cancelLabel: "إلغاء",
+    });
+    if (!ok) return;
+    applyBackup(parsed.payload);
+    toast("اتسترجعت البيانات.");
+    setTimeout(() => window.location.assign("/profile"), 600);
   }
 
   async function handleChangePassword() {
@@ -120,7 +125,7 @@ export default function Account() {
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
           <div className="ib-label"><span className="ib-dot" style={{ background: "var(--info-text)", color: "var(--info-text)" }} />آخر مزامنة</div>
-          <div><span className="ib-val" style={{ fontSize: 12 }}>{timeAgo(lastSyncAt)}</span></div>
+          <div><span className="ib-val" style={{ fontSize: 12 }}>{timeAgoAr(lastSyncAt)}</span></div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
           <div className="ib-label"><span className="ib-dot" style={{ background: "var(--accent-text-soft)", color: "var(--accent-text-soft)" }} />نقل البيانات القديمة</div>
@@ -133,6 +138,10 @@ export default function Account() {
         <div className="inbody-row" style={{ padding: "8px 0" }}>
           <div className="ib-label"><span className="ib-dot" style={{ background: "var(--purple-text)", color: "var(--purple-text)" }} />تغييرات لسه ماتزامنتش</div>
           <div><span className="ib-val" style={{ fontSize: 12 }}>{pendingChangeCount}</span></div>
+        </div>
+        <div className="inbody-row" style={{ padding: "8px 0" }}>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--success)", color: "var(--success)" }} />الجهاز ده</div>
+          <div><span className="ib-val" style={{ fontSize: 12 }}>{UpdateService.platform() === "apk" ? "تطبيق أندرويد" : "المتصفح"}</span></div>
         </div>
         {lastDroppedCount > 0 && (
           <div className="inbody-row" style={{ padding: "8px 0" }}>
@@ -165,7 +174,9 @@ export default function Account() {
       <div className="glass" style={{ padding: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>الحساب والبيانات</div>
         <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleChangePassword}>تغيير كلمة السر (بالإيميل)</button>
-        <button type="button" className="btn" style={{ width: "100%" }} onClick={handleExport}>تحميل نسخة من بياناتي</button>
+        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExport}>تحميل نسخة من بياناتي</button>
+        <button type="button" className="btn" style={{ width: "100%" }} onClick={() => importRef.current?.click()}>استرجاع من نسخة</button>
+        <input ref={importRef} type="file" accept="application/json,.json" style={{ display: "none" }} onChange={(e) => { handleImportFile(e.target.files?.[0]); e.target.value = ""; }} />
       </div>
 
       <button

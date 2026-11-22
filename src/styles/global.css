@@ -1031,3 +1031,17 @@ a.btn { display: inline-block; text-decoration: none; padding: 10px 18px; border
 .m-chip { border: 0; font-family: inherit; cursor: pointer; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: var(--text-dim); background: rgba(var(--ink), 0.06); }
 .m-chip.on { color: var(--accent-text); background: rgba(var(--acc-rgb), 0.18); }
 .muscle-row .m-delta { width: 28px; text-align: left; font-size: 11px; font-weight: 800; color: var(--text-dim); }
+
+/* ===== App lock ===== */
+.lock-screen { position: fixed; inset: 0; z-index: 10000; background: var(--bg-deep, #f7f3ea); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; }
+.lock-screen h2 { margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 3px; }
+.lock-screen p { margin: 0 0 8px; color: var(--text-dim); font-size: 13px; }
+.lock-dots { display: flex; gap: 14px; direction: ltr; margin: 6px 0; }
+.lock-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent-text); }
+.lock-dots span.on { background: var(--accent-text); }
+.lock-msg { min-height: 18px; font-size: 12.5px; color: var(--danger); font-weight: 700; }
+.lock-pad { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; direction: ltr; margin-top: 6px; }
+.lock-pad button { height: 64px; border-radius: 50%; border: 1px solid var(--border-soft); background: var(--card-glass); font-size: 22px; font-weight: 800; font-family: inherit; color: inherit; cursor: pointer; }
+.lock-pad button:active { transform: scale(0.94); }
+.lock-forgot { margin-top: 14px; background: none; border: 0; color: var(--text-dim); font-family: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+.xp-next { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; text-align: center; }

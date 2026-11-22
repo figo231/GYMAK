@@ -45,3 +45,41 @@ export function exportPayload(storage = localStorage) {
   const read = (k) => { try { return JSON.parse(storage.getItem(k) || "null"); } catch { return null; } };
   return { app: "GYMAK", exportedAt: new Date().toISOString(), state: read("gymak_state_v1"), measurements: read("gymak_measure_v1"), water: read("gymak_water_v1") };
 }
+
+// XP shown in the profile header: +25 XP per logged exercise.
+export function xpToNext(profile, today = localISO()) {
+  const left = Math.max(0, (profile.xpNext || 500) - (profile.xp || 0));
+  const exercises = Math.ceil(left / 25);
+  const capped = !!(profile.xpDay && profile.xpDay.date === today && profile.xpDay.n >= 10);
+  return { exercises, nextLevel: (profile.level || 1) + 1, capped };
+}
+
+export function timeAgoAr(ts, now = Date.now()) {
+  if (!ts) return "لسه محصلش مزامنة";
+  const sec = Math.round((now - ts) / 1000);
+  if (sec < 60) return "من كذا ثانية";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `من ${min} دقيقة`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `من ${hr} ساعة`;
+  return new Date(ts).toLocaleDateString("ar-EG");
+}
+
+// Validates a backup file made by exportPayload(). Returns { ok, error?, payload? }.
+export function parseBackup(text) {
+  if (typeof text !== "string" || text.length > 5 * 1024 * 1024) return { ok: false, error: "الملف كبير أو غير صالح." };
+  let p;
+  try { p = JSON.parse(text); } catch { return { ok: false, error: "الملف مش نسخة GYMAK صالحة." }; }
+  const st = p && p.state;
+  const good = p && p.app === "GYMAK" && st && typeof st === "object" && Array.isArray(st.weightLogs)
+    && st.exerciseLogs && typeof st.exerciseLogs === "object" && !Array.isArray(st.exerciseLogs)
+    && Array.isArray(st.workoutDays) && st.profile && typeof st.profile === "object";
+  if (!good) return { ok: false, error: "الملف مش نسخة GYMAK صالحة." };
+  if (p.measurements != null && !Array.isArray(p.measurements)) return { ok: false, error: "قياسات الجسم في الملف تالفة." };
+  return { ok: true, payload: p };
+}
+export function applyBackup(payload, storage = localStorage) {
+  storage.setItem("gymak_state_v1", JSON.stringify(payload.state));
+  if (payload.measurements) storage.setItem("gymak_measure_v1", JSON.stringify(payload.measurements));
+  if (payload.water) storage.setItem("gymak_water_v1", JSON.stringify(payload.water));
+}

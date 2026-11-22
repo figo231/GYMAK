@@ -12,6 +12,8 @@ import Onboarding from "./components/Onboarding";
 import PWAUpdatePrompt from "./components/PWAUpdatePrompt";
 import ApkUpdateSheet from "./components/ApkUpdateSheet";
 import RestTimer from "./components/RestTimer";
+import LockScreen from "./components/LockScreen";
+import { isLockEnabled, shouldRelock } from "./lib/appLock";
 
 const ONBOARD_KEY = "gymak_onboarded_v1";
 
@@ -28,6 +30,18 @@ export default function App() {
   const [isNewInstall] = useState(() => !localStorage.getItem("gymak_state_v1"));
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem(ONBOARD_KEY) === "1" || !isNewInstall);
   const [showSplash, setShowSplash] = useState(true);
+  const [locked, setLocked] = useState(() => isLockEnabled());
+
+  useEffect(() => {
+    let hiddenAt = 0;
+    const onVis = () => {
+      if (document.hidden) { hiddenAt = Date.now(); return; }
+      if (isLockEnabled() && shouldRelock(hiddenAt)) setLocked(true);
+      hiddenAt = 0;
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 1250);
@@ -58,6 +72,7 @@ export default function App() {
                 </Suspense>
                 <RestTimer />
                 {showSplash && <SplashScreen />}
+                {locked && <LockScreen onUnlock={() => setLocked(false)} />}
                 {!showSplash && !onboarded && <Onboarding onFinish={finishOnboarding} />}
               </AuthProvider>
             </DialogProvider>
