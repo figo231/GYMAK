@@ -26,7 +26,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useSyncStatus } from "../../hooks/useSyncStatus";
 import AppLockSheet from "./AppLockSheet";
 import { isLockEnabled } from "../../lib/appLock";
-import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, clearLocalData, xpToNext, timeAgoAr } from "../../lib/profileLogic";
+import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, clearLocalData, xpToNext, timeAgoAr, exercisesWord } from "../../lib/profileLogic";
 
 // Keyboard + screen-reader support for clickable rows that are not <button>s.
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
@@ -292,7 +292,7 @@ export default function Profile() {
           <div className="p-xp-wrap">
             <div className="p-xp-nums"><span>{fmt(profile.xp)} XP</span><span>{fmt(profile.xpNext)} XP</span></div>
             <div className="p-xp-track"><div className="p-xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
-            {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? "وصلت سقف الـXP النهارده. كمّل بكرة." : `فاضل ${x.exercises} ${x.exercises === 1 ? "تمرين" : x.exercises === 2 ? "تمرينين" : x.exercises <= 10 ? "تمارين" : "تمرين"} للمستوى ${x.nextLevel}`}</div>; })()}
+            {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? "وصلت سقف الـXP النهارده. كمّل بكرة." : `فاضل ${x.exercises} ${exercisesWord(x.exercises)} للمستوى ${x.nextLevel}`}</div>; })()}
           </div>
         </div>
       </div>

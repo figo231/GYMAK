@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { setPin, verifyPin, clearPin, isLockEnabled, validPin, shouldRelock } from "../src/lib/appLock";
-import { parseBackup, applyBackup, exportPayload, xpToNext, timeAgoAr } from "../src/lib/profileLogic";
+import { exercisesWord, parseBackup, applyBackup, exportPayload, xpToNext, timeAgoAr } from "../src/lib/profileLogic";
 
 beforeEach(() => localStorage.clear());
 
@@ -55,3 +55,5 @@ describe("profile header", () => {
     expect(timeAgoAr(1000000 - 5 * 60000, 1000000)).toBe("من 5 دقيقة");
   });
 });
+
+describe("arabic counts", () => { it("agrees the noun with the number", () => { expect([1, 2, 5, 10, 11, 20, 100].map(exercisesWord)).toEqual(["تمرين", "تمرينين", "تمارين", "تمارين", "تمرين", "تمرين", "تمرين"]); }); });

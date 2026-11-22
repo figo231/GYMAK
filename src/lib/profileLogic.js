@@ -83,3 +83,5 @@ export function applyBackup(payload, storage = localStorage) {
   if (payload.measurements) storage.setItem("gymak_measure_v1", JSON.stringify(payload.measurements));
   if (payload.water) storage.setItem("gymak_water_v1", JSON.stringify(payload.water));
 }
+
+export function exercisesWord(n) { return n === 1 ? "تمرين" : n === 2 ? "تمرينين" : n >= 3 && n <= 10 ? "تمارين" : "تمرين"; }
