@@ -1352,6 +1352,24 @@ const KEY = "gymak_state_v1";
       return total;
     },
 
+    // Actual logged single-set weight, not tonnage, e1RM or body weight.
+    getPeakWeight(days = null) {
+      const s = load(), today = todayISO();
+      const cutoff = days != null ? windowStart(today, days) : null;
+      const timed = this._timedChecker(s);
+      let peak = null;
+      for (const [id, logs] of Object.entries(s.exerciseLogs)) {
+        if (timed(id)) continue;
+        for (const l of logs) {
+          const w = Number(l.weight);
+          if (l.weight == null || l.weight === "" || !Number.isFinite(w) || w < 0 || !(Number(l.reps) > 0) || !(Number(l.sets) > 0)) continue;
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(l.date || "") || l.date > today || (cutoff && l.date < cutoff)) continue;
+          peak = peak == null ? w : Math.max(peak, w);
+        }
+      }
+      return peak;
+    },
+
     _timedChecker(s) {
       const byId = new Map((s.exercises || []).map((e) => [e.id, e]));
       return (id) => normalizeExercise(byId.get(id) || { id }).unit === "sec";

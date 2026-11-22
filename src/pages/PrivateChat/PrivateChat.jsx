@@ -81,7 +81,7 @@ function Inbox() {
     <div className="pc-heading"><h2>محادثاتك</h2><button type="button" className="pc-small" disabled={busy} onClick={load}>{busy ? "بيحدّث..." : "تحديث"}</button></div>
     <p className="pc-hint">التنبيه هنا داخل التطبيق بس، مش إشعار في الخلفية. افتح الرسائل عشان تشوف الجديد. مفيش ضمان لرد فوري.</p>
     <ErrorBox text={err} />
-    {!busy && !err && rows.length === 0 && <p className="pc-empty glass">لسه مفيش محادثات. اختار دكتور تغذية أو مدربك المقبول من تحت.</p>}
+    {!busy && !err && rows.length === 0 && <p className="pc-empty glass">لسه مفيش محادثات. افتح المدربين المقترحين لطلب تواصل، أو اختار جهة مقبولة من تحت.</p>}
     <div className="pc-list">{rows.map((r) => <Link key={r.id} to={`/messages/${r.id}`} className="pc-thread glass">
       <span className="pc-avatar" aria-hidden="true">{r.peer_label?.slice(0, 1) || "؟"}</span>
       <span className="pc-thread-main"><strong>{r.peer_label}</strong><small>{r.kind === "doctor" ? "محادثة تغذية" : "متابعة تدريب"}{!r.writable ? " · للقراءة بس" : ""}</small><time dateTime={r.last_message_at}>{stamp(r.last_message_at)}</time></span>
@@ -89,7 +89,7 @@ function Inbox() {
     </Link>)}</div>
     {more && <button type="button" className="pc-small" disabled={busy} onClick={older}>محادثات أقدم</button>}
     <div className="pc-heading"><h2>ابدأ محادثة</h2></div>
-    <p className="pc-hint">دكاترة التغذية اللي أضافهم المالك، ومدربيك اللي وافقت على متابعتهم. الصفة مش توثيق مهني.</p>
+    <p className="pc-hint">الأشخاص اللي قبلوا طلب تواصلك، ومدربيك اللي وافقت على متابعتهم. الصفة مش توثيق مهني.</p>
     <div className="pc-list">{contacts.map((c) => <button type="button" className="pc-contact glass" key={`${c.user_id}-${c.kind}`} disabled={!!starting} onClick={() => open(c)}>
       <span><strong>{c.label}</strong><small>{CHAT_ROLE_LABELS[c.kind]}</small></span><span>{starting === c.user_id ? "بيفتح..." : "افتح المحادثة ←"}</span>
     </button>)}</div>
@@ -193,7 +193,7 @@ function ChatSession({ userId }) {
   const [reload, setReload] = useState(0);
   useEffect(() => { let active = true; setBoot(null); setErr(""); chatBootstrap().then((b) => { if (active) setBoot(b); }).catch((e) => { if (active) setErr(chatError(e)); }); return () => { active = false; }; }, [userId, reload]);
   return <div className="pc-page" dir="rtl">
-    {!threadId && <DetailTopBar title="رسائل الدكتور والمدرب" backTo="/profile" />}
+    {!threadId && <><DetailTopBar title="رسائل الدكتور والمدرب" backTo="/profile" /><Link to="/professionals" className="pc-contact glass"><span><strong>المدربين المقترحين</strong><small>مدربين ودكاترة تغذية، وطلبات التواصل</small></span><span>شوف الاقتراحات ←</span></Link></>}
     {err ? <><ErrorBox text={err} /><button type="button" className="pc-small" onClick={() => setReload((n) => n + 1)}>جرّب تاني</button><Link to="/profile" className="pc-small">حسابي</Link></> : !boot ? <p role="status" className="pc-hint">بنجهّز الرسائل...</p> : !boot.consent ? <Consent onAccept={() => setReload((n) => n + 1)} /> : threadId ? <Thread key={threadId} id={threadId} userId={userId} /> : <Inbox />}
   </div>;
 }

@@ -176,6 +176,7 @@ export default function Dashboard() {
         </button>
       )}
 
+      <Link to="/professionals" className="btn btn-secondary" style={{display:"block",textAlign:"center",marginBottom:12,padding:12}}>المدربين المقترحين وطلبات التواصل ←</Link>
       <Link to="/messages" className="btn btn-secondary" style={{ display: "block", textAlign: "center", margin: "0 0 12px", padding: 12 }}>محادثة مع دكتور تغذية أو مدرب (بشري) ←</Link>
       <div className="today-strip" data-testid="today-strip">
         <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>تمارين</span></Link>

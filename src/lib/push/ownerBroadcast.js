@@ -9,7 +9,7 @@ export async function isOwnerAdmin(userId) {
   if (!supabase || !userId) return false;
   try {
     const { data } = await supabase.from("admin_users").select("role").eq("user_id", userId).maybeSingle();
-    return !!data;
+    return data?.role === "super_admin";
   } catch { return false; }
 }
 

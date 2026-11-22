@@ -1,3 +1,4 @@
+import { fmtLoggedWeight } from "./format";
 import { localISO, windowStart } from "../dateKey";
 /* Weekly summary: the last 7 days (today included) vs the 7 days before. Pure, store passed in. */
 export function pctChange(cur, prev) {
@@ -20,7 +21,7 @@ export function buildWeekly(store, waterDays = []) {
   const waterAvg = logged.length ? Math.round(logged.reduce((a, d) => a + d.ml, 0) / logged.length) : 0;
   const waterGoalDays = waterDays.filter((d) => d.ml >= d.goal && d.goal > 0).length;
   return {
-    days, sets, tonnage: ton, prs, weightDiff, waterAvg, waterGoalDays, foodDays,
+    days, sets, tonnage: ton, peakWeight: typeof store.getPeakWeight === "function" ? store.getPeakWeight(7) : null, prs, weightDiff, waterAvg, waterGoalDays, foodDays,
     streak: store.getStreak(), prev,
     daysDelta: days - prev.days, tonnageDelta: pctChange(ton, prev.tonnage),
     empty: days === 0 && sets === 0,
@@ -43,6 +44,6 @@ export function weeklyCardData(w, tonLabel = "كجم", conv = (x) => x) {
     title: "أسبوعي مع GYMAK",
     big: `${w.days}`,
     unit: w.days === 1 ? "يوم تمرين" : "أيام تمرين",
-    sub: `${w.sets} مجموعة · ${Math.round(conv(w.tonnage)).toLocaleString("en-US")} ${tonLabel}${w.prs ? ` · ${w.prs} رقم قياسي` : ""}`,
+    sub: `${w.sets} مجموعة · أعلى وزن: ${fmtLoggedWeight(w.peakWeight == null ? null : conv(w.peakWeight), tonLabel)}${w.prs ? ` · ${w.prs} رقم قياسي` : ""}`,
   };
 }

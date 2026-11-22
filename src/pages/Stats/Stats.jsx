@@ -5,7 +5,7 @@ import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { localISO, shiftISO } from "../../lib/dateKey";
-import { PERIODS, arDate, capPct, fmtVolume, signed, weightTone } from "../../lib/stats/format";
+import { PERIODS, arDate, capPct, fmtLoggedWeight, signed, weightTone } from "../../lib/stats/format";
 import WeightChart from "./WeightChart";
 import GoalCard, { goalTrajectory } from "./GoalCard";
 import MuscleHeatmap from "./MuscleHeatmap";
@@ -73,8 +73,9 @@ export default function Stats() {
     const diffInfo = Store.getWeightDiffOverDays(periodDays);
     const diffDisp = diffInfo ? +(Store.toDisplayWeight(diffInfo.to) - Store.toDisplayWeight(diffInfo.from)).toFixed(1) : null;
     const tone = diffInfo ? weightTone(diffDisp, diffInfo.from, goal) : "neutral";
-    const tonnage = fmtVolume(Store.toDisplayWeight(Store.getTonnage(periodDays)), unit);
-    return { days, sets, prCount, diffDisp, tone, tonnage };
+    const peak = Store.getPeakWeight(periodDays);
+    const peakWeight = fmtLoggedWeight(peak == null ? null : Store.toDisplayWeight(peak), unit);
+    return { days, sets, prCount, diffDisp, tone, peakWeight };
   }, [periodDays, version, goal, unit]);
 
   const maxPct = strengthRows.length ? Math.max(...strengthRows.map((r) => Math.abs(r.pct)), 1) : 1;
@@ -148,11 +149,11 @@ export default function Stats() {
               <div className="mini-left">
                 <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
                 <div>
-                  <div className="mini-name">إجمالي الأوزان المرفوعة</div>
-                  <div className="mini-sub">من غير تمارين الثواني</div>
+                  <div className="mini-name">أعلى وزن شلته في مجموعة</div>
+                  <div className="mini-sub">أعلى وزن مسجل في الفترة، مش مجموع الأوزان أو وزن جسمك</div>
                 </div>
               </div>
-              <div className="mini-val" dir="ltr">{summary.tonnage}</div>
+              <div className="mini-val" dir="ltr">{summary.peakWeight}</div>
             </div>
             <div className="mini-row">
               <div className="mini-left">

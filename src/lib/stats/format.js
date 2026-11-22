@@ -13,6 +13,10 @@ export function fmtVolume(value, unit = "كجم") {
   return `${n.toLocaleString("en-US")} ${unit}`;
 }
 
+export function fmtLoggedWeight(value, unit = "كجم") {
+  return value == null || !Number.isFinite(Number(value)) ? "—" : `${Number(Number(value).toFixed(1)).toLocaleString("en-US")} ${unit}`;
+}
+
 export function signed(n, digits = 1) {
   if (n == null || Number.isNaN(n)) return "—";
   const v = +Number(n).toFixed(digits);

@@ -1,3 +1,4 @@
+import MuscleFigure from "../../lib/muscleFigure";
 import { buzz } from "../../lib/haptics";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -181,6 +182,11 @@ function ExerciseDetail({ id }) {
           )}
         </div>
       </header>
+      {exercise && <section className="glass muscle-figure-panel" aria-label="العضلات المستهدفة">
+        <h2>العضلات المستهدفة</h2><p>اللون الذهبي بيوضح مجموعة {exercise.muscleLabel}. الرسم للتوضيح، مش لقياس نشاط العضلة.</p>
+        <div className="muscle-figure-pair"><div><MuscleFigure view="front" highlight={exercise.muscle} width={110} label={`العضلات من الأمام: ${exercise.muscleLabel}`} /><small>أمام</small></div><div><MuscleFigure view="back" highlight={exercise.muscle} width={110} label={`العضلات من الخلف: ${exercise.muscleLabel}`} /><small>خلف</small></div></div>
+      </section>}
+
 
       {exercise && (
         <div className="xd-tabs" role="tablist" aria-label="أقسام التمرين">
