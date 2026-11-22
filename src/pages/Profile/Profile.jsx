@@ -292,7 +292,7 @@ export default function Profile() {
           <div className="p-xp-wrap">
             <div className="p-xp-nums"><span>{fmt(profile.xp)} XP</span><span>{fmt(profile.xpNext)} XP</span></div>
             <div className="p-xp-track"><div className="p-xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
-            {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? "وصلت سقف الـXP النهارده. كمّل بكرة." : `فاضل ${x.exercises} ${x.exercises === 1 ? "تمرين" : "تمارين"} للمستوى ${x.nextLevel}`}</div>; })()}
+            {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? "وصلت سقف الـXP النهارده. كمّل بكرة." : `فاضل ${x.exercises} ${x.exercises === 1 ? "تمرين" : x.exercises === 2 ? "تمرينين" : x.exercises <= 10 ? "تمارين" : "تمرين"} للمستوى ${x.nextLevel}`}</div>; })()}
           </div>
         </div>
       </div>
