@@ -25,7 +25,7 @@ export default function Warmup() {
         <label key={x.name} className={"glass wu-item" + (done[key(x.name)] ? " done" : "")}>
           <input type="checkbox" checked={!!done[key(x.name)]} onChange={() => setDone((d) => ({ ...d, [key(x.name)]: !d[key(x.name)] }))} />
           <span className="wu-body"><b>{x.name}</b><small>{x.tip}</small></span>
-          <span className="wu-sec" dir="ltr">{x.sec >= 60 ? `${Math.round(x.sec / 60)}m` : `${x.sec}s`}</span>
+          <span className="wu-sec">{x.sec >= 60 ? `${Math.round(x.sec / 60)} د` : `${x.sec} ث`}</span>
         </label>
       ))}
     </div>
