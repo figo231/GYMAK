@@ -12,6 +12,7 @@ import { sparkPoints, heroState, parseWeightForm, relDayAr, weightChangeView, st
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
 import WaterCard from "./WaterCard";
+import ChallengeCard from "./ChallengeCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
@@ -263,6 +264,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <ChallengeCard version={version} />
       <WaterCard />
 
       <div className="home-body">
