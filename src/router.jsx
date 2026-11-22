@@ -24,6 +24,7 @@ const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
 const Account = lazy(() => import("./pages/Auth/Account"));
 const OwnerPanel = lazy(() => import("./pages/Owner/OwnerPanel"));
 import Food from "./pages/Food/Food";
+import TourPage from "./pages/TourPage";
 const MealPlan = lazy(() => import("./pages/Food/MealPlan"));
 const Coach = lazy(() => import("./pages/Coach/Coach"));
 
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
       { path: "/stats", element: <Stats /> },
       { path: "/profile", element: <Profile /> },
       { path: "/food", element: <Food /> },
+      { path: "/tour", element: <TourPage /> },
       { path: "/meal-plan", element: <MealPlan /> },
       { path: "/history", element: <History /> },
       { path: "/measurements", element: <Measurements /> },

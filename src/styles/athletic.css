@@ -418,3 +418,16 @@ html.ath.pro-ui .mp-row{display:flex;align-items:center;gap:10px;padding:10px 0;
 html.ath.pro-ui .mp-row span{flex:1}
 html.ath.pro-ui .mp-row.done{opacity:.4;text-decoration:line-through}
 html.ath.pro-ui .mp-row input{accent-color:#FF6A1A;width:20px;height:20px}
+html.ath.pro-ui .onboarding-screen{background:#0B0C0F;color:#F4F1EA}
+html.ath.pro-ui .onboarding-skip{background:none;border:0;color:rgba(244,241,234,.6);font:inherit;font-weight:700}
+html.ath.pro-ui .onboarding-illo{width:112px;height:112px;border-radius:30px;background:rgba(255,106,26,.12);border:1px solid rgba(255,106,26,.35);color:#FF6A1A;display:flex;align-items:center;justify-content:center;filter:none}
+html.ath.pro-ui .onboarding-slide{outline:none;max-width:340px}
+html.ath.pro-ui .onboarding-title{font-size:24px;font-weight:800}
+html.ath.pro-ui .onboarding-desc{color:rgba(244,241,234,.75);font-size:14.5px;line-height:1.9}
+html.ath.pro-ui .onboarding-count{font-size:12px;opacity:.5;margin-top:22px}
+html.ath.pro-ui .onboarding-dots{margin:10px 0 18px}
+html.ath.pro-ui .onboarding-dot{background:rgba(255,255,255,.18)}
+html.ath.pro-ui .onboarding-dot.active{background:#FF6A1A}
+html.ath.pro-ui .onboarding-actions{display:flex;gap:10px;width:100%;max-width:320px}
+html.ath.pro-ui .onboarding-cta{flex:1;border:0;background:linear-gradient(135deg,#FF8A3D,#F2500C);color:#0B0C0F;font:inherit;font-weight:800;font-size:15px;padding:15px;border-radius:16px;box-shadow:none}
+html.ath.pro-ui .onboarding-back{border:1px solid rgba(255,255,255,.18);background:none;color:inherit;font:inherit;font-weight:700;padding:15px 18px;border-radius:16px}
