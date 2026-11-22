@@ -3,6 +3,7 @@
    كل حاجة بتتخزن في localStorage تحت بادئة gymak_
    (المفتاح الداخلي فضل زي ما هو لتوافق بيانات المستخدمين الحاليين)
    ========================================================= */
+import { normalizeReminders } from "../push/reminders";
 import { EXTRA_EXERCISES } from "./extraExercises";
 import { EGYPT_FOODS } from "./egyptFoods";
 import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
@@ -798,6 +799,16 @@ const KEY = "gymak_state_v1";
       return s.settings.unit;
     },
 
+    getReminderPrefs() { return normalizeReminders(load().settings.reminders); },
+    setReminderPrefs(patch) {
+      const s = load();
+      const cur = normalizeReminders(s.settings.reminders);
+      for (const k of Object.keys(cur)) if (patch && patch[k]) cur[k] = { ...cur[k], ...patch[k] };
+      s.settings.reminders = normalizeReminders(cur);
+      save(s);
+      return s.settings.reminders;
+    },
+    trainedOn(date = todayISO()) { return load().workoutDays.includes(date); },
     setNotifSettings({ enabled, time }) {
       const s = load();
       if (enabled !== undefined) s.settings.notifEnabled = !!enabled;

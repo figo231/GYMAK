@@ -37,3 +37,31 @@ export async function disableNativeReminder() {
     await LN.cancel({ notifications: [{ id: REMINDER_ID }] });
   } catch (e) { /* plugin unavailable */ }
 }
+
+import { ALL_IDS, buildNotifications, missedNotification } from "./reminders";
+
+export async function applyExtraReminders(prefs) {
+  const { LN } = await plugin();
+  const list = buildNotifications(prefs);
+  if (list.length) {
+    let perm = await LN.checkPermissions();
+    if (perm.display !== "granted") perm = await LN.requestPermissions();
+    if (perm.display !== "granted") return false;
+  }
+  await LN.cancel({ notifications: ALL_IDS.filter((i) => i !== 4120).map((id) => ({ id })) });
+  if (list.length) await LN.schedule({ notifications: list });
+  return true;
+}
+
+// Called when the app goes to the background / comes back.
+export async function syncMissedReminder(prefs, trainedToday, appVisible) {
+  try {
+    const { LN } = await plugin();
+    await LN.cancel({ notifications: [{ id: 4120 }] });
+    if (appVisible) return;
+    const n = missedNotification(prefs, new Date(), trainedToday);
+    if (!n) return;
+    const perm = await LN.checkPermissions();
+    if (perm.display === "granted") await LN.schedule({ notifications: [n] });
+  } catch { /* plugin unavailable */ }
+}

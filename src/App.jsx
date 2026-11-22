@@ -1,3 +1,5 @@
+import Store from "./lib/store/gymakStore";
+import { isNative, syncMissedReminder } from "./lib/push/nativeReminder";
 import { Suspense, useEffect, useState } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
@@ -43,6 +45,7 @@ export default function App() {
   useEffect(() => {
     let hiddenAt = 0;
     const onVis = () => {
+      if (isNative()) { const trained = Store.trainedOn(); syncMissedReminder(Store.getReminderPrefs(), trained, !document.hidden); }
       if (document.hidden) { hiddenAt = Date.now(); return; }
       if (isLockEnabled() && shouldRelock(hiddenAt)) setLocked(true);
       hiddenAt = 0;

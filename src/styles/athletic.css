@@ -474,3 +474,4 @@ html.ath.pro-ui .rm-card { padding: 14px; margin-bottom: 12px; border-color: rgb
 html.ath.pro-ui .rm-title { display: block; font-size: 15px; margin-bottom: 6px; color: #ff8a3d; }
 html.ath.pro-ui .rm-card p { font-size: 13px; line-height: 1.7; margin: 4px 0; color: var(--text-secondary); }
 html.ath.pro-ui .rm-card strong { color: var(--text); }
+html.ath.pro-ui .notif-row { padding: 14px; margin-bottom: 10px; }
