@@ -10,8 +10,8 @@ import { exportPayload, clearLocalData, parseBackup, applyBackup, timeAgoAr } fr
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
-/* Flip to true after the delete-account edge function is deployed and verified with a disposable account. */
-const DELETE_ACCOUNT_ENABLED = false;
+/* Enabled 2026-11-22: edge function deployed and verified end to end with a disposable account (function, session invalidation, row cascade). */
+const DELETE_ACCOUNT_ENABLED = true;
 
 const STATUS_LABEL = {
   idle: { text: "جاهز", color: "var(--text-dim)" },
