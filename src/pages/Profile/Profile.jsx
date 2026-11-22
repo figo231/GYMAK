@@ -236,7 +236,7 @@ export default function Profile() {
         toast("أنت تستخدم أحدث إصدار");
       }
     } catch {
-      toast("تعذر التحقق من التحديثات، جرّب تاني.");
+      toast(navigator.onLine === false ? "اتصل بالإنترنت عشان تتحقق من التحديثات." : "تعذر التحقق من التحديثات، جرّب تاني.");
     } finally {
       setCheckingUpdate(false);
     }

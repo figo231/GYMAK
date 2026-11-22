@@ -1,77 +1,102 @@
-// In-app update for the Android app. The installed build number (versionCode)
-// is the CI run number; every CI build publishes a GitHub Release tagged
-// apk-<run number>. We compare the latest tag with the installed build and,
-// when newer, offer a one-tap download of the public APK link.
+import { App } from "@capacitor/app";
+// A native APK has a fixed bundle. Public GitHub release metadata is only
+// checked online; Android always asks the person before installing an update.
 const LATEST_API = "https://api.github.com/repos/figo231/GYMAK/releases/latest";
 export const APK_URL = "https://github.com/figo231/GYMAK/releases/latest/download/GYMAK.apk";
 const SEEN_KEY = "gymak_apk_seen";
 const PENDING_KEY = "gymak_apk_pending";
-
-let latest = null; // { build, name }
+const MIN_CHECK_GAP = 60_000;
+const CHECK_TIMEOUT = 8000;
+let latest = null;
+let initialized = false;
+let lastAttempt = 0;
+let inFlight = null;
+const offline = () => typeof navigator !== "undefined" && navigator.onLine === false;
 
 async function installedInfo() {
-  const mod = await import("@capacitor/app");
-  const info = await mod.App.getInfo(); // never return the plugin proxy from async
+  const info = await App.getInfo();
   return { build: Number(info.build) || 0, version: String(info.version || "") };
 }
 
 async function fetchLatest() {
-  const res = await fetch(LATEST_API, { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" });
-  if (!res.ok) throw new Error("release check failed");
-  const data = await res.json();
-  const m = /apk-(\d+)/.exec(data.tag_name || "");
-  if (!m) throw new Error("bad tag");
-  return { build: Number(m[1]), name: data.name || data.tag_name };
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  let timer;
+  try {
+    return await Promise.race([
+      (async () => {
+        const res = await fetch(LATEST_API, {
+          headers: { Accept: "application/vnd.github+json" },
+          cache: "no-store", ...(controller ? { signal: controller.signal } : {}),
+        });
+        if (!res.ok) throw new Error("release-check-failed");
+        const data = await res.json();
+        const match = /^apk-(\d+)$/.exec(data.tag_name || "");
+        if (!match || data.draft || data.prerelease) throw new Error("invalid-release");
+        return { build: Number(match[1]) };
+      })(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => { controller?.abort(); reject(new Error("update-timeout")); }, CHECK_TIMEOUT);
+      }),
+    ]);
+  } finally { clearTimeout(timer); }
 }
 
 async function check() {
-  const me = await installedInfo();
-  // Google Play builds update through Play, never through GitHub APKs.
-  if (/play/i.test(me.version)) { latest = null; localStorage.removeItem(PENDING_KEY); return false; }
-  const remote = await fetchLatest();
-  if (remote.build > me.build) {
-    latest = remote;
-    localStorage.setItem(PENDING_KEY, String(remote.build));
-    return true;
-  }
-  latest = null;
-  localStorage.removeItem(PENDING_KEY);
-  return false;
+  if (offline()) throw new Error("offline");
+  if (inFlight) return inFlight;
+  inFlight = (async () => {
+    const me = await installedInfo();
+    // A Play build must only update through Play, not a differently signed APK.
+    if (/play/i.test(me.version)) { latest = null; localStorage.removeItem(PENDING_KEY); return false; }
+    const remote = await fetchLatest();
+    if (remote.build > me.build) {
+      latest = remote;
+      localStorage.setItem(PENDING_KEY, String(remote.build));
+      return true;
+    }
+    latest = null;
+    localStorage.removeItem(PENDING_KEY);
+    return false;
+  })();
+  try { return await inFlight; } finally { inFlight = null; }
 }
 
 export const apkUpdateStrategy = {
   init(notify) {
-    check()
-      .then((found) => {
-        if (!found) return;
-        // Auto prompt once per version; the settings dot stays until updated.
-        if (localStorage.getItem(SEEN_KEY) !== String(latest.build)) {
+    if (initialized) return;
+    initialized = true;
+    const automatic = () => {
+      if (offline() || (lastAttempt && Date.now() - lastAttempt < MIN_CHECK_GAP)) return;
+      lastAttempt = Date.now();
+      check().then((found) => {
+        if (found && localStorage.getItem(SEEN_KEY) !== String(latest.build)) {
           localStorage.setItem(SEEN_KEY, String(latest.build));
           notify({ type: "apk-available", auto: true });
         }
-      })
-      .catch(() => {});
+      }).catch(() => {}); // Startup and offline workout screens never wait on this.
+    };
+    automatic();
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") automatic();
+    });
+    window.addEventListener("online", automatic);
+    App.addListener("appStateChange", ({ isActive }) => { if (isActive) automatic(); }).catch(() => {});
   },
-
   async checkForUpdate(notify) {
     try {
       const found = await check();
-      if (found) notify({ type: "apk-available" });
-      else notify({ type: "none" });
+      notify({ type: found ? "apk-available" : "none" });
       return found;
     } catch (error) {
       notify({ type: "error", error });
-      return false;
+      // The caller must not misreport a failed/offline check as "up to date".
+      throw error;
     }
   },
-
   async applyUpdate() {
-    const mod = await import("@capacitor/browser");
-    const B = mod.Browser;
-    await B.open({ url: APK_URL });
+    if (offline()) throw new Error("offline");
+    const { Browser } = await import("@capacitor/browser");
+    await Browser.open({ url: APK_URL });
   },
-
-  hasPending() {
-    return !!localStorage.getItem(PENDING_KEY);
-  },
+  hasPending() { return !!localStorage.getItem(PENDING_KEY); },
 };
