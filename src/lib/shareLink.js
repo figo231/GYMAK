@@ -1,5 +1,5 @@
-export const APP_URL = "https://gymak-eight.vercel.app";
-export function programLink(id) { return `${APP_URL}/programs?p=${encodeURIComponent(id)}`; }
+export const APP_URL = "https://gymak-eight.vercel.app/welcome";
+export function programLink(id) { return `${APP_URL}?p=${encodeURIComponent(id)}`; }
 export function programIdFromSearch(search, validIds) {
   try { const id = new URLSearchParams(search).get("p"); return id && validIds.includes(id) ? id : null; } catch { return null; }
 }
