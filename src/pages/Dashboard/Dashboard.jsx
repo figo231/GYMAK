@@ -16,6 +16,7 @@ import ChallengeCard from "./ChallengeCard";
 import TipCard from "./TipCard";
 import WeeklyReportCard from "./WeeklyReportCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
+import { pickQuickWorkout, quickWorkoutMinutes } from "../../lib/quickWorkout";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
 const DAY_LETTERS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]; // Sun..Sat
@@ -160,6 +161,20 @@ export default function Dashboard() {
           <Link to="/exercises" className="btn btn-primary hero-cta">تسجيل تمرين</Link>
         </>)}
       </div>
+
+      {hero.kind !== "done" && (
+        <button type="button" className="glass quick-workout-btn" data-testid="quick-workout" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 14px", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", color: "inherit", margin: "0 0 10px" }}
+          onClick={() => {
+            const picked = pickQuickWorkout(Store.getExercises(), Store.getTodayKey());
+            if (!picked.length) { toast("ضيف تمارين الأول من صفحة التمارين."); return; }
+            Store.addManyToTodayPlan(picked.map((e) => e.id));
+            buzz(15);
+            toast(`جهزت لك تمرين سريع: ${picked.length} تمارين، حوالي ${quickWorkoutMinutes(picked)} دقيقة ⚡`);
+            refresh();
+          }}>
+          ⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز
+        </button>
+      )}
 
       <div className="today-strip" data-testid="today-strip">
         <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>تمارين</span></Link>
