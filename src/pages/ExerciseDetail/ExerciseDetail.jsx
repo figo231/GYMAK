@@ -1,10 +1,15 @@
 import { buzz } from "../../lib/haptics";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useConfirm } from "../../hooks/useDialog";
 import { startRest } from "../../lib/rest/restTimer";
+import { useStoreVersion } from "../../hooks/useStoreVersion";
+import { useToast } from "../../hooks/useToast";
+import { localISO } from "../../lib/dateKey";
+import { relDayAr } from "../../lib/homeLogic";
+import { initialForm, parseLogForm, stepValue, logsOnDate, bestWeight, previousSession, volume, isBodyweight } from "../../lib/logLogic";
 import MuscleAnatomy from "./MuscleAnatomy";
 import ExerciseAnim, { hasExerciseAnim } from "../../components/ExerciseAnim";
 import { useExerciseMedia } from "../../lib/exerciseMedia";
@@ -27,38 +32,96 @@ function toYouTubeEmbed(url) {
   return m ? `https://www.youtube.com/embed/${m[1]}` : url;
 }
 
-export default function ExerciseDetail() {
+export default function ExerciseDetailRoute() {
   const { id } = useParams();
+  // remount per exercise so the form never carries values from another one
+  return <ExerciseDetail key={id || "default"} id={id} />;
+}
+
+function ExerciseDetail({ id }) {
   const navigate = useNavigate();
   const confirmAsync = useConfirm();
+  const [version] = useStoreVersion();
+  const toast = useToast();
   const exerciseId = id || "bench-press-barbell";
   const exercise = Store.getExerciseById(exerciseId);
   const meta = Store.getMuscleMeta(exercise ? exercise.muscle : "chest");
   const last = Store.getLastExerciseLog(exerciseId);
   const mediaKind = exercise ? getMediaKind(exercise.mediaUrl) : null;
   const localMedia = useExerciseMedia(exerciseId, !!(exercise && exercise.localMedia));
+  const unit = Store.unitLabel();
+  const today = localISO();
+  const allLogs = Store.getExerciseLogs(exerciseId);
+  void version;
+  const todaySets = logsOnDate(allLogs, today);
+  const prevSession = previousSession(allLogs, today);
+  const best = bestWeight(allLogs);
+  const fav = Store.getFavoriteIds().includes(exerciseId);
+  const secUnit = !!(exercise && exercise.unit === "sec");
 
-  const [weight, setWeight] = useState(() => (last ? Store.toDisplayWeight(last.weight) : (exercise ? 80 : 80)));
-  const [sets, setSets] = useState(() => (last ? last.sets : exercise ? exercise.sets : 4));
-  const [reps, setReps] = useState(() => (last ? last.reps : exercise ? exercise.reps : 8));
-  const [showFeedback, setShowFeedback] = useState(false);
+  const init = initialForm(exercise, last, (kg) => Store.toDisplayWeight(kg));
+  const [weight, setWeight] = useState(init.weight);
+  const [sets, setSets] = useState(init.sets);
+  const [reps, setReps] = useState(init.reps);
+  const [error, setError] = useState(null);
+  const [justSaved, setJustSaved] = useState(null);
+  const weightRef = useRef(null);
+  const setsRef = useRef(null);
+  const repsRef = useRef(null);
+  const refs = { weight: weightRef, sets: setsRef, reps: repsRef };
 
   useEffect(() => {
     document.title = exercise ? `${exercise.name} — GYMAK` : "GYMAK";
   }, [exercise]);
+  useEffect(() => {
+    if (!justSaved) return undefined;
+    const t = setTimeout(() => setJustSaved(null), 3000);
+    return () => clearTimeout(t);
+  }, [justSaved]);
+
+  function bump(field, dir) {
+    setError(null);
+    const set = field === "weight" ? setWeight : field === "sets" ? setSets : setReps;
+    const cur = field === "weight" ? weight : field === "sets" ? sets : reps;
+    set(stepValue(cur, dir, field, unit));
+    buzz(6);
+  }
 
   function handleSave() {
     if (!exercise) return;
-    const wDisplay = parseFloat(weight) || 0;
-    const s = parseInt(sets) || 0;
-    const r = parseInt(reps) || 0;
-    if (wDisplay <= 0 || s <= 0 || r <= 0) return;
-    Store.logSet(exerciseId, Store.fromDisplayWeight(wDisplay), s, r);
+    const r = parseLogForm({ weight, sets, reps }, (v) => Store.fromDisplayWeight(v));
+    if (!r.ok) {
+      setError(r.error);
+      const el = refs[r.field] && refs[r.field].current;
+      if (el) el.focus();
+      return;
+    }
+    setError(null);
+    const before = Store.getExerciseLogs(exerciseId).length;
+    Store.logSet(exerciseId, r.kg, r.sets, r.reps);
+    const saved = Store.getExerciseLogs(exerciseId).at(-1);
     buzz(15);
     startRest();
-    setShowFeedback(true);
-    setTimeout(() => setShowFeedback(false), 2500);
+    setJustSaved({ index: before, xp: !!(saved && saved.xp) });
   }
+
+  function undoLast() {
+    if (!justSaved) return;
+    const snap = Store.deleteExerciseLog(exerciseId, justSaved.index);
+    setJustSaved(null);
+    if (snap) toast("اتلغت المجموعة", { duration: 5000, action: { label: "تراجع", onClick: () => Store.restore(snap) } });
+  }
+
+  async function removeSet(l) {
+    const ok = await confirmAsync({ title: "مسح المجموعة؟", label: `${Store.formatWeight(l.weight)} × ${l.sets}×${l.reps}`, confirmLabel: "مسح", danger: true });
+    if (!ok) return;
+    const snap = Store.deleteExerciseLog(exerciseId, l.i);
+    if (snap) toast("تم مسح المجموعة", { duration: 6000, action: { label: "تراجع", onClick: () => Store.restore(snap) } });
+  }
+
+  function toggleFav() { Store.toggleFavorite(exerciseId); buzz(8); }
+
+  const fmtSet = (l) => `${l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? "وزن الجسم" : "بدون وزن")} · ${l.sets}×${l.reps}${secUnit ? " ث" : ""}`;
 
   async function handleDelete() {
     if (!exercise) return;
@@ -85,6 +148,109 @@ export default function ExerciseDetail() {
           )
         }
       />
+
+      <div className="ex-title-row">
+        <div>
+          <p className="ex-title">{exercise ? exercise.name : "تمرين غير موجود"}</p>
+          <span className="ex-eng">
+            {exercise ? exercise.muscleLabel + (exercise.secondary ? " · " + exercise.secondary : "") : ""}
+          </span>
+        </div>
+        {exercise && (
+          <button type="button" className={"fav-btn" + (fav ? " on" : "")} aria-pressed={fav}
+            aria-label={fav ? "شيل من المفضلة" : "ضيف للمفضلة"} onClick={toggleFav}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
+          </button>
+        )}
+      </div>
+
+      {exercise && (exercise.equipment || exercise.difficulty) && (
+        <div className="ex-info-chips">
+          {exercise.equipment && (
+            <div className="info-chip">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="9" width="4" height="6" rx="1" /><rect x="18" y="9" width="4" height="6" rx="1" /><path d="M6 12h12" /></svg>
+              {exercise.equipment}
+            </div>
+          )}
+          {exercise.difficulty && (
+            <div className={"info-chip difficulty-pill diff-" + (exercise.difficulty === "مبتدئ" ? "beg" : exercise.difficulty === "متقدم" ? "adv" : "mid")}>
+              <span className="difficulty-dot" />{exercise.difficulty}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!exercise && (
+        <div className="glass" style={{ padding: 14 }}>
+          <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7, margin: 0 }}>
+            مينفعش نسجل أداء لتمرين مش موجود. ارجع لمكتبة التمارين واختار تمرين من القائمة.
+          </p>
+        </div>
+      )}
+      {exercise && (
+      <div className="glass log-card" id="log">
+        <div className="log-head">
+          <span className="log-title">سجّل مجموعة</span>
+          {best > 0 && <span className="log-best">أفضل وزن: {Store.formatWeight(best)}</span>}
+        </div>
+        {prevSession && (
+          <div className="log-prev">
+            <span>آخر مرة ({relDayAr(prevSession.date, today)})</span>
+            <b dir="ltr">{prevSession.sets.map((l) => `${l.weight > 0 ? Store.toDisplayWeight(l.weight) : 0}×${l.sets}×${l.reps}`).slice(0, 3).join("  ·  ")}</b>
+          </div>
+        )}
+        {!prevSession && allLogs.length === 0 && <div className="log-prev"><span>أول مرة تسجل التمرين ده. ابدأ بوزن خفيف.</span></div>}
+        <div className="log-grid3">
+            <div className="log-field">
+              <label className="log-label" htmlFor="log-weight">{"الوزن (" + unit + ")"}</label>
+              <div className="stepper">
+                <button type="button" className="step-btn" aria-label="أقل الوزن" onClick={() => bump("weight", -1)}>−</button>
+                <input id="log-weight" ref={weightRef} type="number" inputMode="decimal" dir="ltr" value={weight} min="0"
+                  onChange={(e) => { setError(null); setWeight(e.target.value); }} aria-invalid={error && error.includes("الوزن") ? true : undefined} />
+                <button type="button" className="step-btn" aria-label="أكتر الوزن" onClick={() => bump("weight", 1)}>+</button>
+              </div>
+            </div>
+            <div className="log-field">
+              <label className="log-label" htmlFor="log-sets">مجموعات</label>
+              <div className="stepper">
+                <button type="button" className="step-btn" aria-label="أقل المجموعات" onClick={() => bump("sets", -1)}>−</button>
+                <input id="log-sets" ref={setsRef} type="number" inputMode="numeric" dir="ltr" value={sets} min="0"
+                  onChange={(e) => { setError(null); setSets(e.target.value); }} aria-invalid={error && error.includes("المجموعات") ? true : undefined} />
+                <button type="button" className="step-btn" aria-label="أكتر المجموعات" onClick={() => bump("sets", 1)}>+</button>
+              </div>
+            </div>
+            <div className="log-field">
+              <label className="log-label" htmlFor="log-reps">{secUnit ? "ثواني" : "تكرارات"}</label>
+              <div className="stepper">
+                <button type="button" className="step-btn" aria-label="أقل التكرارات" onClick={() => bump("reps", -1)}>−</button>
+                <input id="log-reps" ref={repsRef} type="number" inputMode="numeric" dir="ltr" value={reps} min="0"
+                  onChange={(e) => { setError(null); setReps(e.target.value); }} aria-invalid={error && error.includes("التكرارات") ? true : undefined} />
+                <button type="button" className="step-btn" aria-label="أكتر التكرارات" onClick={() => bump("reps", 1)}>+</button>
+              </div>
+            </div>
+        </div>
+        {isBodyweight(exercise) && <p className="log-hint">الوزن 0 معناه وزن الجسم بس.</p>}
+        {error && <p className="log-error" role="alert">{error}</p>}
+        <button type="button" className="log-btn" onClick={handleSave}>تسجيل المجموعة</button>
+        {justSaved && (
+          <div className="log-saved" role="status">
+            <span>تم الحفظ ✓{justSaved.xp ? " +25 XP" : ""}</span>
+            <button type="button" onClick={undoLast}>تراجع</button>
+          </div>
+        )}
+        {todaySets.length > 0 && (
+          <div className="log-today">
+            <div className="log-today-head"><span>النهارده · {todaySets.length} {todaySets.length === 1 ? "تسجيلة" : "تسجيلات"}</span><span dir="ltr">{Store.formatWeight(volume(todaySets))}</span></div>
+            {todaySets.map((l) => (
+              <div className="log-today-row" key={l.i}>
+                <span>{fmtSet(l)}</span>
+                <button type="button" aria-label="مسح المجموعة" onClick={() => removeSet(l)}>مسح</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      )}
 
       {exercise && hasExerciseAnim(exercise.id) && (
         <div className="media-frame media-frame-lg">
@@ -122,34 +288,6 @@ export default function ExerciseDetail() {
             <iframe className="media-real" src={toYouTubeEmbed(exercise.mediaUrl)} title={exercise.name} allow="autoplay; encrypted-media" allowFullScreen />
           ) : (
             <img className="media-real" src={exercise.mediaUrl} alt={exercise.name} />
-          )}
-        </div>
-      )}
-
-      <div className="ex-title-row">
-        <div>
-          <p className="ex-title">{exercise ? exercise.name : "تمرين غير موجود"}</p>
-          <span className="ex-eng">
-            {exercise ? exercise.muscleLabel + (exercise.secondary ? " · " + exercise.secondary : "") : ""}
-          </span>
-        </div>
-        <div className="fav-btn">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21c-5-3.5-9-6.9-9-11.2C3 6.6 5.5 4 8.5 4c1.7 0 3.2.8 4.2 2 1-1.2 2.5-2 4.2-2 3 0 5.5 2.6 5.5 5.8 0 4.3-4 7.7-9 11.2Z" /></svg>
-        </div>
-      </div>
-
-      {exercise && (exercise.equipment || exercise.difficulty) && (
-        <div className="ex-info-chips">
-          {exercise.equipment && (
-            <div className="info-chip">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="9" width="4" height="6" rx="1" /><rect x="18" y="9" width="4" height="6" rx="1" /><path d="M6 12h12" /></svg>
-              {exercise.equipment}
-            </div>
-          )}
-          {exercise.difficulty && (
-            <div className={"info-chip difficulty-pill diff-" + (exercise.difficulty === "مبتدئ" ? "beg" : exercise.difficulty === "متقدم" ? "adv" : "mid")}>
-              <span className="difficulty-dot" />{exercise.difficulty}
-            </div>
           )}
         </div>
       )}
@@ -201,47 +339,6 @@ export default function ExerciseDetail() {
         </div>
       )}
 
-      <p className="section-title">تسجيل الأداء</p>
-      {!exercise ? (
-        <div className="glass" style={{ padding: 14 }}>
-          <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7, margin: 0 }}>
-            مينفعش نسجل أداء لتمرين مش موجود. ارجع لمكتبة التمارين واختار تمرين من القائمة.
-          </p>
-        </div>
-      ) : (
-        <div className="glass log-card">
-          <div className="log-grid">
-            <div className="log-field">
-              <div className="log-label">الوزن ({Store.unitLabel()})</div>
-              <input
-                type="number" step="0.5" inputMode="decimal" value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                style={{ width: "100%", background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
-              />
-            </div>
-            <div className="log-field">
-              <div className="log-label">{exercise && exercise.unit === "sec" ? "مجموعات × ثواني" : "مجموعات × تكرارات"}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <input
-                  type="number" value={sets} onChange={(e) => setSets(e.target.value)}
-                  style={{ width: "38%", background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
-                />
-                <span className="log-val" style={{ fontWeight: 400, color: "var(--text-dim)" }}>×</span>
-                <input
-                  type="number" value={reps} onChange={(e) => setReps(e.target.value)}
-                  style={{ width: "38%", background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontFamily: "'Cairo',sans-serif", fontSize: 16, fontWeight: 800, padding: 0 }}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="log-btn" style={{ cursor: "pointer" }} onClick={handleSave}>تسجيل هذه المجموعة</div>
-          {showFeedback && (
-            <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--success)", fontWeight: 700, marginTop: 10 }}>
-              تم الحفظ ✓ +25 XP
-            </div>
-          )}
-        </div>
-      )}
     </>
   );
               }

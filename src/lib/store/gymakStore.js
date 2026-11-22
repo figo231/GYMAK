@@ -721,6 +721,9 @@ const KEY = "gymak_state_v1";
       s.todayPlan = { date: today, ids: cur.concat((ids || []).filter((x) => !cur.includes(x))) };
       save(s);
     },
+    getExerciseLogs(exerciseId) {
+      return (load().exerciseLogs[exerciseId] || []).slice();
+    },
     isLoggedToday(exerciseId) {
       const logs = load().exerciseLogs[exerciseId] || [];
       const today = todayISO();
