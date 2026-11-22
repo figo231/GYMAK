@@ -5,6 +5,8 @@ import { useSyncStatus } from "../../hooks/useSyncStatus";
 import { supabase } from "../../lib/supabaseClient";
 import { useConfirm } from "../../hooks/useDialog";
 import { useToast } from "../../hooks/useToast";
+import { exportPayload, clearLocalData } from "../../lib/profileLogic";
+import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 
 /* Flip to true after the delete-account edge function is deployed and verified with a disposable account. */
@@ -32,7 +34,7 @@ function timeAgo(ts) {
 }
 
 export default function Account() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, resetPasswordForEmail } = useAuth();
   const { status, lastSyncAt, lastError, lastErrorKind, lastDroppedCount, pendingChangeCount, isMigrated, lastMigration, syncNow } = useSyncStatus();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -57,9 +59,30 @@ export default function Account() {
     } finally { setBusy(false); }
   }
 
+  function handleExport() {
+    const blob = new Blob([JSON.stringify(exportPayload(), null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `gymak-data-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("اتحمّلت نسخة من بياناتك.");
+  }
+
+  async function handleChangePassword() {
+    if (!user?.email) return;
+    const { error } = await resetPasswordForEmail(user.email);
+    toast(error ? "معرفناش نبعت الرسالة دلوقتي، جرب تاني." : "بعتنالك رسالة على الإيميل لتغيير كلمة السر.");
+  }
+
   async function handleSignOut() {
+    const wipe = await confirmAsync({
+      title: "هتسجّل خروج. تمسح بيانات التطبيق من الجهاز كمان؟ (بياناتك على حسابك مش هتتأثر)",
+      confirmLabel: "امسح واخرج", cancelLabel: "اخرج وسيبها",
+    });
     setBusy(true);
     await signOut();
+    if (wipe) { await clearLocalData(); Store.resetAllData(); }
     setBusy(false);
     navigate("/profile", { replace: true });
   }
@@ -137,6 +160,12 @@ export default function Account() {
         >
           {status === "syncing" || status === "migrating" ? "جاري المزامنة..." : "زامن دلوقتي"}
         </button>
+      </div>
+
+      <div className="glass" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>الحساب والبيانات</div>
+        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleChangePassword}>تغيير كلمة السر (بالإيميل)</button>
+        <button type="button" className="btn" style={{ width: "100%" }} onClick={handleExport}>تحميل نسخة من بياناتي</button>
       </div>
 
       <button

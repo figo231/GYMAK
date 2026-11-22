@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { GRADIENTS } from "./badgeData";
 
+const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
+
 export default function EditProfileSheet({ profile, onClose, onSave, onPickAvatar, onPickCover, onPickGradient }) {
   const [name, setName] = useState(profile.name || "");
   const [username, setUsername] = useState(profile.username || "");
@@ -20,8 +22,8 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
         <h3>تعديل الملف الشخصي</h3>
 
         <div className="edit-photo-row">
-          <div className="edit-photo-btn" onClick={() => avatarInput.current?.click()}>تغيير الصورة الشخصية</div>
-          <div className="edit-photo-btn" onClick={() => coverInput.current?.click()}>رفع صورة غلاف</div>
+          <div className="edit-photo-btn" {...press(() => avatarInput.current?.click())}>تغيير الصورة الشخصية</div>
+          <div className="edit-photo-btn" {...press(() => coverInput.current?.click())}>رفع صورة غلاف</div>
         </div>
         <input ref={avatarInput} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => onPickAvatar(e.target.files?.[0])} />
         <input ref={coverInput} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => onPickCover(e.target.files?.[0])} />
@@ -45,7 +47,7 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
           <input id="editName" maxLength={40} placeholder="اكتب اسمك" value={name} autoFocus onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="edit-field">
-          <label htmlFor="editUsername">اسم المستخدم</label>
+          <label htmlFor="editUsername">الاسم المختصر</label>
           <div className="username-input-wrap">
             <span>@</span>
             <input id="editUsername" maxLength={30} placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -59,8 +61,8 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
         <div className="edit-field">
           <label>الجنس</label>
           <div className="seg-control">
-            <div className={"seg-option" + (gender === "male" ? " active" : "")} onClick={() => setGender("male")}>راجل</div>
-            <div className={"seg-option" + (gender === "female" ? " active" : "")} onClick={() => setGender("female")}>ست</div>
+            <div className={"seg-option" + (gender === "male" ? " active" : "")} aria-pressed={gender === "male"} {...press(() => setGender("male"))}>راجل</div>
+            <div className={"seg-option" + (gender === "female" ? " active" : "")} aria-pressed={gender === "female"} {...press(() => setGender("female"))}>ست</div>
           </div>
         </div>
 

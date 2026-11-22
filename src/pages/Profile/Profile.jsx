@@ -23,6 +23,10 @@ import { REST_OPTIONS, getRestSettings, setRestSettings, fmtClock } from "../../
 import { isCoach } from "../../lib/coach/coachApi";
 import AppearanceSheet from "./AppearanceSheet";
 import { useTheme } from "../../hooks/useTheme";
+import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, clearLocalData } from "../../lib/profileLogic";
+
+// Keyboard + screen-reader support for clickable rows that are not <button>s.
+const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
 
 export default function Profile() {
   const [version, refresh] = useStoreVersion();
@@ -167,20 +171,28 @@ export default function Profile() {
   async function handleBMIClick() {
     const current = Store.getProfile().heightCm;
     const val = await promptAsync({ title: "اكتب طولك بالسنتيمتر (لحساب BMI):", inputType: "number", defaultValue: current || "" });
-    if (val && !isNaN(parseFloat(val))) { Store.setHeight(parseFloat(val)); refresh(); }
+    if (val === null || val === undefined || val === "") return;
+    const n = parseFloat(val);
+    if (!validHeight(n)) { toast(`الطول لازم يكون بين ${HEIGHT_RANGE[0]} و ${HEIGHT_RANGE[1]} سم.`); return; }
+    Store.setHeight(n); refresh();
   }
 
   async function handleGoalClick() {
     const currentKg = Store.getGoalWeight();
     const currentDisp = currentKg != null ? Store.toDisplayWeight(currentKg) : "";
     const val = await promptAsync({ title: `اكتب وزنك المستهدف (${Store.unitLabel()}):`, inputType: "number", defaultValue: currentDisp });
-    if (val && !isNaN(parseFloat(val))) { Store.setGoalWeight(Store.fromDisplayWeight(parseFloat(val))); refresh(); }
+    if (val === null || val === undefined || val === "") return;
+    const kg = Store.fromDisplayWeight(parseFloat(val));
+    if (!validGoalKg(kg)) { toast(`الوزن المستهدف لازم يكون بين ${GOAL_RANGE_KG[0]} و ${GOAL_RANGE_KG[1]} كجم.`); return; }
+    Store.setGoalWeight(kg); refresh();
   }
 
   // ===== Share =====
   async function handleShare() {
     const streak = Store.getStreak();
-    const text = `أنا في المستوى ${profile.level} على GYMAK 💪 وعندي ستريك ${streak} يوم متتالي!`;
+    const text = currentLang === "en"
+      ? `I'm level ${profile.level} on GYMAK 💪 with a ${streak}-day streak!`
+      : `أنا في المستوى ${profile.level} على GYMAK 💪 وعندي ستريك ${streak} يوم متتالي!`;
     if (navigator.share) {
       try { await navigator.share({ text }); } catch { /* user cancelled — no-op, matches original */ }
     } else {
@@ -226,10 +238,17 @@ export default function Profile() {
   // ===== Reset data =====
   async function handleReset() {
     const ok = await confirmAsync({
-      title: "هيمسح كل بياناتك (الوزن، التمارين، الإنجازات) نهائيًا. متأكد؟",
+      title: user
+        ? "هيمسح كل بياناتك من الجهاز (الوزن، التمارين، القياسات، الصور، المية). بياناتك على حسابك هترجع مع أول مزامنة. متأكد؟"
+        : "هيمسح كل بياناتك من الجهاز (الوزن، التمارين، القياسات، الصور، المية) نهائيًا ومفيش رجوع. متأكد؟",
       danger: true, confirmLabel: "مسح كل شيء", cancelLabel: "إلغاء",
     });
-    if (ok) { Store.resetAllData(); refresh(); }
+    if (!ok) return;
+    await clearLocalData();
+    Store.resetAllData();
+    refresh();
+    toast("اتمسحت بيانات الجهاز.");
+    setTimeout(() => window.location.assign("/profile"), 600);
   }
 
   const coverStyle = profile.cover
@@ -252,13 +271,13 @@ export default function Profile() {
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z" /><circle cx="12" cy="13" r="4" /></svg>
             </button>
           </div>
-          <p className="p-name" style={{ cursor: "pointer" }} onClick={() => setShowEdit(true)}>{profile.name || "بطل الجيم"}</p>
+          <p className="p-name" style={{ cursor: "pointer" }} {...press(() => setShowEdit(true))}>{profile.name || "بطل الجيم"}</p>
           {profile.username && <p className="p-username">@{profile.username}</p>}
           {profile.bio && <p className="p-bio">{profile.bio}</p>}
-          <p className="p-role">عضو منذ {profile.memberSince}</p>
+          <p className="p-role">عضو منذ {arDateFull(profile.memberSince)}</p>
 
           <div className="p-stats-row">
-            <div className="p-stat"><span>{fmt(Store.getTotalWorkoutDays())}</span><label>تمرين</label></div>
+            <div className="p-stat"><span>{fmt(Store.getTotalWorkoutDays())}</span><label>يوم تمرين</label></div>
             <div className="p-stat"><span>{fmt(unlockedCount)}</span><label>إنجاز</label></div>
             <div className="p-stat"><span>{fmt(Store.getBestStreak())}</span><label>أفضل سلسلة</label></div>
           </div>
@@ -278,7 +297,7 @@ export default function Profile() {
         </div>
         <div className="coach-info">
           <p className="coach-title">مدرّبك الذكي</p>
-          <p className="coach-sub">اقترح لك تعديل يوم الأرجل بناءً على تقدمك</p>
+          <p className="coach-sub">{coachLine(Store.getWorkoutDays ? Store.getWorkoutDays() : [])}</p>
         </div>
         <svg className="coach-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
       </Link>
@@ -291,7 +310,7 @@ export default function Profile() {
         <AchievementsGrid achievements={achievements} />
         <div className="share-row">
           <span className="share-txt">شارك تقدمك مع أصحابك</span>
-          <div className="share-btn" style={{ cursor: "pointer" }} onClick={handleShare}>
+          <div className="share-btn" style={{ cursor: "pointer" }} {...press(handleShare)}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 10.5 6.8-3.9M8.6 13.5l6.8 3.9" /></svg>
             مشاركة
           </div>
@@ -305,7 +324,7 @@ export default function Profile() {
 
       <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>قياسات الجسم</h2>
-        <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{latest ? `آخر تحديث: ${latest.date}` : "لسه مفيش قياس"}</span>
+        <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{latest ? `آخر تحديث: ${arDateFull(latest.date)}` : "لسه مفيش قياس"}</span>
       </div>
       <div className="glass inbody-detail">
         <div className="inbody-row">
@@ -318,22 +337,22 @@ export default function Profile() {
         </div>
         <div className="inbody-row">
           <div className="ib-label"><span className="ib-dot" style={{ background: "var(--glow-purple)", color: "var(--glow-purple)" }} />مؤشر كتلة الجسم BMI</div>
-          <div><span className="ib-val" style={{ cursor: "pointer" }} onClick={handleBMIClick}>{bmi != null ? bmi : "حدد طولك"}</span></div>
+          <div><span className="ib-val" style={{ cursor: "pointer" }} {...press(handleBMIClick)}>{bmi != null ? bmi : "حدد طولك"}</span>{bmi != null && <small style={{ marginInlineStart: 6, fontSize: 11, color: "var(--text-dim)", fontWeight: 700 }}>{bmiCategory(bmi)}</small>}</div>
         </div>
         <div className="inbody-row">
           <div className="ib-label"><span className="ib-dot" style={{ background: "var(--warn-text)", color: "var(--warn-text)" }} />هدف الوزن</div>
-          <div><span className="ib-val" style={{ cursor: "pointer" }} onClick={handleGoalClick}>{goal != null ? Store.formatWeight(goal) : "حدد هدفك"}</span></div>
+          <div><span className="ib-val" style={{ cursor: "pointer" }} {...press(handleGoalClick)}>{goal != null ? Store.formatWeight(goal) : "حدد هدفك"}</span></div>
         </div>
       </div>
 
       <div className="section-title" style={{ margin: "20px 4px 12px" }}><h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإعدادات</h2></div>
       <div className="glass" style={{ padding: "2px 14px" }}>
-        <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowLang(true)}>
+        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
           <span className="settings-name">اللغة والوحدات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
-        <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowAppearance(true)}>
+        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowAppearance(true))}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--purple-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></div>
           <span className="settings-name">المظهر</span>
           <span className="settings-hint">{activeTheme === "dark" ? "داكن" : "فاتح"}</span>
@@ -344,12 +363,12 @@ export default function Profile() {
           <span className="settings-name">{user ? "حسابي ومزامنة البيانات" : "تسجيل الدخول ومزامنة البيانات"}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
-        <div className="settings-row" style={{ cursor: "pointer" }} onClick={cycleRest}>
+        <div className="settings-row" style={{ cursor: "pointer" }} {...press(cycleRest)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" /></svg></div>
           <span className="settings-name">مؤقت الراحة بين المجموعات</span>
           <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 700 }}>{rest.enabled ? fmtClock(rest.sec) : "إيقاف"}</span>
         </div>
-        <div className="settings-row" style={{ cursor: "pointer" }} onClick={() => setShowReminder(true)}>
+        <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowReminder(true))}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">التذكير اليومي</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
@@ -357,7 +376,7 @@ export default function Profile() {
         <div
           className="settings-row"
           style={{ cursor: checkingUpdate ? "default" : "pointer", opacity: checkingUpdate ? 0.6 : 1 }}
-          onClick={handleCheckUpdate}
+          {...press(handleCheckUpdate)}
         >
           <div className="settings-ic">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={checkingUpdate ? "spin" : ""}>
@@ -411,7 +430,7 @@ export default function Profile() {
           <span className="settings-name">تواصل مع المطور</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </a>
-        <div className="settings-row" style={{ cursor: "pointer" }} onClick={handleReset}>
+        <div className="settings-row" style={{ cursor: "pointer" }} {...press(handleReset)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
           <span className="settings-name" style={{ color: "var(--danger)" }}>إعادة تعيين كل البيانات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>

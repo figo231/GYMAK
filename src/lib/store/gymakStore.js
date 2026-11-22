@@ -325,6 +325,14 @@ const KEY = "gymak_state_v1";
     return items;
   }
 
+  const XP_DAILY_CAP = 10;
+  // Goal counts as reached when within 0.5 kg, or passed in the direction of the goal.
+  function goalReached(goal, logs) {
+    if (goal == null || !logs.length) return false;
+    const first = logs[0].weight, last = logs.at(-1).weight;
+    if (Math.abs(last - goal) <= 0.5) return true;
+    return goal < first ? last < goal : last > goal;
+  }
   function shiftDate(iso, delta) {
     return shiftISO(iso, delta);
   }
@@ -872,7 +880,8 @@ const KEY = "gymak_state_v1";
       const prevLogs = s.exerciseLogs[exerciseId] || [];
       const prevMax = prevLogs.reduce((m, l) => Math.max(m, l.weight), 0);
       if (!s.exerciseLogs[exerciseId]) s.exerciseLogs[exerciseId] = [];
-      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps) });
+      const awarded = this._awardDailyXP(s, today);
+      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps), ...(awarded ? { xp: true } : {}) });
       if (w > prevMax && prevLogs.length > 0) {
         const ex = (s.exercises || []).find((e) => e.id === exerciseId);
         s.prHistory.unshift({
@@ -881,16 +890,25 @@ const KEY = "gymak_state_v1";
         });
         s.prHistory = s.prHistory.slice(0, 30);
       }
-      // award XP
-      s.profile.xp += 25;
-      while (s.profile.xp >= s.profile.xpNext) {
-        s.profile.xp -= s.profile.xpNext;
-        s.profile.level += 1;
-        s.profile.xpNext = Math.round(s.profile.xpNext * 1.15);
-      }
       this._markWorkoutDay(s, today);
       save(s);
       return s;
+    },
+
+    // XP: +25 per logged exercise, at most XP_DAILY_CAP awards a day.
+    _awardDailyXP(s, today) {
+      const day = s.profile.xpDay && s.profile.xpDay.date === today ? s.profile.xpDay : { date: today, n: 0 };
+      if (day.n >= XP_DAILY_CAP) { s.profile.xpDay = day; return false; }
+      day.n += 1; s.profile.xpDay = day;
+      this._addXP(s, 25);
+      return true;
+    },
+    _addXP(s, delta) {
+      const p = s.profile;
+      p.xp += delta;
+      while (p.xp >= p.xpNext) { p.xp -= p.xpNext; p.level += 1; p.xpNext = Math.round(p.xpNext * 1.15); }
+      while (p.xp < 0 && p.level > 1) { p.xpNext = Math.max(500, Math.round(p.xpNext / 1.15)); p.level -= 1; p.xp += p.xpNext; }
+      if (p.xp < 0) p.xp = 0;
     },
 
     getLastExerciseLog(exerciseId) {
@@ -1025,7 +1043,9 @@ const KEY = "gymak_state_v1";
 
     setHeight(cm) {
       const s = load();
-      s.profile.heightCm = cm ? Number(cm) : null;
+      const n = Number(cm);
+      if (cm && !(n >= 100 && n <= 250)) return s.profile;
+      s.profile.heightCm = cm ? n : null;
       save(s);
       return s.profile;
     },
@@ -1045,7 +1065,9 @@ const KEY = "gymak_state_v1";
 
     setGoalWeight(kg) {
       const s = load();
-      s.goalWeight = kg ? Number(kg) : null;
+      const n = Number(kg);
+      if (kg && !(n >= 30 && n <= 300)) return s.goalWeight;
+      s.goalWeight = kg ? n : null;
       save(s);
       return s.goalWeight;
     },
@@ -1122,6 +1144,10 @@ const KEY = "gymak_state_v1";
         .filter((p) => p.weight > 0 && !timed(p.exerciseId))
         .slice(0, limit)
         .map((p) => ({ ...p, exerciseName: normalizeExercise({ id: p.exerciseId, name: p.exerciseName }).name }));
+    },
+
+    getWorkoutDays() {
+      return load().workoutDays.slice();
     },
 
     getTotalWorkoutDays() {
@@ -1289,17 +1315,15 @@ const KEY = "gymak_state_v1";
     // ===== Achievements (computed live from real data, never hardcoded) =====
     getAchievements() {
       const s = load();
-      const totalSets = Object.values(s.exerciseLogs).reduce((sum, arr) => sum + arr.length, 0);
+      const totalSets = Object.values(s.exerciseLogs).reduce((sum, arr) => sum + arr.reduce((a, l) => a + Math.max(1, Number(l.sets) || 1), 0), 0);
       const bestStreak = this.getBestStreak();
       const level = s.profile.level;
-      const hasPR = s.prHistory.length > 0;
-      const goalHit = s.goalWeight != null && s.weightLogs.length > 0 &&
-        Math.abs(s.weightLogs.at(-1).weight - s.goalWeight) <= 0.5;
+      const goalHit = goalReached(s.goalWeight, s.weightLogs);
 
       const days = s.workoutDays.length;
       const foodDays = (s.foodLog || []).length;
       const weighIns = s.weightLogs.length;
-      const prs = s.prHistory.length;
+      const prs = this.getRecentPRs(100000).length;
       const tier = (id, name, cur, target) => ({ id, name, unlocked: cur >= target, progress: Math.min(cur, target), target });
       return [
         tier("streak7", "أسبوع كامل", bestStreak, 7),
@@ -1465,6 +1489,10 @@ const KEY = "gymak_state_v1";
         [removedPR] = s.prHistory.splice(pi, 1);
         this._tomb(s, "prs", `${removedPR.exerciseId}|${removedPR.date}|${removedPR.weight}|${removedPR.prevWeight}`);
       }
+      if (removed.xp) {
+        this._addXP(s, -25);
+        if (s.profile.xpDay && s.profile.xpDay.date === removed.date && s.profile.xpDay.n > 0) s.profile.xpDay.n -= 1;
+      }
       save(s);
       return { kind: "exerciseLog", exerciseId, index, log: { ...removed }, pr: removedPR };
     },
@@ -1516,6 +1544,10 @@ const KEY = "gymak_state_v1";
         if (!s.exerciseLogs[snap.exerciseId]) s.exerciseLogs[snap.exerciseId] = [];
         const arr = s.exerciseLogs[snap.exerciseId];
         arr.splice(Math.min(snap.index, arr.length), 0, snap.log);
+        if (snap.log.xp) {
+          this._addXP(s, 25);
+          if (s.profile.xpDay && s.profile.xpDay.date === snap.log.date) s.profile.xpDay.n += 1;
+        }
         this._untomb(s, "exerciseLogs", this._logKey(snap.exerciseId, snap.log));
         if (snap.pr) {
           s.prHistory.push(snap.pr);
