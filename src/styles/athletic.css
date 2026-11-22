@@ -300,3 +300,20 @@ html.ath.pro-ui .p-name { font-size: 24px; font-weight: 700; }
 html.ath.pro-ui .inbody-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0; background: none; border: none; box-shadow: none; }
 html.ath.pro-ui .inbody-row { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; background: #0F1215; border: 1px solid #1F232B; border-radius: 20px; padding: 14px; margin: 0; }
 html.ath.pro-ui .inbody-row .ib-val { font-size: 26px; font-weight: 700; }
+
+/* ---- exercise library: 2-column tiles ---- */
+.exg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+html.ath.pro-ui .exg .ex-card { flex-direction: column; align-items: stretch; padding: 0 !important; min-height: 0 !important; margin: 0; overflow: hidden; position: relative; border-radius: 20px; background: #0F1215; border: 1px solid #1F232B; gap: 0; }
+html.ath.pro-ui .exg .ex-card .ex-thumb { width: 100% !important; height: 108px !important; border-radius: 0 !important; }
+html.ath.pro-ui .exg .ex-info { padding: 10px 12px 2px; }
+html.ath.pro-ui .exg .ex-name { font-size: 14.5px !important; font-weight: 700; line-height: 1.35; margin: 0 0 6px !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 38px; }
+html.ath.pro-ui .exg .ex-tags .badge.primary, html.ath.pro-ui .exg .ex-tags .difficulty-pill { display: none; }
+html.ath.pro-ui .exg .ex-tags .badge.secondary { font-size: 11px; }
+html.ath.pro-ui .exg .ex-meta { padding: 4px 12px 12px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; text-align: right; }
+html.ath.pro-ui .exg .ex-sets { font-size: 15px; font-weight: 700; color: var(--accent-text); }
+html.ath.pro-ui .exg .ex-unit { font-size: 11px; color: var(--text-dim); }
+html.ath.pro-ui .exg .ex-last { width: 100%; font-size: 11px; color: var(--text-dim); }
+html.ath.pro-ui .exg .ex-actions { position: absolute !important; top: 8px; inset-inline-start: 8px; inset-inline-end: auto; bottom: auto; display: flex; gap: 6px; flex-direction: row; }
+html.ath.pro-ui .exg .ex-act-btn { width: 36px; height: 36px; border-radius: 12px; background: rgba(8,9,12,.65); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.14); color: #fff; }
+html.ath.pro-ui .exg .ex-act-btn.on { color: var(--on-acc); background: var(--acc-hi); border-color: transparent; }
+html.ath.pro-ui .exg .ex-fav-btn.on { color: #FFB020; background: rgba(8,9,12,.65); border-color: rgba(255,176,32,.6); }
