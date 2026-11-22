@@ -169,7 +169,7 @@ export default function Stats() {
           {view === "body" && (<>
           <SectionTitle title="تطور الوزن" sub={period.long} />
           <GoalCard history={history} />
-          <WeightChart history={history} goal={goal} goalTo={goalTrajectory(history, goal, Store.getGoalDeadline())} periodLabel={period.long} />
+          <WeightChart history={history} goal={goal} goalTo={goalTrajectory(history, goal, Store.getGoalDeadline())?.to ?? null} periodLabel={period.long} />
 
           {measureFields.length > 0 && (
             <>

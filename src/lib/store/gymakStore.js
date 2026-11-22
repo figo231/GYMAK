@@ -1210,6 +1210,7 @@ const KEY = "gymak_state_v1";
     },
 
     isCheatDay(date = todayISO()) { return load().cheatDays.includes(date); },
+    getCheatDays() { return load().cheatDays || []; },
     // One free day per rolling 7 days. Returns { ok, on, reason? }.
     setCheatDay(date, on) {
       const s = load();

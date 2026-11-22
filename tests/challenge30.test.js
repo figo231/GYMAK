@@ -43,3 +43,13 @@ describe("30-day challenge", () => {
     expect(challengeStatus([], [], "2026-11-22")).toBeNull();
   });
 });
+
+describe("store cheat-day access", () => {
+  it("getCheatDays returns the list the challenge reads", async () => {
+    localStorage.clear(); 
+    const S = (await import("../src/lib/store/gymakStore.js")).default; S.resetAllData();
+    expect(S.getCheatDays()).toEqual([]);
+    S.setCheatDay(S.getTodayKey(), true);
+    expect(S.getCheatDays()).toContain(S.getTodayKey());
+  });
+});
