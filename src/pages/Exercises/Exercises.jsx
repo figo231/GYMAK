@@ -7,6 +7,7 @@ import AddExerciseSheet from "./AddExerciseSheet";
 import EmptyState from "../../components/ui/EmptyState";
 import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER } from "../../lib/exerciseMeta";
 import { getFavs, toggleFav } from "../../lib/exerciseFavs";
+import { saveExerciseMedia, deleteExerciseMedia } from "../../lib/exerciseMedia";
 
 const FILTERS = [
   { m: "all", label: "الكل" },
@@ -39,6 +40,8 @@ export default function Exercises() {
   const [equip, setEquip] = useState("");
   const [diff, setDiff] = useState("");
   const [favOnly, setFavOnly] = useState(false);
+  const [mineOnly, setMineOnly] = useState(false);
+  const [mediaError, setMediaError] = useState("");
   const [sort, setSort] = useState("default");
   const [showFilters, setShowFilters] = useState(false);
   const [openMap, setOpenMap] = useState({});
@@ -76,6 +79,7 @@ export default function Exercises() {
       if (equip && ex.equipment !== equip) return false;
       if (diff && ex.difficulty !== diff) return false;
       if (favOnly && !favs.has(ex.id)) return false;
+      if (mineOnly && !ex.custom) return false;
       if (search.trim() && !matchesQuery(hays.get(ex.id) || "", search)) return false;
       return true;
     });
@@ -90,7 +94,7 @@ export default function Exercises() {
       });
     }
     return list;
-  }, [scopedList, activeMuscle, equip, diff, favOnly, favs, search, hays, sort]);
+  }, [scopedList, activeMuscle, equip, diff, favOnly, mineOnly, favs, search, hays, sort]);
 
   const groups = {};
   filtered.forEach((ex) => {
@@ -100,16 +104,28 @@ export default function Exercises() {
   const groupKeys = Object.keys(groups);
 
   const muscleCount = new Set(scopedList.map((ex) => ex.muscle)).size;
-  const activeFilterCount = (equip ? 1 : 0) + (diff ? 1 : 0) + (favOnly ? 1 : 0) + (sort !== "default" ? 1 : 0);
+  const mineCount = all.filter((e) => e.custom).length;
+  const activeFilterCount = (equip ? 1 : 0) + (diff ? 1 : 0) + (favOnly ? 1 : 0) + (mineOnly ? 1 : 0) + (sort !== "default" ? 1 : 0);
   // On the full unfiltered list, start with groups folded so the page isn't a 130-card scroll.
-  const autoFold = activeMuscle === "all" && !search.trim() && !equip && !diff && !favOnly && filtered.length > 40;
+  const autoFold = activeMuscle === "all" && !search.trim() && !equip && !diff && !favOnly && !mineOnly && filtered.length > 40;
   const isOpen = (muscle, idx) => (openMap[muscle] !== undefined ? openMap[muscle] : !autoFold || idx === 0);
 
-  function handleAddSave(payload) {
-    Store.addExercise(payload);
+  async function handleAddSave(payload) {
+    const { mediaFile, ...data } = payload;
+    const ex = Store.addExercise(data);
     setShowAdd(false);
     setSearch("");
     refresh();
+    if (mediaFile) {
+      try {
+        const kind = await saveExerciseMedia(ex.id, mediaFile);
+        Store.setExerciseLocalMedia(ex.id, kind);
+        refresh();
+      } catch {
+        await deleteExerciseMedia(ex.id);
+        setMediaError("التمرين اتضاف بس الصورة/الفيديو ماتحفظوش (يمكن مساحة الجهاز ممتلئة).");
+      }
+    }
   }
 
   function openAdd(name = "") {
@@ -118,7 +134,7 @@ export default function Exercises() {
   }
 
   function clearFilters() {
-    setEquip(""); setDiff(""); setFavOnly(false); setSort("default"); setActiveMuscle("all"); setSearch("");
+    setEquip(""); setDiff(""); setFavOnly(false); setMineOnly(false); setSort("default"); setActiveMuscle("all"); setSearch("");
   }
 
   return (
@@ -192,6 +208,9 @@ export default function Exercises() {
         <button type="button" className={"chip chip-btn" + (favOnly ? " active" : "")} aria-pressed={favOnly} onClick={() => setFavOnly((v) => !v)}>
           <span>⭐ المفضلة</span>
         </button>
+        <button type="button" className={"chip chip-btn" + (mineOnly ? " active" : "")} aria-pressed={mineOnly} onClick={() => setMineOnly((v) => !v)}>
+          <span>🏋️ تماريني ({mineCount})</span>
+        </button>
         <span className="page-count" style={{ marginInlineStart: "auto" }}>{filtered.length} نتيجة</span>
       </div>
 
@@ -225,11 +244,13 @@ export default function Exercises() {
         </div>
       )}
 
+      {mediaError && <div className="ex-field-err" role="alert" style={{ margin: "0 0 10px" }}>{mediaError}</div>}
+
       {!filtered.length ? (
         <EmptyState
           type="search"
-          title={favOnly && !search.trim() ? "مفيش تمارين في المفضلة لسه" : "مفيش تمارين مطابقة"}
-          subtitle={favOnly && !search.trim() ? "دوس على النجمة في أي تمرين عشان يتحفظ هنا." : "جرّب كلمة تانية أو شيل الفلاتر، أو ضيفه كتمرين خاص بيك."}
+          title={mineOnly && !search.trim() ? "لسه ما ضفتش تمارين خاصة بيك" : favOnly && !search.trim() ? "مفيش تمارين في المفضلة لسه" : "مفيش تمارين مطابقة"}
+          subtitle={mineOnly && !search.trim() ? "دوس على + وضيف تمرينك بصورة أو فيديو من الكاميرا." : favOnly && !search.trim() ? "دوس على النجمة في أي تمرين عشان يتحفظ هنا." : "جرّب كلمة تانية أو شيل الفلاتر، أو ضيفه كتمرين خاص بيك."}
           ctaLabel={search.trim() ? `+ أضف "${search.trim()}"` : "+ إضافة تمرين"}
           onCta={() => openAdd(search.trim())}
         />

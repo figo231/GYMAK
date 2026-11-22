@@ -74,7 +74,7 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, onDeleted }) 
       onContextMenu={(e) => e.preventDefault()}
       onClick={onClick}
     >
-      <ExerciseThumb color={meta.color} muscle={ex.muscle} exerciseId={ex.id} />
+      <ExerciseThumb color={meta.color} muscle={ex.muscle} exerciseId={ex.id} localMedia={ex.localMedia} />
       <div className="ex-info">
         {/* JSX escapes ex.name automatically (stored-XSS fix from the Phase 1 audit). */}
         <p className="ex-name">{ex.name}</p>

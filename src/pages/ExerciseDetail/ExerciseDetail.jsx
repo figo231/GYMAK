@@ -6,6 +6,7 @@ import { useConfirm } from "../../hooks/useDialog";
 import { startRest } from "../../lib/rest/restTimer";
 import MuscleAnatomy from "./MuscleAnatomy";
 import ExerciseAnim, { hasExerciseAnim } from "../../components/ExerciseAnim";
+import { useExerciseMedia } from "../../lib/exerciseMedia";
 import MuscleIllustration from "../Exercises/MuscleIllustration";
 
 // Classifies a user-supplied media URL so we know whether to render a
@@ -34,6 +35,7 @@ export default function ExerciseDetail() {
   const meta = Store.getMuscleMeta(exercise ? exercise.muscle : "chest");
   const last = Store.getLastExerciseLog(exerciseId);
   const mediaKind = exercise ? getMediaKind(exercise.mediaUrl) : null;
+  const localMedia = useExerciseMedia(exerciseId, !!(exercise && exercise.localMedia));
 
   const [weight, setWeight] = useState(() => (last ? Store.toDisplayWeight(last.weight) : (exercise ? 80 : 80)));
   const [sets, setSets] = useState(() => (last ? last.sets : exercise ? exercise.sets : 4));
@@ -98,6 +100,17 @@ export default function ExerciseDetail() {
           color={meta.color}
         />
       </div>
+
+      {localMedia.url && (
+        <div className="media-frame media-frame-lg">
+          <span className="media-tag">صورتك أنت (على جهازك بس)</span>
+          {localMedia.kind === "video" ? (
+            <video className="media-real" src={localMedia.url} autoPlay loop muted playsInline controls />
+          ) : (
+            <img className="media-real" src={localMedia.url} alt={exercise.name} />
+          )}
+        </div>
+      )}
 
       {mediaKind && (
         <div className="media-frame media-frame-sm">
@@ -181,7 +194,7 @@ export default function ExerciseDetail() {
       ) : (
         <div className="glass" style={{ padding: 14 }}>
           <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7, margin: 0 }}>
-            التمرين ده مضاف منك، فلسه معندناش صورة/GIF أو خطوات أداء جاهزة ليه. لو حابب، تقدر تضيف ملاحظاتك الخاصة بعدين.
+            التمرين ده مضاف منك، فمعندناش خطوات أداء جاهزة ليه.
           </p>
         </div>
       )}

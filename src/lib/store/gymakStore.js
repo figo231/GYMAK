@@ -7,6 +7,7 @@ import { EXTRA_EXERCISES } from "./extraExercises";
 import { EGYPT_FOODS } from "./egyptFoods";
 import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
 import { normalizeExercise } from "../exerciseMeta";
+import { deleteExerciseMedia } from "../exerciseMedia";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
    (IIFE -> ES module) so existing users' data loads unchanged. */
@@ -634,7 +635,7 @@ const KEY = "gymak_state_v1";
       return list.find((e) => e.id === id) || null;
     },
 
-    addExercise({ name, muscle, secondary, sets, reps, mediaUrl, equipment, difficulty, unit }) {
+    addExercise({ name, muscle, secondary, sets, reps, mediaUrl, equipment, difficulty, unit, localMedia }) {
       const s = load();
       if (!s.exercises) s.exercises = SEED_EXERCISES.slice();
       const meta = MUSCLE_META[muscle] || MUSCLE_META.chest;
@@ -651,16 +652,26 @@ const KEY = "gymak_state_v1";
         equipment: equipment || "",
         difficulty: difficulty || "",
         unit: unit === "sec" ? "sec" : "reps",
+        localMedia: localMedia === "image" || localMedia === "video" ? localMedia : null,
       };
       s.exercises.push(ex);
       save(s);
       return ex;
     },
 
+    setExerciseLocalMedia(id, kind) {
+      const s = load();
+      const ex = (s.exercises || []).find((e) => e.id === id && e.custom);
+      if (!ex) return;
+      ex.localMedia = kind === "image" || kind === "video" ? kind : null;
+      save(s);
+    },
+
     deleteExercise(id) {
       const s = load();
       if (!s.exercises) s.exercises = SEED_EXERCISES.slice();
       s.exercises = s.exercises.filter((e) => e.id !== id);
+      deleteExerciseMedia(id); // device-local photo/video of a custom exercise, if any
       if (!s.deletedExerciseIds) s.deletedExerciseIds = [];
       if (!s.deletedExerciseIds.includes(id)) s.deletedExerciseIds.push(id);
       save(s);

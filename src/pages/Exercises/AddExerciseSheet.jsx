@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { mediaKindOf, MAX_VIDEO_MB } from "../../lib/exerciseMedia";
 import { arNorm, clampInt, validMediaUrl, DIFFICULTIES } from "../../lib/exerciseMeta";
 
 const MUSCLES = [
@@ -29,6 +30,23 @@ export default function AddExerciseSheet({ onClose, onSave, initialName = "", ex
   const [timed, setTimed] = useState(false);
   const [mediaUrl, setMediaUrl] = useState("");
   const [tried, setTried] = useState(false);
+  const [file, setFile] = useState(null);
+  const [fileUrl, setFileUrl] = useState(null);
+  const [fileErr, setFileErr] = useState("");
+  const camRef = useRef(null), vidRef = useRef(null), galRef = useRef(null);
+
+  useEffect(() => () => { if (fileUrl) URL.revokeObjectURL(fileUrl); }, [fileUrl]);
+
+  function onPick(e) {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    if (!mediaKindOf(f)) { setFileErr(`الملف لازم يكون صورة أو فيديو (الفيديو لحد ${MAX_VIDEO_MB} ميجا).`); return; }
+    setFileErr("");
+    setFile(f);
+    setFileUrl(URL.createObjectURL(f));
+  }
+  function clearFile() { setFile(null); setFileUrl(null); setFileErr(""); }
 
   const trimmed = name.trim();
   const dup = trimmed && existingNames.some((n) => arNorm(n) === arNorm(trimmed));
@@ -48,6 +66,7 @@ export default function AddExerciseSheet({ onClose, onSave, initialName = "", ex
       equipment,
       difficulty,
       unit: timed ? "sec" : "reps",
+      mediaFile: file,
     });
   }
 
@@ -103,7 +122,25 @@ export default function AddExerciseSheet({ onClose, onSave, initialName = "", ex
           </div>
         </div>
 
-        <label style={labelStyle} htmlFor="ex-add-url">رابط GIF / فيديو التمرين (اختياري)</label>
+        <label style={labelStyle}>صورة أو فيديو للتمرين (اختياري)</label>
+        <div className="media-pick">
+          <button type="button" className="chip chip-btn" onClick={() => camRef.current && camRef.current.click()}>📷 صوّر</button>
+          <button type="button" className="chip chip-btn" onClick={() => vidRef.current && vidRef.current.click()}>🎥 صوّر فيديو</button>
+          <button type="button" className="chip chip-btn" onClick={() => galRef.current && galRef.current.click()}>🖼️ من الجهاز</button>
+          {file && <button type="button" className="chip chip-btn" onClick={clearFile}>✕ شيل</button>}
+        </div>
+        <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={onPick} />
+        <input ref={vidRef} type="file" accept="video/*" capture="environment" hidden onChange={onPick} />
+        <input ref={galRef} type="file" accept="image/*,video/*" hidden onChange={onPick} />
+        {fileUrl && (
+          <div className="media-preview">
+            {file.type.startsWith("video/") ? <video src={fileUrl} muted playsInline controls /> : <img src={fileUrl} alt="" />}
+          </div>
+        )}
+        {fileErr && <div className="ex-field-err">{fileErr}</div>}
+        <p className="media-note">بتتحفظ على جهازك بس، مبتترفعش على السيرفر.</p>
+
+        <label style={labelStyle} htmlFor="ex-add-url">أو رابط GIF / فيديو (اختياري)</label>
         <input id="ex-add-url" style={fieldStyle} type="url" inputMode="url" dir="ltr" placeholder="https://... (.gif, .mp4, أو رابط يوتيوب)" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} />
         {!urlOk && <div className="ex-field-err">الرابط لازم يبدأ بـ https:// أو http://</div>}
 
