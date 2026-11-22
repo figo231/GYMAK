@@ -9,6 +9,7 @@ export default function ShareCardSheet({ data, name, onClose }) {
   useEffect(() => {
     let revoked = "";
     (async () => {
+      try { await document.fonts.load('700 40px GymakSans'); } catch { /* ignore */ }
       const c = drawCard(document.createElement("canvas"), data, name);
       const blob = await canvasToBlob(c);
       revoked = URL.createObjectURL(blob);

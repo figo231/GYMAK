@@ -3,6 +3,7 @@ import SectionNav from "../../components/layout/SectionNav";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../hooks/useDialog";
 import { compressImageToBlob } from "../../lib/imageCompress";
+import { drawBeforeAfter, canvasToBlob } from "../../lib/share/shareCard";
 import { POSES, addPhoto, compareSet, deletePhoto, listPhotos } from "../../lib/photos/photos";
 
 function useUrls(photos) {
@@ -51,6 +52,20 @@ export default function Photos() {
     await deletePhoto(p.id); setView(null); await refresh();
   }
   const cmp = compareSet(photos, filter);
+  async function shareCmp() {
+    if (!cmp) return;
+    try {
+      try { await document.fonts.load("700 40px GymakSans"); } catch { /* ignore */ }
+      const [b, a] = await Promise.all([createImageBitmap(cmp.before.blob), createImageBitmap(cmp.after.blob)]);
+      const c = drawBeforeAfter(document.createElement("canvas"), b, a, { sub: dayDiff(cmp.before.date, cmp.after.date) > 0 ? `${dayDiff(cmp.before.date, cmp.after.date)} يوم` : "" });
+      const blob = await canvasToBlob(c);
+      const file = new File([blob], "gymak-before-after.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
+      const u = URL.createObjectURL(blob); const el = document.createElement("a"); el.href = u; el.download = file.name; el.click();
+      setTimeout(() => URL.revokeObjectURL(u), 2000);
+      toast("اتحفظت الصورة على جهازك.");
+    } catch (e) { if (!e || e.name !== "AbortError") toast("معرفناش نعمل الصورة."); }
+  }
   return (
     <div className="ph-page">
       <SectionNav group="progress" title="تقدّمي" />
@@ -74,6 +89,7 @@ export default function Photos() {
               </div>
             ))}
           </div>
+          <button type="button" className="btn ph-share" onClick={shareCmp}>شارك قبل وبعد</button>
         </div>
       )}
 

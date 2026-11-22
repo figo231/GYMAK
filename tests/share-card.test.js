@@ -11,3 +11,5 @@ describe("share card data", () => {
     expect(d.big).toBe("100"); expect(d.unit).toBe("كجم"); expect(d.sub).toContain("كان 95"); expect(prCardData(null)).toBeNull();
   });
 });
+import { drawBeforeAfter, drawCard } from "../src/lib/share/shareCard";
+describe("card drawing is exported", () => { it("exports draw fns", () => { expect(typeof drawBeforeAfter).toBe("function"); expect(typeof drawCard).toBe("function"); }); });

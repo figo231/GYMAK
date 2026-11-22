@@ -1,4 +1,4 @@
-/* Progress share cards drawn on a canvas (1080x1350, gold luxe look). No network, no deps. */
+/* Progress share cards drawn on a canvas (1080x1350, dark + ember). No network, no deps. */
 const W = 1080, H = 1350;
 
 /** Pure: builds the card content from store-like data. */
@@ -38,39 +38,69 @@ function wrap(ctx, text, maxW) {
   return lines;
 }
 
+const FONT = "GymakSans, Tahoma, Arial, sans-serif";
+const EMBER = "#FF6A1A";
+
 export function drawCard(canvas, data, name = "") {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "#14110a"); bg.addColorStop(1, "#2a2110");
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  const glow = ctx.createRadialGradient(W / 2, 520, 40, W / 2, 520, 620);
-  glow.addColorStop(0, "rgba(217,184,99,.28)"); glow.addColorStop(1, "rgba(217,184,99,0)");
+  ctx.fillStyle = "#0B0C0F"; ctx.fillRect(0, 0, W, H);
+  const glow = ctx.createRadialGradient(W / 2, 640, 40, W / 2, 640, 700);
+  glow.addColorStop(0, "rgba(255,106,26,.30)"); glow.addColorStop(1, "rgba(255,106,26,0)");
   ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = "rgba(217,184,99,.55)"; ctx.lineWidth = 4; ctx.strokeRect(40, 40, W - 80, H - 80);
+  // ember edge bars
+  ctx.fillStyle = EMBER; ctx.fillRect(0, 0, W, 14); ctx.fillRect(0, H - 14, W, 14);
+  ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.lineWidth = 3; ctx.strokeRect(48, 48, W - 96, H - 96);
 
-  ctx.direction = "rtl"; ctx.textAlign = "center";
-  ctx.fillStyle = "#d9b863"; ctx.font = "800 64px Tahoma, Arial, sans-serif";
+  ctx.direction = "ltr"; ctx.textAlign = "center";
+  ctx.fillStyle = EMBER; ctx.font = `800 60px ${FONT}`;
   ctx.fillText("GYMAK", W / 2, 170);
 
-  ctx.fillStyle = "#f6efdc"; ctx.font = "700 62px Tahoma, Arial, sans-serif";
+  ctx.direction = "rtl";
+  ctx.fillStyle = "#F4F1EA"; ctx.font = `700 62px ${FONT}`;
   ctx.fillText(data.title, W / 2, 430);
 
   const g = ctx.createLinearGradient(0, 480, 0, 720);
-  g.addColorStop(0, "#f3d98a"); g.addColorStop(1, "#b98a2e");
-  ctx.fillStyle = g; ctx.font = "900 190px Tahoma, Arial, sans-serif";
+  g.addColorStop(0, "#FF8A3D"); g.addColorStop(1, "#F2500C");
+  ctx.fillStyle = g;
   ctx.direction = "ltr";
-  let size = 190;
-  while (ctx.measureText(data.big).width > W - 160 && size > 80) { size -= 10; ctx.font = `900 ${size}px Tahoma, Arial, sans-serif`; }
+  let size = 200; ctx.font = `800 ${size}px ${FONT}`;
+  while (ctx.measureText(data.big).width > W - 160 && size > 80) { size -= 10; ctx.font = `800 ${size}px ${FONT}`; }
   ctx.fillText(data.big, W / 2, 660);
-  if (data.unit) { ctx.direction = "rtl"; ctx.fillStyle = "#d9b863"; ctx.font = "700 64px Tahoma, Arial, sans-serif"; ctx.fillText(data.unit, W / 2, 750); }
+  if (data.unit) { ctx.direction = "rtl"; ctx.fillStyle = "#F4F1EA"; ctx.font = `700 60px ${FONT}`; ctx.fillText(data.unit, W / 2, 750); }
 
-  ctx.direction = "rtl"; ctx.fillStyle = "#e8dfc6"; ctx.font = "500 46px Tahoma, Arial, sans-serif";
+  ctx.direction = "rtl"; ctx.fillStyle = "rgba(244,241,234,.75)"; ctx.font = `500 44px ${FONT}`;
   wrap(ctx, data.sub, W - 200).slice(0, 3).forEach((l, i) => ctx.fillText(l, W / 2, 860 + i * 70));
 
-  if (name) { ctx.fillStyle = "rgba(246,239,220,.8)"; ctx.font = "600 44px Tahoma, Arial, sans-serif"; ctx.fillText(name, W / 2, 1150); }
-  ctx.fillStyle = "rgba(217,184,99,.8)"; ctx.font = "500 34px Tahoma, Arial, sans-serif";
+  if (name) { ctx.fillStyle = "#F4F1EA"; ctx.font = `600 44px ${FONT}`; ctx.fillText(name, W / 2, 1150); }
+  ctx.fillStyle = "rgba(244,241,234,.5)"; ctx.font = `500 32px ${FONT}`;
   ctx.fillText("اتابع تمارينك وأكلك مع GYMAK", W / 2, 1230);
+  return canvas;
+}
+
+/** Before/after card: two images side by side. imgs are loaded Image/ImageBitmap objects. */
+export function drawBeforeAfter(canvas, before, after, meta = {}) {
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#0B0C0F"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = EMBER; ctx.fillRect(0, 0, W, 14); ctx.fillRect(0, H - 14, W, 14);
+  const pw = (W - 120 - 24) / 2, ph = 860, y = 200;
+  const cover = (img, x) => {
+    const iw = img.width, ih = img.height, sc = Math.max(pw / iw, ph / ih);
+    const sw = pw / sc, sh = ph / sc;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, pw, ph); ctx.clip();
+    ctx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, x, y, pw, ph); ctx.restore();
+  };
+  // RTL reading: "before" on the right
+  cover(before, 60 + pw + 24); cover(after, 60);
+  ctx.textAlign = "center"; ctx.direction = "rtl";
+  ctx.fillStyle = EMBER; ctx.font = `800 56px ${FONT}`; ctx.fillText("GYMAK", W / 2, 120);
+  ctx.fillStyle = "#F4F1EA"; ctx.font = `700 48px ${FONT}`;
+  ctx.fillText("قبل", 60 + pw + 24 + pw / 2, y + ph + 70); ctx.fillText("بعد", 60 + pw / 2, y + ph + 70);
+  ctx.font = `500 38px ${FONT}`; ctx.fillStyle = "rgba(244,241,234,.7)";
+  if (meta.sub) ctx.fillText(meta.sub, W / 2, y + ph + 150);
+  ctx.fillStyle = "rgba(244,241,234,.45)"; ctx.font = `500 30px ${FONT}`;
+  ctx.fillText("اتابع تمارينك وأكلك مع GYMAK", W / 2, H - 50);
   return canvas;
 }
 

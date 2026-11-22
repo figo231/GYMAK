@@ -389,3 +389,4 @@ html.ath.pro-ui .goal-modes{display:flex;gap:8px;margin:0 0 10px}
 html.ath.pro-ui .goal-chip{flex:1;padding:10px 0;border-radius:12px;border:1px solid var(--line,#2a2c33);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
 html.ath.pro-ui .goal-chip.on{background:#FF6A1A;border-color:#FF6A1A;color:#0B0C0F}
 html.ath.pro-ui .goal-tip{font-size:12px;opacity:.75;margin:0 2px 12px;line-height:1.6}
+html.ath.pro-ui .ph-share{width:100%;margin-top:10px}
