@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useToast } from "../../hooks/useToast";
@@ -110,6 +111,7 @@ export default function Coach() {
   return (
     <>
       <DetailTopBar backTo="/profile" title="المدربين" />
+      <Link to="/messages" className="btn btn-primary" style={{ display: "block", textAlign: "center", marginBottom: 14 }}>رسائلي مع المدرب والدكتور ←</Link>
       <div style={{ fontWeight: 800, fontSize: 13.5, margin: "4px 0 8px" }}>مدربيني</div>
       {invites.length === 0 && <p className="notif-note">مفيش مدرب مربوط بحسابك. لو مدربك بعتلك دعوة هتظهر هنا.</p>}
       {invites.map((i) => (

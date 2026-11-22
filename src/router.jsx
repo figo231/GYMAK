@@ -35,6 +35,7 @@ const Supplements = lazy(() => import("./pages/Help/Supplements"));
 const Help = lazy(() => import("./pages/Help/Help"));
 const Contact = lazy(() => import("./pages/Contact/Contact"));
 const MealPlan = lazy(() => import("./pages/Food/MealPlan"));
+const PrivateChat = lazy(() => import("./pages/PrivateChat/PrivateChat"));
 const Coach = lazy(() => import("./pages/Coach/Coach"));
 
 export const router = createBrowserRouter([
@@ -70,6 +71,8 @@ export const router = createBrowserRouter([
       { path: "/exercise/:id", element: <ExerciseDetail /> },
       { path: "/account", element: <ProtectedRoute><Account /></ProtectedRoute> },
       { path: "/coach", element: <ProtectedRoute><Coach /></ProtectedRoute> },
+      { path: "/messages", element: <ProtectedRoute><PrivateChat /></ProtectedRoute> },
+      { path: "/messages/:threadId", element: <ProtectedRoute><PrivateChat /></ProtectedRoute> },
       { path: "/admin", element: <ProtectedRoute><Admin /></ProtectedRoute> },
       { path: "/owner", element: <ProtectedRoute><OwnerPanel /></ProtectedRoute> },
     ],

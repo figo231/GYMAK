@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import OwnerChatRoles from "./OwnerChatRoles";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { isOwnerAdmin } from "../../lib/push/ownerBroadcast";
 import { supabase } from "../../lib/supabaseClient";
-import { saveContent, setContentActive, listCoaches, addCoach, removeCoach, refreshRemoteContent } from "../../lib/content/remoteContent";
+import { saveContent, setContentActive, refreshRemoteContent } from "../../lib/content/remoteContent";
 
 const MUSCLES = [["chest", "صدر"], ["back", "ظهر"], ["shoulders", "أكتاف"], ["legs", "رجلين"], ["arms", "دراعات"], ["core", "بطن"]];
 const slug = (s) => "x-" + (s || "").trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) + "-" + Math.random().toString(36).slice(2, 6);
@@ -87,35 +88,7 @@ function PublishedList({ table, label }) {
   ));
 }
 
-function Coaches() {
-  const toast = useToast();
-  const [list, setList] = useState([]);
-  const [email, setEmail] = useState("");
-  const load = () => listCoaches().then(setList).catch((e) => toast("فشل: " + e.message));
-  useEffect(() => { load(); }, []);
-  async function add() {
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return toast("اكتب إيميل صحيح");
-    try { await addCoach(email); setEmail(""); load(); toast("اتضاف مدرب ✅"); } catch (e) { toast("فشل: " + e.message); }
-  }
-  async function del(m) { try { await removeCoach(m); load(); } catch (e) { toast("فشل: " + e.message); } }
-  return (
-    <>
-      <div style={card}>
-        <div className="edit-field"><label>إيميل المدرب (حساب Gmail اللي بيسجل بيه)</label><input dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-        <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={add}>إضافة مدرب</button>
-      </div>
-      {list.map((c) => (
-        <div key={c.email} style={{ ...card, display: "flex", alignItems: "center", gap: 10 }}>
-          <div dir="ltr" style={{ flex: 1, fontSize: 13 }}>{c.email}</div>
-          <button type="button" onClick={() => del(c.email)} style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", fontWeight: 700 }}>إلغاء الصلاحية</button>
-        </div>
-      ))}
-      {!list.length && <p className="notif-note">مفيش مدربين لسه.</p>}
-    </>
-  );
-}
-
-export default function OwnerPanel() {
+function OwnerPanelSession() {
   const { user } = useAuth();
   const [ok, setOk] = useState(null);
   const [tab, setTab] = useState("exercises");
@@ -123,7 +96,7 @@ export default function OwnerPanel() {
   useEffect(() => { isOwnerAdmin(user?.id).then(setOk); }, [user?.id]);
   if (ok === null) return <DetailTopBar backTo="/profile" title="لوحة المالك" />;
   if (!ok) return (<><DetailTopBar backTo="/profile" title="لوحة المالك" /><p className="notif-note" style={{ padding: 16 }}>الصفحة دي لحساب المالك بس.</p></>);
-  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المدربين"]];
+  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"]];
   return (
     <>
       <DetailTopBar backTo="/profile" title="لوحة المالك" />
@@ -134,8 +107,13 @@ export default function OwnerPanel() {
       </div>
       {tab === "exercises" && (<><ExerciseForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_exercises" label="تمارين" /></>)}
       {tab === "foods" && (<><FoodForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_foods" label="أكلات" /></>)}
-      {tab === "coaches" && <Coaches />}
+      {tab === "coaches" && <OwnerChatRoles />}
       <button type="button" className="btn" onClick={() => refreshRemoteContent()} style={{ width: "100%", marginTop: 8, background: "none", border: "1px solid var(--border-soft)", padding: 10, borderRadius: 12, color: "inherit", cursor: "pointer" }}>تحديث المحتوى على جهازي</button>
     </>
   );
+}
+
+export default function OwnerPanel() {
+  const { user } = useAuth();
+  return <OwnerPanelSession key={user?.id || "guest"} />;
 }

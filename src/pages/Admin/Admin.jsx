@@ -5,11 +5,12 @@ import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { isOwnerAdmin } from "../../lib/push/ownerBroadcast";
 import { fetchStats, fetchFeedback, setFeedbackStatus, replyFeedback, countByStatus, filterFeedback, STATUS_LABEL } from "../../lib/admin";
+import OwnerChatRoles from "../Owner/OwnerChatRoles";
 import { dayLabel } from "../../lib/historyLogic";
 
 const FILTERS = [["all", "الكل"], ["new", "جديدة"], ["read", "اتقرأت"], ["replied", "اترد عليها"]];
 
-export default function Admin() {
+function AdminSession() {
   const { user } = useAuth();
   const toast = useToast();
   const [allowed, setAllowed] = useState(null);
@@ -47,11 +48,14 @@ export default function Admin() {
     <div className="help-page ad-page">
       <DetailTopBar title="لوحة الإدارة" backTo="/profile" />
       <div className="th-stats ad-stats">
-        <div><b>{n(stats?.total)}</b><span>مستخدم</span></div>
+        <div><b>{n(stats?.total)}</b><span>ملف شخصي متزامن</span></div>
         <div><b>{n(stats?.week)}</b><span>جدد آخر 7 أيام</span></div>
         <div><b>{counts.new}</b><span>رسايل جديدة</span></div>
       </div>
       <p className="notif-note">راجل {n(stats?.male)} · ست {n(stats?.female)}</p>
+      <OwnerChatRoles />
+      <h2 style={{ fontSize: 18, marginTop: 28 }}>رسائل الدعم</h2>
+      <p className="notif-note">آخر 100 رسالة دعم، مش قائمة كل المستخدمين.</p>
       <div className="goal-tabs" role="tablist">
         {FILTERS.map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={filter === k} className={"goal-tab" + (filter === k ? " on" : "")} onClick={() => setFilter(k)}>{l}{k !== "all" ? ` (${counts[k]})` : ""}</button>
@@ -84,4 +88,9 @@ export default function Admin() {
       <Link to="/owner" className="btn" style={{ display: "block", textAlign: "center", marginTop: 12 }}>لوحة المالك (إشعارات ومحتوى)</Link>
     </div>
   );
+}
+
+export default function Admin() {
+  const { user } = useAuth();
+  return <AdminSession key={user?.id || "guest"} />;
 }

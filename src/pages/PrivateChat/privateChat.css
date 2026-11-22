@@ -1,0 +1,64 @@
+.pc-page { width:100%; min-width:0; color:var(--text-primary); }
+.pc-page h2 { margin:0; font-size:17px; }
+.pc-page p { line-height:1.85; }
+.pc-page button, .pc-page textarea, .pc-role-panel input, .pc-role-panel select { font:inherit; }
+.pc-page a { color:var(--accent-text,var(--accent)); }
+.pc-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:22px 0 10px; }
+.pc-hint { color:var(--text-dim); font-size:12px; line-height:1.85; }
+.pc-error { color:var(--danger,#ff9393); background:rgba(255,80,80,.08); border:1px solid rgba(255,100,100,.22); padding:12px; border-radius:12px; font-size:13px; overflow-wrap:anywhere; }
+.pc-small { display:inline-block; padding:8px 12px; min-height:38px; color:inherit; background:var(--surface,rgba(120,120,120,.09)); border:1px solid var(--border-soft); border-radius:12px; text-decoration:none; cursor:pointer; font-size:12px; }
+.pc-page button:disabled, .pc-role-panel button:disabled { opacity:.5; cursor:default; }
+.pc-page :focus-visible, .pc-role-panel :focus-visible { outline:2px solid var(--accent-text,#ff8b25); outline-offset:3px; }
+.pc-consent { padding:18px; border-radius:20px; font-size:13px; }
+.pc-consent h2 { font-size:20px; }
+.pc-consent .btn { width:100%; margin-top:12px; min-height:46px; }
+.pc-check { display:flex; gap:10px; align-items:flex-start; line-height:1.9; margin:18px 0; }
+.pc-check input { flex:0 0 20px; width:20px; height:20px; margin-top:4px; accent-color:var(--accent,#ff781b); }
+.pc-list { display:grid; gap:10px; }
+.pc-thread { display:flex; align-items:center; gap:12px; padding:15px; min-width:0; border-radius:18px; text-decoration:none; color:inherit!important; }
+.pc-avatar { display:grid; place-items:center; width:42px; height:42px; flex:0 0 42px; background:rgba(255,121,25,.15); color:var(--accent-text); border-radius:14px; font-weight:800; }
+.pc-thread-main { display:grid; gap:4px; min-width:0; flex:1; }
+.pc-thread strong, .pc-contact strong { overflow-wrap:anywhere; }
+.pc-thread small, .pc-thread time, .pc-contact small { display:block; font-size:11px; color:var(--text-dim); }
+.pc-unread { min-width:25px; height:25px; padding:0 6px; border-radius:30px; display:grid; place-items:center; font-size:12px; font-weight:800; color:#111; background:var(--accent,#ff791b); }
+.pc-contact { display:flex; justify-content:space-between; align-items:center; gap:10px; min-width:0; width:100%; padding:16px; color:inherit; text-align:start; cursor:pointer; border-radius:18px; }
+.pc-contact > span:first-child { min-width:0; }
+.pc-contact > span:last-child { font-size:12px; flex-shrink:0; color:var(--accent-text); }
+.pc-empty { border-radius:16px; padding:18px; text-align:center; font-size:13px; color:var(--text-dim); }
+.pc-privacy { margin:14px 0; border:1px solid var(--border-soft); background:rgba(120,120,120,.06); border-radius:14px; padding:12px; font-size:12px; line-height:1.9; }
+.pc-privacy summary { font-weight:700; cursor:pointer; }
+.pc-privacy p:last-child { margin-bottom:0; }
+.pc-messages { display:flex; flex-direction:column; gap:12px; padding:12px 0 18px; min-height:180px; }
+.pc-message { max-width:92%; min-width:90px; padding:11px 13px; border-radius:16px; overflow-wrap:anywhere; border:1px solid var(--border-soft); }
+.pc-message.mine { align-self:flex-start; background:rgba(255,115,20,.13); border-top-right-radius:4px; }
+.pc-message.theirs { align-self:flex-end; background:var(--bg-deep-2); border-top-left-radius:4px; }
+.pc-author { display:block; font-size:10px; color:var(--text-dim); margin-bottom:4px; }
+.pc-message-text { white-space:pre-wrap; margin:0 0 6px; font-size:14px; line-height:1.9; unicode-bidi:plaintext; }
+.pc-message-text a { overflow-wrap:anywhere; text-decoration:underline; }
+.pc-link-host { display:block; font-size:10px; opacity:.85; margin-top:2px; }
+.pc-message time { display:block; font-size:10px; opacity:.65; text-align:end; }
+.pc-compose { padding:14px; border-radius:18px; margin-bottom:12px; }
+.pc-compose label { display:block; font-size:13px; font-weight:700; margin-bottom:8px; }
+.pc-compose textarea { width:100%; box-sizing:border-box; resize:vertical; min-height:88px; border:1px solid var(--border-soft); border-radius:12px; padding:12px; color:var(--text-primary); background:rgba(120,120,120,.08); line-height:1.7; font-size:16px; }
+.pc-compose-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0; }
+.pc-compose-row .btn { min-width:100px; min-height:44px; }
+.pc-compose small { font-size:11px; color:var(--text-dim); line-height:1.7; }
+.pc-role-panel { padding:15px; border-radius:18px; font-size:13px; line-height:1.8; }
+.pc-role-panel label { display:block; margin:12px 0 6px; font-weight:700; }
+.pc-role-panel input, .pc-role-panel select { display:block; width:100%; box-sizing:border-box; min-height:46px; border:1px solid var(--border-soft); border-radius:12px; background:var(--bg-deep-2); color:var(--text-primary); padding:10px; }
+.pc-role-panel .btn { margin-top:12px; min-height:44px; width:100%; }
+.pc-role-row { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:12px; padding:12px; border:1px solid var(--border-soft); border-radius:12px; }
+.pc-role-row > div { flex:1; min-width:150px; overflow-wrap:anywhere; }
+.pc-role-row small { display:block; color:var(--text-dim); }
+.pc-role-row button { min-height:40px; }
+.pc-role-success { color:var(--success,#85dfa5); }
+
+.pc-directory-counts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:16px 0; }
+.pc-directory-counts>div { display:grid; gap:4px; text-align:center; padding:14px 8px; background:rgba(120,120,120,.08); border-radius:12px; }
+.pc-directory-counts b { font-size:24px; color:var(--accent-text,#ff791b); }
+.pc-directory-counts span { font-size:11px; color:var(--text-dim); }
+.pc-directory-search { margin:16px 0; }
+.pc-directory-search .pc-small { margin-top:12px; }
+.pc-role-editor { flex-basis:100%; min-width:0; padding:14px; margin:20px 0; border:1px solid var(--accent,#ff791b); border-radius:14px; }
+.pc-role-editor p { overflow-wrap:anywhere; }
+.pc-role-editor .pc-small { margin-top:8px; width:100%; }
