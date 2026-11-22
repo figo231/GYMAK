@@ -364,3 +364,21 @@ button.p-tab:focus-visible, .hist-btn:focus-visible, .hist-more:focus-visible, .
 .hist-btn.danger { color: var(--danger); }
 .hist-btn:active { transform: scale(.92); }
 .hist-more { width: 100%; margin: 4px 0 16px; }
+
+/* ===== Measurements ===== */
+.ms-tiles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.ms-tile { padding: 11px 10px; min-width: 0; }
+.ms-tile-label { font-size: 11px; font-weight: 700; color: var(--text-dim); }
+.ms-tile-val { font-size: 19px; font-weight: 900; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.ms-tile-val small { font-size: 10px; font-weight: 700; color: var(--text-dim); }
+.ms-tile-delta { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 10.5px; font-weight: 800; margin-top: 3px; color: var(--text-secondary); }
+.ms-tile-delta.good { color: var(--success); }
+.ms-tile-delta.warn { color: var(--warn-text); }
+.ms-spark { opacity: .8; flex-shrink: 0; }
+.ms-card { padding: 14px; margin-bottom: 12px; }
+.ms-card-title { font-weight: 800; font-size: 14px; margin-bottom: 10px; }
+.ms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ms-delta-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; }
+.ms-delta-row + .ms-delta-row { border-top: 1px solid rgba(var(--ink), .05); }
+.ms-delta-row .ms-tile-delta { margin: 0; font-size: 13px; }
+.edit-field input[aria-invalid="true"] { border-color: var(--danger); }
