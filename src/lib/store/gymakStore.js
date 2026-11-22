@@ -1160,6 +1160,17 @@ const KEY = "gymak_state_v1";
       return load().goalWeight;
     },
 
+    getGoalDeadline() {
+      return load().goalDeadline || null;
+    },
+
+    setGoalDeadline(iso) {
+      const s = load();
+      s.goalDeadline = iso && /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
+      save(s);
+      return s.goalDeadline;
+    },
+
     setGoalWeight(kg) {
       const s = load();
       const n = Number(kg);

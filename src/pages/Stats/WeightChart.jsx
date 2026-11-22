@@ -8,7 +8,7 @@ const TONE = {
   neutral: { color: "var(--text-dim)", bg: "rgba(var(--ink), 0.07)" },
 };
 
-export default function WeightChart({ history, goal = null, periodLabel = "" }) {
+export default function WeightChart({ history, goal = null, goalTo = null, periodLabel = "" }) {
   const unit = Store.unitLabel();
   const disp = (kg) => Store.toDisplayWeight(kg);
   if (history.length < 2) {
@@ -31,9 +31,13 @@ export default function WeightChart({ history, goal = null, periodLabel = "" }) 
   const hi = Math.max(...weights, ...(goalIn != null ? [goalIn] : []));
   const range = hi - lo || 1;
   const W = 320, H = 120, pad = 10;
-  const fr = timeFractions(history.map((h) => h.date));
+  // When a deadline exists the x-domain extends to it, so the trajectory to
+  // the goal is drawn inside the same time scale as the real history.
+  const xDates = goalTo ? history.map((h) => h.date).concat([goalTo.date]) : history.map((h) => h.date);
+  const fr = timeFractions(xDates);
   const yOf = (w) => pad + (1 - (w - lo) / range) * (H - pad * 2);
   const pts = weights.map((w, i) => [fr[i] * W, yOf(w)]);
+  const goalPt = goalTo ? [fr.at(-1) * W, yOf(goalTo.weight)] : null;
   const linePath = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
   const areaPath = linePath + ` L${W},${H} L0,${H} Z`;
   const lastPt = pts.at(-1);
@@ -63,8 +67,14 @@ export default function WeightChart({ history, goal = null, periodLabel = "" }) 
           {[0.25, 0.5, 0.75].map((f) => (
             <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} stroke="var(--border-soft)" strokeWidth="1" strokeDasharray="3 4" />
           ))}
-          {goalIn != null && (
+          {goalIn != null && !goalPt && (
             <line x1="0" x2={W} y1={yOf(goalIn)} y2={yOf(goalIn)} stroke="var(--success)" strokeWidth="1.2" strokeDasharray="5 4" opacity="0.8" />
+          )}
+          {goalPt && (
+            <>
+              <line x1={lastPt[0]} y1={lastPt[1]} x2={goalPt[0]} y2={goalPt[1]} stroke="var(--success)" strokeWidth="1.6" strokeDasharray="5 4" opacity="0.9" />
+              <circle cx={goalPt[0]} cy={goalPt[1]} r="3.6" fill="var(--success)" />
+            </>
           )}
           <path d={areaPath} fill="url(#wArea)" />
           <path d={linePath} fill="none" stroke="var(--glow-blue)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />

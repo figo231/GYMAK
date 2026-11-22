@@ -7,6 +7,7 @@ import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { localISO, shiftISO } from "../../lib/dateKey";
 import { PERIODS, arDate, capPct, fmtVolume, signed, weightTone } from "../../lib/stats/format";
 import WeightChart from "./WeightChart";
+import GoalCard, { goalTrajectory } from "./GoalCard";
 import WeeklyCard from "./WeeklyCard";
 import TrendChart from "./TrendChart";
 import { loadMeasures, FIELDS } from "../../lib/measure/measure";
@@ -165,7 +166,8 @@ export default function Stats() {
           </>)}
           {view === "body" && (<>
           <SectionTitle title="تطور الوزن" sub={period.long} />
-          <WeightChart history={history} goal={goal} periodLabel={period.long} />
+          <GoalCard history={history} />
+          <WeightChart history={history} goal={goal} goalTo={goalTrajectory(history, goal, Store.getGoalDeadline())} periodLabel={period.long} />
 
           {measureFields.length > 0 && (
             <>
