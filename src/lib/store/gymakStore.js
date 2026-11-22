@@ -18,6 +18,10 @@ const KEY = "gymak_state_v1";
     return localISO(); // YYYY-MM-DD, local calendar day
   }
 
+  // Strictly increasing so same-millisecond logs keep their order.
+  let lastStamp = 0;
+  function nextLogStamp() { lastStamp = Math.max(Date.now(), lastStamp + 1); return lastStamp; }
+
   function daysBetween(a, b) {
     const d1 = new Date(a + "T00:00:00");
     const d2 = new Date(b + "T00:00:00");
@@ -840,17 +844,48 @@ const KEY = "gymak_state_v1";
     },
 
     // ===== Weight =====
-    addWeight(weight, bodyFat) {
+    // Weighing in is not a workout: it must not touch the streak or workout days.
+    // weight in kg. bodyFat blank/null = not measured (never copied from an older day).
+    saveWeight(weight, bodyFat, date) {
+      const w = Number(weight);
+      if (!(w >= 20 && w <= 400)) return { ok: false, error: "weight" };
+      const hasBf = bodyFat != null && bodyFat !== "";
+      const bf = hasBf ? Number(bodyFat) : null;
+      if (hasBf && !(bf >= 2 && bf <= 70)) return { ok: false, error: "bodyFat" };
       const s = load();
       const today = todayISO();
-      const existingIdx = s.weightLogs.findIndex((w) => w.date === today);
-      const entry = { date: today, weight: Number(weight), bodyFat: bodyFat != null ? Number(bodyFat) : (s.weightLogs.at(-1)?.bodyFat ?? null) };
+      const day = date || today;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day > today) return { ok: false, error: "date" };
+      const existingIdx = s.weightLogs.findIndex((x) => x.date === day);
+      const prev = existingIdx >= 0 ? { ...s.weightLogs[existingIdx] } : null;
+      const entry = { date: day, weight: w, bodyFat: bf };
       if (existingIdx >= 0) s.weightLogs[existingIdx] = entry;
       else s.weightLogs.push(entry);
       s.weightLogs.sort((a, b) => (a.date > b.date ? 1 : -1));
-      this._markWorkoutDay(s, today);
+      this._untomb(s, "weight", day);
       save(s);
-      return s;
+      return { ok: true, date: day, prev };
+    },
+    undoSaveWeight(res) {
+      if (!res || !res.ok) return false;
+      if (res.prev) return this.restore({ kind: "weight-edit", entry: res.prev });
+      return !!this.deleteWeightEntry(res.date);
+    },
+    addWeight(weight, bodyFat) {
+      this.saveWeight(weight, bodyFat);
+      return load();
+    },
+
+    /** Last real body-fat reading and the first day of that value (older builds copied it forward). */
+    getLatestBodyFat() {
+      const logs = load().weightLogs;
+      let i = logs.length - 1;
+      while (i >= 0 && logs[i].bodyFat == null) i--;
+      if (i < 0) return null;
+      const value = logs[i].bodyFat;
+      let j = i;
+      while (j > 0 && logs[j - 1].bodyFat === value) j--;
+      return { value, date: logs[j].date };
     },
 
     getLatestWeight() {
@@ -869,7 +904,8 @@ const KEY = "gymak_state_v1";
         if (w.date <= weekAgoTarget) ref = w;
       }
       if (!ref) ref = s.weightLogs[0];
-      return { diff: +(latest.weight - ref.weight).toFixed(1), from: ref.weight, to: latest.weight };
+      if (ref === latest) return null;
+      return { diff: +(latest.weight - ref.weight).toFixed(1), from: ref.weight, to: latest.weight, span: daysBetween(ref.date, latest.date) };
     },
 
     // ===== Exercises =====
@@ -881,7 +917,7 @@ const KEY = "gymak_state_v1";
       const prevMax = prevLogs.reduce((m, l) => Math.max(m, l.weight), 0);
       if (!s.exerciseLogs[exerciseId]) s.exerciseLogs[exerciseId] = [];
       const awarded = this._awardDailyXP(s, today);
-      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps), ...(awarded ? { xp: true } : {}) });
+      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps), at: nextLogStamp(), ...(awarded ? { xp: true } : {}) });
       if (w > prevMax && prevLogs.length > 0) {
         const ex = (s.exercises || []).find((e) => e.id === exerciseId);
         s.prHistory.unshift({
@@ -1128,7 +1164,7 @@ const KEY = "gymak_state_v1";
       for (const w of s.weightLogs) { if (w.date <= target) ref = w; }
       if (!ref) ref = s.weightLogs[0];
       if (ref === latest) return null;
-      return { diff: +(latest.weight - ref.weight).toFixed(1), from: ref.weight, to: latest.weight };
+      return { diff: +(latest.weight - ref.weight).toFixed(1), from: ref.weight, to: latest.weight, span: daysBetween(ref.date, latest.date) };
     },
 
     getWeightHistory(limit = 12) {
@@ -1349,16 +1385,17 @@ const KEY = "gymak_state_v1";
       const rows = [];
       Object.keys(s.exerciseLogs).forEach((exerciseId) => {
         const ex = normalizeExercise((s.exercises || []).find((e) => e.id === exerciseId));
-        (s.exerciseLogs[exerciseId] || []).forEach((l) => {
+        (s.exerciseLogs[exerciseId] || []).forEach((l, li) => {
           rows.push({
-            exerciseId, date: l.date, weight: l.weight, sets: l.sets, reps: l.reps, unit: ex ? ex.unit : "reps",
+            exerciseId, li, at: l.at || 0, date: l.date, weight: l.weight, sets: l.sets, reps: l.reps, unit: ex ? ex.unit : "reps",
             name: ex ? ex.name : exerciseId,
             muscle: ex ? ex.muscle : "chest",
             muscleLabel: ex ? ex.muscleLabel : "",
           });
         });
       });
-      rows.sort((a, b) => (a.date < b.date ? 1 : -1));
+      // Newest day first. Within a day the log order is not comparable across exercises, so keep it stable.
+      rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (b.at - a.at) || (b.li - a.li)));
       return rows.slice(0, limit);
     },
 

@@ -1,0 +1,58 @@
+// Pure helpers for the home page (Dashboard).
+import { localISO, shiftISO } from "./dateKey";
+import { weightTone } from "./stats/format";
+
+export const WEIGHT_RANGE_KG = [20, 400];
+export const BODYFAT_RANGE = [2, 70];
+
+// Parses what the user typed into the weight sheet. weightKg is converted already.
+export function parseWeightForm({ weight, bodyFat, date }, fromDisplay, today = localISO()) {
+  const w = parseFloat(weight);
+  if (!Number.isFinite(w)) return { ok: false, error: "اكتب وزنك." };
+  const kg = fromDisplay(w);
+  if (!(kg >= WEIGHT_RANGE_KG[0] && kg <= WEIGHT_RANGE_KG[1])) {
+    return { ok: false, error: `الوزن لازم يكون بين ${WEIGHT_RANGE_KG[0]} و ${WEIGHT_RANGE_KG[1]} كجم.` };
+  }
+  let bf = null;
+  if (bodyFat !== "" && bodyFat != null) {
+    bf = parseFloat(bodyFat);
+    if (!(bf >= BODYFAT_RANGE[0] && bf <= BODYFAT_RANGE[1])) return { ok: false, error: `نسبة الدهون لازم تكون بين ${BODYFAT_RANGE[0]} و ${BODYFAT_RANGE[1]}%.` };
+  }
+  const day = date || today;
+  if (day > today) return { ok: false, error: "مينفعش تسجّل وزن في تاريخ لسه ماجاش." };
+  return { ok: true, kg, bodyFat: bf, date: day };
+}
+
+// "النهارده" / "امبارح" / "من 3 أيام" / "من أسبوع" ...
+export function relDayAr(iso, today = localISO()) {
+  if (!iso) return "";
+  const n = Math.round((Date.UTC(...today.split("-").map((v, i) => (i === 1 ? +v - 1 : +v))) - Date.UTC(...iso.split("-").map((v, i) => (i === 1 ? +v - 1 : +v)))) / 86400000);
+  if (n <= 0) return "النهارده";
+  if (n === 1) return "امبارح";
+  if (n === 2) return "من يومين";
+  if (n <= 10) return `من ${n} أيام`;
+  if (n < 14) return `من ${n} يوم`;
+  if (n < 30) return n < 21 ? "من أسبوعين" : `من ${Math.round(n / 7)} أسابيع`;
+  if (n < 60) return "من شهر";
+  return `من ${Math.round(n / 30)} شهور`;
+}
+
+// View model for the weight-change chip/card. diff is in kg; convert for display.
+export function weightChangeView(info, { goal, toDisplay, unit, window = 7 }) {
+  if (!info || !Number.isFinite(info.diff) || !info.span || info.span < 1) return null;
+  const d = toDisplay(info.to) - toDisplay(info.from);
+  const diff = +d.toFixed(1);
+  const base = window === 7 ? "هذا الأسبوع" : "الشهر";
+  const within = info.span <= window + 1;
+  const label = within ? base : `من ${info.span} ${info.span <= 10 ? "أيام" : "يوم"}`;
+  const tone = diff === 0 ? "neutral" : weightTone(info.diff, info.from, goal);
+  return { diff, abs: Math.abs(diff), dir: diff > 0 ? "up" : diff < 0 ? "down" : "flat", tone, label, unit, text: diff === 0 ? `ثابت ${label}` : `${Math.abs(diff).toFixed(1)} ${unit} ${label}` };
+}
+
+export function streakAtRisk(streak, week) {
+  if (!streak || !week || !week.length) return false;
+  return !week[week.length - 1].done;
+}
+
+export function logUnitText(r) { return r.unit === "sec" ? "ثانية" : "تكرار"; }
+export function logLoadText(r, fmtW) { return r.weight > 0 ? fmtW(r.weight) : r.unit === "sec" ? "بدون وزن" : "وزن الجسم"; }

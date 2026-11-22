@@ -125,3 +125,21 @@ html.pro-ui .send-btn svg, html.pro-ui .coach-ic svg { stroke: var(--on-acc); }
 html.pro-ui .toast { border: 1px solid rgba(var(--acc-rgb), .35); }
 html.pro-ui .badge-card.locked { opacity: .55; }
 html.pro-ui .pwa-update-toast { border-color: rgba(var(--acc-rgb), .4); }
+
+/* ===== Home page polish ===== */
+html.pro-ui .weight-diff.tone-good { color: var(--lime); background: var(--lime-bg); }
+html.pro-ui .weight-diff.tone-bad { color: var(--danger); background: rgba(244, 63, 94, .12); }
+html.pro-ui .weight-diff.tone-neutral { color: var(--text-secondary); background: rgba(var(--ink), .06); }
+.inbody-val small { margin-inline-start: 2px; }
+.inbody-sub { font-size: 9.5px; color: var(--text-dim); font-weight: 600; margin-top: 3px; line-height: 1.3; }
+.streak-warn { margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--accent-text-soft); line-height: 1.4; }
+.tap { cursor: pointer; }
+.tap:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--glow-blue); outline-offset: 2px; border-radius: 10px; }
+.bell-dot { position: absolute; top: 7px; inset-inline-end: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--bg-deep-2, #0b0b0f); }
+.start-card { padding: 14px; margin-bottom: 12px; }
+.start-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; }
+.start-step { display: flex; align-items: center; gap: 10px; padding: 9px 0; text-decoration: none; color: inherit; cursor: pointer; }
+.start-step + .start-step { border-top: 1px solid var(--border-soft); }
+.start-n { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border-soft); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--text-secondary); flex-shrink: 0; }
+.start-n.done { background: var(--success); border-color: var(--success); color: #fff; }
+.start-t { font-size: 13px; font-weight: 700; }

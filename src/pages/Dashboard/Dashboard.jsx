@@ -4,16 +4,21 @@ import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { usePrompt } from "../../hooks/useDialog";
+import { useToast } from "../../hooks/useToast";
+import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, xpToNext, exercisesWord } from "../../lib/profileLogic";
+import { parseWeightForm, relDayAr, weightChangeView, streakAtRisk, logUnitText, logLoadText } from "../../lib/homeLogic";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
 import WaterCard from "./WaterCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 
+const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
 const DAY_LETTERS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]; // Sun..Sat
 
 export default function Dashboard() {
   const [version, refresh] = useStoreVersion();
   const promptAsync = usePrompt();
+  const toast = useToast();
   const [showWeightSheet, setShowWeightSheet] = useState(false);
 
   const data = useMemo(() => {
@@ -27,6 +32,8 @@ export default function Dashboard() {
       week: Store.getLast7DaysStatus(),
       goal: Store.getGoalWeight(),
       monthDiff: Store.getWeightDiffOverDays(30),
+      bodyFat: Store.getLatestBodyFat(),
+      hasProgram: !!Store.getActiveProgram(),
       bmi: Store.getBMI(),
       recent: Store.getRecentExerciseLogs(3),
       todayList: Store.getTodayPlanIds().map((id) => Store.getExerciseById(id)).filter(Boolean).map((ex) => ({ ex, done: Store.isLoggedToday(ex.id) })),
@@ -41,47 +48,48 @@ export default function Dashboard() {
     };
   }, [version]);
 
-  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd } = data;
+  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd, bodyFat, hasProgram } = data;
 
   async function handleBMIClick() {
     const current = Store.getProfile().heightCm;
-    const val = await promptAsync({
-      title: "اكتب طولك بالسنتيمتر (لحساب BMI):",
-      inputType: "number",
-      defaultValue: current || "",
-    });
-    if (val && !isNaN(parseFloat(val))) {
-      Store.setHeight(parseFloat(val));
-      refresh();
-    }
+    const val = await promptAsync({ title: "اكتب طولك بالسنتيمتر (لحساب BMI):", inputType: "number", defaultValue: current || "" });
+    if (val === null || val === undefined || val === "") return;
+    const n = parseFloat(val);
+    if (!validHeight(n)) { toast(`الطول لازم يكون بين ${HEIGHT_RANGE[0]} و ${HEIGHT_RANGE[1]} سم.`); return; }
+    Store.setHeight(n); refresh();
   }
 
   async function handleGoalClick() {
     const currentKg = Store.getGoalWeight();
     const currentDisp = currentKg != null ? Store.toDisplayWeight(currentKg) : "";
-    const val = await promptAsync({
-      title: `اكتب وزنك المستهدف (${Store.unitLabel()}):`,
-      inputType: "number",
-      defaultValue: currentDisp,
-    });
-    if (val && !isNaN(parseFloat(val))) {
-      Store.setGoalWeight(Store.fromDisplayWeight(parseFloat(val)));
-      refresh();
-    }
+    const val = await promptAsync({ title: `اكتب وزنك المستهدف (${Store.unitLabel()}):`, inputType: "number", defaultValue: currentDisp });
+    if (val === null || val === undefined || val === "") return;
+    const kg = Store.fromDisplayWeight(parseFloat(val));
+    if (!validGoalKg(kg)) { toast(`الوزن المستهدف لازم يكون بين ${GOAL_RANGE_KG[0]} و ${GOAL_RANGE_KG[1]} كجم.`); return; }
+    Store.setGoalWeight(kg); refresh();
   }
 
-  function handleWeightSave(wDisplay, bf) {
-    Store.addWeight(Store.fromDisplayWeight(wDisplay), bf);
+  // Returns an error string for the sheet, or null when saved.
+  function handleWeightSave(form) {
+    const r = parseWeightForm(form, (v) => Store.fromDisplayWeight(v));
+    if (!r.ok) return r.error;
+    const res = Store.saveWeight(r.kg, r.bodyFat, r.date);
+    if (!res.ok) return "مقدرناش نحفظ الوزن. راجع الأرقام.";
     setShowWeightSheet(false);
     refresh();
+    toast("اتسجّل الوزن ✅", { action: { label: "تراجع", onClick: () => { Store.undoSaveWeight(res); refresh(); } }, duration: 5000 });
+    return null;
   }
 
-  const diffDown = diffInfo ? diffInfo.diff < 0 : false;
-  const diffText = !diffInfo
-    ? ""
-    : diffInfo.diff !== 0
-    ? `${Math.abs(diffInfo.diff).toFixed(1)} هذا الأسبوع`
-    : "ثابت هذا الأسبوع";
+  const unit = Store.unitLabel();
+  const weekView = weightChangeView(diffInfo, { goal, toDisplay: Store.toDisplayWeight.bind(Store), unit, window: 7 });
+  const monthView = weightChangeView(monthDiff, { goal, toDisplay: Store.toDisplayWeight.bind(Store), unit, window: 30 });
+  const toneColor = (tone) => (tone === "good" ? "var(--success)" : tone === "bad" ? "var(--danger)" : undefined);
+  const xp = xpToNext(profile);
+  const atRisk = streakAtRisk(streak, week);
+  const today = localISO();
+  const bmiCat = bmiCategory(bmi);
+  const notifOff = typeof Notification !== "undefined" && Notification.permission === "default";
 
   return (
     <>
@@ -95,14 +103,31 @@ export default function Dashboard() {
           <p className="header-sub">
             <span>{fmt(profile.xp)} / {fmt(profile.xpNext)} XP</span>
             <span style={{ color: "var(--text-dim)" }}>·</span>
-            <span>باقي {fmt(profile.xpNext - profile.xp)} للمستوى {profile.level + 1}</span>
+            <span>{xp.capped ? "وصلت سقف الـXP النهارده" : `فاضل ${xp.exercises} ${exercisesWord(xp.exercises)} للمستوى ${xp.nextLevel}`}</span>
           </p>
           <div className="xp-track"><div className="xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
         </div>
-        <Link to="/profile?notif=1" className="header-icon-btn" style={{ textDecoration: "none" }} aria-label="الإشعارات">
+        <Link to="/profile?notif=1" className="header-icon-btn" aria-label={notifOff ? "الإشعارات (غير مفعّلة)" : "الإشعارات"} style={{ textDecoration: "none", position: "relative" }}>
+          {notifOff && <span className="bell-dot" />}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
         </Link>
       </div>
+
+      {recent.length === 0 && (
+        <div className="glass start-card" data-testid="start-card">
+          <div className="start-title">ابدأ في 3 خطوات</div>
+          {[
+            { done: !!latest, text: "سجّل وزنك", onClick: () => setShowWeightSheet(true) },
+            { done: !!hasProgram, text: "اختار برنامج", to: "/programs" },
+            { done: false, text: "سجّل أول تمرين", to: "/exercises" },
+          ].map((s, i) => {
+            const inner = (<><span className={"start-n" + (s.done ? " done" : "")}>{s.done ? "✓" : i + 1}</span><span className="start-t">{s.text}</span></>);
+            return s.to
+              ? <Link key={i} to={s.to} className="start-step">{inner}</Link>
+              : <div key={i} className="start-step" {...press(s.onClick)}>{inner}</div>;
+          })}
+        </div>
+      )}
 
       <div className="glass streak-card">
         <div className="streak-flame">
@@ -120,19 +145,20 @@ export default function Dashboard() {
         <div className="streak-body">
           <div className="streak-num-row">
             <span className="streak-num">{streak}</span>
-            <span className="streak-label">يوم متتالي</span>
+            <span className="streak-label">{streak === 0 ? "ابدأ سلسلتك النهارده" : "يوم متتالي"}</span>
           </div>
           <div className="streak-week">
             {week.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
               const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")}>{DAY_LETTERS[dow]}</div>;
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "اتمرنت" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>
+          {atRisk && <div className="streak-warn">سجّل تمرين النهارده عشان سلسلة الـ{streak} {streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"} متتقطعش</div>}
         </div>
         <div className="streak-record">
           <span className="rec-num">{best}</span>
-          <span className="rec-txt">أعلى رقم</span>
+          <span className="rec-txt">أطول سلسلة</span>
         </div>
       </div>
 
@@ -143,16 +169,16 @@ export default function Dashboard() {
               <span className="weight-num">{latest ? Store.toDisplayWeight(latest.weight) : "—"}</span>
               <span className="weight-unit">{Store.unitLabel()}</span>
             </div>
-            {diffInfo && (
-              <span className={"weight-diff" + (diffDown ? " down" : " up")}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 4v16M6 14l6 6 6-6" /></svg>
-                <span>{diffText}</span>
+            {weekView && (
+              <span className={"weight-diff tone-" + weekView.tone} dir="rtl">
+                {weekView.dir !== "flat" && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: weekView.dir === "up" ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>}
+                <span>{weekView.text}</span>
               </span>
             )}
           </div>
           <div className="weight-meta">
-            <div className="weight-meta-row"><span>الدهون</span><span>{latest && latest.bodyFat != null ? latest.bodyFat + "%" : "—"}</span></div>
-            <div className="weight-meta-row" style={{ cursor: "pointer" }} onClick={handleGoalClick}>
+            <div className="weight-meta-row"><span>الدهون</span><span>{bodyFat ? <bdi dir="ltr">{bodyFat.value}%</bdi> : "—"}</span></div>
+            <div className="weight-meta-row tap" {...press(handleGoalClick)} aria-label="غيّر الوزن المستهدف">
               <span>الهدف</span><span>{goal != null ? Store.formatWeight(goal) : "—"}</span>
             </div>
           </div>
@@ -165,7 +191,7 @@ export default function Dashboard() {
             </div>
             <span>تسجيل تمرين</span>
           </Link>
-          <div className="glass qa-tile" style={{ cursor: "pointer" }} onClick={() => setShowWeightSheet(true)}>
+          <div className="glass qa-tile" style={{ cursor: "pointer" }} {...press(() => setShowWeightSheet(true))}>
             <div className="qa-tile-icon" style={{ background: "rgba(255, 148, 87, 0.14)" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" /><path d="M12 8v4l3 2" /></svg>
             </div>
@@ -177,29 +203,32 @@ export default function Dashboard() {
       <WaterCard />
 
       <div className="section-title">
-        <h2>قياسات الجسم</h2>
-        <Link to="/stats">
-          التفاصيل
+        <h2>مؤشرات الجسم</h2>
+        <Link to="/measurements">
+          المقاسات
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
       </div>
       <div className="inbody-grid">
         <div className="glass inbody-card">
-          <span className="inbody-val">{latest && latest.bodyFat != null ? <>{latest.bodyFat}<small>%</small></> : "—"}</span>
+          <span className="inbody-val">{bodyFat ? <bdi dir="ltr">{bodyFat.value}<small>%</small></bdi> : "—"}</span>
           <div className="inbody-name">دهون الجسم</div>
+          <div className="inbody-sub">{bodyFat ? `آخر قياس ${relDayAr(bodyFat.date, today)}` : "لسه مسجلتش"}</div>
         </div>
         <div className="glass inbody-card">
-          <span className="inbody-val" style={{ color: monthDiff ? (monthDiff.diff > 0 ? "var(--danger)" : monthDiff.diff < 0 ? "var(--success)" : undefined) : undefined }}>
-            {monthDiff && monthDiff.diff !== 0 && (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: monthDiff.diff > 0 ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>
+          <span className="inbody-val" style={{ color: monthView ? toneColor(monthView.tone) : undefined }} dir="ltr">
+            {monthView && monthView.dir !== "flat" && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: monthView.dir === "up" ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>
             )}
-            {monthDiff ? (monthDiff.diff > 0 ? "+" : "") + monthDiff.diff : "—"}
+            {monthView ? <>{monthView.diff > 0 ? "+" : ""}{monthView.diff}<small>{unit}</small></> : "—"}
           </span>
-          <div className="inbody-name">تغيّر الشهر</div>
+          <div className="inbody-name">{monthView ? (monthView.label === "الشهر" ? "تغيّر الشهر" : `تغيّر ${monthView.label}`) : "تغيّر الوزن"}</div>
+          {!monthView && <div className="inbody-sub">سجّل وزنك مرتين</div>}
         </div>
-        <div className="glass inbody-card" style={{ cursor: "pointer" }} onClick={handleBMIClick}>
+        <div className="glass inbody-card tap" {...press(handleBMIClick)} aria-label="BMI، دوس لتحديد طولك">
           <span className="inbody-val">{bmi != null ? bmi : "حدد طولك"}</span>
           <div className="inbody-name">BMI</div>
+          <div className="inbody-sub">{bmi != null ? `${bmiCat} · ${Store.getProfile().heightCm} سم` : "عشان نحسبه"}</div>
         </div>
       </div>
 
@@ -261,10 +290,10 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="plan-name">{r.name}</div>
-                  <div className="plan-sub">{r.muscleLabel} · <bdi dir="ltr">{r.sets}×{r.reps}</bdi> {r.unit === "sec" ? "ثانية" : "تكرار"}</div>
+                  <div className="plan-sub">{relDayAr(r.date, today)} · {r.muscleLabel} · <bdi dir="ltr">{r.sets}×{r.reps}</bdi> {logUnitText(r)}</div>
                 </div>
               </div>
-              <span className="plan-weight">{Store.formatWeight(r.weight)}</span>
+              <span className="plan-weight">{logLoadText(r, (w) => Store.formatWeight(w))}</span>
             </div>
           ))
         )}
@@ -273,7 +302,7 @@ export default function Dashboard() {
       {showWeightSheet && (
         <WeightLogSheet
           initialWeight={latest ? Store.toDisplayWeight(latest.weight) : ""}
-          initialBodyFat={latest && latest.bodyFat != null ? latest.bodyFat : ""}
+          lastBodyFat={bodyFat ? bodyFat.value : null}
           unitLabel={Store.unitLabel()}
           onClose={() => setShowWeightSheet(false)}
           onSave={handleWeightSave}

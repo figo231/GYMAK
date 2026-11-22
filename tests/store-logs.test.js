@@ -106,6 +106,8 @@ describe("food log", () => {
 describe("basics", () => {
   it("counts a streak and daily calorie target", () => {
     S.addWeight(80);
+    expect(S.getStreak()).toBe(0); // a weigh-in is not a workout
+    S.logSet("bench", 50, 3, 10);
     expect(S.getStreak()).toBe(1);
     expect(S.getDailyCalorieTarget()).toBe(2560);
   });
