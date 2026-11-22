@@ -142,3 +142,9 @@ export function getExerciseFrames(id) {
   const k = IMAGE_IDS[id];
   return k ? [BASE + k + "/0.jpg", BASE + k + "/1.jpg"] : null;
 }
+
+// English search terms for a built-in exercise (derived from the image slug).
+export function getExerciseEnglish(id) {
+  const k = IMAGE_IDS[id];
+  return k ? k.replace(/_/g, " ").replace(/-/g, " ") : "";
+}

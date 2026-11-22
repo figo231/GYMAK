@@ -4,8 +4,9 @@ import ExerciseThumb from "./ExerciseThumb";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
 import { useI18n } from "../../hooks/useI18n";
+import { unitLabel, setsRepsText } from "../../lib/exerciseMeta";
 
-export default function ExerciseCard({ ex, meta, onDeleted }) {
+export default function ExerciseCard({ ex, meta, fav, onToggleFav, onDeleted }) {
   const navigate = useNavigate();
   const confirmAsync = useConfirm();
   const { lang } = useI18n();
@@ -14,12 +15,10 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
   const start = useRef({ x: 0, y: 0 });
 
   const last = Store.getLastExerciseLog(ex.id);
-  const setsLabel = last ? `${last.sets}×${last.reps}` : `${ex.sets}×${ex.reps}`;
-  const lastLabel = last ? `آخر مرة ${last.weight} كجم` : "لسه ما اتسجلش";
+  const setsLabel = last ? setsRepsText(last.sets, last.reps) : setsRepsText(ex.sets, ex.reps);
 
   async function runDelete() {
-    const name = ex.name;
-    const msg = lang === "en" ? `Delete "${name}"?` : `تحذف "${name}" نهائيًا من قائمة تمارينك؟`;
+    const msg = lang === "en" ? `Delete "${ex.name}"?` : `تحذف "${ex.name}" نهائيًا من قائمة تمارينك؟`;
     const ok = await confirmAsync({ title: msg, danger: true, confirmLabel: "حذف", cancelLabel: "إلغاء" });
     if (ok) {
       Store.deleteExercise(ex.id);
@@ -38,7 +37,7 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
       longPressFired.current = true;
       if (navigator.vibrate) navigator.vibrate(25);
       runDelete();
-    }, 550);
+    }, 650);
   }
 
   function onPointerMove(e) {
@@ -52,13 +51,14 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
       longPressFired.current = false;
       return;
     }
+    e.preventDefault();
     navigate(`/exercise/${encodeURIComponent(ex.id)}`);
   }
 
-  async function onDeleteTap(e) {
+  function onFavTap(e) {
     e.preventDefault();
     e.stopPropagation();
-    await runDelete();
+    onToggleFav?.(ex.id);
   }
 
   return (
@@ -71,29 +71,37 @@ export default function ExerciseCard({ ex, meta, onDeleted }) {
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
       onPointerCancel={cancelPress}
+      onContextMenu={(e) => e.preventDefault()}
       onClick={onClick}
     >
       <ExerciseThumb color={meta.color} muscle={ex.muscle} exerciseId={ex.id} />
       <div className="ex-info">
-        {/* JSX escapes ex.name automatically — this is what closes the stored-XSS
-            hole flagged in the Phase 1 audit (the old innerHTML template didn't). */}
+        {/* JSX escapes ex.name automatically (stored-XSS fix from the Phase 1 audit). */}
         <p className="ex-name">{ex.name}</p>
         <div className="ex-tags">
           <span className="badge primary">{ex.muscleLabel}</span>
-          {ex.secondary && <span className="badge secondary">{ex.secondary}</span>}
+          {ex.equipment && <span className="badge secondary">{ex.equipment}</span>}
           {ex.difficulty && (
-            <span className={"difficulty-pill diff-" + (ex.difficulty === "مبتدئ" ? "beg" : ex.difficulty === "متقدم" ? "adv" : "mid")}>
+            <span className={"difficulty-pill diff-" + (ex.difficulty === "مبتدئ" ? "beg" : ex.difficulty === "متقدم" ? "adv" : "mid")} title={ex.difficulty}>
               <span className="difficulty-dot" />{ex.difficulty}
             </span>
           )}
         </div>
       </div>
       <div className="ex-meta">
-        <div className="ex-sets">{setsLabel}</div>
-        <div className="ex-last">{lastLabel}</div>
+        <div className="ex-sets" dir="ltr">{setsLabel}</div>
+        <div className="ex-unit">{unitLabel(ex)}</div>
+        {last && <div className="ex-last">آخر مرة {last.weight} كجم</div>}
       </div>
-      <button type="button" className="ex-delete-btn" aria-label={`حذف ${ex.name}`} onClick={onDeleteTap}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
+      <button
+        type="button"
+        className={"ex-fav-btn" + (fav ? " on" : "")}
+        aria-label={fav ? `شيل ${ex.name} من المفضلة` : `ضيف ${ex.name} للمفضلة`}
+        aria-pressed={!!fav}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={onFavTap}
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
       </button>
     </a>
   );

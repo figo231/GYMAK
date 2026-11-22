@@ -205,7 +205,7 @@ export default function ExerciseDetail() {
               />
             </div>
             <div className="log-field">
-              <div className="log-label">مجموعات × تكرارات</div>
+              <div className="log-label">{exercise && exercise.unit === "sec" ? "مجموعات × ثواني" : "مجموعات × تكرارات"}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <input
                   type="number" value={sets} onChange={(e) => setSets(e.target.value)}

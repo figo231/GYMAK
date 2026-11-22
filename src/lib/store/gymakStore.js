@@ -6,6 +6,7 @@
 import { EXTRA_EXERCISES } from "./extraExercises";
 import { EGYPT_FOODS } from "./egyptFoods";
 import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
+import { normalizeExercise } from "../exerciseMeta";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
    (IIFE -> ES module) so existing users' data loads unchanged. */
@@ -625,7 +626,7 @@ const KEY = "gymak_state_v1";
 
     // ===== Exercise catalog =====
     getExercises() {
-      return mergeExercises(load().exercises || SEED_EXERCISES.slice());
+      return mergeExercises(load().exercises || SEED_EXERCISES.slice()).map(normalizeExercise);
     },
 
     getExerciseById(id) {
@@ -633,7 +634,7 @@ const KEY = "gymak_state_v1";
       return list.find((e) => e.id === id) || null;
     },
 
-    addExercise({ name, muscle, secondary, sets, reps, mediaUrl }) {
+    addExercise({ name, muscle, secondary, sets, reps, mediaUrl, equipment, difficulty, unit }) {
       const s = load();
       if (!s.exercises) s.exercises = SEED_EXERCISES.slice();
       const meta = MUSCLE_META[muscle] || MUSCLE_META.chest;
@@ -643,10 +644,13 @@ const KEY = "gymak_state_v1";
         muscle,
         muscleLabel: meta.label,
         secondary: secondary || "",
-        sets: Number(sets) || 3,
-        reps: Number(reps) || 10,
+        sets: Math.min(20, Math.max(1, Math.round(Number(sets)) || 3)),
+        reps: Math.min(unit === "sec" ? 600 : 100, Math.max(1, Math.round(Number(reps)) || 10)),
         custom: true,
         mediaUrl: (mediaUrl || "").trim() || null,
+        equipment: equipment || "",
+        difficulty: difficulty || "",
+        unit: unit === "sec" ? "sec" : "reps",
       };
       s.exercises.push(ex);
       save(s);
