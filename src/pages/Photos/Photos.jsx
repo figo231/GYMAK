@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DetailTopBar } from "../../components/layout/DetailShell";
+import SectionNav from "../../components/layout/SectionNav";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../hooks/useDialog";
 import { compressImageToBlob } from "../../lib/imageCompress";
@@ -55,7 +55,7 @@ export default function Photos() {
   const chip = (on) => ({ padding: "6px 12px", borderRadius: 999, border: "1px solid var(--border-soft)", background: on ? "rgba(var(--acc-rgb), .18)" : "none", color: "inherit", fontWeight: on ? 800 : 600, fontSize: 12.5, cursor: "pointer" });
   return (
     <>
-      <DetailTopBar backTo="/profile" title="صور التقدم" />
+      <SectionNav group="progress" title="تقدّمي" />
       <div className="glass" style={card}>
         <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8 }}>صورة جديدة</div>
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>

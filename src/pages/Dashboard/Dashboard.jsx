@@ -23,6 +23,7 @@ export default function Dashboard() {
   const toast = useToast();
   const navigate = useNavigate();
   const [showWeightSheet, setShowWeightSheet] = useState(false);
+  const kcalToday = useMemo(() => Store.getTodayFoodLog().totalKcal, [version]);
 
   const data = useMemo(() => {
     const profile = Store.getProfile();
@@ -158,7 +159,7 @@ export default function Dashboard() {
       <div className="today-strip" data-testid="today-strip">
         <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>تمارين</span></Link>
         <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>مياه</span></button>
-        <Link to="/stats" className="ts-item"><b>{setsToday}</b><span>مجموعات</span></Link>
+        <Link to="/food" className="ts-item"><b dir="ltr">{kcalToday}</b><span>سعرات</span></Link>
       </div>
 
       {recent.length === 0 && (

@@ -1,3 +1,4 @@
+import SectionNav from "../../components/layout/SectionNav";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
@@ -77,6 +78,7 @@ export default function Stats() {
 
   return (
     <>
+      <SectionNav group="progress" />
       <div className="page-head">
         <h1 className="page-title">الإحصائيات</h1>
         <div className="page-count">تقدمك خلال {period.long}</div>

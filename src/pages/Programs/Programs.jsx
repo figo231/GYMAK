@@ -7,7 +7,7 @@ import { useConfirm } from "../../hooks/useDialog";
 import { buzz } from "../../lib/haptics";
 import Store from "../../lib/store/gymakStore";
 import { useI18n } from "../../hooks/useI18n";
-import { DetailTopBar } from "../../components/layout/DetailShell";
+import SectionNav from "../../components/layout/SectionNav";
 import ProgramDetailSheet from "./ProgramDetailSheet";
 
 const GOALS = [["all", "الكل"], ["bulk", "تضخيم"], ["cut", "تنشيف"], ["strength", "قوة"], ["fitness", "لياقة"]];
@@ -65,7 +65,7 @@ export default function Programs() {
 
   return (
     <>
-      <DetailTopBar backTo="/profile" />
+      <SectionNav group="train" title="تدريب" />
       <div style={{ margin: "-8px 0 6px" }}>
         <h1 className="page-title" style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>برامج التدريب الجاهزة</h1>
         <div className="page-sub" style={{ fontSize: 11.5, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>اختار برنامج وطبّقه تلقائيًا على جدولك</div>

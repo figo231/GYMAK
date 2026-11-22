@@ -8,7 +8,7 @@ import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm, usePrompt } from "../../hooks/useDialog";
-import { DetailTopBar } from "../../components/layout/DetailShell";
+import SectionNav from "../../components/layout/SectionNav";
 
 const TABS = [
   { id: "workouts", label: "التمارين" },
@@ -85,7 +85,7 @@ export default function History() {
 
   return (
     <>
-      <DetailTopBar backTo="/profile" title="السجل" />
+      <SectionNav group="progress" title="تقدّمي" />
       <div className="period-tabs" role="tablist" aria-label="نوع السجل" style={{ marginTop: 4 }}>
         {TABS.map((t) => (
           <button type="button" role="tab" aria-selected={tab === t.id} key={t.id} className={"p-tab" + (tab === t.id ? " active" : "")} onClick={() => setTab(t.id)}>{t.label}</button>

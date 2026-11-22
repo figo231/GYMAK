@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { DetailTopBar } from "../../components/layout/DetailShell";
+import SectionNav from "../../components/layout/SectionNav";
 import EmptyState from "../../components/ui/EmptyState";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../hooks/useDialog";
@@ -58,7 +58,7 @@ export default function Measurements() {
 
   return (
     <>
-      <DetailTopBar backTo="/profile" title="قياسات الجسم" />
+      <SectionNav group="progress" title="تقدّمي" />
 
       {Object.keys(byField).length > 0 && (
         <div className="ms-tiles">

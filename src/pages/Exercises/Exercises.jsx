@@ -1,3 +1,4 @@
+import SectionNav from "../../components/layout/SectionNav";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
@@ -140,6 +141,7 @@ export default function Exercises() {
 
   return (
     <>
+      <SectionNav group="train" />
       <div className="page-head">
         <div>
           <h1 className="page-title">التمارين</h1>
