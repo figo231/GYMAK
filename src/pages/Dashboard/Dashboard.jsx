@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { localISO } from "../../lib/dateKey";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { usePrompt } from "../../hooks/useDialog";
 import { useToast } from "../../hooks/useToast";
 import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, xpToNext, exercisesWord } from "../../lib/profileLogic";
-import { parseWeightForm, relDayAr, weightChangeView, streakAtRisk, logUnitText, logLoadText } from "../../lib/homeLogic";
+import { buzz } from "../../lib/haptics";
+import { getWater } from "../../lib/water/water";
+import { sparkPoints, heroState, parseWeightForm, relDayAr, weightChangeView, streakAtRisk, logUnitText, logLoadText } from "../../lib/homeLogic";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
 import WaterCard from "./WaterCard";
@@ -19,6 +21,7 @@ export default function Dashboard() {
   const [version, refresh] = useStoreVersion();
   const promptAsync = usePrompt();
   const toast = useToast();
+  const navigate = useNavigate();
   const [showWeightSheet, setShowWeightSheet] = useState(false);
 
   const data = useMemo(() => {
@@ -34,6 +37,8 @@ export default function Dashboard() {
       monthDiff: Store.getWeightDiffOverDays(30),
       bodyFat: Store.getLatestBodyFat(),
       hasProgram: !!Store.getActiveProgram(),
+      spark: Store.getWeightHistory(7).map((w) => Store.toDisplayWeight(w.weight)),
+      setsToday: Store.getSetsInRange(1),
       bmi: Store.getBMI(),
       recent: Store.getRecentExerciseLogs(3),
       todayList: Store.getTodayPlanIds().map((id) => Store.getExerciseById(id)).filter(Boolean).map((ex) => ({ ex, done: Store.isLoggedToday(ex.id) })),
@@ -48,7 +53,7 @@ export default function Dashboard() {
     };
   }, [version]);
 
-  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd, bodyFat, hasProgram } = data;
+  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd, bodyFat, hasProgram, spark, setsToday } = data;
 
   async function handleBMIClick() {
     const current = Store.getProfile().heightCm;
@@ -77,7 +82,8 @@ export default function Dashboard() {
     if (!res.ok) return "مقدرناش نحفظ الوزن. راجع الأرقام.";
     setShowWeightSheet(false);
     refresh();
-    toast("اتسجّل الوزن ✅", { action: { label: "تراجع", onClick: () => { Store.undoSaveWeight(res); refresh(); } }, duration: 5000 });
+    buzz(12);
+    toast("اتسجّل الوزن", { action: { label: "تراجع", onClick: () => { Store.undoSaveWeight(res); refresh(); } }, duration: 5000 });
     return null;
   }
 
@@ -89,17 +95,28 @@ export default function Dashboard() {
   const atRisk = streakAtRisk(streak, week);
   const today = localISO();
   const bmiCat = bmiCategory(bmi);
+  const trainedToday = !!(week[week.length - 1] && week[week.length - 1].done);
+  const hero = heroState({ trainedToday, todayList, eotd, streak });
+  const sparkG = sparkPoints(spark);
+  const water = getWater();
+  const waterPct = Math.min(100, Math.round((water.ml / water.goal) * 100));
+  const doneCount = todayList.filter((x) => x.done).length;
+  const startSuggested = () => {
+    Store.addManyToTodayPlan(hero.exercises.map((e) => e.id));
+    refresh();
+    navigate(`/exercise/${encodeURIComponent(hero.exercises[0].id)}`);
+  };
   const notifOff = typeof Notification !== "undefined" && Notification.permission === "default";
 
   return (
-    <>
+    <div className="home">
       <div className="header">
         <div className="avatar-wrap">
           <div className="avatar-ring"><img src={profile.avatar || "/icon-192.png"} alt="صورتي" /></div>
           <div className="level-badge">Lv. {profile.level}</div>
         </div>
         <div className="header-info">
-          <p className="header-name">أهلاً، {profile.name || "بطل الجيم"} 👋</p>
+          <p className="header-name">أهلاً، {profile.name || "بطل الجيم"}</p>
           <p className="header-sub">
             <span>{fmt(profile.xp)} / {fmt(profile.xpNext)} XP</span>
             <span style={{ color: "var(--text-dim)" }}>·</span>
@@ -111,6 +128,37 @@ export default function Dashboard() {
           {notifOff && <span className="bell-dot" />}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
         </Link>
+      </div>
+
+      <div className={"glass hero" + (hero.kind === "done" ? " is-done" : "")} data-testid="hero">
+        <div className="hero-eyebrow">{hero.kind === "done" ? "تمرين النهارده" : hero.kind === "plan" ? "خطة النهارده" : hero.kind === "suggest" ? "مقترح النهارده" : "ابدأ"}</div>
+        {hero.kind === "done" && (<>
+          <div className="hero-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>خلصت النهارده</div>
+          <div className="hero-sub">{streak > 0 ? `سلسلتك ${streak} ${streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"}. ارتاح وارجع بكرة.` : "ارتاح وارجع بكرة."}</div>
+          <Link to="/exercises" className="btn btn-secondary hero-cta">سجّل تمرين تاني</Link>
+        </>)}
+        {hero.kind === "plan" && (<>
+          <div className="hero-title">{hero.total} {exercisesWord(hero.total)} النهارده</div>
+          <div className="hero-sub">{hero.done} من {hero.total} خلصوا. الجاي: {hero.next.name}</div>
+          <div className="hero-track" role="progressbar" aria-valuemin={0} aria-valuemax={hero.total} aria-valuenow={hero.done}><div style={{ width: `${(hero.done / hero.total) * 100}%` }} /></div>
+          <Link to={`/exercise/${encodeURIComponent(hero.next.id)}`} className="btn btn-primary hero-cta">{hero.done ? "كمّل" : "ابدأ"}</Link>
+        </>)}
+        {hero.kind === "suggest" && (<>
+          <div className="hero-title">{hero.title}</div>
+          <div className="hero-sub">{hero.exercises.length} {exercisesWord(hero.exercises.length)} مقترحة. الأول: {hero.exercises[0].name}</div>
+          <button type="button" className="btn btn-primary hero-cta" onClick={startSuggested}>ابدأ</button>
+        </>)}
+        {hero.kind === "empty" && (<>
+          <div className="hero-title">اختار تمرينك</div>
+          <div className="hero-sub">ابدأ بتمرين واحد النهارده، وسلسلتك تبدأ.</div>
+          <Link to="/exercises" className="btn btn-primary hero-cta">تسجيل تمرين</Link>
+        </>)}
+      </div>
+
+      <div className="today-strip" data-testid="today-strip">
+        <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>تمارين</span></Link>
+        <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>مياه</span></button>
+        <Link to="/stats" className="ts-item"><b>{setsToday}</b><span>مجموعات</span></Link>
       </div>
 
       {recent.length === 0 && (
@@ -129,7 +177,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="glass streak-card">
+      <div className={"glass streak-card" + (trainedToday ? " lit" : "")}>
         <div className="streak-flame">
           <svg viewBox="0 0 24 24" width="30" height="30">
             <defs>
@@ -165,15 +213,29 @@ export default function Dashboard() {
       <div className="top-row">
         <div className="glass weight-card">
           <div>
-            <div className="weight-top">
-              <span className="weight-num">{latest ? Store.toDisplayWeight(latest.weight) : "—"}</span>
-              <span className="weight-unit">{Store.unitLabel()}</span>
-            </div>
-            {weekView && (
-              <span className={"weight-diff tone-" + weekView.tone} dir="rtl">
-                {weekView.dir !== "flat" && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: weekView.dir === "up" ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>}
-                <span>{weekView.text}</span>
-              </span>
+            {latest ? (<>
+              <div className="weight-top">
+                <span className="weight-num">{Store.toDisplayWeight(latest.weight)}</span>
+                <span className="weight-unit">{Store.unitLabel()}</span>
+              </div>
+              {weekView && (
+                <span className={"weight-diff tone-" + weekView.tone} dir="rtl">
+                  {weekView.dir !== "flat" && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: weekView.dir === "up" ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>}
+                  <span>{weekView.text}</span>
+                </span>
+              )}
+              {sparkG && (
+                <svg className="spark" viewBox="0 0 84 26" width="84" height="26" role="img" aria-label="آخر أوزانك" dir="ltr">
+                  <path d={sparkG.d} fill="none" stroke="var(--glow-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx={sparkG.last[0]} cy={sparkG.last[1]} r="2.6" fill="var(--glow-blue)" />
+                </svg>
+              )}
+            </>) : (
+              <div className="empty-mini">
+                <div className="empty-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 20h14M7 20V9l5-5 5 5v11M10 20v-5h4v5" /></svg></div>
+                <div className="empty-t">لسه مسجلتش وزنك</div>
+                <button type="button" className="btn btn-secondary empty-btn" onClick={() => setShowWeightSheet(true)}>سجّل أول وزن</button>
+              </div>
             )}
           </div>
           <div className="weight-meta">
@@ -211,24 +273,41 @@ export default function Dashboard() {
       </div>
       <div className="inbody-grid">
         <div className="glass inbody-card">
-          <span className="inbody-val">{bodyFat ? <bdi dir="ltr">{bodyFat.value}<small>%</small></bdi> : "—"}</span>
-          <div className="inbody-name">دهون الجسم</div>
-          <div className="inbody-sub">{bodyFat ? `آخر قياس ${relDayAr(bodyFat.date, today)}` : "لسه مسجلتش"}</div>
+          {bodyFat ? (<>
+            <span className="inbody-val"><bdi dir="ltr">{bodyFat.value}<small>%</small></bdi></span>
+            <div className="inbody-name">دهون الجسم</div>
+            <div className="inbody-sub">{`آخر قياس ${relDayAr(bodyFat.date, today)}`}</div>
+          </>) : (<>
+            <div className="inbody-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M12 3c3 4 5 6.500 5 9.500a5 5 0 0 1-10 0C7 9.500 9 7 12 3Z" /></svg></div>
+            <div className="inbody-name">دهون الجسم</div>
+            <button type="button" className="inbody-btn" onClick={() => setShowWeightSheet(true)}>سجّلها</button>
+          </>)}
         </div>
         <div className="glass inbody-card">
-          <span className="inbody-val" style={{ color: monthView ? toneColor(monthView.tone) : undefined }} dir="ltr">
+          {!monthView ? (<>
+            <div className="inbody-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 17l5-5 4 4 7-8" /></svg></div>
+            <div className="inbody-name">تغيّر الوزن</div>
+            <button type="button" className="inbody-btn" onClick={() => setShowWeightSheet(true)}>سجّل وزنين</button>
+          </>) : (<>
+          <span className="inbody-val" style={{ color: toneColor(monthView.tone) }} dir="ltr">
             {monthView && monthView.dir !== "flat" && (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ transform: monthView.dir === "up" ? "rotate(180deg)" : "none" }}><path d="M12 4v16M6 14l6 6 6-6" /></svg>
             )}
             {monthView ? <>{monthView.diff > 0 ? "+" : ""}{monthView.diff}<small>{unit}</small></> : "—"}
           </span>
-          <div className="inbody-name">{monthView ? (monthView.label === "الشهر" ? "تغيّر الشهر" : `تغيّر ${monthView.label}`) : "تغيّر الوزن"}</div>
-          {!monthView && <div className="inbody-sub">سجّل وزنك مرتين</div>}
+          <div className="inbody-name">{monthView.label === "الشهر" ? "تغيّر الشهر" : `تغيّر ${monthView.label}`}</div>
+          </>)}
         </div>
         <div className="glass inbody-card tap" {...press(handleBMIClick)} aria-label="BMI، دوس لتحديد طولك">
-          <span className="inbody-val">{bmi != null ? bmi : "حدد طولك"}</span>
-          <div className="inbody-name">BMI</div>
-          <div className="inbody-sub">{bmi != null ? `${bmiCat} · ${Store.getProfile().heightCm} سم` : "عشان نحسبه"}</div>
+          {bmi != null ? (<>
+            <span className="inbody-val">{bmi}</span>
+            <div className="inbody-name">BMI</div>
+            <div className="inbody-sub">{`${bmiCat} · ${Store.getProfile().heightCm} سم`}</div>
+          </>) : (<>
+            <div className="inbody-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" /></svg></div>
+            <div className="inbody-name">BMI</div>
+            <span className="inbody-btn">حدد طولك</span>
+          </>)}
         </div>
       </div>
 
@@ -239,7 +318,7 @@ export default function Dashboard() {
             {todayList.map(({ ex, done }) => (
               <div className="today-row" key={ex.id}>
                 <Link to={`/exercise/${encodeURIComponent(ex.id)}`} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit", flex: 1, minWidth: 0 }}>
-                  <span className={"today-check" + (done ? " done" : "")} aria-label={done ? "اتسجل" : "لسه"}>
+                  <span className={"today-check" + (done ? " done pop" : "")} aria-label={done ? "اتسجل" : "لسه"}>
                     {done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5 9-10" /></svg>}
                   </span>
                   <div style={{ minWidth: 0 }}>
@@ -254,21 +333,6 @@ export default function Dashboard() {
         </>
       )}
 
-      {eotd.exercises.length > 0 && eotd.exercises.some((e) => !todayList.some((t) => t.ex.id === e.id)) && (
-        <div className="glass eotd">
-          <div style={{ fontSize: 10.5, color: "var(--text-dim)", fontWeight: 700 }}>تمرين اليوم</div>
-          <div style={{ fontSize: 15, fontWeight: 800, marginTop: 2 }}>{eotd.title}</div>
-          <div className="eotd-chips">
-            {eotd.exercises.map((e) => (
-              <Link key={e.id} className="eotd-chip" to={`/exercise/${encodeURIComponent(e.id)}`}>{e.name}</Link>
-            ))}
-          </div>
-          <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={() => { Store.addManyToTodayPlan(eotd.exercises.map((e) => e.id)); refresh(); }}>
-            ضيف الكل لتمارين النهارده
-          </button>
-        </div>
-      )}
-
       <div className="section-title">
         <h2>آخر تمرين مسجّل</h2>
         <Link to="/exercises">
@@ -278,8 +342,10 @@ export default function Dashboard() {
       </div>
       <div className="glass" style={{ padding: "6px 14px" }}>
         {!recent.length ? (
-          <div style={{ textAlign: "center", padding: "20px 10px", color: "var(--text-dim)", fontSize: 12.5 }}>
-            لسه ما سجلتش أي تمرين. دوس "تسجيل تمرين" وابدأ.
+          <div className="empty-mini wide">
+            <div className="empty-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
+            <div className="empty-t">لسه ما سجلتش أي تمرين</div>
+            <Link to="/exercises" className="btn btn-secondary empty-btn">سجّل أول تمرين</Link>
           </div>
         ) : (
           recent.map((r, i) => (
@@ -308,6 +374,6 @@ export default function Dashboard() {
           onSave={handleWeightSave}
         />
       )}
-    </>
+    </div>
   );
 }

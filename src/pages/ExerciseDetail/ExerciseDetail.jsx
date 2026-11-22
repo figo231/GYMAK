@@ -1,3 +1,4 @@
+import { buzz } from "../../lib/haptics";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
@@ -53,6 +54,7 @@ export default function ExerciseDetail() {
     const r = parseInt(reps) || 0;
     if (wDisplay <= 0 || s <= 0 || r <= 0) return;
     Store.logSet(exerciseId, Store.fromDisplayWeight(wDisplay), s, r);
+    buzz(15);
     startRest();
     setShowFeedback(true);
     setTimeout(() => setShowFeedback(false), 2500);

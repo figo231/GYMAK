@@ -8,6 +8,7 @@ import { EGYPT_FOODS } from "./egyptFoods";
 import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
 import { normalizeExercise } from "../exerciseMeta";
 import { localISO, shiftISO, windowStart } from "../dateKey";
+import { celebrate, momentsFor } from "../celebrate";
 import { deleteExerciseMedia } from "../exerciseMedia";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
@@ -912,6 +913,9 @@ const KEY = "gymak_state_v1";
     logSet(exerciseId, weight, sets, reps) {
       const s = load();
       const today = todayISO();
+      const levelBefore = s.profile.level;
+      const streakBefore = this.getStreak();
+      let newPr = null;
       const w = Number(weight);
       const prevLogs = s.exerciseLogs[exerciseId] || [];
       const prevMax = prevLogs.reduce((m, l) => Math.max(m, l.weight), 0);
@@ -924,10 +928,18 @@ const KEY = "gymak_state_v1";
           exerciseId, exerciseName: ex ? ex.name : exerciseId,
           weight: w, prevWeight: prevMax, date: today,
         });
+        newPr = s.prHistory[0];
         s.prHistory = s.prHistory.slice(0, 30);
       }
       this._markWorkoutDay(s, today);
       save(s);
+      const streakAfter = this.getStreak();
+      const moments = momentsFor({
+        levelUp: s.profile.level > levelBefore, level: s.profile.level,
+        streak: streakAfter > streakBefore ? streakAfter : 0, pr: newPr,
+        unit: this.unitLabel(), conv: (x) => this.toDisplayWeight(x),
+      });
+      moments.forEach((m) => celebrate(m));
       return s;
     },
 

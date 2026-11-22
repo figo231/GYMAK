@@ -56,3 +56,20 @@ export function streakAtRisk(streak, week) {
 
 export function logUnitText(r) { return r.unit === "sec" ? "ثانية" : "تكرار"; }
 export function logLoadText(r, fmtW) { return r.weight > 0 ? fmtW(r.weight) : r.unit === "sec" ? "بدون وزن" : "وزن الجسم"; }
+
+// Sparkline points (ltr, oldest first) scaled into w x h with a little padding.
+export function sparkPoints(values, w = 84, h = 26, pad = 3) {
+  const v = (values || []).filter((x) => Number.isFinite(x));
+  if (v.length < 2) return null;
+  const min = Math.min(...v), max = Math.max(...v), span = max - min || 1;
+  const pts = v.map((x, i) => [pad + (i * (w - 2 * pad)) / (v.length - 1), pad + (1 - (x - min) / span) * (h - 2 * pad)]);
+  return { pts, d: pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" "), last: pts[pts.length - 1] };
+}
+
+export function heroState({ trainedToday, todayList, eotd, streak }) {
+  const remaining = todayList.filter((x) => !x.done);
+  if (trainedToday && remaining.length === 0) return { kind: "done", streak };
+  if (remaining.length > 0) return { kind: "plan", total: todayList.length, done: todayList.length - remaining.length, next: remaining[0].ex };
+  if (eotd && eotd.exercises && eotd.exercises.length) return { kind: "suggest", title: eotd.title, exercises: eotd.exercises };
+  return { kind: "empty" };
+}

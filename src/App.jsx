@@ -13,13 +13,21 @@ import PWAUpdatePrompt from "./components/PWAUpdatePrompt";
 import ApkUpdateSheet from "./components/ApkUpdateSheet";
 import RestTimer from "./components/RestTimer";
 import LockScreen from "./components/LockScreen";
+import Celebration from "./components/Celebration";
 import { isLockEnabled, shouldRelock } from "./lib/appLock";
 
 const ONBOARD_KEY = "gymak_onboarded_v1";
 
 function RouteFallback() {
   // Lightweight, matches the glass aesthetic — shown only during lazy chunk loads.
-  return <div className="bg-ambient" />;
+  return (
+    <div className="app" aria-busy="true" aria-label="جاري التحميل">
+      <div className="sk sk-head" />
+      <div className="sk sk-card" style={{ height: 120 }} />
+      <div className="sk sk-card" style={{ height: 150 }} />
+      <div className="sk-row"><div className="sk sk-card" style={{ height: 90 }} /><div className="sk sk-card" style={{ height: 90 }} /><div className="sk sk-card" style={{ height: 90 }} /></div>
+    </div>
+  );
 }
 
 export default function App() {
@@ -71,6 +79,7 @@ export default function App() {
                   <RouterProvider router={router} />
                 </Suspense>
                 <RestTimer />
+                <Celebration />
                 {showSplash && <SplashScreen />}
                 {locked && <LockScreen onUnlock={() => setLocked(false)} />}
                 {!showSplash && !onboarded && <Onboarding onFinish={finishOnboarding} />}

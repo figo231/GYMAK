@@ -107,3 +107,42 @@ describe("home logic", () => {
     expect(logLoadText({ weight: 0, unit: "sec" }, String)).toBe("بدون وزن");
   });
 });
+
+import { sparkPoints, heroState } from "../src/lib/homeLogic";
+import { momentsFor, isStreakMilestone, onCelebrate } from "../src/lib/celebrate";
+
+describe("polish logic", () => {
+  it("sparkline needs 2 points and stays inside the box", () => {
+    expect(sparkPoints([80])).toBe(null);
+    const s = sparkPoints([80, 79, 81, 78], 84, 26, 3);
+    expect(s.pts).toHaveLength(4);
+    s.pts.forEach(([x, y]) => { expect(x).toBeGreaterThanOrEqual(3); expect(x).toBeLessThanOrEqual(81); expect(y).toBeGreaterThanOrEqual(3); expect(y).toBeLessThanOrEqual(23); });
+    expect(sparkPoints([80, 80]).pts).toHaveLength(2);
+  });
+  it("hero state picks done, plan, suggestion, empty", () => {
+    const ex = (id) => ({ ex: { id, name: id }, done: false });
+    expect(heroState({ trainedToday: true, todayList: [], eotd: null, streak: 4 }).kind).toBe("done");
+    expect(heroState({ trainedToday: true, todayList: [{ ...ex("a"), done: true }], eotd: null, streak: 4 }).kind).toBe("done");
+    const plan = heroState({ trainedToday: false, todayList: [{ ...ex("a"), done: true }, ex("b")], eotd: null, streak: 0 });
+    expect(plan).toMatchObject({ kind: "plan", total: 2, done: 1 });
+    expect(plan.next.id).toBe("b");
+    expect(heroState({ trainedToday: true, todayList: [ex("b")], eotd: null, streak: 1 }).kind).toBe("plan");
+    expect(heroState({ trainedToday: false, todayList: [], eotd: { title: "t", exercises: [{ id: "x" }] }, streak: 0 }).kind).toBe("suggest");
+    expect(heroState({ trainedToday: false, todayList: [], eotd: { title: "t", exercises: [] }, streak: 0 }).kind).toBe("empty");
+  });
+  it("moments: priority and milestones", () => {
+    expect(isStreakMilestone(7)).toBe(true); expect(isStreakMilestone(8)).toBe(false);
+    const m = momentsFor({ levelUp: true, level: 3, streak: 7, pr: { weight: 90, prevWeight: 80, exerciseName: "بنش" } });
+    expect(m.map((x) => x.kind)).toEqual(["level", "streak", "pr"]);
+    expect(momentsFor({ streak: 5 })).toEqual([]);
+  });
+  it("logSet emits a PR card, and a streak card only on the first log of a milestone day", () => {
+    const seen = [];
+    const off = onCelebrate((m) => seen.push(m.kind));
+    S.logSet("bench", 50, 3, 10);
+    S.logSet("bench", 60, 3, 10);
+    off();
+    expect(seen).toContain("pr");
+    expect(seen).not.toContain("streak");
+  });
+});

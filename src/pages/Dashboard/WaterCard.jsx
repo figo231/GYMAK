@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { addWater, getWater, lastDays, setWaterGoal, STEP } from "../../lib/water/water";
 import { usePrompt } from "../../hooks/useDialog";
+import { buzz } from "../../lib/haptics";
 import { useToast } from "../../hooks/useToast";
 
 export default function WaterCard() {
@@ -24,13 +25,13 @@ export default function WaterCard() {
     if (v === null || v === undefined || v === "") return;
     const n = Math.round(Number(v));
     if (!(n >= 1 && n <= 5000)) { toast("اكتب كمية بين 1 و 5000 مل."); return; }
-    addWater(n); refresh();
+    addWater(n); buzz(10); refresh();
   }
   const AR_DAYS = ["الأحد", "الاتنين", "التلات", "الأربع", "الخميس", "الجمعة", "السبت"];
   const dayName = (iso) => AR_DAYS[new Date(iso + "T00:00:00").getDay()];
   const btn = { flex: 1, padding: "9px 0", borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 13, cursor: "pointer" };
   return (
-    <div className="glass" style={{ padding: 14, marginBottom: 12 }} data-testid="water-card">
+    <div className="glass" style={{ padding: 16 }} data-testid="water-card">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
         <div style={{ fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><svg width="16" height="16" viewBox="0 0 24 24" fill="#0ea5e9"><path d="M12 2.5c3.5 4.2 6 7.3 6 10.5a6 6 0 0 1-12 0c0-3.2 2.5-6.300 6-10.500Z" /></svg>المياه النهاردة</div>
         <button type="button" onClick={editGoal} aria-label={`غيّر هدف المياه، حاليًا ${liters(goal)} لتر`} style={{ background: "none", border: "none", color: "inherit", opacity: 0.7, fontSize: 12, cursor: "pointer" }}>
@@ -42,8 +43,8 @@ export default function WaterCard() {
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
         <button type="button" style={btn} onClick={() => { addWater(-STEP); refresh(); }} aria-label={`شيل ${STEP} مل`}>−{STEP} مل</button>
-        <button type="button" style={btn} onClick={() => { addWater(STEP); refresh(); }}>+{STEP} مل</button>
-        <button type="button" style={btn} onClick={() => { addWater(500); refresh(); }}>+500 مل</button>
+        <button type="button" style={btn} onClick={() => { addWater(STEP); buzz(10); refresh(); }}>+{STEP} مل</button>
+        <button type="button" style={btn} onClick={() => { addWater(500); buzz(10); refresh(); }}>+500 مل</button>
         <button type="button" style={btn} onClick={addCustom} aria-label="كمية تانية">أكتر</button>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 38, marginTop: 12 }}>
