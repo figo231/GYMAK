@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import OwnerProfessionalCards from "./OwnerProfessionalCards";
 import OwnerChatRoles from "./OwnerChatRoles";
+import OwnerReports from "./OwnerReports";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
@@ -97,7 +98,7 @@ function OwnerPanelSession() {
   useEffect(() => { isOwnerAdmin(user?.id).then(setOk); }, [user?.id]);
   if (ok === null) return <DetailTopBar backTo="/profile" title="لوحة المالك" />;
   if (!ok) return (<><DetailTopBar backTo="/profile" title="لوحة المالك" /><p className="notif-note" style={{ padding: 16 }}>الصفحة دي لحساب المالك بس.</p></>);
-  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"], ["suggestions", "المقترحين"]];
+  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"], ["suggestions", "المقترحين"], ["reports", "البلاغات"]];
   return (
     <>
       <DetailTopBar backTo="/profile" title="لوحة المالك" />
@@ -110,6 +111,7 @@ function OwnerPanelSession() {
       {tab === "foods" && (<><FoodForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_foods" label="أكلات" /></>)}
       {tab === "coaches" && <OwnerChatRoles />}
       {tab === "suggestions" && <OwnerProfessionalCards />}
+      {tab === "reports" && <OwnerReports />}
       <button type="button" className="btn" onClick={() => refreshRemoteContent()} style={{ width: "100%", marginTop: 8, background: "none", border: "1px solid var(--border-soft)", padding: 10, borderRadius: 12, color: "inherit", cursor: "pointer" }}>تحديث المحتوى على جهازي</button>
     </>
   );

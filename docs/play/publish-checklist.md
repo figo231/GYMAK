@@ -22,7 +22,18 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 - [ ] Account deletion URL in Play Console: the privacy page path, plus in-app route
 - [ ] Screenshots (phone), feature graphic 1024x500, 512px icon
 - [ ] Confirm the privacy page and Data safety match what ships (re-check after each feature batch). New since the last check: contact-us messages stored with the account, barcode numbers sent to Open Food Facts, encrypted server backups (30 days), CSV/JSON export, local backups
-- [ ] Data safety form: add "Messages (support)" as collected and linked to the user; barcode lookups send a product number only (no user data)
+- [ ] Data safety form: add "Messages" (private in-app chat + in-app support) as collected and linked to the user; barcode lookups send a product number only (no user data)
+
+## UGC / Terms of Use batch (added 23 Nov 2026, migration 0027)
+- [ ] Run `supabase/migrations/0027_ugc_terms_moderation.sql` in the Supabase SQL editor (after 0022-0024). Safe to re-run. Until then chat consent, report and block show "لسه مش مفعلة على السيرفر" errors.
+- [x] Terms of Use page /terms.html (Arabic + English), separate from the privacy policy
+- [x] Versioned, non-skippable chat consent now covers the Terms of Use (version 2026-11-23-tou-v1); existing users re-consent on next chat open
+- [x] In-app report (message, user, support reply) and block with server-side enforcement; owner moderation queue shows only reported content
+- [x] Privacy policy carve-out: owner may review only reported content; report/block and push-notification wording added
+- [ ] Content rating (IARC): answer that users can interact (private chat) - expect "Users Interact" notice, still Everyone-compatible
+- [ ] Moderation procedure: owner reviews the البلاغات tab in the owner panel regularly; actions = warn, remove role (المستخدمون tab), or account deletion
+- [ ] OFL font license file for IBM Plex Sans Arabic in the repo/listing
+- [ ] Open Food Facts attribution in the app or listing
 
 ## Known gaps
 - Owner broadcast composer hidden until the notifications backend exists (migration 0019 pending)

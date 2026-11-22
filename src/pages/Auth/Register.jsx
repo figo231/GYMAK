@@ -84,7 +84,7 @@ export default function Register() {
         <button type="submit" className="btn btn-primary auth-submit" disabled={busy || !isConfigured}>
           {busy ? <><Spinner />جاري الإنشاء...</> : "إنشاء حساب"}
         </button>
-        <p className="auth-legal">بالتسجيل أنت موافق على <a href="/privacy.html" target="_blank" rel="noopener noreferrer">سياسة الخصوصية</a>.</p>
+        <p className="auth-legal">بالتسجيل أنت موافق على <a href="/terms.html" target="_blank" rel="noopener noreferrer">شروط الاستخدام</a> و<a href="/privacy.html" target="_blank" rel="noopener noreferrer">سياسة الخصوصية</a>.</p>
       </form>
 
       <p className="auth-footer">

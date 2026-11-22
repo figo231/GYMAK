@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { sendFeedback, PUBLIC_EMAIL } from "../../lib/feedback";
 import { fetchMyFeedback } from "../../lib/admin";
+import { reportContent } from "../../lib/moderation";
+import ReportDialog from "../../components/ReportDialog";
 
 export default function Contact() {
   const { user } = useAuth();
@@ -12,6 +14,8 @@ export default function Contact() {
   const [done, setDone] = useState(null);
 
   const [mine, setMine] = useState([]);
+  const [report, setReport] = useState(null);
+  const [reported, setReported] = useState("");
   useEffect(() => { if (user) fetchMyFeedback().then(setMine); }, [user?.id, done]);
   const replied = mine.filter((m) => m.admin_reply);
 
@@ -30,8 +34,10 @@ export default function Contact() {
         <div className="glass ct-replies">
           <b>ردود علينا</b>
           {replied.map((m) => (
-            <div key={m.id} className="ct-reply"><p className="ct-q">{m.message}</p><p className="ct-a">{m.admin_reply}</p></div>
+            <div key={m.id} className="ct-reply"><p className="ct-q">{m.message}</p><p className="ct-a">{m.admin_reply}</p>
+              <button type="button" className="pc-report-link" onClick={() => { setReport(m); setReported(""); }}>إبلاغ عن الرد</button></div>
           ))}
+          {reported && <p className="notif-note" role="status">{reported}</p>}
         </div>
       )}
       {done ? (
@@ -56,6 +62,11 @@ export default function Contact() {
           <a className="btn" style={{ display: "block", textAlign: "center" }} href={`mailto:${PUBLIC_EMAIL}`}>{PUBLIC_EMAIL}</a>
         </div>
       )}
+      {report && <ReportDialog
+        title="إبلاغ عن رد الدعم"
+        hint="نص الرد هيتبعت مع البلاغ لصاحب التطبيق للمراجعة."
+        onClose={() => setReport(null)}
+        submit={async (reason, details) => { await reportContent({ targetType: "support_reply", reason, feedbackId: report.id, details }); setReported("وصل البلاغ. شكرًا ليك."); }} />}
     </div>
   );
 }

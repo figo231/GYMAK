@@ -1065,3 +1065,19 @@ a.btn { display: inline-block; text-decoration: none; padding: 10px 18px; border
 .muscle-figure-panel{padding:16px;border-radius:18px;margin:14px 0;}.muscle-figure-panel h2{font-size:16px;margin:0 0 8px;}.muscle-figure-panel p{font-size:12px;color:var(--text-dim);line-height:1.8;}.muscle-figure-pair{display:flex;justify-content:center;gap:24px;}.muscle-figure-pair>div{text-align:center;min-width:0;}.muscle-figure-pair small{display:block;font-size:11px;color:var(--text-dim);margin-top:4px;}
 
 .weekly-volume-note{font-size:11px;color:var(--text-dim);line-height:1.9;margin:12px 0;}.mini-left{min-width:0;}.mini-left>div:last-child{min-width:0;}.mini-sub{overflow-wrap:anywhere;}
+
+/* UGC report sheet (chat + support replies) */
+.report-sheet-backdrop { position:fixed; inset:0; z-index:80; background:rgba(0,0,0,.55); display:flex; align-items:flex-end; justify-content:center; padding:16px; }
+.report-sheet { width:100%; max-width:440px; padding:18px; border-radius:20px 20px 14px 14px; font-size:13px; }
+.report-sheet h3 { margin:0 0 6px; font-size:17px; }
+.report-sheet-hint { color:var(--text-dim); font-size:12px; line-height:1.8; }
+.report-reasons { display:flex; flex-direction:column; gap:6px; margin:10px 0; }
+.report-reason { display:flex; gap:10px; align-items:center; line-height:1.8; }
+.report-reason input { width:18px; height:18px; accent-color:var(--accent,#ff781b); }
+.report-sheet textarea { width:100%; font:inherit; }
+.report-sheet-actions { display:flex; gap:10px; align-items:center; margin:12px 0 8px; }
+.report-sheet-actions .btn { flex:1; min-height:44px; }
+.pc-message-actions { display:flex; justify-content:flex-start; margin-top:2px; }
+.pc-report-link { background:none; border:none; padding:2px 0; color:var(--text-dim); font-size:11px; cursor:pointer; text-decoration:underline; }
+.pc-thread-actions { display:flex; gap:8px; margin:0 0 10px; }
+.pc-blocked-note { border:1px dashed var(--border-soft); border-radius:12px; padding:10px 12px; font-size:12px; color:var(--text-dim); }

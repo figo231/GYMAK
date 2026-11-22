@@ -1,10 +1,10 @@
 import { supabase } from "./supabaseClient";
 import { withTimeout } from "./authLogic";
 
-export const CHAT_TERMS_VERSION = "2026-11-22-v1";
+export const CHAT_TERMS_VERSION = "2026-11-23-tou-v1";
 export const CHAT_MAX_LENGTH = 2000;
 export const CHAT_ROLE_LABELS = { user: "مستخدم", coach: "مدرب", doctor: "دكتور تغذية" };
-export const CHAT_PRIVACY = "الرسائل خاصة بالطرفين داخل التطبيق، ومحمية بـ HTTPS أثناء النقل. مش تشفير من الطرف للطرف (E2EE): مسؤول قاعدة البيانات يقدر تقنيًا يقرأ الرسائل المخزنة. صاحب التطبيق مش بيشوف محادثات غيره من لوحة الإدارة.";
+export const CHAT_PRIVACY = "الرسائل خاصة بالطرفين داخل التطبيق، ومحمية بـ HTTPS أثناء النقل. مش تشفير من الطرف للطرف (E2EE): مسؤول قاعدة البيانات يقدر تقنيًا يقرأ الرسائل المخزنة. صاحب التطبيق مش بيشوف محادثات غيره من لوحة الإدارة، والاستثناء الوحيد إنه يراجع المحتوى اللي مستخدم بلّغ عنه بالظبط عشان ياخد إجراء.";
 export const CHAT_HEALTH_NOTE = "إرشادات عامة، مش للطوارئ ولا بديل عن الكشف الطبي. مفيش ضمان لرد فوري. صفة دكتور أو مدرب بيحددها صاحب التطبيق، ومش توثيق لشهادة أو ترخيص. متبعتش مستندات طبية أو معلومات شخصية مش ضرورية.";
 
 export function newChatNonce(cryptoApi = globalThis.crypto) {
@@ -51,6 +51,7 @@ export function splitChatLinks(body) {
 export function chatError(error) {
   const s = String(error?.message || error || "");
   if (/chat_rate_limited/.test(s)) return "بعتّ رسايل كتير. استنى شوية وجرب تاني.";
+  if (/chat_blocked/.test(s)) return "المحادثة متوقفة بسبب حظر بين الطرفين.";
   if (/chat_read_only/.test(s)) return "المحادثة للقراءة بس، لأن المتابعة أو الصفة اتغيّرت.";
   if (/consent_required|terms_version_mismatch/.test(s)) return "راجع تنبيه الخصوصية ووافق عليه الأول.";
   if (/owner_only/.test(s)) return "تعديل الأدوار متاح لحساب المالك بس.";
