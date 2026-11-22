@@ -2,18 +2,33 @@ import { useEffect, useState } from "react";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useToast } from "../../hooks/useToast";
 import Store from "../../lib/store/gymakStore";
-import { assignProgram, latestAssignment, isCoach, myInvites, respondInvite, inviteTrainee, myTrainees, revokeLink, traineeReport } from "../../lib/coach/coachApi";
+import { sentAssignments, assignProgram, latestAssignment, isCoach, myInvites, respondInvite, inviteTrainee, myTrainees, revokeLink, traineeReport } from "../../lib/coach/coachApi";
+import { activityStrip, attention, filterTrainees, sortTrainees, summarize, weightTrend } from "../../lib/coach/dashboard";
 
 const card = { padding: 12, borderRadius: 14, border: "1px solid var(--border-soft)", background: "rgba(var(--ink), .04)", marginBottom: 10 };
 const ghost = { background: "none", border: "1px solid var(--border-soft)", borderRadius: 10, padding: "6px 12px", cursor: "pointer", color: "inherit", fontWeight: 700, fontSize: 12 };
-const dot = (n) => ({ width: 10, height: 10, borderRadius: 10, display: "inline-block", background: n >= 4 ? "#4ade80" : n >= 2 ? "#facc15" : "#f87171" });
+const LEVEL = { ok: ["#4ade80", "ماشي كويس"], watch: ["#facc15", "محتاج متابعة"], risk: ["#f87171", "واقف"], unknown: ["#888", "..."] };
+const dot = (level) => ({ width: 10, height: 10, borderRadius: 10, display: "inline-block", background: LEVEL[level]?.[0] || "#888", flexShrink: 0 });
+
+function Spark({ trend }) {
+  if (!trend) return null;
+  const W = 260, H = 44, pts = trend.points.map((p) => `${(p.x * (W - 8) + 4).toFixed(1)},${(p.y * (H - 8) + 4).toFixed(1)}`).join(" ");
+  return (
+    <div style={{ marginTop: 8 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} aria-label="منحنى الوزن"><polyline points={pts} fill="none" stroke="var(--accent-text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <div style={{ fontSize: 12, opacity: 0.75 }}>التغيير في آخر 30 يوم: <b dir="ltr" style={{ unicodeBidi: "isolate" }}>{trend.change > 0 ? "+" : ""}{trend.change}</b> كجم</div>
+    </div>
+  );
+}
 
 function Detail({ trainee, onClose }) {
   const [r, setR] = useState(null);
   const toast = useToast();
   const [prog, setProg] = useState(() => Store.getPrograms()[0]?.id);
+  const [sent, setSent] = useState([]);
+  useEffect(() => { sentAssignments(trainee.trainee_id).then(setSent); }, [trainee.trainee_id]);
   async function send() {
-    try { await assignProgram(trainee.trainee_id, prog); toast("اتبعت البرنامج للمتدرب ✅"); }
+    try { await assignProgram(trainee.trainee_id, prog); toast("اتبعت البرنامج للمتدرب ✅"); setSent(await sentAssignments(trainee.trainee_id)); }
     catch (e) { toast("فشل الإرسال: " + e.message); }
   }
   useEffect(() => { traineeReport(trainee.trainee_id).then(setR).catch(() => setR({ errors: true })); }, [trainee.trainee_id]);
@@ -25,13 +40,17 @@ function Detail({ trainee, onClose }) {
         <h3>{r?.name || trainee.trainee_email}</h3>
         {!r ? <p className="notif-note">بيحمّل...</p> : r.errors && r.last7 === undefined ? <p className="notif-note">مقدرناش نجيب البيانات.</p> : (
           <>
+            <div style={{ display: "flex", gap: 2, margin: "4px 0 8px" }} aria-label="نشاط آخر 30 يوم">
+              {activityStrip(r.dayList, 30).map((d) => <span key={d.date} title={d.date} style={{ flex: 1, height: 14, borderRadius: 3, background: d.trained ? "var(--accent-text)" : "rgba(128,128,128,.25)" }} />)}
+            </div>
             <Row k="آخر تمرين" v={r.lastWorkout || "لسه"} />
-            <Row k="أيام التمرين آخر 7 أيام" v={`${r.last7} / 7`} />
+            <Row k="أيام التمرين آخر 7 أيام" v={`${r.last7} من 7`} />
             <Row k="أيام متتالية" v={r.streak} />
             <Row k="أيام التمرين آخر 30 يوم" v={r.days30} />
             <Row k="الوزن" v={r.weightLast ? `${r.weightLast.weight} كجم${r.weightFirst && r.weightFirst.date !== r.weightLast.date ? ` (من ${r.weightFirst.weight})` : ""}` : "مفيش"} />
             <Row k="متوسط السعرات" v={r.avgKcal != null ? `${r.avgKcal} سعر` : "مفيش"} />
             <Row k="متوسط البروتين" v={r.avgProtein != null ? `${r.avgProtein} جم` : "مفيش"} />
+            <Spark trend={weightTrend(r.weights)} />
             {r.prs.length > 0 && <div style={{ marginTop: 10, fontWeight: 800, fontSize: 13 }}>آخر الأرقام القياسية</div>}
             {r.prs.map((p, i) => (<Row key={i} k={p.exercise_name} v={`${p.weight} كجم`} />))}
           </>
@@ -43,6 +62,12 @@ function Detail({ trainee, onClose }) {
           </select>
           <button type="button" className="btn btn-primary" style={{ padding: "9px 14px", borderRadius: 10 }} onClick={send}>إرسال</button>
         </div>
+        {sent.length > 0 && (
+          <div style={{ marginTop: 10, fontSize: 12 }}>
+            <div style={{ fontWeight: 800, marginBottom: 4 }}>اللي بعتّه قبل كده</div>
+            {sent.map((a) => <div key={a.id} style={{ opacity: 0.8 }}>{Store.getPrograms().find((p) => p.id === a.program_id)?.name || a.program_id} · <span dir="ltr">{String(a.created_at).slice(0, 10)}</span></div>)}
+          </div>
+        )}
         <div className="edit-sheet-actions" style={{ marginTop: 12 }}><button type="button" onClick={onClose}>إغلاق</button></div>
       </div>
     </div>
@@ -58,6 +83,7 @@ export default function Coach() {
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(null);
   const [assign, setAssign] = useState(null);
+  const [q, setQ] = useState("");
 
   async function load() {
     try {
@@ -73,6 +99,9 @@ export default function Coach() {
     } catch (e) { toast("فشل التحميل: " + e.message); }
   }
   useEffect(() => { load(); }, []);
+
+  const sum = summarize(trainees, reports);
+  const list = sortTrainees(filterTrainees(trainees, reports, q), reports);
 
   async function answer(id, ok) { try { await respondInvite(id, ok); load(); toast(ok ? "اتفعّل المدرب ✅" : "اتلغى"); } catch (e) { toast("فشل: " + e.message); } }
   async function invite() { try { await inviteTrainee(email); setEmail(""); load(); toast("اتبعتت الدعوة ✅"); } catch (e) { toast(e.message); } }
@@ -113,14 +142,29 @@ export default function Coach() {
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={invite}>إرسال دعوة</button>
           </div>
           {trainees.length === 0 && <p className="notif-note">لسه مفيش متدربين.</p>}
-          {trainees.map((t) => {
+          {trainees.length > 0 && (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 10 }} data-testid="coach-summary">
+                {[["متدرب نشط", sum.active, null], ["ماشيين كويس", sum.ok, "ok"], ["محتاجين متابعة", sum.watch, "watch"], ["واقفين", sum.risk, "risk"]].map(([l, n, lv]) => (
+                  <div key={l} style={{ ...card, marginBottom: 0, textAlign: "center", padding: "10px 4px" }}>
+                    <b style={{ fontSize: 20, display: "block", color: lv ? LEVEL[lv][0] : "inherit" }}>{n}</b>
+                    <span style={{ fontSize: 10.5, opacity: 0.75 }}>{l}</span>
+                  </div>
+                ))}
+              </div>
+              {(sum.avgLast7 != null || sum.pending > 0) && <p className="notif-note" style={{ marginTop: 0 }}>{sum.avgLast7 != null ? `متوسط الأسبوع: ${sum.avgLast7} أيام تمرين من 7` : ""}{sum.avgLast7 != null && sum.pending > 0 ? " · " : ""}{sum.pending > 0 ? `${sum.pending} دعوة في الانتظار` : ""}</p>}
+              {trainees.length > 4 && <div className="edit-field"><input placeholder="دوّر باسم أو إيميل" value={q} onChange={(e) => setQ(e.target.value)} /></div>}
+            </>
+          )}
+          {list.map((t) => {
             const r = reports[t.id];
+            const level = t.status === "active" ? attention(r) : "unknown";
             return (
               <div key={t.id} style={{ ...card, display: "flex", alignItems: "center", gap: 10 }}>
-                {t.status === "active" && r ? <span style={dot(r.last7)} /> : <span style={{ ...dot(0), background: "#888" }} />}
+                <span style={dot(level)} />
                 <div style={{ flex: 1, minWidth: 0 }} onClick={() => t.status === "active" && t.trainee_id && setOpen(t)}>
                   <div dir="ltr" style={{ fontSize: 13, fontWeight: 700 }}>{r?.name || t.trainee_email}</div>
-                  <div style={{ fontSize: 11.5, opacity: 0.7 }}>{t.status === "pending" ? "في انتظار القبول" : r ? `${r.last7}/7 أيام، آخر تمرين ${r.lastWorkout || "لسه"}` : "..."}</div>
+                  <div style={{ fontSize: 11.5, opacity: 0.7 }}>{t.status === "pending" ? "في انتظار القبول" : r ? `${LEVEL[level][1]} · ${r.last7}/7 أيام، آخر تمرين ${r.lastWorkout || "لسه"}` : "..."}</div>
                 </div>
                 <button type="button" style={ghost} onClick={() => revoke(t.id)}>{t.status === "pending" ? "إلغاء" : "إزالة"}</button>
               </div>

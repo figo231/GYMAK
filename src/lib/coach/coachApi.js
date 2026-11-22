@@ -70,7 +70,8 @@ export async function traineeReport(traineeId) {
     name: prof.data?.name || prof.data?.username || "",
     lastWorkout: dayList[0] || null,
     last7, streak,
-    days30: dayList.length,
+    days30: dayList.length, dayList,
+    weights: w.map((x) => ({ date: x.date, weight: Number(x.weight) })),
     weightFirst: w[0] || null, weightLast: w[w.length - 1] || null,
     avgKcal: f.length ? Math.round(f.reduce((a, x) => a + Number(x.total_kcal || 0), 0) / f.length) : null,
     avgProtein: f.length ? Math.round(f.reduce((a, x) => a + Number(x.total_protein || 0), 0) / f.length) : null,
@@ -95,4 +96,14 @@ export async function latestAssignment() {
     if (error) return null;
     return data?.[0] || null;
   } catch { return null; }
+}
+
+/** Programs this coach already sent to one trainee (fails soft if 0019 is missing). */
+export async function sentAssignments(traineeId, limit = 5) {
+  try {
+    const u = await me();
+    const { data, error } = await supabase.from("coach_assignments").select("id,program_id,note,created_at")
+      .eq("coach_id", u.id).eq("trainee_id", traineeId).order("created_at", { ascending: false }).limit(limit);
+    return error ? [] : data || [];
+  } catch { return []; }
 }
