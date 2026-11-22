@@ -39,6 +39,7 @@ describe("measurements v2", () => {
 });
 
 describe("seriesForField (progress chart)", () => {
+  beforeEach(() => localStorage.clear());
   it("returns dated points oldest-first for TrendChart", async () => {
     const { saveMeasure, seriesForField } = await import("../src/lib/measure/measure.js");
     saveMeasure({ waist: 95 }, "2026-11-01");
