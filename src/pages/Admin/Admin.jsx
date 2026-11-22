@@ -1,3 +1,4 @@
+import { fetchAppActivity } from '../../lib/appActivity';
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { DetailTopBar } from "../../components/layout/DetailShell";
@@ -16,6 +17,7 @@ function AdminSession() {
   const toast = useToast();
   const [allowed, setAllowed] = useState(null);
   const [stats, setStats] = useState(null);
+  const [activity,setActivity]=useState(null);
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("new");
   const [replying, setReplying] = useState(null);
@@ -23,6 +25,7 @@ function AdminSession() {
   const [err, setErr] = useState("");
 
   async function load() {
+    try{setActivity(await fetchAppActivity());}catch{setActivity(null);}
     try { setRows(await fetchFeedback()); setErr(""); } catch { setErr("معرفناش نحمّل الرسايل."); }
     try { setStats(await fetchOwnerStats()); } catch { setErr("معرفناش نحمّل الإحصائيات. جرّب تحديث الصفحة."); }
   }
@@ -54,6 +57,8 @@ function AdminSession() {
         <div><b>{counts.new}</b><span>رسايل جديدة</span></div>
       </div>
       <p className="notif-note">راجل {n(stats?.male)} · ست {n(stats?.female)}</p>
+      <h2>الحسابات النشطة المشاركة في القياس</h2><p className="notif-note">قياس اختياري للحسابات المسجلة فقط، مش إجمالي كل المستخدمين. اليوم حسب UTC. يبدأ من تفعيل الميزة، مفيش أرقام تاريخية مفترضة.</p>
+      {activity ? <div className="th-stats ad-stats"><div><b>{activity.today}</b><span>اليوم</span></div><div><b>{activity.week}</b><span>آخر 7 أيام</span></div><div><b>{activity.month}</b><span>آخر 30 يوم</span></div></div> : <p className="notif-note">القياس غير متاح الآن.</p>}
       <OwnerChatRoles />
       <h2 style={{ fontSize: 18, marginTop: 28 }}>رسائل الدعم</h2>
       <p className="notif-note">آخر 100 رسالة دعم، مش قائمة كل المستخدمين.</p>

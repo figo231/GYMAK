@@ -1,3 +1,4 @@
+import ActivityPreference from './ActivityPreference';
 import { shareText, APP_URL } from "../../lib/shareLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -305,7 +306,7 @@ export default function Profile({ panel = null }) {
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
           <span className="settings-name" style={{ color: "var(--danger)" }}>إعادة تعيين كل البيانات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div></div></details><details className="ux-group" ><summary>التفضيلات والخصوصية</summary><div className="ux-group-body"><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
+        </div></div></details><details className="ux-group" ><summary>التفضيلات والخصوصية</summary><div className="ux-group-body"><ActivityPreference /><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
           <span className="settings-name">اللغة والوحدات</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>

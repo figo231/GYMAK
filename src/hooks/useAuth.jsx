@@ -1,3 +1,4 @@
+import { recordAppActivity,resetActivitySession } from '../lib/appActivity';
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { syncManager } from "../lib/sync/syncManager";
@@ -79,6 +80,16 @@ export function AuthProvider({ children }) {
       removePushToken();
     }
   }, [session?.user?.id, isPasswordRecovery]);
+
+  useEffect(() => {
+    const id=session?.user?.id;
+    if(!id || isPasswordRecovery){resetActivitySession();return;}
+    const tick=()=>recordAppActivity(id);tick();
+    document.addEventListener('visibilitychange',tick);
+    window.addEventListener('online',tick);
+    const timer=setInterval(tick,15*60*1000);
+    return ()=>{document.removeEventListener('visibilitychange',tick);window.removeEventListener('online',tick);clearInterval(timer);};
+  },[session?.user?.id,isPasswordRecovery]);
 
   async function signUp(email, password) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
