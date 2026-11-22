@@ -470,3 +470,7 @@ html.ath.pro-ui .wc-day.on.hi { background: #ff6a13; color: #1a0a00; }
 html.ath.pro-ui .wc-day.today { border-color: var(--text-secondary); }
 html.ath.pro-ui .wc-day.sel { outline: 2px solid #fff; outline-offset: 1px; }
 html.ath.pro-ui .wc-clear { margin-top: 10px; width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border-soft); background: transparent; color: #ff8a3d; font: inherit; font-weight: 700; }
+html.ath.pro-ui .rm-card { padding: 14px; margin-bottom: 12px; border-color: rgba(255,106,19,0.35); }
+html.ath.pro-ui .rm-title { display: block; font-size: 15px; margin-bottom: 6px; color: #ff8a3d; }
+html.ath.pro-ui .rm-card p { font-size: 13px; line-height: 1.7; margin: 4px 0; color: var(--text-secondary); }
+html.ath.pro-ui .rm-card strong { color: var(--text); }

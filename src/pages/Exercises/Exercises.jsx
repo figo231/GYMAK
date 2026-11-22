@@ -1,3 +1,4 @@
+import RamadanCard from "../../components/RamadanCard";
 import SectionNav from "../../components/layout/SectionNav";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -142,6 +143,7 @@ export default function Exercises() {
   return (
     <>
       <SectionNav group="train" />
+      <RamadanCard kind="train" />
       <div className="page-head">
         <div>
           <h1 className="page-title">التمارين</h1>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import EditFoodSheet from "./EditFoodSheet";
+import RamadanCard from "../../components/RamadanCard";
 import SectionNav from "../../components/layout/SectionNav";
 import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
@@ -77,6 +78,7 @@ export default function Food() {
     <>
       <SectionNav group="food" title="الأكل" />
 
+      <RamadanCard kind="food" />
       <div className="goal-modes" data-testid="goal-modes" role="group" aria-label="الهدف">
         {Object.entries(modes).map(([k, v]) => (
           <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{v.label}</button>

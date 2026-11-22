@@ -1109,6 +1109,8 @@ const KEY = "gymak_state_v1";
       return s.profile;
     },
 
+    getRamadan() { return !!load().profile.ramadan; },
+    setRamadan(on) { const s = load(); s.profile.ramadan = !!on; save(s); return s.profile.ramadan; },
     setGender(g) {
       const s = load();
       s.profile.gender = (g === "male" || g === "female") ? g : null;
