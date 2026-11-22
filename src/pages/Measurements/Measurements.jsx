@@ -32,6 +32,7 @@ export default function Measurements() {
   const [vals, setVals] = useState({});
   const [date, setDate] = useState(today);
   const [errors, setErrors] = useState({});
+  const [adding, setAdding] = useState(false);
   const latest = entries[entries.length - 1];
   const deltas = useMemo(() => measureDeltas(entries), [entries]);
   const byField = useMemo(() => latestByField(entries), [entries]);
@@ -45,7 +46,7 @@ export default function Measurements() {
     if (date > today) { toast("مينفعش تسجّل قياس في تاريخ لسه ماجاش."); return; }
     const had = entries.find((e) => e.date === date);
     saveMeasure(vals, date);
-    reload(); setVals({}); buzz(15);
+    reload(); setVals({}); setAdding(false); buzz(15);
     toast(had ? "اتحدّثت قياسات اليوم ده" : "اتسجلت القياسات", had ? { duration: 6000, action: { label: "تراجع", onClick: () => { restoreMeasure(had); reload(); } } } : undefined);
   }
   async function del(e) {
@@ -59,6 +60,13 @@ export default function Measurements() {
   return (
     <>
       <SectionNav group="progress" title="تقدّمي" />
+      <div className="mx-head">
+        <div>
+          <div className="mx-title">قياسات الجسم</div>
+          <div className="mx-sub">{latest ? `آخر قياس ${dayLabel(latest.date, today)}` : "لسه مفيش قياسات"}</div>
+        </div>
+        <button type="button" className="mx-add" aria-expanded={adding || entries.length === 0} onClick={() => setAdding((v) => !v)}>{adding ? "إلغاء" : "+ قياس جديد"}</button>
+      </div>
 
       {Object.keys(byField).length > 0 && (
         <div className="ms-tiles">
@@ -78,7 +86,8 @@ export default function Measurements() {
         </div>
       )}
 
-      <div className="glass ms-card">
+      {(adding || entries.length === 0) && (
+      <div className="glass ms-card mx-form">
         <div className="ms-card-title">قياس جديد (سم)</div>
         <div className="edit-field">
           <label htmlFor="ms-date">التاريخ</label>
@@ -97,6 +106,7 @@ export default function Measurements() {
         <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} onClick={add}>حفظ</button>
         <p className="notif-note" style={{ marginTop: 10 }}>القياسات بتتحفظ على جهازك وبتدخل في النسخة الاحتياطية (من الملف الشخصي)، لكن مش بتتزامن مع حسابك.</p>
       </div>
+      )}
 
       {Object.keys(deltas).length > 0 && (
         <div className="glass ms-card">
