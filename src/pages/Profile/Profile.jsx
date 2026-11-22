@@ -40,6 +40,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { theme: activeTheme } = useTheme();
 
+  const [pTab, setPTab] = useState("me");
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -297,6 +298,13 @@ export default function Profile() {
         </div>
       </div>
 
+      <div className="xd-tabs pf-tabs" role="tablist" aria-label="أقسام الحساب">
+        {[["me", "ملفي"], ["ach", "الإنجازات"], ["set", "الإعدادات"]].map(([id, l]) => (
+          <button key={id} type="button" role="tab" aria-selected={pTab === id} className={"xd-tab" + (pTab === id ? " on" : "")} onClick={() => setPTab(id)}>{l}</button>
+        ))}
+      </div>
+
+      {pTab === "me" && (<>
       <Link to="/ai-coach" className="glass coach-card" style={{ textDecoration: "none", color: "inherit" }}>
         <div className="coach-ic">
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /><path d="M9 10.5s1 1 3 1 3-1 3-1" /></svg>
@@ -307,26 +315,6 @@ export default function Profile() {
         </div>
         <svg className="coach-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
       </Link>
-
-      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإنجازات</h2>
-        <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{unlockedCount} من {achievements.length}</span>
-      </div>
-      <div className="glass" style={{ padding: 14 }}>
-        <AchievementsGrid achievements={achievements} />
-        <div className="share-row">
-          <span className="share-txt">شارك تقدمك مع أصحابك</span>
-          <div className="share-btn" style={{ cursor: "pointer" }} {...press(handleShare)}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 10.5 6.8-3.9M8.6 13.5l6.8 3.9" /></svg>
-            مشاركة
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <button type="button" onClick={() => openCard("weight")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت الوزن (صورة)</button>
-          <button type="button" onClick={() => openCard("pr")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت رقم قياسي (صورة)</button>
-        </div>
-        {card && <ShareCardSheet data={card} name={profile.name} onClose={() => setCard(null)} />}
-      </div>
 
       <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>قياسات الجسم</h2>
@@ -351,6 +339,30 @@ export default function Profile() {
         </div>
       </div>
 
+      </>)}
+      {pTab === "ach" && (<>
+      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
+        <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإنجازات</h2>
+        <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{unlockedCount} من {achievements.length}</span>
+      </div>
+      <div className="glass" style={{ padding: 14 }}>
+        <AchievementsGrid achievements={achievements} />
+        <div className="share-row">
+          <span className="share-txt">شارك تقدمك مع أصحابك</span>
+          <div className="share-btn" style={{ cursor: "pointer" }} {...press(handleShare)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 10.5 6.8-3.9M8.6 13.5l6.8 3.9" /></svg>
+            مشاركة
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <button type="button" onClick={() => openCard("weight")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت الوزن (صورة)</button>
+          <button type="button" onClick={() => openCard("pr")} style={{ flex: 1, padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", background: "none", color: "inherit", fontWeight: 800, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>كارت رقم قياسي (صورة)</button>
+        </div>
+        {card && <ShareCardSheet data={card} name={profile.name} onClose={() => setCard(null)} />}
+      </div>
+
+      </>)}
+      {pTab === "set" && (<>
       <div className="section-title" style={{ margin: "20px 4px 12px" }}><h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>الإعدادات</h2></div>
       <div className="glass" style={{ padding: "2px 14px" }}>
         <div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
@@ -449,6 +461,7 @@ export default function Profile() {
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div>
       </div>
+      </>)}
 
       {/* Hidden trigger so the cover-edit button (outside EditProfileSheet) can still open a picker before the sheet is mounted */}
       <input
