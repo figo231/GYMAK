@@ -454,3 +454,19 @@ html.ath.pro-ui .wu-body small{opacity:.7;font-size:12px;line-height:1.6}
 html.ath.pro-ui .wu-sec{color:#FF8A3D;font-weight:700;font-size:13px}
 html.ath.pro-ui .wu-item input{accent-color:#FF6A1A;width:20px;height:20px}
 html.ath.pro-ui .wu-item.done{opacity:.45}
+
+/* workout calendar */
+html.ath.pro-ui .wc { padding: 14px; margin-bottom: 14px; }
+html.ath.pro-ui .wc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+html.ath.pro-ui .wc-title { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+html.ath.pro-ui .wc-title b { font-size: 16px; }
+html.ath.pro-ui .wc-title span { font-size: 12px; color: var(--text-secondary); }
+html.ath.pro-ui .wc-nav { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border-soft); background: transparent; color: var(--text); font-size: 22px; line-height: 1; }
+html.ath.pro-ui .wc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; direction: rtl; }
+html.ath.pro-ui .wc-dow { text-align: center; font-size: 11px; color: var(--text-secondary); padding-bottom: 2px; }
+html.ath.pro-ui .wc-day { aspect-ratio: 1; border-radius: 12px; border: 1px solid transparent; background: rgba(255,255,255,0.03); color: var(--text-secondary); font: inherit; font-size: 13px; font-weight: 600; padding: 0; }
+html.ath.pro-ui .wc-day.on { background: rgba(255,106,19,0.22); color: #ff8a3d; border-color: rgba(255,106,19,0.4); }
+html.ath.pro-ui .wc-day.on.hi { background: #ff6a13; color: #1a0a00; }
+html.ath.pro-ui .wc-day.today { border-color: var(--text-secondary); }
+html.ath.pro-ui .wc-day.sel { outline: 2px solid #fff; outline-offset: 1px; }
+html.ath.pro-ui .wc-clear { margin-top: 10px; width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border-soft); background: transparent; color: #ff8a3d; font: inherit; font-weight: 700; }

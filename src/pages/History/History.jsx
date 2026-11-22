@@ -9,6 +9,7 @@ import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm, usePrompt } from "../../hooks/useDialog";
+import WorkoutCalendar from "./WorkoutCalendar";
 import SectionNav from "../../components/layout/SectionNav";
 
 const TABS = [
@@ -31,7 +32,10 @@ export default function History() {
   const workouts = useMemo(() => Store.getExerciseLogEntries(limit), [version, limit]);
   const foodDays = useMemo(() => Store.getFoodDays(), [version]);
   const weights = useMemo(() => weightRowsWithDelta(Store.getWeightEntries()), [version]);
-  const days = useMemo(() => groupWorkoutsByDay(workouts), [workouts]);
+  const allDays = useMemo(() => groupWorkoutsByDay(workouts), [workouts]);
+  const [selDay, setSelDay] = useState(null);
+  const dayStats = useMemo(() => Object.fromEntries(allDays.map((d) => [d.date, { sets: d.sets, exercises: d.exercises }])), [allDays]);
+  const days = selDay ? allDays.filter((d) => d.date === selDay) : allDays;
 
   function withUndo(snap, message) {
     if (!snap) return;
@@ -106,6 +110,7 @@ export default function History() {
             <div><b>{days.reduce((a, d) => a + d.sets, 0)}</b><span>مجموعة</span></div>
             <div><b>{new Set(workouts.map((w) => w.exerciseId)).size}</b><span>تمرين مختلف</span></div>
           </div>
+          <WorkoutCalendar dayStats={dayStats} today={today} selected={selDay} onSelect={setSelDay} />
           <div className="th-rail">
           {days.map((d) => {
             const dt = new Date(d.date + "T00:00:00");
