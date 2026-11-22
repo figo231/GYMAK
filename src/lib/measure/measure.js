@@ -64,6 +64,11 @@ export function restoreMeasure(entry) {
   return true;
 }
 
+/** Dated series for one field (oldest first), ready for TrendChart points. */
+export function seriesForField(k, entries = loadMeasures()) {
+  return entries.filter((e) => typeof e[k] === "number").map((e) => ({ date: e.date, value: e[k] }));
+}
+
 /** Latest value per field with the change versus the previous reading and a short series (oldest first). */
 export function latestByField(entries = loadMeasures()) {
   const out = {};

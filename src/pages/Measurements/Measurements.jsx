@@ -6,7 +6,9 @@ import { useConfirm } from "../../hooks/useDialog";
 import { buzz } from "../../lib/haptics";
 import { localISO } from "../../lib/dateKey";
 import { dayLabel } from "../../lib/historyLogic";
-import { FIELDS, loadMeasures, saveMeasure, deleteMeasure, restoreMeasure, measureDeltas, validateMeasures, latestByField } from "../../lib/measure/measure";
+import Store from "../../lib/store/gymakStore";
+import TrendChart from "../Stats/TrendChart";
+import { FIELDS, loadMeasures, saveMeasure, deleteMeasure, restoreMeasure, measureDeltas, validateMeasures, latestByField, seriesForField } from "../../lib/measure/measure";
 
 // Waist and hips going down is the usual goal; for the rest we do not judge the direction.
 const DOWN_IS_GOOD = new Set(["waist", "hips"]);
@@ -42,6 +44,19 @@ export default function Measurements() {
   const latest = entries[entries.length - 1];
   const deltas = useMemo(() => measureDeltas(entries), [entries]);
   const byField = useMemo(() => latestByField(entries), [entries]);
+  const [chartKey, setChartKey] = useState("weight");
+  const chartOptions = useMemo(() => {
+    const opts = [];
+    if (Store.getWeightHistory(1000).length >= 2) opts.push(["weight", "الوزن"]);
+    for (const [k, label] of FIELDS) if (seriesForField(k, entries).length >= 2) opts.push([k, label]);
+    return opts;
+  }, [entries]);
+  const activeChart = chartOptions.some(([k]) => k === chartKey) ? chartKey : (chartOptions[0] && chartOptions[0][0]);
+  const chartPoints = useMemo(() => {
+    if (!activeChart) return [];
+    if (activeChart === "weight") return Store.getWeightHistory(1000).map((w) => ({ date: w.date, value: w.weight }));
+    return seriesForField(activeChart, entries);
+  }, [activeChart, entries]);
   const reload = () => setEntries(loadMeasures());
 
   function add() {
@@ -91,6 +106,18 @@ export default function Measurements() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {chartOptions.length > 0 && (
+        <div className="glass ms-card">
+          <div className="ms-card-title">رسم التقدّم</div>
+          <div className="filters" role="group" aria-label="اختر القياس" style={{ marginBottom: 10 }}>
+            {chartOptions.map(([k, label]) => (
+              <button type="button" key={k} className={"chip chip-btn sm" + (activeChart === k ? " active" : "")} aria-pressed={activeChart === k} onClick={() => setChartKey(k)}>{label}</button>
+            ))}
+          </div>
+          <TrendChart points={chartPoints} unit={activeChart === "weight" ? "كجم" : "سم"} label={chartOptions.find(([k]) => k === activeChart)?.[1]} />
         </div>
       )}
 

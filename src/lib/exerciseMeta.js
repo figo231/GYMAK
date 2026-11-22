@@ -120,6 +120,12 @@ export function matchesQuery(hay, query) {
 export const DIFFICULTIES = ["مبتدئ", "متوسط", "متقدم"];
 export const EQUIPMENT_ORDER = ["وزن الجسم", "دمبل", "بار", "جهاز", "كابل"];
 
+// Home-workout filter: only exercises the library itself tags as pure bodyweight.
+export const HOME_EQUIPMENT = "وزن الجسم";
+export function isHomeExercise(ex) {
+  return !!ex && ex.equipment === HOME_EQUIPMENT;
+}
+
 // ----- add-exercise validation -----
 export function clampInt(v, min, max, fallback) {
   const n = parseInt(v, 10);

@@ -37,3 +37,19 @@ describe("measurements v2", () => {
     expect(l.neck).toBeUndefined();
   });
 });
+
+describe("seriesForField (progress chart)", () => {
+  it("returns dated points oldest-first for TrendChart", async () => {
+    const { saveMeasure, seriesForField } = await import("../src/lib/measure/measure.js");
+    saveMeasure({ waist: 95 }, "2026-11-01");
+    saveMeasure({ waist: 93.5, chest: 100 }, "2026-11-10");
+    saveMeasure({ waist: 92 }, "2026-11-20");
+    expect(seriesForField("waist")).toEqual([
+      { date: "2026-11-01", value: 95 },
+      { date: "2026-11-10", value: 93.5 },
+      { date: "2026-11-20", value: 92 },
+    ]);
+    expect(seriesForField("chest")).toEqual([{ date: "2026-11-10", value: 100 }]);
+    expect(seriesForField("arm")).toEqual([]);
+  });
+});

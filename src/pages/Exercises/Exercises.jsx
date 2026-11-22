@@ -7,7 +7,7 @@ import { useStoreVersion } from "../../hooks/useStoreVersion";
 import ExerciseCard from "./ExerciseCard";
 import AddExerciseSheet from "./AddExerciseSheet";
 import EmptyState from "../../components/ui/EmptyState";
-import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER } from "../../lib/exerciseMeta";
+import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER, isHomeExercise } from "../../lib/exerciseMeta";
 import { getFavs, toggleFav } from "../../lib/exerciseFavs";
 import { saveExerciseMedia, deleteExerciseMedia } from "../../lib/exerciseMedia";
 
@@ -43,6 +43,7 @@ export default function Exercises() {
   const [diff, setDiff] = useState("");
   const [favOnly, setFavOnly] = useState(false);
   const [mineOnly, setMineOnly] = useState(false);
+  const [homeOnly, setHomeOnly] = useState(false);
   const [mediaError, setMediaError] = useState("");
   const [sort, setSort] = useState("default");
   const [showFilters, setShowFilters] = useState(false);
@@ -83,6 +84,7 @@ export default function Exercises() {
       if (diff && ex.difficulty !== diff) return false;
       if (favOnly && !favs.has(ex.id)) return false;
       if (mineOnly && !ex.custom) return false;
+      if (homeOnly && !isHomeExercise(ex)) return false;
       if (search.trim() && !matchesQuery(hays.get(ex.id) || "", search)) return false;
       return true;
     });
@@ -97,7 +99,7 @@ export default function Exercises() {
       });
     }
     return list;
-  }, [scopedList, activeMuscle, equip, diff, favOnly, mineOnly, favs, search, hays, sort]);
+  }, [scopedList, activeMuscle, equip, diff, favOnly, mineOnly, homeOnly, favs, search, hays, sort]);
 
   const groups = {};
   filtered.forEach((ex) => {
@@ -108,9 +110,9 @@ export default function Exercises() {
 
   const muscleCount = new Set(scopedList.map((ex) => ex.muscle)).size;
   const mineCount = all.filter((e) => e.custom).length;
-  const activeFilterCount = (equip ? 1 : 0) + (diff ? 1 : 0) + (favOnly ? 1 : 0) + (mineOnly ? 1 : 0) + (sort !== "default" ? 1 : 0);
+  const activeFilterCount = (equip ? 1 : 0) + (diff ? 1 : 0) + (favOnly ? 1 : 0) + (mineOnly ? 1 : 0) + (homeOnly ? 1 : 0) + (sort !== "default" ? 1 : 0);
   // On the full unfiltered list, start with groups folded so the page isn't a 130-card scroll.
-  const autoFold = activeMuscle === "all" && !search.trim() && !equip && !diff && !favOnly && !mineOnly && filtered.length > 40;
+  const autoFold = activeMuscle === "all" && !search.trim() && !equip && !diff && !favOnly && !mineOnly && !homeOnly && filtered.length > 40;
   const isOpen = (muscle, idx) => (openMap[muscle] !== undefined ? openMap[muscle] : !autoFold || idx === 0);
 
   async function handleAddSave(payload) {
@@ -137,7 +139,7 @@ export default function Exercises() {
   }
 
   function clearFilters() {
-    setEquip(""); setDiff(""); setFavOnly(false); setMineOnly(false); setSort("default"); setActiveMuscle("all"); setSearch("");
+    setEquip(""); setDiff(""); setFavOnly(false); setMineOnly(false); setHomeOnly(false); setSort("default"); setActiveMuscle("all"); setSearch("");
   }
 
   return (
@@ -215,6 +217,9 @@ export default function Exercises() {
         </button>
         <button type="button" className={"chip chip-btn" + (mineOnly ? " active" : "")} aria-pressed={mineOnly} onClick={() => setMineOnly((v) => !v)}>
           <span>🏋️ تماريني ({mineCount})</span>
+        </button>
+        <button type="button" className={"chip chip-btn" + (homeOnly ? " active" : "")} aria-pressed={homeOnly} onClick={() => setHomeOnly((v) => !v)}>
+          <span>🏠 في البيت</span>
         </button>
         <span className="page-count" style={{ marginInlineStart: "auto" }}>{filtered.length} نتيجة</span>
       </div>
