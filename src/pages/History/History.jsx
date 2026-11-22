@@ -1,4 +1,9 @@
 import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import EmptyState from "../../components/ui/EmptyState";
+import EditSetSheet from "./EditSetSheet";
+import { localISO } from "../../lib/dateKey";
+import { dayLabel, groupWorkoutsByDay, weightRowsWithDelta } from "../../lib/historyLogic";
 import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
@@ -11,22 +16,21 @@ const TABS = [
   { id: "weight", label: "الوزن" },
 ];
 
-const rowStyle = { display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", marginBottom: 8 };
-const iconBtn = {
-  background: "rgba(var(--ink),0.06)", border: "1px solid var(--border-soft)", borderRadius: 10,
-  padding: "7px 10px", fontSize: 12, fontWeight: 800, color: "var(--text-primary)", fontFamily: "inherit", cursor: "pointer",
-};
-
 export default function History() {
   const [version] = useStoreVersion();
   const [tab, setTab] = useState("workouts");
   const toast = useToast();
   const confirm = useConfirm();
   const prompt = usePrompt();
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState(null);
+  const [limit, setLimit] = useState(200);
+  const today = localISO();
 
-  const workouts = useMemo(() => Store.getExerciseLogEntries(200), [version]);
+  const workouts = useMemo(() => Store.getExerciseLogEntries(limit), [version, limit]);
   const foodDays = useMemo(() => Store.getFoodDays(), [version]);
-  const weights = useMemo(() => Store.getWeightEntries(), [version]);
+  const weights = useMemo(() => weightRowsWithDelta(Store.getWeightEntries()), [version]);
+  const days = useMemo(() => groupWorkoutsByDay(workouts), [workouts]);
 
   function withUndo(snap, message) {
     if (!snap) return;
@@ -34,17 +38,14 @@ export default function History() {
   }
 
   async function removeWorkout(w) {
-    const ok = await confirm({ title: "مسح المجموعة؟", label: `${w.name} — ${Store.formatWeight(w.weight)} × ${w.sets}×${w.reps}`, confirmLabel: "مسح", danger: true });
+    const ok = await confirm({ title: "مسح المجموعة؟", label: `${w.name} · ${w.weight > 0 ? Store.formatWeight(w.weight) : "وزن الجسم"} · ${w.sets}×${w.reps}`, confirmLabel: "مسح", danger: true });
     if (ok) withUndo(Store.deleteExerciseLog(w.exerciseId, w.i), "تم مسح المجموعة");
   }
-  async function editWorkout(w) {
-    const wt = await prompt({ title: "تعديل الوزن", label: `الوزن (${Store.unitLabel()})`, inputType: "number", defaultValue: Store.toDisplayWeight(w.weight) });
-    if (wt == null) return;
-    const sr = await prompt({ title: "المجموعات × التكرارات", label: "اكتبها زي 3x10", defaultValue: `${w.sets}x${w.reps}` });
-    if (sr == null) return;
-    const m = String(sr).toLowerCase().match(/^\s*(\d+)\s*[x×*]\s*(\d+)\s*$/);
-    if (!m || !(Number(wt) >= 0)) { toast("القيم مش صحيحة"); return; }
-    const snap = Store.updateExerciseLog(w.exerciseId, w.i, { weight: Store.fromDisplayWeight(Number(wt)), sets: m[1], reps: m[2] });
+  function editWorkout(w) { setEditing(w); }
+  function saveWorkout(vals) {
+    const w = editing;
+    setEditing(null);
+    const snap = Store.updateExerciseLog(w.exerciseId, w.i, vals);
     snap ? withUndo(snap, "تم التعديل") : toast("القيم مش صحيحة");
   }
 
@@ -62,64 +63,95 @@ export default function History() {
   }
 
   async function removeWeight(w) {
-    const ok = await confirm({ title: "مسح الوزن؟", label: `${w.date} — ${Store.formatWeight(w.weight)}`, confirmLabel: "مسح", danger: true });
+    const ok = await confirm({ title: "مسح الوزن؟", label: `${dayLabel(w.date, today)} · ${Store.formatWeight(w.weight)}`, confirmLabel: "مسح", danger: true });
     if (ok) withUndo(Store.deleteWeightEntry(w.date), "تم مسح الوزن");
   }
   async function editWeight(w) {
-    const v = await prompt({ title: "تعديل الوزن", label: `${w.date} (${Store.unitLabel()})`, inputType: "number", defaultValue: Store.toDisplayWeight(w.weight) });
+    const v = await prompt({ title: "تعديل الوزن", label: `${dayLabel(w.date, today)} (${Store.unitLabel()})`, inputType: "number", defaultValue: Store.toDisplayWeight(w.weight) });
     if (v == null) return;
     const snap = Store.updateWeightEntry(w.date, Store.fromDisplayWeight(Number(v)));
     snap ? withUndo(snap, "تم التعديل") : toast("القيمة مش صحيحة");
   }
 
-  const empty = (text) => <div className="glass" style={{ padding: 24, textAlign: "center", color: "var(--text-dim)", fontWeight: 700, fontSize: 13 }}>{text}</div>;
+  const trash = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>;
+  const pen = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
+  const rowActions = (onEdit, onDel, what) => (
+    <div className="hist-actions">
+      <button type="button" className="hist-btn" aria-label={`تعديل ${what}`} onClick={onEdit}>{pen}</button>
+      <button type="button" className="hist-btn danger" aria-label={`مسح ${what}`} onClick={onDel}>{trash}</button>
+    </div>
+  );
+  const fmtKg = (kg) => Store.formatWeight(kg);
 
   return (
     <>
       <DetailTopBar backTo="/profile" title="السجل" />
-      <div className="period-tabs" style={{ marginTop: 4 }}>
+      <div className="period-tabs" role="tablist" aria-label="نوع السجل" style={{ marginTop: 4 }}>
         {TABS.map((t) => (
-          <div key={t.id} className={"p-tab" + (tab === t.id ? " active" : "")} style={{ cursor: "pointer" }} onClick={() => setTab(t.id)}>{t.label}</div>
+          <button type="button" role="tab" aria-selected={tab === t.id} key={t.id} className={"p-tab" + (tab === t.id ? " active" : "")} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
       </div>
 
-      {tab === "workouts" && (workouts.length === 0 ? empty("لسه مسجلتش أي تمرين") : workouts.map((w) => (
-        <div className="glass" style={rowStyle} key={`${w.exerciseId}-${w.i}-${w.date}`}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: 14 }}>{w.name}</div>
-            <div style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>{w.date} · {Store.formatWeight(w.weight)} · <bdi dir="ltr">{w.sets}×{w.reps}</bdi></div>
-          </div>
-          <button style={iconBtn} onClick={() => editWorkout(w)}>تعديل</button>
-          <button style={{ ...iconBtn, color: "var(--danger)" }} onClick={() => removeWorkout(w)}>مسح</button>
-        </div>
-      )))}
-
-      {tab === "food" && (foodDays.length === 0 ? empty("لسه مسجلتش أي أكل") : foodDays.map((day) => (
-        <div key={day.date} style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 800, color: "var(--text-secondary)", margin: "4px 4px 8px" }}>{day.date} · {day.totalKcal} سعرة</div>
-          {day.items.map((it, idx) => (
-            <div className="glass" style={rowStyle} key={idx}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 800, fontSize: 14 }}>{it.name}</div>
-                <div style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>{it.grams}جم · {it.kcal} سعرة · بروتين {it.protein}</div>
+      {tab === "workouts" && (days.length === 0 ? (
+        <EmptyState type="dumbbell" title="لسه مسجلتش أي تمرين" subtitle="أول مجموعة تسجلها هتظهر هنا." ctaLabel="ابدأ من التمارين" onCta={() => { navigate("/exercises"); }} />
+      ) : (
+        <>
+          {days.map((d) => (
+            <section key={d.date} className="hist-day" aria-label={dayLabel(d.date, today)}>
+              <div className="hist-day-head">
+                <span className="hist-day-name">{dayLabel(d.date, today)}</span>
+                <span className="hist-day-sum">{d.exercises} {d.exercises === 1 ? "تمرين" : "تمارين"} · {d.sets} مجموعة{d.volume > 0 ? ` · ${fmtKg(d.volume)}` : ""}</span>
               </div>
-              <button style={iconBtn} onClick={() => editFood(day, idx)}>تعديل</button>
-              <button style={{ ...iconBtn, color: "var(--danger)" }} onClick={() => removeFood(day, idx)}>مسح</button>
+              {d.items.map((w) => (
+                <div className="glass hist-row" key={`${w.exerciseId}-${w.i}`}>
+                  <div className="hist-main">
+                    <Link to={`/exercise/${w.exerciseId}`} className="hist-name">{w.name}</Link>
+                    <div className="hist-meta">{w.weight > 0 ? fmtKg(w.weight) : "وزن الجسم"} · <bdi dir="ltr">{w.sets}×{w.reps}</bdi></div>
+                  </div>
+                  {rowActions(() => editWorkout(w), () => removeWorkout(w), `مجموعة ${w.name}`)}
+                </div>
+              ))}
+            </section>
+          ))}
+          {workouts.length >= limit && <button type="button" className="btn hist-more" onClick={() => setLimit((l) => l + 200)}>عرض أقدم</button>}
+        </>
+      ))}
+
+      {tab === "food" && (foodDays.length === 0 ? (
+        <EmptyState type="chat" title="لسه مسجلتش أي أكل" subtitle="اكتب للمدرب الذكي اللي أكلته وهو يحسب السعرات." ctaLabel="افتح المدرب" onCta={() => { navigate("/ai-coach"); }} />
+      ) : foodDays.map((day) => (
+        <section key={day.date} className="hist-day" aria-label={dayLabel(day.date, today)}>
+          <div className="hist-day-head">
+            <span className="hist-day-name">{dayLabel(day.date, today)}</span>
+            <span className="hist-day-sum">{day.totalKcal} سعرة · بروتين {Math.round(day.totalProtein || 0)}جم</span>
+          </div>
+          {day.items.map((it, idx) => (
+            <div className="glass hist-row" key={idx}>
+              <div className="hist-main">
+                <div className="hist-name">{it.name}</div>
+                <div className="hist-meta">{it.grams}جم · {it.kcal} سعرة · بروتين {it.protein}</div>
+              </div>
+              {rowActions(() => editFood(day, idx), () => removeFood(day, idx), it.name)}
             </div>
           ))}
+        </section>
+      )))}
+
+      {tab === "weight" && (weights.length === 0 ? (
+        <EmptyState type="trophy" title="لسه مسجلتش وزنك" subtitle="سجّل وزنك من الصفحة الرئيسية وهتشوف تغييرك هنا." />
+      ) : weights.map((w) => (
+        <div className="glass hist-row" key={w.date}>
+          <div className="hist-main">
+            <div className="hist-name">{fmtKg(w.weight)}{w.delta != null && w.delta !== 0 && (
+              <span className="hist-delta" dir="ltr">{w.delta > 0 ? "+" : "−"}{Math.abs(+(Store.toDisplayWeight(w.weight) - Store.toDisplayWeight(w.weight - w.delta)).toFixed(1))}</span>
+            )}</div>
+            <div className="hist-meta">{dayLabel(w.date, today)}{w.bodyFat != null ? ` · دهون ${w.bodyFat}%` : ""}</div>
+          </div>
+          {rowActions(() => editWeight(w), () => removeWeight(w), "الوزن")}
         </div>
       )))}
 
-      {tab === "weight" && (weights.length === 0 ? empty("لسه مسجلتش وزنك") : weights.map((w) => (
-        <div className="glass" style={rowStyle} key={w.date}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 14 }}>{Store.formatWeight(w.weight)}</div>
-            <div style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>{w.date}{w.bodyFat != null ? ` · دهون ${w.bodyFat}%` : ""}</div>
-          </div>
-          <button style={iconBtn} onClick={() => editWeight(w)}>تعديل</button>
-          <button style={{ ...iconBtn, color: "var(--danger)" }} onClick={() => removeWeight(w)}>مسح</button>
-        </div>
-      )))}
+      {editing && <EditSetSheet entry={editing} onClose={() => setEditing(null)} onSave={saveWorkout} />}
     </>
   );
 }
