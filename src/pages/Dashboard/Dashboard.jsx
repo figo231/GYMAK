@@ -13,6 +13,7 @@ import { useStoreVersion } from "../../hooks/useStoreVersion";
 import WeightLogSheet from "./WeightLogSheet";
 import WaterCard from "./WaterCard";
 import ChallengeCard from "./ChallengeCard";
+import TipCard from "./TipCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
@@ -164,6 +165,8 @@ export default function Dashboard() {
         <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>مياه</span></button>
         <Link to="/food" className="ts-item"><b dir="ltr">{kcalToday}</b><span>سعرات</span></Link>
       </div>
+
+      <TipCard />
 
       {recent.length === 0 && (
         <div className="glass start-card" data-testid="start-card">
