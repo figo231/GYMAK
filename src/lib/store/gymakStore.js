@@ -40,6 +40,7 @@ const KEY = "gymak_state_v1";
       exercises: SEED_EXERCISES.slice(),
       prHistory: [], // {exerciseId, exerciseName, weight, prevWeight, date}
       activeProgramId: null,
+      savedMeals: [], // {id, name, items:[{name,grams,kcal,protein,carbs,fat}]}
       foodLog: [], // {date, items:[{name,grams,kcal,protein,carbs,fat}], totalKcal, totalProtein, totalCarbs, totalFat}
       settings: { unit: "kg", notifEnabled: false, notifTime: "19:00", lang: "ar" },
       // Local deletions not yet confirmed on the server (see Store.deleteXxx and sync/domains.js).
@@ -586,6 +587,7 @@ const KEY = "gymak_state_v1";
       if (parsed.settings.notifTime === undefined) parsed.settings.notifTime = "19:00";
       if (parsed.settings.lang === undefined) parsed.settings.lang = "ar";
       if (!parsed.foodLog) parsed.foodLog = [];
+      if (!Array.isArray(parsed.savedMeals)) parsed.savedMeals = [];
       if (!parsed.deletedExerciseIds) parsed.deletedExerciseIds = [];
       if (!parsed.pendingDeletes) parsed.pendingDeletes = { weight: [], food: [], exerciseLogs: [], prs: [] };
       for (const k of ["weight", "food", "exerciseLogs", "prs"]) if (!parsed.pendingDeletes[k]) parsed.pendingDeletes[k] = [];
@@ -1162,6 +1164,31 @@ const KEY = "gymak_state_v1";
       dayEntry.totalFat = Math.round((dayEntry.totalFat + totals.fat) * 10) / 10;
       save(s);
       return dayEntry;
+    },
+
+    getSavedMeals() { return load().savedMeals.slice(); },
+    saveMeal(name, items) {
+      const nm = String(name || "").trim().slice(0, 40);
+      if (!nm || !Array.isArray(items) || !items.length) return null;
+      const s = load();
+      if (s.savedMeals.length >= 30) return null;
+      const meal = { id: "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: nm, items: items.map((it) => ({ name: String(it.name), grams: Number(it.grams) || 0, kcal: Number(it.kcal) || 0, protein: Number(it.protein) || 0, carbs: Number(it.carbs) || 0, fat: Number(it.fat) || 0 })) };
+      s.savedMeals.push(meal);
+      save(s);
+      return meal;
+    },
+    deleteSavedMeal(id) {
+      const s = load();
+      const i = s.savedMeals.findIndex((m) => m.id === id);
+      if (i < 0) return null;
+      const [gone] = s.savedMeals.splice(i, 1);
+      save(s);
+      return gone;
+    },
+    logSavedMeal(id) {
+      const m = load().savedMeals.find((x) => x.id === id);
+      if (!m) return null;
+      return this.logFoodEntries(m.items.map((it) => ({ ...it })));
     },
 
     getTodayFoodLog() {

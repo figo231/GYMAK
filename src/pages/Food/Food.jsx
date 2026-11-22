@@ -24,6 +24,7 @@ export default function Food() {
   const m = macroSplit(day);
   const mode = useMemo(() => Store.getGoalMode(), [version]);
   const modes = Store.getGoalModes();
+  const saved = useMemo(() => Store.getSavedMeals(), [version]);
   const proteinTarget = useMemo(() => Store.getProteinTarget(), [version]);
 
   function parse(t) {
@@ -38,6 +39,18 @@ export default function Food() {
     Store.logFoodEntries(preview);
     setPreview(null); setText("");
     toast("اتسجّل");
+  }
+  async function saveCurrent() {
+    if (!preview) return;
+    const v = await prompt({ title: "اسم الوجبة", label: "مثال: فطاري المعتاد", inputType: "text", defaultValue: "" });
+    if (v == null || !String(v).trim()) return;
+    const m = Store.saveMeal(v, preview);
+    toast(m ? "اتحفظت الوجبة." : "معرفناش نحفظ الوجبة (الحد 30 وجبة).");
+  }
+  function logSaved(m) { Store.logSavedMeal(m.id); toast(`اتسجّل: ${m.name}`); }
+  async function delSaved(m) {
+    const ok = await confirm({ title: "تمسح الوجبة المحفوظة؟", label: m.name, confirmLabel: "مسح", danger: true });
+    if (ok) Store.deleteSavedMeal(m.id);
   }
   async function del(i, it) {
     const ok = await confirm({ title: "مسح الأكلة؟", label: it.name, confirmLabel: "مسح", danger: true });
@@ -88,6 +101,20 @@ export default function Food() {
         </div>
       </div>
 
+      {saved.length > 0 && (
+        <div className="saved-meals" data-testid="saved-meals">
+          <div className="section-sub">وجباتك المحفوظة</div>
+          {saved.map((m) => (
+            <div key={m.id} className="glass saved-meal">
+              <button type="button" className="saved-meal-main" onClick={() => logSaved(m)}>
+                <b>{m.name}</b><small dir="ltr">{m.items.reduce((a, x) => a + x.kcal, 0)} kcal</small>
+              </button>
+              <button type="button" className="hist-btn danger" aria-label={`مسح ${m.name}`} onClick={() => delSaved(m)}>✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="glass food-add">
         <div className="food-add-title">كلت إيه؟</div>
         <textarea className="food-input" rows={2} value={text} placeholder="مثال: عيش بلدي وفراخ مشوية و٢ موز" onChange={(e) => { setText(e.target.value); setPreview(null); }} />
@@ -102,6 +129,7 @@ export default function Food() {
               <div className="food-row" key={i}><span>{it.name} <small dir="ltr">{Math.round(it.grams)}g</small></span><b dir="ltr">{it.kcal} kcal</b></div>
             ))}
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={add}>سجّل ({preview.reduce((a, x) => a + x.kcal, 0)} سعرة)</button>
+            <button type="button" className="btn" style={{ width: "100%", marginTop: 8 }} onClick={saveCurrent}>احفظ كوجبة</button>
           </div>
         )}
       </div>

@@ -432,3 +432,7 @@ html.ath.pro-ui .onboarding-actions{display:flex;gap:10px;width:100%;max-width:3
 html.ath.pro-ui .onboarding-cta{flex:1;border:0;background:linear-gradient(135deg,#FF8A3D,#F2500C);color:#0B0C0F;font:inherit;font-weight:800;font-size:15px;padding:15px;border-radius:16px;box-shadow:none}
 html.ath.pro-ui .onboarding-back{border:1px solid rgba(255,255,255,.18);background:none;color:inherit;font:inherit;font-weight:700;padding:15px 18px;border-radius:16px}
 html.ath.pro-ui .onboarding-slide{min-height:330px;justify-content:center}
+html.ath.pro-ui .saved-meals{margin-bottom:12px}
+html.ath.pro-ui .saved-meal{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;margin-bottom:8px}
+html.ath.pro-ui .saved-meal-main{flex:1;display:flex;justify-content:space-between;align-items:center;background:none;border:0;color:inherit;font:inherit;padding:10px 4px;cursor:pointer}
+html.ath.pro-ui .saved-meal-main small{color:#FF8A3D;font-weight:700}
