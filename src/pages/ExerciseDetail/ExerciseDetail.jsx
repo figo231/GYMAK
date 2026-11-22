@@ -9,11 +9,14 @@ import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
 import { localISO } from "../../lib/dateKey";
 import { relDayAr } from "../../lib/homeLogic";
-import { initialForm, parseLogForm, stepValue, logsOnDate, bestWeight, previousSession, volume, isBodyweight } from "../../lib/logLogic";
+import { initialForm, parseLogForm, stepValue, logsOnDate, bestWeight, previousSession, volume, isBodyweight, best1RM, percentTable } from "../../lib/logLogic";
 import MuscleAnatomy from "./MuscleAnatomy";
 import ExerciseAnim, { hasExerciseAnim } from "../../components/ExerciseAnim";
 import { useExerciseMedia } from "../../lib/exerciseMedia";
 import MuscleIllustration from "../Exercises/MuscleIllustration";
+import ExerciseThumb from "../Exercises/ExerciseThumb";
+import { Link } from "react-router-dom";
+import { findAlternatives, equipmentOptions } from "../../lib/alternatives";
 
 // Classifies a user-supplied media URL so we know whether to render a
 // <video>, an <img> (gif/still), or a YouTube embed. Anything we can't
@@ -56,6 +59,15 @@ function ExerciseDetail({ id }) {
   const todaySets = logsOnDate(allLogs, today);
   const prevSession = previousSession(allLogs, today);
   const best = bestWeight(allLogs);
+  const orm = best1RM(allLogs);
+  const ormDisplay = orm ? Store.toDisplayWeight(orm.value) : 0;
+  const ormStep = unit === "lb" ? 5 : 2.5;
+  const ormTable = orm ? percentTable(ormDisplay, ormStep) : [];
+  const [showOrm, setShowOrm] = useState(false);
+  const [altEq, setAltEq] = useState("all");
+  const alts = exercise ? findAlternatives(exercise, Store.getExercises(), { limit: 12 }) : [];
+  const altOpts = equipmentOptions(alts);
+  const altShown = (altEq === "all" ? alts : alts.filter((a) => a.equipment === altEq)).slice(0, 6);
   const fav = Store.getFavoriteIds().includes(exerciseId);
   const secUnit = !!(exercise && exercise.unit === "sec");
 
@@ -238,6 +250,28 @@ function ExerciseDetail({ id }) {
             <button type="button" onClick={undoLast}>تراجع</button>
           </div>
         )}
+        {orm && (
+          <div className="orm">
+            <button type="button" className="orm-head" aria-expanded={showOrm} onClick={() => setShowOrm((v) => !v)}>
+              <span>الحد الأقصى المقدّر (1RM)</span>
+              <b dir="ltr">{Math.round(ormDisplay * 10) / 10} {unit}</b>
+            </button>
+            {showOrm && (
+              <div className="orm-body">
+                <p className="orm-note">تقدير من أفضل مجموعة ليك ({Store.formatWeight(orm.from.weight)} × {orm.from.reps}). دقيق لحد 12 تكرار تقريبًا. استخدمه كدليل مش كحقيقة ثابتة.</p>
+                <div className="orm-table" role="table">
+                  {ormTable.map((r) => (
+                    <div className="orm-row" role="row" key={r.percent}>
+                      <span role="cell" dir="ltr">{r.percent}%</span>
+                      <b role="cell" dir="ltr">{r.weight} {unit}</b>
+                      <span role="cell" className="orm-reps">~{r.reps} تكرار</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {todaySets.length > 0 && (
           <div className="log-today">
             <div className="log-today-head"><span>النهارده · {todaySets.length} {todaySets.length === 1 ? "تسجيلة" : "تسجيلات"}</span><span dir="ltr">{Store.formatWeight(volume(todaySets))}</span></div>
@@ -339,6 +373,27 @@ function ExerciseDetail({ id }) {
         </div>
       )}
 
+      {alts.length > 0 && (
+        <div className="alts">
+          <p className="section-title">بدائل للتمرين ده</p>
+          <p className="alts-sub">مفيش المعدة أو التمرين مش مناسب؟ جرّب واحد من دول لنفس العضلة.</p>
+          <div className="goal-tabs" role="tablist" aria-label="نوع المعدة">
+            {["all", ...altOpts].map((o) => (
+              <button key={o} type="button" role="tab" aria-selected={altEq === o} className={"goal-tab" + (altEq === o ? " on" : "")} onClick={() => setAltEq(o)}>{o === "all" ? "الكل" : o}</button>
+            ))}
+          </div>
+          {altShown.map((a) => (
+            <Link key={a.id} to={`/exercise/${encodeURIComponent(a.id)}`} className="glass alt-row">
+              <ExerciseThumb color={Store.getMuscleMeta(a.muscle).color} muscle={a.muscle} exerciseId={a.id} localMedia={a.localMedia} />
+              <div className="alt-main">
+                <div className="alt-name">{a.name}</div>
+                <div className="alt-meta">{[a.equipment, a.difficulty, a.sets && a.reps ? `${a.sets}×${a.reps}` : null].filter(Boolean).join(" · ")}</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+            </Link>
+          ))}
+        </div>
+      )}
     </>
   );
               }

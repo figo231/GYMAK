@@ -382,3 +382,24 @@ button.p-tab:focus-visible, .hist-btn:focus-visible, .hist-more:focus-visible, .
 .ms-delta-row + .ms-delta-row { border-top: 1px solid rgba(var(--ink), .05); }
 .ms-delta-row .ms-tile-delta { margin: 0; font-size: 13px; }
 .edit-field input[aria-invalid="true"] { border-color: var(--danger); }
+
+/* ===== 1RM ===== */
+.orm { margin-top: 12px; border-top: 1px solid rgba(var(--ink), .07); padding-top: 10px; }
+.orm-head { width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: none; color: var(--text-primary); font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; padding: 4px 0; }
+.orm-head b { color: var(--accent-text); font-size: 15px; }
+.orm-head:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.orm-note { font-size: 11.5px; color: var(--text-dim); line-height: 1.6; margin: 6px 0 8px; }
+.orm-row { display: grid; grid-template-columns: 52px 1fr auto; gap: 8px; align-items: center; padding: 7px 0; font-size: 13px; }
+.orm-row + .orm-row { border-top: 1px solid rgba(var(--ink), .05); }
+.orm-row b { font-weight: 900; }
+.orm-reps { color: var(--text-dim); font-size: 11.5px; font-weight: 700; }
+
+/* ===== Alternatives ===== */
+.alts { margin-top: 6px; margin-bottom: 8px; }
+.alts-sub { font-size: 12px; color: var(--text-dim); margin: -4px 4px 8px; line-height: 1.6; }
+.alt-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px; text-decoration: none; color: inherit; }
+.alt-main { flex: 1; min-width: 0; }
+.alt-name { font-weight: 800; font-size: 14px; }
+.alt-meta { font-size: 11.5px; color: var(--text-dim); font-weight: 600; margin-top: 2px; }
+.alt-row svg { color: var(--text-dim); flex-shrink: 0; }
+.alt-row:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }

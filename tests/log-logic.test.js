@@ -40,3 +40,24 @@ describe("form helpers", () => {
     expect(volume(logs.slice(1))).toBe(60 * 24 + 55 * 16);
   });
 });
+
+import { estimate1RM, best1RM, percentTable } from "../src/lib/logLogic";
+describe("1RM", () => {
+  it("estimates sensibly", () => {
+    expect(estimate1RM(100, 1)).toBe(100);
+    expect(estimate1RM(100, 5)).toBeCloseTo(112.5, 1);
+    expect(estimate1RM(100, 10)).toBeCloseTo(133.3, 1);
+    expect(estimate1RM(100, 30)).toBeCloseTo(estimate1RM(100, 12), 5);
+    expect(estimate1RM(0, 8)).toBe(0);
+    expect(estimate1RM(80, 0)).toBe(0);
+  });
+  it("finds the best set and builds a plate-friendly table", () => {
+    const b = best1RM([{ weight: 60, reps: 10 }, { weight: 80, reps: 5 }, { weight: 0, reps: 20 }]);
+    expect(b.from.weight).toBe(80);
+    expect(best1RM([{ weight: 0, reps: 20 }])).toBe(null);
+    const t = percentTable(100);
+    expect(t[0]).toMatchObject({ percent: 95, weight: 95 });
+    expect(t.find((x) => x.percent === 85).weight).toBe(85);
+    expect(percentTable(0)).toEqual([]);
+  });
+});

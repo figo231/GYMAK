@@ -52,3 +52,28 @@ export function previousSession(logs, date) {
   return { date: day, sets: before.filter((l) => l.date === day) };
 }
 export function volume(sets) { return (sets || []).reduce((t, l) => t + (l.weight || 0) * l.sets * l.reps, 0); }
+
+// ---- 1RM estimate (Epley, with Brzycki for low reps). Only trustworthy up to about 12 reps. ----
+export function estimate1RM(weight, reps) {
+  const w = Number(weight), r = Math.round(Number(reps));
+  if (!(w > 0) || !(r >= 1)) return 0;
+  if (r === 1) return w;
+  const rr = Math.min(r, 12);
+  return rr <= 5 ? w * (36 / (37 - rr)) : w * (1 + rr / 30);
+}
+// Best estimate across logs. Returns { value, from } where from is the set it came from, or null.
+export function best1RM(logs) {
+  let best = null;
+  (logs || []).forEach((l) => {
+    const v = estimate1RM(l.weight, l.reps);
+    if (v > 0 && (!best || v > best.value)) best = { value: v, from: l };
+  });
+  return best;
+}
+// Working weights at common percentages of a 1RM. `step` rounds to loadable plates (2.5 kg / 5 lb).
+export const PERCENTS = [95, 90, 85, 80, 75, 70, 60];
+export function percentTable(oneRM, step = 2.5) {
+  if (!(oneRM > 0)) return [];
+  const repsAt = { 95: 2, 90: 4, 85: 6, 80: 8, 75: 10, 70: 12, 60: 15 };
+  return PERCENTS.map((p) => ({ percent: p, weight: Math.round((oneRM * p / 100) / step) * step, reps: repsAt[p] }));
+}
