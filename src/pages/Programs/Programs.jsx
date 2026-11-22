@@ -37,7 +37,8 @@ export default function Programs() {
   const programs = useMemo(() => Store.getPrograms(), [version]);
   const active = useMemo(() => Store.getActiveProgram(), [version]);
   const recommendedId = useMemo(() => Store.getRecommendedProgramId(), [version]);
-  const shown = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
+  const shownRaw = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
+  const shown = recommendedId ? [...shownRaw].sort((a, b) => (b.id === recommendedId) - (a.id === recommendedId)) : shownRaw;
   const detailProgram = detailId ? programs.find((p) => p.id === detailId) : null;
 
   useEffect(() => {
