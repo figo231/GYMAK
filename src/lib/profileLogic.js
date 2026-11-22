@@ -85,3 +85,18 @@ export function applyBackup(payload, storage = localStorage) {
 }
 
 export function exercisesWord(n) { return n === 1 ? "تمرين" : n === 2 ? "تمرينين" : n >= 3 && n <= 10 ? "تمارين" : "تمرين"; }
+
+// CSV (opens in Excel). UTF-8 BOM so Arabic shows correctly. Sections: weight, food, exercises.
+const csvCell = (v) => {
+  let s = v == null ? "" : String(v);
+  if (/^[=+\-@\t\r]/.test(s) && isNaN(Number(s))) s = "'" + s; // block formula injection
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+};
+export function buildCsv(state) {
+  const s = state || {};
+  const rows = [["النوع", "التاريخ", "الاسم", "قيمة 1", "قيمة 2", "قيمة 3", "قيمة 4"]];
+  for (const w of s.weightLogs || []) rows.push(["وزن", w.date, "الوزن (كجم)", w.weight, w.bodyFat ?? "", "", ""]);
+  for (const d of s.foodLog || []) for (const it of d.items || []) rows.push(["أكل", d.date, it.name, it.grams, it.kcal, it.protein, it.carbs]);
+  for (const [id, logs] of Object.entries(s.exerciseLogs || {})) for (const l of logs || []) rows.push(["تمرين", l.date, id, l.weight, l.sets, l.reps, ""]);
+  return "\uFEFF" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n");
+}
