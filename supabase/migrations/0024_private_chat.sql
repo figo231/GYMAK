@@ -293,6 +293,17 @@ begin
   return v_out;
 end $$;
 
+-- Exact owner statistics without broadening profile-table RLS.
+create or replace function public.chat_owner_stats() returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not public.chat_is_owner() then raise exception 'owner_only' using errcode = '42501'; end if;
+  return (select jsonb_build_object('total',count(*),
+    'week',count(*) filter(where member_since >= current_date - 7),
+    'female',count(*) filter(where gender='female'),
+    'male',count(*) filter(where gender='male')) from public.profiles);
+end $$;
+
 create or replace function public.chat_legacy_coaches(p_after_email text default null)
 returns table(email text, created_at timestamptz)
 language plpgsql stable security definer set search_path = '' as $$
@@ -314,11 +325,11 @@ revoke insert, update, delete on public.coach_grants from authenticated;
 revoke all on function public.chat_is_owner(), public.chat_has_consent(), public.chat_role_for(uuid),
   public.chat_link_active(uuid,uuid,text), public.chat_bootstrap(), public.chat_accept_terms(text),
   public.chat_contacts(text,uuid), public.chat_start(uuid,text), public.chat_inbox(uuid,timestamptz,uuid), public.chat_send(uuid,text,uuid),
-  public.chat_mark_read(uuid,bigint), public.chat_set_role(text,text), public.chat_users(text,text,timestamptz,uuid), public.chat_legacy_coaches(text), public.chat_set_user_role(uuid,text) from public, anon, authenticated;
+  public.chat_mark_read(uuid,bigint), public.chat_set_role(text,text), public.chat_users(text,text,timestamptz,uuid), public.chat_owner_stats(), public.chat_legacy_coaches(text), public.chat_set_user_role(uuid,text) from public, anon, authenticated;
 grant execute on function public.chat_is_owner(), public.chat_has_consent(), public.chat_bootstrap(),
   public.chat_accept_terms(text), public.chat_contacts(text,uuid), public.chat_start(uuid,text), public.chat_inbox(uuid,timestamptz,uuid),
   public.chat_send(uuid,text,uuid), public.chat_mark_read(uuid,bigint), public.chat_set_role(text,text),
-  public.chat_users(text,text,timestamptz,uuid), public.chat_legacy_coaches(text), public.chat_set_user_role(uuid,text) to authenticated;
+  public.chat_users(text,text,timestamptz,uuid), public.chat_owner_stats(), public.chat_legacy_coaches(text), public.chat_set_user_role(uuid,text) to authenticated;
 
 -- Realtime remains subject to SELECT RLS. If publication isn't enabled, manual refresh works.
 do $$ begin

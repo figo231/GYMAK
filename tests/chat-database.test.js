@@ -11,7 +11,7 @@ grant usage on schema public,auth to authenticated,anon,service_role;
 create table auth.users(id uuid primary key,email text,created_at timestamptz default now());
 create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
 create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
-create table public.profiles(id uuid primary key references auth.users(id) on delete cascade,name text,username text,gender text);
+create table public.profiles(id uuid primary key references auth.users(id) on delete cascade,name text,username text,gender text,member_since date default current_date);
 create table public.admin_users(user_id uuid primary key references auth.users(id),role text);
 create table public.coach_grants(email text primary key,granted_by uuid references auth.users(id),created_at timestamptz default now());
 create table public.coach_links(id uuid primary key default gen_random_uuid(),coach_id uuid references auth.users(id) on delete cascade,trainee_id uuid references auth.users(id) on delete cascade,status text);
@@ -74,5 +74,7 @@ describe("chat SQL against an actual embedded PostgreSQL engine",()=>{
  it("revokes doctor writes while retaining history, then cascades on account deletion",async()=>{const id=await conversation();await rpc("doctor","chat_send",[id,"retain","10000000-0000-0000-0000-000000000011"]);await rpc("owner","chat_set_user_role",[ids.doctor,"user"]);expect((await rpc("client","chat_inbox"))[0].writable).toBe(false);await expect(rpc("doctor","chat_send",[id,"blocked","10000000-0000-0000-0000-000000000012"])).rejects.toThrow(/chat_read_only/);expect((await actor(ids.doctor,()=>query("select body from public.chat_messages")))[0].body).toBe("retain");await db.query("delete from auth.users where id=$1",[ids.client]);expect(await query("select id from public.chat_messages")).toHaveLength(0);expect(await query("select id from public.chat_conversations")).toHaveLength(0);});
 
  it("shows only the profile's recorded male/female value, never inferring from names",async()=>{await db.query("update public.profiles set gender=case when id=$1 then 'male' when id=$2 then 'female' else 'unknown' end",[ids.client,ids.doctor]);const result=await rpc('owner','chat_users');expect(result.users.find(x=>x.user_id===ids.client).gender).toBe('male');expect(result.users.find(x=>x.user_id===ids.doctor).gender).toBe('female');expect(result.users.find(x=>x.user_id===ids.missing).gender).toBeNull();expect(result.users.find(x=>x.user_id===ids.stranger).gender).toBeNull();});
+
+ it("returns exact owner profile statistics without requiring an admin SELECT policy",async()=>{await db.exec("alter table public.profiles enable row level security; create policy own_profile on public.profiles for select to authenticated using(id=auth.uid());");expect((await actor(ids.owner,()=>query("select count(*)::int n from public.profiles")))[0].n).toBe(1);const result=await rpc('owner','chat_owner_stats');expect(result.total).toBe(7);expect(result.week).toBe(7);for(const user of ['sender','client','doctor'])await expect(rpc(user,'chat_owner_stats')).rejects.toThrow(/owner_only/);});
 
 });

@@ -1,11 +1,11 @@
 # Private chat + owner directory, phase 1 review
 
-Status: development preview only. Migration 0024 has NOT been applied to production. No production roles, messages or notifications were changed.
+Status: reviewed development branch; coordinated release authorized after explicit non-E2EE acceptance. Migration 0024 has NOT been applied to production. No production roles, messages or notifications were changed.
 
 ## Release decisions still required
 
-1. The requested encryption model needs explicit acceptance. This implementation is HTTPS + two-participant access control, NOT end-to-end encryption. Database operators and service-role access can read stored messages. The owner UI cannot read other people's conversations.
-2. Approve a coordinated web release, migration and new APK. APK 12 bundles its screens offline, so a web deployment alone will not add chat or this directory to APK 12.
+1. The non-E2EE model was explicitly accepted before release. This implementation is HTTPS + two-participant access control, NOT end-to-end encryption. Database operators and service-role access can read stored messages. The owner UI cannot read other people's conversations.
+2. Coordinate the authorized web release, migration and new APK. APK 12 bundles its screens offline, so a web deployment alone will not add chat or this directory to APK 12.
 3. Review retention/privacy and support capacity before activation. General doctor/coach guidance is not emergency care. Owner-assigned roles do not verify licenses. Existing Supabase is reused; no paid service was added, but free service quotas are not unlimited storage guarantees.
 
 ## Included
@@ -23,6 +23,8 @@ Status: development preview only. Migration 0024 has NOT been applied to product
 - Old pre-registration coach grants remain visible and revocable separately. Local guests are not registered accounts and do not appear.
 - Sender-admins cannot call the owner directory or role RPCs. Administration is separate from user/coach/doctor roles.
 
+The live count investigation found 6 Auth accounts, 5 profiles and no admin-read profile policy. The old profiles count was RLS-limited. New owner-only statistics bypass that limitation with an explicit super-admin check, without broadening profile-table policies.
+
 ## Operational cautions
 
 - Existing coach grants are still email-bound; doctor grants and registered account selection use immutable Auth IDs. An email change can affect coach eligibility. Migrating the entire legacy coaching permission model is not included.
@@ -34,7 +36,7 @@ Status: development preview only. Migration 0024 has NOT been applied to product
 ## Verification
 
 - Actual migration executed in embedded PostgreSQL 18.7 (PGlite 0.5.17), with representative Supabase Auth/coach/admin tables. This is not a production migration or a production-version compatibility proof.
-- 24 SQL tests cover anonymous/user/sender denial, owner directory completeness/pagination/search, legacy grants, role conversion, both-party consent, valid contacts, participant-only history, owner/stranger read denial, direct write/helper execution denial, idempotency, limits, read cursors, revocation and account-delete cascade.
+- 25 SQL tests cover anonymous/user/sender denial, owner directory completeness/pagination/search, legacy grants, role conversion, both-party consent, valid contacts, participant-only history, owner/stranger read denial, direct write/helper execution denial, idempotency, limits, read cursors, revocation and account-delete cascade.
 - 11 helper tests cover link validation, inert HTML text, secure UUID fallback, recipient/nonce arguments, role targets, versioned consent, errors and message pagination.
 - Mobile browser scenarios use synthetic accounts, intercepted HTTP and blocked WebSockets/DNS. No dummy data is sent to production. Screens: owner directory, search, inline role confirmation, legacy grant list, consent, inbox, thread, send, offline, revoked relationship, account switch and migration-not-active error.
 - Account-switch test verifies old messages and draft controls disappear for the new account. Links do not auto-fetch, and HTML-like text does not create elements.

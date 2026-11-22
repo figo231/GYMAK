@@ -4,7 +4,8 @@ import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { isOwnerAdmin } from "../../lib/push/ownerBroadcast";
-import { fetchStats, fetchFeedback, setFeedbackStatus, replyFeedback, countByStatus, filterFeedback, STATUS_LABEL } from "../../lib/admin";
+import { fetchFeedback, setFeedbackStatus, replyFeedback, countByStatus, filterFeedback, STATUS_LABEL } from "../../lib/admin";
+import { fetchOwnerStats } from "../../lib/privateChat";
 import OwnerChatRoles from "../Owner/OwnerChatRoles";
 import { dayLabel } from "../../lib/historyLogic";
 
@@ -23,7 +24,7 @@ function AdminSession() {
 
   async function load() {
     try { setRows(await fetchFeedback()); setErr(""); } catch { setErr("معرفناش نحمّل الرسايل."); }
-    setStats(await fetchStats());
+    try { setStats(await fetchOwnerStats()); } catch { setErr("معرفناش نحمّل الإحصائيات. جرّب تحديث الصفحة."); }
   }
   useEffect(() => { isOwnerAdmin(user?.id).then((ok) => { setAllowed(ok); if (ok) load(); }); }, [user?.id]);
 
@@ -48,7 +49,7 @@ function AdminSession() {
     <div className="help-page ad-page">
       <DetailTopBar title="لوحة الإدارة" backTo="/profile" />
       <div className="th-stats ad-stats">
-        <div><b>{n(stats?.total)}</b><span>ملف شخصي متزامن</span></div>
+        <div><b>{n(stats?.total)}</b><span>ملف شخصي على السيرفر</span></div>
         <div><b>{n(stats?.week)}</b><span>جدد آخر 7 أيام</span></div>
         <div><b>{counts.new}</b><span>رسايل جديدة</span></div>
       </div>
