@@ -238,3 +238,23 @@ html.ath.pro-ui .log-card { border-radius: 24px; }
 .th-set-v b { font-size: 15px; font-weight: 900; color: var(--accent-text); }
 .th-set-v i { font-style: normal; font-size: 12.5px; color: var(--text-secondary); font-weight: 700; }
 .th-set .hist-btn { width: 32px; height: 32px; }
+
+/* ---- programs: poster cards ---- */
+.pg-sub { margin: 2px 4px 12px; color: var(--text-dim); font-weight: 700; font-size: 13px; }
+.pg-card { display: flex; align-items: stretch; gap: 0; margin-bottom: 10px; border-radius: 22px; background: #0F1215; border: 1px solid #1F232B; overflow: hidden; }
+.pg-card.is-on { border-color: rgba(var(--acc-rgb), .7); box-shadow: 0 0 0 1px rgba(var(--acc-rgb), .25), 0 8px 26px rgba(var(--acc-rgb), .12); }
+.pg-card.feature { background: linear-gradient(135deg, rgba(var(--acc-rgb), .22), #0F1215 70%); border-color: rgba(var(--acc-rgb), .45); flex-direction: column; }
+.pg-main { flex: 1; display: flex; gap: 14px; align-items: center; padding: 14px; background: none; border: none; color: inherit; font: inherit; text-align: right; cursor: pointer; min-width: 0; }
+.pg-days { flex: none; width: 62px; height: 72px; border-radius: 18px; background: linear-gradient(160deg, var(--acc-hi), var(--acc-lo)); color: var(--on-acc); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pg-days b { font-size: 32px; line-height: 1; font-weight: 900; }
+.pg-days span { font-size: 11px; font-weight: 800; }
+.pg-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pg-badge { font-size: 11px; font-weight: 900; color: var(--accent-text); }
+.pg-name { font-size: 17px; font-weight: 900; }
+.pg-meta { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.pg-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; margin-top: 2px; }
+.pg-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.pg-chips i { font-style: normal; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: rgba(255,255,255,.07); color: var(--text-secondary); }
+.pg-apply { flex: none; width: 76px; border: none; border-inline-start: 1px solid #1F232B; background: rgba(var(--acc-rgb), .12); color: var(--accent-text); font: inherit; font-weight: 900; font-size: 14px; cursor: pointer; }
+.pg-apply.on { color: var(--text-dim); background: none; }
+.pg-card.feature .pg-apply { width: auto; min-height: 50px; border-inline-start: none; border-top: 1px solid rgba(var(--acc-rgb), .3); }

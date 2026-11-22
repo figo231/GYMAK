@@ -66,10 +66,7 @@ export default function Programs() {
   return (
     <>
       <SectionNav group="train" title="تدريب" />
-      <div style={{ margin: "-8px 0 6px" }}>
-        <h1 className="page-title" style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>برامج التدريب الجاهزة</h1>
-        <div className="page-sub" style={{ fontSize: 11.5, color: "var(--text-dim)", fontWeight: 600, marginTop: 2 }}>اختار برنامج وطبّقه تلقائيًا على جدولك</div>
-      </div>
+      <p className="pg-sub">اختار برنامج وطبّقه تلقائيًا على جدولك</p>
 
       {active && (
         <div className="glass active-banner">
@@ -97,32 +94,22 @@ export default function Programs() {
       {shown.map((p) => {
         const isActive = active && active.id === p.id;
         const isRecommended = recommendedId === p.id && !isActive;
+        const days = (String(p.daysPerWeek).match(/[0-9٠-٩]+/) || ["•"])[0];
         return (
-          <div className={"glass prog-card" + (isActive ? " prog-card-active" : "")} key={p.id}>
-            {isRecommended && <div className="rec-badge">★ {t("prog_recommended") || "موصى به"}</div>}
-            <div className="prog-head">
-              <div>
-                <p className="prog-name">{p.name}</p>
-                <div className="prog-days-count">{p.daysPerWeek}{p.goal ? ` · ${GOAL_LABEL[p.goal]}` : ""}</div>
+          <div className={"pg-card" + (isActive ? " is-on" : "") + (isRecommended ? " feature" : "")} key={p.id}>
+            <button type="button" className="pg-main" onClick={() => setDetailId(p.id)} aria-label={`تفاصيل ${p.name}`}>
+              <div className="pg-days"><b>{days}</b><span>أيام</span></div>
+              <div className="pg-body">
+                {isRecommended && <span className="pg-badge">★ موصى به ليك</span>}
+                <span className="pg-name">{p.name}</span>
+                <span className="pg-meta">{p.goal ? GOAL_LABEL[p.goal] : ""} · {p.level}</span>
+                {isRecommended && <span className="pg-desc">{p.desc}</span>}
+                <span className="pg-chips">{p.dayChips.slice(0, 4).map((c, i) => <i key={i}>{c}</i>)}</span>
               </div>
-              <div className="prog-level-wrap">
-                <LevelMeter level={p.level} />
-                <span className={"prog-level " + (LEVEL_CLASS[p.level] || "lvl-beginner")}>{p.level}</span>
-              </div>
-            </div>
-            <div className="prog-days">
-              {p.dayChips.map((c, i) => <span className="day-chip" key={i}>{c}</span>)}
-            </div>
-            <p className="prog-desc">{p.desc}</p>
-            <div className="prog-actions">
-              <button type="button" className={"btn-apply" + (isActive ? " is-active" : "")} aria-disabled={isActive || undefined}
-                onClick={() => handleApply(p.id)}>
-                {isActive ? "✓ " + (t("prog_applied") || "مطبّق") : (t("prog_apply") || "تطبيق البرنامج")}
-              </button>
-              <button type="button" className="btn-detail" onClick={() => setDetailId(p.id)}>
-                {t("prog_details") || "التفاصيل"}
-              </button>
-            </div>
+            </button>
+            <button type="button" className={"pg-apply" + (isActive ? " on" : "")} aria-disabled={isActive || undefined} onClick={() => handleApply(p.id)}>
+              {isActive ? "✓ مطبّق" : "طبّق"}
+            </button>
           </div>
         );
       })}
