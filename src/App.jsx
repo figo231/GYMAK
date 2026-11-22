@@ -1,5 +1,6 @@
 import Store from "./lib/store/gymakStore";
 import { isNative, syncMissedReminder } from "./lib/push/nativeReminder";
+import { autoSnapshotIfDue } from "./lib/backup";
 import { Suspense, useEffect, useState } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
@@ -52,6 +53,13 @@ export default function App() {
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => { autoSnapshotIfDue(); }, 8000);
+    const onHide = () => { if (document.hidden) autoSnapshotIfDue(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => { clearTimeout(t); document.removeEventListener("visibilitychange", onHide); };
   }, []);
 
   useEffect(() => {

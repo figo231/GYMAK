@@ -28,6 +28,7 @@ import TourPage from "./pages/TourPage";
 const Warmup = lazy(() => import("./pages/Help/Warmup"));
 const Notifications = lazy(() => import("./pages/Profile/Notifications"));
 const Admin = lazy(() => import("./pages/Admin/Admin"));
+const Backups = lazy(() => import("./pages/Profile/Backups"));
 const Help = lazy(() => import("./pages/Help/Help"));
 const Contact = lazy(() => import("./pages/Contact/Contact"));
 const MealPlan = lazy(() => import("./pages/Food/MealPlan"));
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
       { path: "/tour", element: <TourPage /> },
       { path: "/contact", element: <Contact /> },
       { path: "/help", element: <Help /> },
+      { path: "/backups", element: <Backups /> },
       { path: "/notifications", element: <Notifications /> },
       { path: "/warmup", element: <Warmup /> },
       { path: "/meal-plan", element: <MealPlan /> },
