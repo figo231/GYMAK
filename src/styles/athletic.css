@@ -1,0 +1,118 @@
+/* =========================================================
+   GYMAK Volt: bold athletic look. Black stage, electric volt accent,
+   ember orange for energy (streak). Turned on by class "ath" on <html>
+   (together with "pro-ui"). Tokens first, then component restyles.
+   ========================================================= */
+html.ath.pro-ui, html.ath.pro-ui[data-theme="light"], html.ath.pro-ui[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-deep: #07080A; --bg-deep-2: #0E1013; --bg-deep-rgb: 7, 8, 10; --media-bg: #14171C;
+  --card-glass: #111318; --card-glass-strong: #171A21; --sheet-bg: #0E1013;
+  --nav-pill-bg: #0E1013;
+  --border-soft: #1F232B; --glass-shadow: none; --glass-sheen: transparent;
+  --ink: 255, 255, 255;
+  --text-primary: #FFFFFF; --text-secondary: #A6AEBB; --text-dim: #737B89;
+  --glow-blue: #C8FF1F; --glow-purple: #E2FF66; --acc-rgb: 200, 255, 31; --acc2-rgb: 226, 255, 102;
+  --accent-text: #D2FF4A; --accent-text-soft: #E2FF66; --on-acc: #0A0D00;
+  --lime: #C8FF1F; --lime-bg: rgba(200, 255, 31, .12);
+  --fire-1: #FFB020; --fire-2: #FF6A1A; --fire-3: #FF3D4F;
+  --success: #34E27A; --danger: #FF4D5E; --warn-text: #FFB020; --info-text: #6CB6FF;
+  --toast-bg: rgba(20, 22, 27, .96);
+  --ember: linear-gradient(135deg, #FFB020, #FF6A1A 55%, #FF3D4F);
+  --volt: linear-gradient(135deg, #D6FF3D, #A8F000);
+}
+html.ath.pro-ui body { background: var(--bg-deep); }
+html.ath.pro-ui .bg-ambient { background: radial-gradient(120% 60% at 100% -10%, rgba(200,255,31,.07), transparent 60%), var(--bg-deep); }
+
+/* surfaces */
+html.ath.pro-ui .glass { border-radius: 20px; background: var(--card-glass); border: 1px solid var(--border-soft); box-shadow: inset 0 1px 0 rgba(255,255,255,.035); }
+
+/* header */
+html.ath.pro-ui .header { padding: 4px 2px 16px; }
+html.ath.pro-ui .avatar-ring { border: 2px solid var(--glow-blue); box-shadow: 0 0 0 3px rgba(200,255,31,.12); }
+html.ath.pro-ui .level-badge { background: var(--volt); color: var(--on-acc); font-weight: 900; letter-spacing: .3px; }
+html.ath.pro-ui .header-name { font-size: 21px; font-weight: 900; }
+html.ath.pro-ui .xp-track { height: 5px; background: #20242C; }
+html.ath.pro-ui .xp-fill { background: var(--volt); box-shadow: 0 0 10px rgba(200,255,31,.45); }
+html.ath.pro-ui .header-icon-btn { background: var(--card-glass); border: 1px solid var(--border-soft); }
+
+/* hero: the loud card */
+html.ath.pro-ui .hero { border: none; border-radius: 24px; padding: 22px 20px 20px; background: var(--volt); color: #0A0D00; position: relative; overflow: hidden; margin-bottom: 12px; }
+html.ath.pro-ui .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(0,0,0,.055) 14px 28px); mask-image: linear-gradient(to left, rgba(0,0,0,.9), transparent 70%); -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,.9), transparent 70%); }
+html.ath.pro-ui .hero > * { position: relative; z-index: 1; }
+html.ath.pro-ui .hero-eyebrow { color: rgba(10,13,0,.62); font-weight: 900; font-size: 11.5px; letter-spacing: .6px; }
+html.ath.pro-ui .hero-title { font-size: 32px; line-height: 1.15; font-weight: 900; margin-top: 6px; color: #0A0D00; }
+html.ath.pro-ui .hero-sub { color: rgba(10,13,0,.72); font-weight: 700; font-size: 13.5px; margin-top: 6px; }
+html.ath.pro-ui .hero-track { background: rgba(10,13,0,.18); height: 8px; margin-top: 16px; }
+html.ath.pro-ui .hero-track > div { background: #0A0D00; }
+html.ath.pro-ui .hero .btn, html.ath.pro-ui a.btn.hero-cta, html.ath.pro-ui .hero button.hero-cta { background: #0A0D00; color: var(--glow-blue); min-height: 54px; border-radius: 16px; font-size: 16px; font-weight: 900; box-shadow: 0 10px 24px rgba(0,0,0,.28); border: none; }
+html.ath.pro-ui .hero.is-done { background: var(--card-glass); border: 1px solid rgba(200,255,31,.35); color: var(--text-primary); }
+html.ath.pro-ui .hero.is-done::after { display: none; }
+html.ath.pro-ui .hero.is-done .hero-title { color: var(--glow-blue); }
+html.ath.pro-ui .hero.is-done .hero-eyebrow { color: var(--text-dim); }
+html.ath.pro-ui .hero.is-done .hero-sub { color: var(--text-secondary); }
+html.ath.pro-ui .hero.is-done .btn { background: rgba(200,255,31,.12); color: var(--glow-blue); box-shadow: none; }
+
+/* today strip: three bold stat tiles */
+html.ath.pro-ui .today-strip { border: none; background: none; gap: 8px; margin-bottom: 12px; }
+html.ath.pro-ui .ts-item { background: var(--card-glass); border: 1px solid var(--border-soft); border-radius: 18px; padding: 14px 4px 12px; border-inline-start-width: 1px; }
+html.ath.pro-ui .ts-item + .ts-item { border-inline-start: 1px solid var(--border-soft); }
+html.ath.pro-ui .ts-item b { font-size: 28px; font-weight: 900; line-height: 1; color: var(--text-primary); letter-spacing: -.5px; }
+html.ath.pro-ui .ts-item span { font-size: 11px; color: var(--text-dim); font-weight: 800; margin-top: 4px; }
+
+/* streak: ember energy */
+html.ath.pro-ui .streak-card { border-radius: 22px; padding: 18px 16px; background: radial-gradient(90% 120% at 100% 0%, rgba(255,106,26,.16), transparent 60%), var(--card-glass); border: 1px solid rgba(255,106,26,.28); }
+html.ath.pro-ui .streak-flame { background: rgba(255,106,26,.14); width: 56px; height: 56px; border-radius: 18px; box-shadow: 0 0 22px rgba(255,106,26,.25); }
+html.ath.pro-ui .streak-num { font-size: 56px; line-height: 1; font-weight: 900; background: var(--ember); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+html.ath.pro-ui .streak-label { font-size: 13px; font-weight: 800; color: var(--text-secondary); }
+html.ath.pro-ui .sw-day { border-radius: 9px; border: 1px solid #262B34; background: #14171C; color: var(--text-dim); font-weight: 800; }
+html.ath.pro-ui .sw-day.on { background: var(--ember); color: #1A0A00; border-color: transparent; }
+html.ath.pro-ui .sw-day.today { box-shadow: 0 0 0 2px var(--bg-deep), 0 0 0 3.5px #FF6A1A; }
+html.ath.pro-ui .streak-record { border-right: 1px solid var(--border-soft); }
+html.ath.pro-ui .rec-num { font-size: 26px; font-weight: 900; color: var(--text-primary); }
+html.ath.pro-ui .streak-warn { color: #FFB020; }
+
+/* weight */
+html.ath.pro-ui .weight-card { border-radius: 22px; }
+html.ath.pro-ui .weight-num { font-size: 54px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+html.ath.pro-ui .weight-unit { color: var(--text-dim); font-weight: 800; }
+html.ath.pro-ui .spark path { stroke: var(--glow-blue); }
+html.ath.pro-ui .spark circle { fill: var(--glow-blue); }
+html.ath.pro-ui .weight-diff.tone-good { color: var(--glow-blue); background: rgba(200,255,31,.12); }
+html.ath.pro-ui .weight-diff.tone-bad { color: var(--danger); background: rgba(255,77,94,.14); }
+
+/* quick actions */
+html.ath.pro-ui .qa-tile { border-radius: 18px; font-weight: 800; }
+html.ath.pro-ui .qa-tile:first-child { background: var(--volt); border-color: transparent; color: var(--on-acc); }
+html.ath.pro-ui .qa-tile:first-child svg { stroke: var(--on-acc); }
+html.ath.pro-ui .qa-tile:first-child .qa-tile-icon { background: rgba(10,13,0,.14) !important; }
+html.ath.pro-ui .qa-tile-icon { background: rgba(200,255,31,.1) !important; }
+
+/* section headings */
+html.ath.pro-ui .section-title { margin: 28px 2px 12px; }
+html.ath.pro-ui .section-title h2 { font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 9px; letter-spacing: .2px; }
+html.ath.pro-ui .section-title h2::before { content: ""; width: 4px; height: 17px; border-radius: 3px; background: var(--volt); }
+html.ath.pro-ui .section-title a { color: var(--glow-blue); font-weight: 800; }
+
+/* metrics */
+html.ath.pro-ui .inbody-card { border-radius: 18px; }
+html.ath.pro-ui .inbody-val { font-size: 28px; font-weight: 900; letter-spacing: -.5px; }
+html.ath.pro-ui .inbody-name { color: var(--text-dim); font-weight: 800; }
+html.ath.pro-ui .inbody-btn { color: var(--glow-blue); }
+
+/* lists */
+html.ath.pro-ui .plan-weight { background: rgba(200,255,31,.1); color: var(--glow-blue); font-weight: 900; border-radius: 10px; }
+html.ath.pro-ui .today-check.done { background: var(--volt); color: var(--on-acc); border-color: transparent; }
+
+/* buttons, chips, tabs */
+html.ath.pro-ui .btn-primary, html.ath.pro-ui .btn-apply, html.ath.pro-ui .add-btn, html.ath.pro-ui .pwa-update-btn, html.ath.pro-ui .log-btn { background: var(--volt); color: var(--on-acc); font-weight: 900; box-shadow: none; }
+html.ath.pro-ui .chip.active, html.ath.pro-ui .goal-tab.on { background: var(--volt); color: var(--on-acc); border-color: transparent; }
+html.ath.pro-ui .p-tab.active, html.ath.pro-ui button.p-tab.active { background: rgba(200,255,31,.14); color: var(--glow-blue); }
+html.ath.pro-ui .toast { border: 1px solid rgba(200,255,31,.3); }
+
+/* bottom nav: dark bar, volt active */
+html.ath.pro-ui .bottom-nav { background: linear-gradient(to top, var(--bg-deep) 65%, transparent); }
+html.ath.pro-ui .bottom-nav-inner { background: rgba(14,16,19,.94); border: 1px solid #232831; border-radius: 22px; padding: 6px; }
+html.ath.pro-ui .nav-item { color: var(--text-dim); font-weight: 800; }
+html.ath.pro-ui .nav-item.active { background: var(--volt); color: var(--on-acc); }
+html.ath.pro-ui .nav-item.active .nav-icon-chip { background: none; }
+html.ath.pro-ui .nav-item.active svg { stroke: var(--on-acc); transform: none; }
