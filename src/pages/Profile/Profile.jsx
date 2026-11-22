@@ -305,6 +305,7 @@ export default function Profile() {
       </div>
 
       {pTab === "me" && (<>
+      <Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>تواصل معانا ←</Link>
       <Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>جولة تعريفية بالتطبيق ←</Link>
       <Link to="/ai-coach" className="glass coach-card" style={{ textDecoration: "none", color: "inherit" }}>
         <div className="coach-ic">

@@ -438,3 +438,8 @@ html.ath.pro-ui .saved-meal-main{flex:1;display:flex;justify-content:space-betwe
 html.ath.pro-ui .saved-meal-main small{color:#FF8A3D;font-weight:700}
 html.ath.pro-ui .cheat-toggle{width:100%;padding:11px 0;margin:0 0 10px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);background:transparent;color:inherit;font:inherit;font-weight:700}
 html.ath.pro-ui .cheat-toggle.on{border-style:solid;border-color:#FF6A1A;color:#FF8A3D}
+html.ath.pro-ui .ct-form,html.ath.pro-ui .ct-done{padding:16px}
+html.ath.pro-ui .ct-form p,html.ath.pro-ui .ct-done p{font-size:13px;opacity:.8;line-height:1.8;margin:0 0 10px}
+html.ath.pro-ui .ct-count{font-size:11px;opacity:.5;margin:4px 0 10px}
+html.ath.pro-ui .ct-err{color:#F43F5E;font-size:13px;margin-bottom:10px}
+html.ath.pro-ui .ct-done b{color:#FF8A3D;font-size:18px}
