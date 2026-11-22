@@ -487,3 +487,8 @@ html.ath.pro-ui .ct-replies { padding: 14px; margin-bottom: 12px; }
 html.ath.pro-ui .ct-reply { margin-top: 10px; }
 html.ath.pro-ui .ct-q { font-size: 12px; color: var(--text-secondary); margin: 0 0 4px; }
 html.ath.pro-ui .ct-a { margin: 0; padding: 10px; border-radius: 12px; background: rgba(255,106,19,0.12); line-height: 1.6; font-size: 14px; }
+html.ath.pro-ui .ad-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 8px; }
+html.ath.pro-ui .ad-stats > div { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px; border-radius: 18px; border: 1px solid rgba(255,106,19,0.3); background: linear-gradient(160deg, rgba(255,106,19,0.16), rgba(255,106,19,0.03)); text-align: center; }
+html.ath.pro-ui .ad-stats b { font-size: 26px; color: #ff8a3d; line-height: 1; }
+html.ath.pro-ui .ad-stats span { font-size: 11px; color: var(--text-secondary); }
+html.ath.pro-ui .ad-actions .btn:not(.btn-primary), html.ath.pro-ui .ad-page > a.btn { background: transparent !important; border: 1px solid var(--border-soft) !important; color: var(--text) !important; }
