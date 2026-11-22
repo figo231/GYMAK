@@ -76,7 +76,7 @@ export default function BarcodeSheet({ onClose, onAdd }) {
             <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} disabled={!item} onClick={() => onAdd(item)}>سجّل</button>
           </div>
         )}
-        <button type="button" className="btn" style={{ width: "100%", marginTop: 8 }} onClick={onClose}>إلغاء</button>
+        <button type="button" className="btn" style={{ width: "100%", marginTop: 8, background: "transparent", border: "1px solid var(--border-soft)" }} onClick={onClose}>إلغاء</button>
         <p className="notif-note">البيانات من Open Food Facts وبتتجمّع من المستخدمين. ممكن تكون ناقصة أو مش دقيقة، وبعد التسجيل تقدر تعدّلها.</p>
       </div>
     </div>
