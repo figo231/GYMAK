@@ -327,3 +327,10 @@ export async function prepareEncouragementDevice(userId) {
   if (error) throw error;
   return deviceId;
 }
+
+/** Enroll default-on only after notice, never request OS permission here. */
+export async function enrollDefaultEncouragementDevice(userId) {
+ if(await getPushPermission()!=='granted')return false;
+ await prepareEncouragementDevice(userId);
+ return true;
+}

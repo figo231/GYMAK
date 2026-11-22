@@ -10,10 +10,10 @@ export async function flushEncouragementStop(id){
  localStorage.removeItem(prefix+id);return true;
 }
 export async function readEncouragement(id){
- if(!supabase||!id)return false;
+ if(!supabase||!id)return {enabled:true,enrolled:false};
  await flushEncouragementStop(id);await checkUser(id);
  const {data,error}=await supabase.rpc('my_encouragement');if(error)throw error;
- return data?.enabled===true;
+ return {enabled:data?.enabled===true,enrolled:data?.enrolled===true};
 }
 export async function changeEncouragement(id,enabled){
  if(!id||!supabase)throw new Error('sign_in_required');

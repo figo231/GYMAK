@@ -4,6 +4,9 @@ import {stageOta,activateStagedOta} from './otaPolicy';
 const MANIFEST='https://gymak-eight.vercel.app/ota/stable.json';
 let started=false;
 export async function activateOtaBeforeRender(){
+ const channel=import.meta.env.VITE_DISTRIBUTION_CHANNEL;
+ if(channel==='play'&&import.meta.env.VITE_PLAY_OTA_REVIEW_HOLD!=='false')return false;
+ if(!['sideload','play'].includes(channel))return false;
  if(import.meta.env.VITE_OTA_ENABLED!=='true'||!Capacitor.isNativePlatform()||!Capacitor.isPluginAvailable('CapacitorUpdater'))return false;
  const {CapacitorUpdater:plugin}=await import('@capgo/capacitor-updater');
  const info=await App.getInfo();return activateStagedOta({plugin,storage:localStorage,nativeBuild:Number(info.build)});

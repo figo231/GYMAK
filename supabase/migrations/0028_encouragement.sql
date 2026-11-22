@@ -1,4 +1,4 @@
--- Optional Android encouragement, off until user opts in AND owner activates.
+-- Default-on only after APK18 first-run notice/device enrollment. Global off until approved.
 -- No topic sends. No cron is created by this migration.
 create table public.encouragement_preferences (
  user_id uuid primary key references auth.users(id) on delete cascade,
@@ -46,7 +46,7 @@ grant all on public.encouragement_preferences,public.encouragement_config,public
 create function public.my_encouragement() returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin
  if auth.uid() is null then raise exception 'sign_in_required'; end if;
- return jsonb_build_object('enabled',coalesce((select enabled from public.encouragement_preferences where user_id=auth.uid()),false));
+ return jsonb_build_object('enabled',coalesce((select enabled from public.encouragement_preferences where user_id=auth.uid()),true),'enrolled',exists(select 1 from public.encouragement_preferences where user_id=auth.uid()));
 end $$;
 create function public.set_my_encouragement(p_enabled boolean,p_device_id text default null,p_expected_user uuid default null) returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
@@ -54,6 +54,7 @@ begin
  if p_expected_user is distinct from auth.uid() then raise exception 'session_changed'; end if;
  if p_enabled is null then raise exception 'invalid_preference'; end if;
  -- Bind an explicit choice to one registered Android install, never all tokens.
+ if p_enabled and exists(select 1 from public.push_preferences where user_id=auth.uid() and category='encouragement' and not enabled) then raise exception 'previous_opt_out'; end if;
  if p_enabled and not exists(select 1 from public.push_tokens where user_id=auth.uid() and device_id=p_device_id and platform='android' and is_active) then raise exception 'android_device_required'; end if;
  insert into public.encouragement_preferences(user_id,enabled,device_id) values(auth.uid(),p_enabled,case when p_enabled then p_device_id else null end)
  on conflict(user_id) do update set enabled=excluded.enabled,device_id=excluded.device_id,updated_at=now();
@@ -63,7 +64,7 @@ end $$;
 create function public.owner_encouragement_preview() returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin
  if not public.chat_is_owner() then raise exception 'owner_only'; end if;
- return jsonb_build_object('config',(select to_jsonb(c) from public.encouragement_config c),'messages',(select jsonb_agg(to_jsonb(m) order by id) from public.encouragement_messages m),'eligible_accounts',(select count(*) from public.encouragement_preferences p join public.push_tokens t on t.user_id=p.user_id and t.device_id=p.device_id where p.enabled and t.is_active and t.platform='android'));
+ return jsonb_build_object('config',(select to_jsonb(c) from public.encouragement_config c),'messages',(select jsonb_agg(to_jsonb(m) order by id) from public.encouragement_messages m),'eligible_accounts',(select count(*) from public.encouragement_preferences p join public.push_tokens t on t.user_id=p.user_id and t.device_id=p.device_id where p.enabled and not exists(select 1 from public.push_preferences pp where pp.user_id=p.user_id and pp.category='encouragement' and not pp.enabled) and t.is_active and t.platform='android'));
 end $$;
 -- The kill switch has no symmetric activate RPC. Activation is a separate gate.
 create function public.pause_encouragement() returns void language plpgsql security definer set search_path=public,pg_temp as $$
@@ -98,7 +99,7 @@ begin
  select id into mid from public.encouragement_messages order by id offset (extract(doy from day)::int % (select count(*) from public.encouragement_messages)) limit 1;
  return query insert into public.encouragement_deliveries(user_id,local_day,token_id,message_id)
  select p.user_id,day,t.id,mid from public.encouragement_preferences p join public.push_tokens t on t.user_id=p.user_id and t.device_id=p.device_id
- where p.enabled and t.is_active and t.platform='android' and t.last_seen>now()-interval '7 days'
+ where p.enabled and not exists(select 1 from public.push_preferences pp where pp.user_id=p.user_id and pp.category='encouragement' and not pp.enabled) and t.is_active and t.platform='android' and t.last_seen>now()-interval '7 days'
  and not exists(select 1 from public.encouragement_deliveries d where d.user_id=p.user_id and d.local_day=day)
  order by p.user_id limit 50 on conflict(user_id,local_day) do nothing returning *;
 end $$;
@@ -114,7 +115,7 @@ begin
  update public.encouragement_deliveries set status='skipped',completed_at=now() where id=p_claim;return null;end if;
  select jsonb_build_object('token',t.token,'title',m.title,'body',m.body,'notificationId',d.id,'collapseKey','encouragement-'||d.local_day::text)
  into result from public.encouragement_preferences p join public.push_tokens t on t.user_id=p.user_id and t.device_id=p.device_id join public.encouragement_messages m on m.id=d.message_id
- where p.user_id=d.user_id and p.enabled and t.id=d.token_id and t.is_active and t.platform='android' and t.last_seen>now()-interval '7 days';
+ where p.user_id=d.user_id and p.enabled and not exists(select 1 from public.push_preferences pp where pp.user_id=p.user_id and pp.category='encouragement' and not pp.enabled) and t.id=d.token_id and t.is_active and t.platform='android' and t.last_seen>now()-interval '7 days';
  -- Consume before network: timeouts, process death and duplicate invokes never retry.
  update public.encouragement_deliveries set status=case when result is null then 'skipped' else 'outcome_unknown' end,completed_at=now() where id=p_claim;
  return result;
