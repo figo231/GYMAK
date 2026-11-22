@@ -659,6 +659,34 @@ const KEY = "gymak_state_v1";
       return ex;
     },
 
+    // ===== Favourite exercises (synced, last-write-wins by updatedMs) =====
+    getFavoriteIds() {
+      const f = load().favorites;
+      return f && Array.isArray(f.ids) ? f.ids.slice() : [];
+    },
+    getFavoritesMeta() {
+      const f = load().favorites;
+      return { ids: f && Array.isArray(f.ids) ? f.ids.slice() : [], updatedMs: f && Number.isFinite(f.updatedMs) ? f.updatedMs : 0 };
+    },
+    toggleFavorite(id) {
+      if (typeof id !== "string" || !id || id.length > 120) return false;
+      const s = load();
+      const cur = s.favorites && Array.isArray(s.favorites.ids) ? s.favorites.ids : [];
+      const has = cur.includes(id);
+      s.favorites = { ids: has ? cur.filter((x) => x !== id) : cur.concat(id).slice(-500), updatedMs: Date.now() };
+      save(s);
+      return !has;
+    },
+    // Remote wins only when it is strictly newer than local.
+    mergeFavoritesFromRemote(ids, updatedMs) {
+      const s = load();
+      const localMs = s.favorites && Number.isFinite(s.favorites.updatedMs) ? s.favorites.updatedMs : 0;
+      if (!(updatedMs > localMs)) return false;
+      s.favorites = { ids: ids.slice(0, 500), updatedMs };
+      save(s);
+      return true;
+    },
+
     // ===== Today's list (device-local) =====
     getTodayKey() { return todayISO(); },
     getTodayPlanIds() {

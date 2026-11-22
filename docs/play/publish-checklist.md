@@ -35,3 +35,5 @@ Status: Play is parked by the owner; this list keeps the project upload-ready.
 - [x] Edge function send-notification deployed, secret FIREBASE_SERVICE_ACCOUNT set.
 - [x] 0019 run and verified live.
 - [ ] After the web deploy: send one real broadcast from Profile > Notifications as the owner and confirm a device receives it. The Android APK must include google-services.json for the Firebase project gymak-9b6bd (kept out of the repo).
+
+- [x] Migration 0021_exercise_favorites.sql (favourite exercises sync) ran in the Supabase SQL editor. Safe to re-run. The app keeps working without it (favourites stay local).

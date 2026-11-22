@@ -247,13 +247,54 @@ export async function pullWorkoutDays(userId) {
 }
 
 // ---------------------------------------------------------------------------
+// exercise_favorites (one row per user, last-write-wins by updated_ms).
+// Never fatal: if the table is missing or the call fails, the rest of the sync
+// cycle must still succeed, so errors are swallowed here (favourites stay local).
+// ---------------------------------------------------------------------------
+function validFavRow(r) {
+  return r && Array.isArray(r.exercise_ids) && r.exercise_ids.length <= 500
+    && r.exercise_ids.every((x) => typeof x === "string" && x.length > 0 && x.length <= 120)
+    && Number.isFinite(Number(r.updated_ms));
+}
+
+export async function pushFavorites(userId) {
+  try {
+    const local = Store.getFavoritesMeta();
+    const { data, error } = await supabase.from("exercise_favorites").select("updated_ms").eq("user_id", userId).maybeSingle();
+    if (error) throw error;
+    const remoteMs = data ? Number(data.updated_ms) : 0;
+    if (local.updatedMs <= remoteMs) return { dropped: 0 }; // remote is same or newer, pull handles it
+    const { error: e2 } = await supabase.from("exercise_favorites").upsert({
+      user_id: userId, exercise_ids: local.ids, updated_ms: local.updatedMs, updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+    if (e2) throw e2;
+  } catch (e) {
+    console.warn("favorites push skipped", e && e.message);
+  }
+  return { dropped: 0 };
+}
+
+export async function pullFavorites(userId) {
+  try {
+    const { data, error } = await supabase.from("exercise_favorites").select("exercise_ids,updated_ms").eq("user_id", userId).maybeSingle();
+    if (error) throw error;
+    if (!data) return { dropped: 0 };
+    if (!validFavRow(data)) return { dropped: 1 };
+    Store.mergeFavoritesFromRemote(data.exercise_ids, Number(data.updated_ms));
+  } catch (e) {
+    console.warn("favorites pull skipped", e && e.message);
+  }
+  return { dropped: 0 };
+}
+
+// ---------------------------------------------------------------------------
 // Orchestration helpers used by syncManager.js — each returns the total
 // number of rows dropped for failing validation, across every domain.
 // ---------------------------------------------------------------------------
 export async function pushAll(userId) {
   const results = await Promise.all([
     pushProfile(userId), pushWeightLogs(userId), pushFoodLog(userId), pushExercises(userId),
-    pushExerciseLogs(userId), pushPRHistory(userId), pushWorkoutDays(userId),
+    pushExerciseLogs(userId), pushPRHistory(userId), pushWorkoutDays(userId), pushFavorites(userId),
   ]);
   return results.reduce((sum, r) => sum + r.dropped, 0);
 }
@@ -261,7 +302,7 @@ export async function pushAll(userId) {
 export async function pullAll(userId) {
   const results = await Promise.all([
     pullProfile(userId), pullWeightLogs(userId), pullFoodLog(userId), pullExercises(userId),
-    pullExerciseLogs(userId), pullPRHistory(userId), pullWorkoutDays(userId),
+    pullExerciseLogs(userId), pullPRHistory(userId), pullWorkoutDays(userId), pullFavorites(userId),
   ]);
   return results.reduce((sum, r) => sum + r.dropped, 0);
                          }
