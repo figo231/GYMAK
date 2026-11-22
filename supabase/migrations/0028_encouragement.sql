@@ -48,9 +48,10 @@ begin
  if auth.uid() is null then raise exception 'sign_in_required'; end if;
  return jsonb_build_object('enabled',coalesce((select enabled from public.encouragement_preferences where user_id=auth.uid()),false));
 end $$;
-create function public.set_my_encouragement(p_enabled boolean,p_device_id text default null) returns void language plpgsql security definer set search_path=public,pg_temp as $$
+create function public.set_my_encouragement(p_enabled boolean,p_device_id text default null,p_expected_user uuid default null) returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
  if auth.uid() is null then raise exception 'sign_in_required'; end if;
+ if p_expected_user is distinct from auth.uid() then raise exception 'session_changed'; end if;
  if p_enabled is null then raise exception 'invalid_preference'; end if;
  -- Bind an explicit choice to one registered Android install, never all tokens.
  if p_enabled and not exists(select 1 from public.push_tokens where user_id=auth.uid() and device_id=p_device_id and platform='android' and is_active) then raise exception 'android_device_required'; end if;
@@ -71,8 +72,8 @@ begin
  update public.encouragement_config set enabled=false,updated_at=now();
  update public.encouragement_deliveries set status='skipped',completed_at=now() where status='claimed';
 end $$;
-revoke all on function public.my_encouragement(),public.set_my_encouragement(boolean,text),public.owner_encouragement_preview(),public.pause_encouragement() from public,anon;
-grant execute on function public.my_encouragement(),public.set_my_encouragement(boolean,text),public.owner_encouragement_preview(),public.pause_encouragement() to authenticated;
+revoke all on function public.my_encouragement(),public.set_my_encouragement(boolean,text,uuid),public.owner_encouragement_preview(),public.pause_encouragement() from public,anon;
+grant execute on function public.my_encouragement(),public.set_my_encouragement(boolean,text,uuid),public.owner_encouragement_preview(),public.pause_encouragement() to authenticated;
 notify pgrst,'reload schema';
 
 alter table public.encouragement_config add column approved_text_hash text;

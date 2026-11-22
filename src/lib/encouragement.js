@@ -5,7 +5,7 @@ async function checkUser(id){const {data,error}=await supabase.auth.getUser();if
 export async function flushEncouragementStop(id){
  if(!supabase||!stopPending(id))return true;
  await checkUser(id);
- const {error}=await supabase.rpc('set_my_encouragement',{p_enabled:false,p_device_id:null});
+ const {error}=await supabase.rpc('set_my_encouragement',{p_enabled:false,p_device_id:null,p_expected_user:id});
  if(error)throw error;
  localStorage.removeItem(prefix+id);return true;
 }
@@ -23,6 +23,6 @@ export async function changeEncouragement(id,enabled){
  const {prepareEncouragementDevice}=await import('./push/pushService');
  const device=await prepareEncouragementDevice(id);
  await checkUser(id);
- const {error}=await supabase.rpc('set_my_encouragement',{p_enabled:true,p_device_id:device});
+ const {error}=await supabase.rpc('set_my_encouragement',{p_enabled:true,p_device_id:device,p_expected_user:id});
  if(error)throw error;return true;
 }
