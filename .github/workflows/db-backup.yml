@@ -1,0 +1,74 @@
+name: Database backup
+
+# Daily encrypted dump of the Supabase database (public + auth schemas).
+# Needs two repository secrets (Settings > Secrets and variables > Actions):
+#   SUPABASE_DB_URL     the "Session pooler" connection string, with the real password filled in
+#   BACKUP_PASSPHRASE   a long password you make up; you need it to decrypt a backup
+# This repo is public, so the dump is ENCRYPTED before upload. Never upload it unencrypted.
+on:
+  schedule:
+    - cron: "43 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check secrets
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$DB_URL" ] || [ -z "$PASS" ]; then
+            echo "::error::Add the SUPABASE_DB_URL and BACKUP_PASSPHRASE repository secrets first."
+            exit 1
+          fi
+          case "$DB_URL" in *"[YOUR-PASSWORD]"*) echo "::error::SUPABASE_DB_URL still contains [YOUR-PASSWORD]. Put the real password in."; exit 1;; esac
+
+      - name: Install a matching Postgres client
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          sudo apt-get install -y curl ca-certificates gnupg lsb-release >/dev/null
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y postgresql-client-17 >/dev/null
+          ver=$(/usr/lib/postgresql/17/bin/psql "$DB_URL" -tAc "show server_version_num")
+          echo "server_version_num=$ver"
+          major=$((ver / 10000))
+          if [ "$major" -gt 17 ]; then
+            sudo apt-get install -y "postgresql-client-$major" >/dev/null
+          fi
+          echo "PGBIN=/usr/lib/postgresql/$( [ "$major" -gt 17 ] && echo $major || echo 17 )/bin" >> "$GITHUB_ENV"
+
+      - name: Dump
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          "$PGBIN/pg_dump" "$DB_URL" --no-owner --no-privileges --schema=public --schema=auth -Fc -f backup.dump
+          size=$(stat -c %s backup.dump)
+          echo "dump bytes: $size"
+          if [ "$size" -lt 5000 ]; then echo "::error::Dump is suspiciously small."; exit 1; fi
+
+      - name: Encrypt
+        env:
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          printf '%s' "$PASS" > .pass
+          gpg --batch --yes --pinentry-mode loopback --passphrase-file .pass --symmetric --cipher-algo AES256 -o "gymak-db-$(date -u +%F).dump.gpg" backup.dump
+          rm -f backup.dump .pass
+          ls -l *.gpg
+
+      - name: Upload (encrypted only)
+        uses: actions/upload-artifact@v4
+        with:
+          name: gymak-db-backup
+          path: "*.dump.gpg"
+          retention-days: 30
+          if-no-files-found: error
