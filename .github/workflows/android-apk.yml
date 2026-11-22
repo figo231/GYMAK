@@ -50,6 +50,10 @@ jobs:
           echo "GYMAK_VERSION_CODE=${{ inputs.version_code || github.run_number }}" >> "$GITHUB_ENV"
           echo "GYMAK_VERSION_NAME=1.${{ inputs.version_code || github.run_number }}" >> "$GITHUB_ENV"
       - run: npm install --no-audit --no-fund
+      - name: Apply OTA public trust anchor
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: node scripts/ota/write-native-trust.mjs
       - name: Test and build bundled app
         run: |
           test -n "$VITE_SUPABASE_URL"

@@ -34,6 +34,10 @@ jobs:
           echo "GYMAK_VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
           echo "GYMAK_VERSION_NAME=1.${{ github.run_number }}-play" >> "$GITHUB_ENV"
       - run: npm install --no-audit --no-fund
+      - name: Apply OTA public trust anchor
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: node scripts/ota/write-native-trust.mjs
       - run: npm run build
       - run: npx cap sync android
       - name: Build release AAB
