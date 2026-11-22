@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import SectionNav from "../../components/layout/SectionNav";
 import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
@@ -53,7 +54,7 @@ export default function Food() {
 
   return (
     <>
-      <div className="section-head"><h1 className="section-title">الأكل</h1></div>
+      <SectionNav group="food" title="الأكل" />
 
       <div className="goal-modes" data-testid="goal-modes" role="group" aria-label="الهدف">
         {Object.entries(modes).map(([k, v]) => (

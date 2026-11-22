@@ -403,3 +403,18 @@ html.ath.pro-ui .chal-badge.on{opacity:1;border-style:solid;color:#0B0C0F}
 html.ath.pro-ui .chal-badge.bronze.on{background:#C9803E}
 html.ath.pro-ui .chal-badge.silver.on{background:#C5CAD3}
 html.ath.pro-ui .chal-badge.gold.on{background:#F2B531}
+html.ath.pro-ui .mp-note{font-size:12px;opacity:.75;margin:0 2px 10px;line-height:1.6}
+html.ath.pro-ui .mp-tabs{display:flex;gap:8px;margin-bottom:12px}
+html.ath.pro-ui .mp-tabs button{flex:1;padding:10px 0;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;font:inherit;font-weight:700}
+html.ath.pro-ui .mp-tabs button.on{background:#FF6A1A;border-color:#FF6A1A;color:#0B0C0F}
+html.ath.pro-ui .mp-day{padding:14px;margin-bottom:10px}
+html.ath.pro-ui .mp-day-top{display:flex;justify-content:space-between;margin-bottom:8px}
+html.ath.pro-ui .mp-day-top span{color:#FF6A1A;font-weight:700;font-size:13px}
+html.ath.pro-ui .mp-meal{display:grid;grid-template-columns:48px 1fr auto;gap:8px;font-size:12.5px;padding:6px 0;border-top:1px solid rgba(255,255,255,.07);line-height:1.6}
+html.ath.pro-ui .mp-slot{font-weight:800;color:#FF8A3D}
+html.ath.pro-ui .mp-kcal{opacity:.6}
+html.ath.pro-ui .mp-shop{padding:12px 14px}
+html.ath.pro-ui .mp-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+html.ath.pro-ui .mp-row span{flex:1}
+html.ath.pro-ui .mp-row.done{opacity:.4;text-decoration:line-through}
+html.ath.pro-ui .mp-row input{accent-color:#FF6A1A;width:20px;height:20px}

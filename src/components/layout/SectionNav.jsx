@@ -7,6 +7,10 @@ const GROUPS = {
     { to: "/measurements", label: "القياسات" },
     { to: "/photos", label: "الصور" },
   ],
+  food: [
+    { to: "/food", label: "النهارده" },
+    { to: "/meal-plan", label: "خطة الأسبوع" },
+  ],
   train: [
     { to: "/exercises", label: "التمارين" },
     { to: "/programs", label: "البرامج" },
