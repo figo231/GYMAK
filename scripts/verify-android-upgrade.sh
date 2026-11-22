@@ -12,7 +12,7 @@ adb shell wm size 360x800
 adb shell wm density 160
 curl --fail --location --retry 2 https://github.com/figo231/GYMAK/releases/download/apk-9/GYMAK.apk -o /tmp/gymak-legacy.apk
 adb install -r -g /tmp/gymak-legacy.apk
-adb install -r -g android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 run_test seedLegacyData
 adb shell am force-stop com.gymak.app
 adb shell svc wifi disable
@@ -25,4 +25,4 @@ adb pull /sdcard/Android/data/com.gymak.app/files/offline-upgrade.png verificati
 adb shell am force-stop com.gymak.app
 adb shell pm clear com.gymak.app
 run_test freshOfflineInstall
-adb exec-out screencap -p > verification/fresh-offline.png
+adb pull /sdcard/Android/data/com.gymak.app/files/fresh-offline.png verification/fresh-offline.png

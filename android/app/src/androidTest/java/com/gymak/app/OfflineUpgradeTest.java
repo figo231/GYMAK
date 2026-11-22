@@ -70,6 +70,7 @@ public class OfflineUpgradeTest {
             assertEquals("https://gymak-eight.vercel.app", js(a, "location.origin"));
             assertEquals("true", js(a, "window.Capacitor.isNativePlatform()"));
             assertEquals("true", js(a, "document.body.innerText.includes('GYMAK') && !document.body.innerText.includes('ERR_CONNECTION')"));
+            InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(InstrumentationRegistry.getInstrumentation().getTargetContext().getExternalFilesDir(null),"fresh-offline.png")));
         }
     }
 }
