@@ -110,7 +110,7 @@ export default function Coach() {
 
   return (
     <>
-      <DetailTopBar backTo="/training" title="المدربين" />
+      <DetailTopBar backTo="/profile" title="المدربين" />
       <Link to="/professionals" className="btn btn-secondary" style={{display:"block",textAlign:"center",marginBottom:12,padding:12}}>المدربين المقترحين وطلبات التواصل ←</Link>
       <Link to="/messages" className="btn btn-primary" style={{ display: "block", textAlign: "center", marginBottom: 14 }}>رسائلي مع المدرب والدكتور ←</Link>
       <div style={{ fontWeight: 800, fontSize: 13.5, margin: "4px 0 8px" }}>مدربيني</div>

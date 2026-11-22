@@ -1,4 +1,3 @@
-import Profile from "../Profile/Profile";
 import SectionNav from "../../components/layout/SectionNav";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -84,9 +83,9 @@ export default function Stats() {
 
   return (
     <>
-
+      <SectionNav group="progress" />
       <div className="page-head">
-        <h1 className="page-title">تقدمك</h1>
+        <h1 className="page-title">الإحصائيات</h1>
         <div className="page-count">تقدمك خلال {period.long}</div>
       </div>
 
@@ -100,7 +99,19 @@ export default function Stats() {
         </div>
       ) : (
         <>
-          <label className="ux-period">الفترة <select aria-label="الفترة الزمنية" value={periodDays} onChange={e => setPeriodDays(Number(e.target.value))}>{PERIODS.map(p => <option key={p.days} value={p.days}>{p.label}</option>)}</select></label>
+          <div className="period-tabs" role="group" aria-label="الفترة الزمنية">
+            {PERIODS.map((p) => (
+              <button
+                type="button"
+                key={p.days}
+                className={"p-tab" + (periodDays === p.days ? " active" : "")}
+                aria-pressed={periodDays === p.days}
+                onClick={() => setPeriodDays(p.days)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
 
           <div className="xd-tabs sx-tabs" role="tablist" aria-label="عرض الإحصائيات">
             {[["overview", "نظرة عامة"], ["body", "الجسم"], ["strength", "القوة"]].map(([id, l]) => (
@@ -121,7 +132,7 @@ export default function Stats() {
             </div>
           </div>
 
-          <details className="ux-group" ><summary>ملخص الأسبوع ومشاركته</summary><div className="ux-group-body"><WeeklyCard /></div></details>
+          <WeeklyCard />
 
           <SectionTitle title="أيام التمرين" sub="آخر 28 يوم" />
           <div className="glass" style={{ padding: 14 }}>
@@ -156,7 +167,7 @@ export default function Stats() {
             </div>
           </div>
           </>)}
-          {view === "body" && (<><Profile panel="body" />
+          {view === "body" && (<>
           <SectionTitle title="تطور الوزن" sub={period.long} />
           <GoalCard history={history} />
           <WeightChart history={history} goal={goal} goalTo={goalTrajectory(history, goal, Store.getGoalDeadline())?.to ?? null} periodLabel={period.long} />
@@ -259,7 +270,6 @@ export default function Stats() {
           </>)}
         </>
       )}
-<details className="ux-group" ><summary>السجل والقياسات والصور والأرقام القياسية</summary><div className="ux-group-body"><SectionNav group="progress" /></div></details><details className="ux-group" ><summary>الإنجازات وكروت المشاركة</summary><div className="ux-group-body"><Profile panel="ach" /></div></details>
     </>
   );
 }

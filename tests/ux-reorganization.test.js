@@ -15,42 +15,31 @@ async function mount(path, Component, props = {}) {
   root = createRoot(node);
   act(() => root.render(h(ThemeProvider, null, h(I18nProvider, null, h(AuthProvider, null, h(ToastProvider, null, h(DialogProvider, null, h(MemoryRouter, { initialEntries: [path] }, h(Component, props)))))))));
 }
-describe('reorganized navigation, without deleting old destinations', () => {
-  it.each([['/training','تدريب'],['/exercises','تدريب'],['/programs','تدريب'],['/warmup','تدريب'],['/supplements','أكل'],['/strength','تقدم'],['/achievements','تقدم'],['/professionals?view=requests','دردشة'],['/admin','حسابي']])('marks the right bottom tab for %s', async (path,label) => {
+describe('mixed layout candidate, APK15 first', () => {
+  it.each([['/','الرئيسية'],['/exercises','تدريب'],['/programs','تدريب'],['/warmup','تدريب'],['/food','أكل'],['/stats','تقدم'],['/history','تقدم'],['/professionals','دردشة'],['/profile','حسابي']])('retains six old-layout bottom tabs at %s', async (path,label) => {
     const { default: Nav } = await import('../src/components/layout/BottomNav');
     await mount(path,Nav);
     expect(node.querySelectorAll('.nav-item')).toHaveLength(6);
-    expect(node.querySelectorAll('.nav-item.active')).toHaveLength(1);
     expect(node.querySelector('.nav-item.active').textContent).toBe(label);
+    expect(node.querySelector('a[href="/exercises"]')).toBeTruthy();
   });
-  it('lands training on today and keeps the library, programmes and warmup', async () => {
-    const { default: Training } = await import('../src/pages/Exercises/Training');
-    await mount('/training',Training);
-    expect(node.querySelector('h1').textContent).toBe('تمرين النهارده');
-    for (const url of ['/exercises','/programs','/warmup','/ai-coach']) expect(node.querySelector(`a[href="${url}"]`)).toBeTruthy();
-    expect(node.textContent).toContain('مؤقت الراحة بين المجموعات');
-    expect(node.textContent).toContain('وضع رمضان');
+  it('restores the old home without duplicate chat banners', async () => {
+    const { default: Dashboard } = await import('../src/pages/Dashboard/Dashboard');await mount('/',Dashboard);
+    expect(node.querySelector('details')).toBeNull();expect(node.querySelector('[data-testid="water-card"]')).toBeTruthy();
+    expect(node.querySelector('a[href="/professionals"]')).toBeNull();expect(node.querySelector('a[href="/messages"]')).toBeNull();
   });
-  it('puts food tracking ahead of goal controls and retains saved meals/barcode', async () => {
-    const { default: Food } = await import('../src/pages/Food/Food');
-    await mount('/food',Food);
-    const markup=node.innerHTML;
-    expect(markup.indexOf('food-hero')).toBeLessThan(markup.indexOf('food-add'));
-    expect(markup.indexOf('food-add')).toBeLessThan(markup.indexOf('goal-modes'));
-    for (const label of ['سجّل بالباركود','وجباتك المحفوظة','الهدف واليوم الحر ووضع رمضان']) expect(node.textContent).toContain(label);
+  it('retains grouped Profile without losing body, achievements or training controls', async () => {
+    const { default: Profile } = await import('../src/pages/Profile/Profile');await mount('/profile',Profile);
+    for (const text of ['الحساب ومزامنة البيانات','التفضيلات والخصوصية','المساعدة والدعم','عن التطبيق والمشاركة','قفل التطبيق','مؤقت الراحة بين المجموعات','مؤشر كتلة الجسم BMI','كارت الوزن (صورة)','وضع رمضان']) expect(node.textContent).toContain(text);
+    for (const url of ['/backups','/tour','/contact','/help','/ai-coach','/photos','/measurements','/achievements']) expect(node.querySelector(`a[href="${url}"]`)).toBeTruthy();
+    expect(node.querySelector('a[href="/training#training-settings"]')).toBeNull();
   });
-  it('separates chat inbox, suggestions and requests with real routes', async () => {
-    const { default: Nav } = await import('../src/components/layout/ChatNav');
-    await mount('/professionals?view=requests',Nav);
-    expect([...node.querySelectorAll('a')].map(a=>a.getAttribute('href'))).toEqual(['/messages','/professionals','/professionals?view=requests']);
-    expect(node.querySelector('[aria-current="page"]').textContent).toBe('الطلبات');
+  it('restores the old visible food controls', async () => {
+    const { default: Food } = await import('../src/pages/Food/Food');await mount('/food',Food);
+    expect(node.querySelector('details')).toBeNull();expect(node.textContent).toContain('سجّل بالباركود');
   });
-  it('groups profile controls and keeps destructive actions behind the existing confirmation', async () => {
-    const { default: Profile } = await import('../src/pages/Profile/Profile');
-    await mount('/profile',Profile);
-    for (const text of ['الحساب ومزامنة البيانات','التفضيلات والخصوصية','المساعدة والدعم','عن التطبيق والمشاركة','قفل التطبيق','اللغة والوحدات','إعادة تعيين كل البيانات']) expect(node.textContent).toContain(text);
-    for (const url of ['/backups','/tour','/contact','/help']) expect(node.querySelector(`a[href="${url}"]`)).toBeTruthy();
-    expect(node.querySelector('a[href="/professionals"]')).toBeNull();
-    expect(node.querySelector('a[href="/messages"]')).toBeNull();
+  it('restores the combined directory and requests page', async () => {
+    const fs=await import('node:fs');const text=fs.readFileSync('src/pages/Professionals/Professionals.jsx','utf8');
+    expect(text).not.toContain('ChatNav');expect(text).toContain('pro-requests');expect(text).toContain('pro-intro');
   });
 });

@@ -1,5 +1,4 @@
-/* Daily tasks first. DOM order and visual order intentionally agree. */
-html.pro-ui .ux-home > *, html.ath.pro-ui .ux-home > * { order: 0 !important; }
+/* Grouped Profile only. All other layouts follow APK15. */
 .ux-group { background: var(--card-glass); border: 1px solid var(--border-soft); border-radius: 16px; margin: 0 0 12px; min-width: 0; }
 .ux-group > summary { cursor: pointer; font-size: 13px; font-weight: 800; padding: 16px; min-height: 52px; box-sizing: border-box; line-height: 1.7; }
 .ux-group > summary::marker { color: var(--accent-text); }
@@ -9,22 +8,11 @@ html.pro-ui .ux-home > *, html.ath.pro-ui .ux-home > * { order: 0 !important; }
 .ux-group .top-row { display: block; }
 .ux-group .side-actions { display: flex; gap: 8px; margin-top: 10px; }
 .ux-group .side-actions > * { flex: 1; }
-.ux-destination { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 16px; margin-bottom: 12px; text-decoration: none; color: var(--text-primary); font-size: 13px; font-weight: 800; min-height: 54px; }
-.ux-destination small { color: var(--text-secondary); font-weight: 500; font-size: 11px; }
-.ux-training-hero { padding: 22px; margin: 0 0 16px; }
-.ux-training-hero h2 { margin: 6px 0; font-size: 23px; }
-.ux-training-hero p { color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
-.ux-training-hero .btn { display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 16px; min-height: 48px; }
-.ux-training-hero .ux-eyebrow { color: var(--accent-text); }
-.ux-period { display: flex; align-items: center; justify-content: flex-end; gap: 10px; font-size: 12px; color: var(--text-secondary); margin: 12px 0; }
-.ux-period select { background: var(--card-glass); color: var(--text-primary); border: 1px solid var(--border-soft); border-radius: 10px; font: inherit; padding: 8px 12px; min-height: 44px; }
-.ux-chat-nav { display: grid; grid-template-columns: repeat(3,1fr); padding: 4px; gap: 4px; border: 1px solid var(--border-soft); background: var(--card-glass); border-radius: 14px; margin-bottom: 16px; }
-.ux-chat-nav a { display: flex; align-items: center; justify-content: center; padding: 10px 4px; min-height: 44px; box-sizing: border-box; color: var(--text-secondary); font-size: 12px; font-weight: 800; border-radius: 10px; text-decoration: none; }
-.ux-chat-nav a.on { color: var(--accent-text); background: rgba(var(--acc-rgb),.16); }
 .ux-profile .profile-head { margin-bottom: 16px; }
 html.pro-ui .ux-profile .cover-wrap { height: 64px; }
 html.pro-ui .ux-profile .profile-head-body { padding-bottom: 12px; }
 .ux-profile .p-stats-row, .ux-profile .p-xp-wrap { margin-top: 10px; }
 .ux-group .settings-row { min-height: 50px; }
-.ux-group summary:focus-visible, .ux-destination:focus-visible, .ux-chat-nav a:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
 [hidden] { display: none !important; }
+
+.ux-group summary:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
