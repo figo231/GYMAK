@@ -384,3 +384,8 @@ html.ath.pro-ui .ph-thumb span { position: absolute; bottom: 5px; inset-inline-s
 html.ath.pro-ui .ph-empty { text-align: center; padding: 26px 10px; color: #9A9CA6; }
 html.ath.pro-ui .ph-ghost { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
 html.ath.pro-ui .ph-ghost span { width: 76px; aspect-ratio: 3/4; border: 2px dashed #2A2C33; border-radius: 12px; }
+
+html.ath.pro-ui .goal-modes{display:flex;gap:8px;margin:0 0 10px}
+html.ath.pro-ui .goal-chip{flex:1;padding:10px 0;border-radius:12px;border:1px solid var(--line,#2a2c33);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+html.ath.pro-ui .goal-chip.on{background:#FF6A1A;border-color:#FF6A1A;color:#0B0C0F}
+html.ath.pro-ui .goal-tip{font-size:12px;opacity:.75;margin:0 2px 12px;line-height:1.6}

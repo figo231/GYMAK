@@ -21,6 +21,9 @@ export default function Food() {
   const left = remaining(target, day.totalKcal);
   const p = pct(day.totalKcal, target);
   const m = macroSplit(day);
+  const mode = useMemo(() => Store.getGoalMode(), [version]);
+  const modes = Store.getGoalModes();
+  const proteinTarget = useMemo(() => Store.getProteinTarget(), [version]);
 
   function parse(t) {
     const v = (t ?? text).trim();
@@ -51,6 +54,13 @@ export default function Food() {
   return (
     <>
       <div className="section-head"><h1 className="section-title">الأكل</h1></div>
+
+      <div className="goal-modes" data-testid="goal-modes" role="group" aria-label="الهدف">
+        {Object.entries(modes).map(([k, v]) => (
+          <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{v.label}</button>
+        ))}
+      </div>
+      {mode && <div className="goal-tip">{modes[mode].tip}{proteinTarget ? ` هدف البروتين: ${proteinTarget} جم.` : ""}</div>}
 
       <div className="food-hero" data-testid="food-hero">
         <div className="food-hero-top">

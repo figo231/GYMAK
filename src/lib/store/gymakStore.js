@@ -339,6 +339,12 @@ const KEY = "gymak_state_v1";
   }
 
   const XP_DAILY_CAP = 10;
+  const GOAL_MODES = {
+    bulk: { label: "ضخامة", kcal: 300, protein: 1.8, tip: "فائض سعرات خفيف وبروتين كفاية. ركّز على زيادة الأوزان تدريجيًا." },
+    cut: { label: "تنشيف", kcal: -400, protein: 2.0, tip: "عجز سعرات معقول وبروتين عالي عشان تحافظ على العضل." },
+    recomp: { label: "نحت", kcal: -100, protein: 2.2, tip: "سعرات قريبة من احتياجك وبروتين عالي. حدّ أدنى من التغيّر في الوزن مع تحسّن الشكل." },
+  };
+
   // Goal counts as reached when within 0.5 kg, or passed in the direction of the goal.
   function goalReached(goal, logs) {
     if (goal == null || !logs.length) return false;
@@ -1169,12 +1175,32 @@ const KEY = "gymak_state_v1";
       if (!latest) return null;
       const perKgFactor = s.profile.gender === "female" ? 29 : 32;
       let base = latest.weight * perKgFactor;
+      const mode = s.profile.goalMode;
       const goal = s.goalWeight;
-      if (goal != null) {
+      if (mode && GOAL_MODES[mode]) base += GOAL_MODES[mode].kcal;
+      else if (goal != null) {
         if (goal < latest.weight - 1) base -= 400; // cutting
         else if (goal > latest.weight + 1) base += 300; // bulking
       }
       return Math.round(base);
+    },
+
+    getGoalModes() { return GOAL_MODES; },
+    getGoalMode() { const m = load().profile.goalMode; return m && GOAL_MODES[m] ? m : null; },
+    setGoalMode(m) {
+      const s = load();
+      if (m && !GOAL_MODES[m]) return s.profile.goalMode || null;
+      s.profile.goalMode = m || null;
+      save(s);
+      return s.profile.goalMode;
+    },
+    getProteinTarget() {
+      const s = load();
+      const latest = s.weightLogs.at(-1);
+      if (!latest) return null;
+      const m = s.profile.goalMode;
+      const perKg = m && GOAL_MODES[m] ? GOAL_MODES[m].protein : 1.8;
+      return Math.round(latest.weight * perKg);
     },
 
     // ===== Weight diff over an arbitrary window =====
