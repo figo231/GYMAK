@@ -431,3 +431,4 @@ html.ath.pro-ui .onboarding-dot.active{background:#FF6A1A}
 html.ath.pro-ui .onboarding-actions{display:flex;gap:10px;width:100%;max-width:320px}
 html.ath.pro-ui .onboarding-cta{flex:1;border:0;background:linear-gradient(135deg,#FF8A3D,#F2500C);color:#0B0C0F;font:inherit;font-weight:800;font-size:15px;padding:15px;border-radius:16px;box-shadow:none}
 html.ath.pro-ui .onboarding-back{border:1px solid rgba(255,255,255,.18);background:none;color:inherit;font:inherit;font-weight:700;padding:15px 18px;border-radius:16px}
+html.ath.pro-ui .onboarding-slide{min-height:330px;justify-content:center}
