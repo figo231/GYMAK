@@ -492,3 +492,6 @@ html.ath.pro-ui .ad-stats > div { display: flex; flex-direction: column; align-i
 html.ath.pro-ui .ad-stats b { font-size: 26px; color: #ff8a3d; line-height: 1; }
 html.ath.pro-ui .ad-stats span { font-size: 11px; color: var(--text-secondary); }
 html.ath.pro-ui .ad-actions .btn:not(.btn-primary), html.ath.pro-ui .ad-page > a.btn { background: transparent !important; border: 1px solid var(--border-soft) !important; color: var(--text) !important; }
+html.ath.pro-ui .bc-video { width: 100%; max-height: 220px; border-radius: 14px; background: #000; margin-bottom: 10px; object-fit: cover; }
+html.ath.pro-ui .bc-result { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding: 12px; border-radius: 14px; border: 1px solid var(--border-soft); }
+html.ath.pro-ui .bc-result small { color: var(--text-secondary); line-height: 1.6; }

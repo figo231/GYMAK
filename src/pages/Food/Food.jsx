@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import EditFoodSheet from "./EditFoodSheet";
 import RamadanCard from "../../components/RamadanCard";
+import BarcodeSheet from "./BarcodeSheet";
 import SectionNav from "../../components/layout/SectionNav";
 import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
@@ -67,6 +68,7 @@ export default function Food() {
     if (snap) toast("تم المسح", { duration: 6000, action: { label: "تراجع", onClick: () => Store.restore(snap) } });
   }
   const [editing, setEditing] = useState(null);
+  const [showBarcode, setShowBarcode] = useState(false);
   function edit(i, it) { setEditing({ i, it }); }
   function saveEdit(vals) {
     const { i } = editing; setEditing(null);
@@ -132,6 +134,7 @@ export default function Food() {
         <div className="food-chips">
           {QUICK.map((q) => <button type="button" key={q} className="section-pill" onClick={() => { setText(q); parse(q); }}>{q}</button>)}
         </div>
+        {!preview && <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={() => setShowBarcode(true)}>سجّل بالباركود</button>}
         {!preview && <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={!text.trim()} onClick={() => parse()}>حلّل</button>}
         {preview && (
           <div className="food-preview">
@@ -158,6 +161,7 @@ export default function Food() {
       ))}
       {editing && <EditFoodSheet item={editing.it} onClose={() => setEditing(null)} onSave={saveEdit} />}
       <p className="food-foot">القيم تقريبية. <Link to="/history">كل أيام الأكل في السجل</Link></p>
+      {showBarcode && <BarcodeSheet onClose={() => setShowBarcode(false)} onAdd={(it) => { Store.logFoodEntries([it]); setShowBarcode(false); toast("اتسجّل"); }} />}
     </>
   );
 }
