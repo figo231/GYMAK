@@ -155,6 +155,7 @@ const KEY = "gymak_state_v1";
     { names: ["مكرونة", "مكرونة بالبشاميل", "باستا"], per100: { kcal: 158, protein: 5.8, carbs: 31, fat: 1 } },
     { names: ["عيش بلدي", "خبز بلدي"], pieceWeight: 90, per100: { kcal: 265, protein: 9, carbs: 52, fat: 2 } },
     { names: ["عيش فينو", "خبز فينو"], pieceWeight: 70, per100: { kcal: 280, protein: 9, carbs: 55, fat: 3 } },
+    { names: ["رغيف عيش", "رغيف", "عيش", "خبز"], pieceWeight: 90, per100: { kcal: 265, protein: 9, carbs: 52, fat: 2 } },
     { names: ["خبز توست", "توست"], pieceWeight: 25, per100: { kcal: 270, protein: 9, carbs: 50, fat: 3.5 } },
     { names: ["بطاطس مسلوقة", "بطاطس"], per100: { kcal: 87, protein: 2, carbs: 20, fat: 0.1 } },
     { names: ["بطاطس مقلية", "بطاطا مقلية"], per100: { kcal: 312, protein: 3.4, carbs: 41, fat: 15 } },
@@ -290,14 +291,21 @@ const KEY = "gymak_state_v1";
         usedRanges.push({ start: idx, end: idx + alias.length });
 
         // look at a small window before the match for a quantity/unit
-        const windowStart = Math.max(0, idx - 18);
-        const before = lower.slice(windowStart, idx);
+        // the alias may carry a one-letter Arabic prefix (أرز, بالرز, وبيض): read the quantity before the whole word
+        const tokStart = Math.max(lower.lastIndexOf(" ", idx - 1), lower.lastIndexOf("،", idx - 1), lower.lastIndexOf(",", idx - 1)) + 1;
+        const prefix = lower.slice(tokStart, idx);
+        const wordStart = prefix.length <= 2 && /^[وبلكفاأ]*$/.test(prefix) ? tokStart : idx;
+        const windowStart = Math.max(0, wordStart - 18);
+        const before = lower.slice(windowStart, wordStart);
         let grams = null;
 
         const numMatch = before.match(/(\d+(\.\d+)?)\s*(جم|جرام|غرام|g|كيلو|كجم|كوب|كوباية|معلقة كبيرة|ملعقة كبيرة|معلقة صغيرة|ملعقة صغيرة|حبة|حبات|رغيف|رغفان|قطعة)?\s*$/);
-        if (numMatch) {
-          const n = parseFloat(numMatch[1]);
-          const unit = numMatch[3];
+        // quantity written after the food: "رز 200 جم", "بيض 3"
+        const afterMatch = numMatch ? null : lower.slice(idx + alias.length, idx + alias.length + 16).match(/^\s*(\d+(\.\d+)?)\s*(جم|جرام|غرام|g|كيلو|كجم|كوب|كوباية|معلقة كبيرة|ملعقة كبيرة|معلقة صغيرة|ملعقة صغيرة|حبة|حبات|رغيف|رغفان|قطعة)?(?=\s|$|[،,و])/);
+        const qty = numMatch || afterMatch;
+        if (qty) {
+          const n = parseFloat(qty[1]);
+          const unit = qty[3];
           if (unit && UNIT_GRAMS[unit] !== undefined) grams = n * UNIT_GRAMS[unit];
           else if (food.pieceWeight) grams = n * food.pieceWeight;
           else grams = n * 100; // fallback: treat bare number as "×100g servings"
