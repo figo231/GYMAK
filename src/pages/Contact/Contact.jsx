@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { sendFeedback, PUBLIC_EMAIL } from "../../lib/feedback";
+import { fetchMyFeedback } from "../../lib/admin";
 
 export default function Contact() {
   const { user } = useAuth();
@@ -9,6 +10,10 @@ export default function Contact() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState(null);
+
+  const [mine, setMine] = useState([]);
+  useEffect(() => { if (user) fetchMyFeedback().then(setMine); }, [user?.id, done]);
+  const replied = mine.filter((m) => m.admin_reply);
 
   async function send() {
     if (busy) return;
@@ -21,10 +26,18 @@ export default function Contact() {
   return (
     <div className="ct-page">
       <div className="section-head"><h1 className="section-title">تواصل معانا</h1></div>
+      {replied.length > 0 && (
+        <div className="glass ct-replies">
+          <b>ردود علينا</b>
+          {replied.map((m) => (
+            <div key={m.id} className="ct-reply"><p className="ct-q">{m.message}</p><p className="ct-a">{m.admin_reply}</p></div>
+          ))}
+        </div>
+      )}
       {done ? (
         <div className="glass ct-done" role="status">
           <b>وصلتنا رسالتك ✓</b>
-          <p>شكرًا ليك. هنقراها ونرد عليك على إيميل حسابك لو محتاجة رد.</p>
+          <p>شكرًا ليك. هنقراها، ولو فيه رد هيظهرلك هنا في الصفحة دي.</p>
           {done !== "ok" && <small dir="ltr">ref: {done}</small>}
           <button type="button" className="btn" style={{ width: "100%", marginTop: 12 }} onClick={() => setDone(null)}>ابعت رسالة تانية</button>
         </div>

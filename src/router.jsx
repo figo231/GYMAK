@@ -27,6 +27,7 @@ import Food from "./pages/Food/Food";
 import TourPage from "./pages/TourPage";
 const Warmup = lazy(() => import("./pages/Help/Warmup"));
 const Notifications = lazy(() => import("./pages/Profile/Notifications"));
+const Admin = lazy(() => import("./pages/Admin/Admin"));
 const Help = lazy(() => import("./pages/Help/Help"));
 const Contact = lazy(() => import("./pages/Contact/Contact"));
 const MealPlan = lazy(() => import("./pages/Food/MealPlan"));
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: "/exercise/:id", element: <ExerciseDetail /> },
       { path: "/account", element: <ProtectedRoute><Account /></ProtectedRoute> },
       { path: "/coach", element: <ProtectedRoute><Coach /></ProtectedRoute> },
+      { path: "/admin", element: <ProtectedRoute><Admin /></ProtectedRoute> },
       { path: "/owner", element: <ProtectedRoute><OwnerPanel /></ProtectedRoute> },
     ],
   },

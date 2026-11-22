@@ -434,6 +434,13 @@ export default function Profile() {
             <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
           </Link>
         )}
+        {isOwner && (
+          <Link to="/admin" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
+            <span className="settings-name">لوحة الإدارة والرسايل</span>
+            <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
+          </Link>
+        )}
         <Link to="/history" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg></div>
           <span className="settings-name">سجل التمارين والأكل والوزن</span>

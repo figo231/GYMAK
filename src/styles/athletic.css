@@ -475,3 +475,15 @@ html.ath.pro-ui .rm-title { display: block; font-size: 15px; margin-bottom: 6px;
 html.ath.pro-ui .rm-card p { font-size: 13px; line-height: 1.7; margin: 4px 0; color: var(--text-secondary); }
 html.ath.pro-ui .rm-card strong { color: var(--text); }
 html.ath.pro-ui .notif-row { padding: 14px; margin-bottom: 10px; }
+html.ath.pro-ui .ad-stats { margin-bottom: 6px; }
+html.ath.pro-ui .ad-msg { padding: 14px; margin-bottom: 10px; }
+html.ath.pro-ui .ad-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+html.ath.pro-ui .ad-meta b { color: var(--text); font-size: 14px; }
+html.ath.pro-ui .ad-text { margin: 4px 0 8px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+html.ath.pro-ui .ad-reply { margin: 0 0 8px; padding: 10px; border-radius: 12px; background: rgba(255,106,19,0.12); font-size: 13px; line-height: 1.6; }
+html.ath.pro-ui .ad-actions { display: flex; gap: 8px; margin-top: 8px; }
+html.ath.pro-ui .ad-actions .btn { flex: 1; }
+html.ath.pro-ui .ct-replies { padding: 14px; margin-bottom: 12px; }
+html.ath.pro-ui .ct-reply { margin-top: 10px; }
+html.ath.pro-ui .ct-q { font-size: 12px; color: var(--text-secondary); margin: 0 0 4px; }
+html.ath.pro-ui .ct-a { margin: 0; padding: 10px; border-radius: 12px; background: rgba(255,106,19,0.12); line-height: 1.6; font-size: 14px; }
