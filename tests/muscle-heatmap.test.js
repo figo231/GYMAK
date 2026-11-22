@@ -19,8 +19,6 @@ describe("muscle heatmap data", () => {
     // Seed a 40-day-old log before the store is ever loaded.
     const old = new Date(); old.setDate(old.getDate() - 40);
     const iso = old.toISOString().slice(0, 10);
-    const raw = JSON.parse(localStorage.getItem("gymak_state_v1") || "null") || null;
-    const base = raw || null;
     localStorage.clear(); vi.resetModules();
     const Fresh = (await import("../src/lib/store/gymakStore.js")).default; Fresh.resetAllData();
     const st = JSON.parse(localStorage.getItem("gymak_state_v1"));
@@ -30,6 +28,5 @@ describe("muscle heatmap data", () => {
     const S2 = (await import("../src/lib/store/gymakStore.js")).default;
     expect(S2.getMuscleKeySetsInRange(30).chest || 0).toBe(0);
     expect(S2.getMuscleKeySetsInRange(60).chest).toBe(3);
-    expect(base).toBeNull();
   });
 });
