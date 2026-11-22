@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { buildWeekly, headline, pctChange, weeklyCardData } from "../src/lib/stats/weekly";
 
 const mk = (o = {}) => ({
-  getWorkoutDaysInRange: (n) => (n === 6 ? 4 : 6),
-  getSetsInRange: (n) => (n === 6 ? 40 : 70),
-  getTonnage: (n) => (n === 6 ? 12000 : 20000),
+  getWorkoutDaysInRange: (n) => (n === 7 ? 4 : 6),
+  getSetsInRange: (n) => (n === 7 ? 40 : 70),
+  getTonnage: (n) => (n === 7 ? 12000 : 20000),
   getRecentPRs: () => [{ date: "2999-01-01" }, { date: "2000-01-01" }],
   getWeightDiffOverDays: () => ({ from: 80, to: 79.4 }),
   getStreak: () => 3,

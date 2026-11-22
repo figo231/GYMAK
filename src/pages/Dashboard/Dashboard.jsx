@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { localISO } from "../../lib/dateKey";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
@@ -124,7 +125,7 @@ export default function Dashboard() {
           <div className="streak-week">
             {week.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
-              const isToday = d.date === new Date().toISOString().slice(0, 10);
+              const isToday = d.date === localISO();
               return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>

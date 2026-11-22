@@ -4,6 +4,7 @@ import { lastDays } from "../../lib/water/water";
 import { buildWeekly, headline, weeklyCardData } from "../../lib/stats/weekly";
 import ShareCardSheet from "../Profile/ShareCardSheet";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
+import { fmtVolume } from "../../lib/stats/format";
 
 export default function WeeklyCard() {
   const [version] = useStoreVersion();
@@ -11,25 +12,18 @@ export default function WeeklyCard() {
   const w = useMemo(() => buildWeekly(Store, lastDays(7)), [version]);
   const conv = (x) => Store.toDisplayWeight(x);
   const unit = Store.unitLabel();
-  const cell = { flex: 1, textAlign: "center", padding: "8px 2px" };
-  const num = { fontWeight: 900, fontSize: 20, display: "block" };
-  const lab = { fontSize: 11, opacity: 0.7 };
   const delta = w.daysDelta === 0 ? "" : (w.daysDelta > 0 ? "▲ " : "▼ ") + Math.abs(w.daysDelta);
+  const tdelta = w.tonnageDelta != null && w.tonnageDelta !== 0 ? `${w.tonnageDelta > 0 ? "+" : ""}${w.tonnageDelta}%` : "";
   return (
-    <div className="glass" style={{ padding: 14, marginBottom: 12 }} data-testid="weekly-card">
-      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>ملخص أسبوعك</div>
-      <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 8 }}>{headline(w)}</div>
-      <div style={{ display: "flex" }}>
-        <div style={cell}><b style={num}>{w.days}</b><span style={lab}>أيام تمرين {delta && <span dir="ltr">({delta})</span>}</span></div>
-        <div style={cell}><b style={num}>{w.sets}</b><span style={lab}>مجموعة</span></div>
-        <div style={cell}><b style={num} dir="ltr">{Math.round(conv(w.tonnage)).toLocaleString("en-US")}</b><span style={lab}>حجم ({unit}){w.tonnageDelta != null && w.tonnageDelta !== 0 ? ` ${w.tonnageDelta > 0 ? "+" : ""}${w.tonnageDelta}%` : ""}</span></div>
+    <div className="glass weekly-card" data-testid="weekly-card">
+      <div className="weekly-title">ملخص أسبوعك</div>
+      <div className="weekly-head">{headline(w)}</div>
+      <div className="weekly-grid">
+        <div><b dir="ltr">{w.days}</b><span>أيام تمرين {delta && <bdi dir="ltr">({delta})</bdi>}</span></div>
+        <div><b dir="ltr">{w.sets}</b><span>مجموعة</span></div>
+        <div><b dir="ltr">{fmtVolume(conv(w.tonnage), unit)}</b><span>حجم التمرين {tdelta && <bdi dir="ltr">{tdelta}</bdi>}</span></div>
       </div>
-      <div style={{ display: "flex" }}>
-        <div style={cell}><b style={num}>{w.prs}</b><span style={lab}>أرقام قياسية</span></div>
-        <div style={cell}><b style={num}>{w.streak}</b><span style={lab}>ستريك</span></div>
-        <div style={cell}><b style={num} dir="ltr">{w.weightDiff == null ? "—" : `${w.weightDiff > 0 ? "+" : ""}${Math.round(conv(w.weightDiff) * 10) / 10}`}</b><span style={lab}>وزن ({unit})</span></div>
-      </div>
-      {w.waterAvg > 0 && <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>متوسط المياه {Math.round(w.waterAvg / 100) / 10} لتر/يوم · هدفك اتحقق {w.waterGoalDays} من 7 أيام</div>}
+      {w.waterAvg > 0 && <div className="weekly-water">متوسط المياه {Math.round(w.waterAvg / 100) / 10} لتر/يوم · هدفك اتحقق {w.waterGoalDays} من 7 أيام</div>}
       {!w.empty && (
         <button type="button" className="btn" style={{ width: "100%", marginTop: 10 }} onClick={() => setCard(weeklyCardData(w, unit, conv))}>شارك أسبوعك</button>
       )}

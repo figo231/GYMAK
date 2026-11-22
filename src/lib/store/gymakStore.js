@@ -7,6 +7,7 @@ import { EXTRA_EXERCISES } from "./extraExercises";
 import { EGYPT_FOODS } from "./egyptFoods";
 import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
 import { normalizeExercise } from "../exerciseMeta";
+import { localISO, shiftISO, windowStart } from "../dateKey";
 import { deleteExerciseMedia } from "../exerciseMedia";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
@@ -14,7 +15,7 @@ import { deleteExerciseMedia } from "../exerciseMedia";
 const KEY = "gymak_state_v1";
 
   function todayISO() {
-    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    return localISO(); // YYYY-MM-DD, local calendar day
   }
 
   function daysBetween(a, b) {
@@ -325,9 +326,7 @@ const KEY = "gymak_state_v1";
   }
 
   function shiftDate(iso, delta) {
-    const d = new Date(iso + "T00:00:00");
-    d.setDate(d.getDate() + delta);
-    return d.toISOString().slice(0, 10);
+    return shiftISO(iso, delta);
   }
 
   const SEED_EXERCISES = [
@@ -1117,7 +1116,12 @@ const KEY = "gymak_state_v1";
 
     // ===== PRs =====
     getRecentPRs(limit = 5) {
-      return load().prHistory.slice(0, limit);
+      const s = load();
+      const timed = this._timedChecker(s);
+      return s.prHistory
+        .filter((p) => p.weight > 0 && !timed(p.exerciseId))
+        .slice(0, limit)
+        .map((p) => ({ ...p, exerciseName: normalizeExercise({ id: p.exerciseId, name: p.exerciseName }).name }));
     },
 
     getTotalWorkoutDays() {
@@ -1127,9 +1131,11 @@ const KEY = "gymak_state_v1";
     // ===== Tonnage & activity within a window =====
     getTonnage(days = null) {
       const s = load();
-      const cutoff = days != null ? shiftDate(todayISO(), -days) : null;
+      const cutoff = days != null ? windowStart(todayISO(), days) : null;
+      const timed = this._timedChecker(s);
       let total = 0;
-      Object.values(s.exerciseLogs).forEach((logs) => {
+      Object.entries(s.exerciseLogs).forEach(([id, logs]) => {
+        if (timed(id)) return;
         logs.forEach((l) => {
           if (!cutoff || l.date >= cutoff) total += l.weight * l.sets * l.reps;
         });
@@ -1137,35 +1143,82 @@ const KEY = "gymak_state_v1";
       return total;
     },
 
+    _timedChecker(s) {
+      const byId = new Map((s.exercises || []).map((e) => [e.id, e]));
+      return (id) => normalizeExercise(byId.get(id) || { id }).unit === "sec";
+    },
+
+    // Real number of sets (each log entry holds `sets`), window includes today.
     getSetsInRange(days) {
       const s = load();
-      const cutoff = shiftDate(todayISO(), -days);
+      const cutoff = windowStart(todayISO(), days);
       let count = 0;
       Object.values(s.exerciseLogs).forEach((logs) => {
-        logs.forEach((l) => { if (l.date >= cutoff) count++; });
+        logs.forEach((l) => { if (l.date >= cutoff) count += Math.max(1, Number(l.sets) || 1); });
       });
       return count;
     },
 
     getWorkoutDaysInRange(days) {
       const s = load();
-      const cutoff = shiftDate(todayISO(), -days);
+      const cutoff = windowStart(todayISO(), days);
       return s.workoutDays.filter((d) => d >= cutoff).length;
     },
 
-    // ===== Strength progress (first logged weight vs latest, per exercise) =====
+    getLast28DaysDone() {
+      const cutoff = windowStart(todayISO(), 28);
+      return load().workoutDays.filter((d) => d >= cutoff);
+    },
+
+    getPRCountInRange(days) {
+      const cutoff = windowStart(todayISO(), days);
+      return this.getRecentPRs(100000).filter((p) => p.date >= cutoff).length;
+    },
+
+    // Weight entries inside the window (null when days is not given -> last 12).
+    getWeightHistoryInRange(days) {
+      const cutoff = windowStart(todayISO(), days);
+      return load().weightLogs.filter((w) => w.date >= cutoff);
+    },
+
+    // Sets per muscle group inside the window, biggest first.
+    getMuscleSetsInRange(days) {
+      const s = load();
+      const cutoff = windowStart(todayISO(), days);
+      const byId = new Map((s.exercises || []).map((e) => [e.id, e]));
+      const totals = new Map();
+      Object.entries(s.exerciseLogs).forEach(([id, logs]) => {
+        const ex = normalizeExercise(byId.get(id) || { id });
+        const label = ex.muscleLabel || ex.muscle;
+        if (!label) return;
+        logs.forEach((l) => {
+          if (l.date >= cutoff) totals.set(label, (totals.get(label) || 0) + Math.max(1, Number(l.sets) || 1));
+        });
+      });
+      return [...totals.entries()].map(([label, sets]) => ({ label, sets })).sort((a, b) => b.sets - a.sets);
+    },
+
+    // ===== Strength progress: best weight on the first day vs best weight ever =====
+    // Needs two logged days at least a week apart; weightless and timed
+    // exercises are skipped. A deload never shows as a loss.
     getStrengthProgress(limit = 3) {
       const s = load();
+      const timed = this._timedChecker(s);
       const rows = [];
       Object.keys(s.exerciseLogs).forEach((exerciseId) => {
-        const logs = s.exerciseLogs[exerciseId];
-        if (!logs || logs.length < 2) return;
+        const logs = (s.exerciseLogs[exerciseId] || []).filter((l) => l.weight > 0);
+        if (logs.length < 2 || timed(exerciseId)) return;
+        const firstDate = logs[0].date;
+        const lastDate = logs.at(-1).date;
+        if (daysBetween(firstDate, lastDate) < 7) return;
+        const from = Math.max(...logs.filter((l) => l.date === firstDate).map((l) => l.weight));
+        const bestLog = logs.reduce((b, l) => (l.weight > b.weight ? l : b), logs[0]);
+        const to = bestLog.weight;
+        if (from <= 0) return;
         const ex = (s.exercises || []).find((e) => e.id === exerciseId);
-        const first = logs[0].weight;
-        const last = logs.at(-1).weight;
-        if (first <= 0) return;
-        const pct = ((last - first) / first) * 100;
-        rows.push({ exerciseId, name: ex ? ex.name : exerciseId, from: first, to: last, pct: Math.round(pct) });
+        const name = ex ? normalizeExercise(ex).name : exerciseId;
+        const e1rm = Math.round(to * (1 + (Number(bestLog.reps) || 1) / 30));
+        rows.push({ exerciseId, name, from, to, e1rm, pct: Math.round(((to - from) / from) * 100) });
       });
       rows.sort((a, b) => b.pct - a.pct);
       return rows.slice(0, limit);

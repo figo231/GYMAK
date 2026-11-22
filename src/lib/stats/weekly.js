@@ -1,3 +1,4 @@
+import { localISO, windowStart } from "../dateKey";
 /* Weekly summary: the last 7 days (today included) vs the 7 days before. Pure, store passed in. */
 export function pctChange(cur, prev) {
   if (!prev) return cur > 0 ? null : 0; // null = "new", nothing to compare with
@@ -5,14 +6,12 @@ export function pctChange(cur, prev) {
 }
 
 export function buildWeekly(store, waterDays = []) {
-  // getXInRange(n) counts dates >= today-n, so n=6 is today plus the 6 days before it.
-  const days = store.getWorkoutDaysInRange(6), daysAll = store.getWorkoutDaysInRange(13);
-  const sets = store.getSetsInRange(6), setsAll = store.getSetsInRange(13);
-  const ton = store.getTonnage(6), tonAll = store.getTonnage(13);
+  // getXInRange(n) covers today plus the n-1 days before it.
+  const days = store.getWorkoutDaysInRange(7), daysAll = store.getWorkoutDaysInRange(14);
+  const sets = store.getSetsInRange(7), setsAll = store.getSetsInRange(14);
+  const ton = store.getTonnage(7), tonAll = store.getTonnage(14);
   const prev = { days: daysAll - days, sets: setsAll - sets, tonnage: tonAll - ton };
-  const cutoff = new Date(Date.now() - 6 * 86400000);
-  const p = (n) => String(n).padStart(2, "0");
-  const cutKey = `${cutoff.getFullYear()}-${p(cutoff.getMonth() + 1)}-${p(cutoff.getDate())}`;
+  const cutKey = windowStart(localISO(), 7);
   const prs = store.getRecentPRs(1000).filter((x) => x.date >= cutKey).length;
   const wd = store.getWeightDiffOverDays(6);
   const weightDiff = wd ? Math.round((wd.to - wd.from) * 10) / 10 : null; // kg
