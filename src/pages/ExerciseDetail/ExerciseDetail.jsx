@@ -64,6 +64,7 @@ function ExerciseDetail({ id }) {
   const ormStep = unit === "lb" ? 5 : 2.5;
   const ormTable = orm ? percentTable(ormDisplay, ormStep) : [];
   const [showOrm, setShowOrm] = useState(false);
+  const [tab, setTab] = useState("log");
   const [altEq, setAltEq] = useState("all");
   const alts = exercise ? findAlternatives(exercise, Store.getExercises(), { limit: 12 }) : [];
   const altOpts = equipmentOptions(alts);
@@ -149,46 +150,43 @@ function ExerciseDetail({ id }) {
 
   return (
     <>
-      <DetailTopBar
-        title="مكتبة التمارين"
-        backTo="/exercises"
-        right={
-          exercise && (
-            <button type="button" className="detail-delete-btn" aria-label="حذف التمرين" onClick={handleDelete}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
-            </button>
-          )
-        }
-      />
-
-      <div className="ex-title-row">
-        <div>
-          <p className="ex-title">{exercise ? exercise.name : "تمرين غير موجود"}</p>
-          <span className="ex-eng">
-            {exercise ? exercise.muscleLabel + (exercise.secondary ? " · " + exercise.secondary : "") : ""}
-          </span>
-        </div>
-        {exercise && (
-          <button type="button" className={"fav-btn" + (fav ? " on" : "")} aria-pressed={fav}
-            aria-label={fav ? "شيل من المفضلة" : "ضيف للمفضلة"} onClick={toggleFav}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
+      <header className="xd-hero" style={exercise ? { "--mc": meta.color } : undefined}>
+        <div className="xd-bar">
+          <button type="button" className="xd-ico" aria-label="رجوع" onClick={() => navigate(-1)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
-        )}
-      </div>
+          <div className="xd-bar-end">
+            {exercise && (
+              <button type="button" className={"xd-ico" + (fav ? " on" : "")} aria-pressed={fav} aria-label={fav ? "شيل من المفضلة" : "ضيف للمفضلة"} onClick={toggleFav}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
+              </button>
+            )}
+            {exercise && (
+              <button type="button" className="xd-ico detail-delete-btn" aria-label="حذف التمرين" onClick={handleDelete}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
+              </button>
+            )}
+          </div>
+        </div>
+        {exercise && <div className="xd-art" aria-hidden="true"><MuscleIllustration muscle={exercise.muscle} color={meta.color} size={150} /></div>}
+        <div className="xd-meta">
+          <span className="xd-kicker">{exercise ? exercise.muscleLabel + (exercise.secondary ? " + " + exercise.secondary : "") : ""}</span>
+          <h1 className="xd-title">{exercise ? exercise.name : "تمرين غير موجود"}</h1>
+          {exercise && (
+            <div className="xd-chips">
+              {exercise.equipment && <span className="xd-chip">{exercise.equipment}</span>}
+              {exercise.difficulty && <span className="xd-chip">{exercise.difficulty}</span>}
+              {best > 0 && <span className="xd-chip hot">أفضل {Store.formatWeight(best)}</span>}
+            </div>
+          )}
+        </div>
+      </header>
 
-      {exercise && (exercise.equipment || exercise.difficulty) && (
-        <div className="ex-info-chips">
-          {exercise.equipment && (
-            <div className="info-chip">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="9" width="4" height="6" rx="1" /><rect x="18" y="9" width="4" height="6" rx="1" /><path d="M6 12h12" /></svg>
-              {exercise.equipment}
-            </div>
-          )}
-          {exercise.difficulty && (
-            <div className={"info-chip difficulty-pill diff-" + (exercise.difficulty === "مبتدئ" ? "beg" : exercise.difficulty === "متقدم" ? "adv" : "mid")}>
-              <span className="difficulty-dot" />{exercise.difficulty}
-            </div>
-          )}
+      {exercise && (
+        <div className="xd-tabs" role="tablist" aria-label="أقسام التمرين">
+          {[["log", "سجّل"], ["how", "الأداء"], ["more", "السجل والبدائل"]].map(([id, l]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} className={"xd-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{l}</button>
+          ))}
         </div>
       )}
 
@@ -199,6 +197,7 @@ function ExerciseDetail({ id }) {
           </p>
         </div>
       )}
+      {tab === "log" && (<>
       {exercise && (
       <div className="glass log-card" id="log">
         <div className="log-head">
@@ -286,6 +285,9 @@ function ExerciseDetail({ id }) {
       </div>
       )}
 
+      </>)}
+
+      {tab === "how" && (<>
       {exercise && hasExerciseAnim(exercise.id) && (
         <div className="media-frame media-frame-lg">
           <span className="media-tag">طريقة الأداء</span>
@@ -373,6 +375,15 @@ function ExerciseDetail({ id }) {
         </div>
       )}
 
+      </>)}
+
+      {tab === "more" && exercise && (<>
+      <div className="xd-hist">
+        <p className="section-title">آخر التسجيلات</p>
+        {allLogs.length === 0 ? <div className="glass" style={{ padding: 14, fontSize: 13, color: "var(--text-secondary)" }}>لسه مسجلتش التمرين ده.</div> : allLogs.slice(-8).reverse().map((l, k) => (
+          <div className="glass xd-hrow" key={k}><span>{relDayAr(l.date, today)}</span><b dir="ltr">{fmtSet(l)}</b></div>
+        ))}
+      </div>
       {alts.length > 0 && (
         <div className="alts">
           <p className="section-title">بدائل للتمرين ده</p>
@@ -394,6 +405,7 @@ function ExerciseDetail({ id }) {
           ))}
         </div>
       )}
+      </>)}
     </>
   );
               }
