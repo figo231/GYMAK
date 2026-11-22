@@ -2,6 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { syncManager } from "../lib/sync/syncManager";
 import { registerForPush, removePushToken } from "../lib/push/pushService";
+import { parseAuthUrl, isDuplicateSignup, recoveryActive, setRecovery, withTimeout } from "../lib/authLogic";
+
+// Captured at load, before supabase-js strips the fragment, so a reload or late mount still knows.
+const BOOT = typeof window !== "undefined" ? parseAuthUrl(window.location.hash, window.location.search) : {};
+if (BOOT.type === "recovery" && typeof sessionStorage !== "undefined") setRecovery(sessionStorage, true);
 
 const AuthContext = createContext(null);
 
@@ -19,7 +24,9 @@ const NO_CLIENT_ERROR = { message: "لسه معملناش ربط مع Supabase (
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecoveryRaw] = useState(() => typeof sessionStorage !== "undefined" && recoveryActive(sessionStorage));
+  const [linkError] = useState(BOOT.error || "");
+  const setIsPasswordRecovery = (on) => { if (typeof sessionStorage !== "undefined") setRecovery(sessionStorage, on); setIsPasswordRecoveryRaw(on); };
 
   useEffect(() => {
     if (!supabase) {
@@ -75,17 +82,18 @@ export function AuthProvider({ children }) {
 
   async function signUp(email, password) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await withTimeout(supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/login` },
-    });
-    return { error };
+    }));
+    return { error, data, duplicate: !error && isDuplicateSignup(data) };
   }
 
   async function signIn(email, password) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await withTimeout(supabase.auth.signInWithPassword({ email, password }));
+    if (!error) setIsPasswordRecovery(false);
     return { error };
   }
 
@@ -97,15 +105,21 @@ export function AuthProvider({ children }) {
 
   async function resetPasswordForEmail(email) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await withTimeout(supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
+    }));
+    return { error };
+  }
+
+  async function resendConfirmation(email) {
+    if (!supabase) return { error: NO_CLIENT_ERROR };
+    const { error } = await withTimeout(supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${window.location.origin}/auth/login` } }));
     return { error };
   }
 
   async function updatePassword(newPassword) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await withTimeout(supabase.auth.updateUser({ password: newPassword }));
     if (!error) setIsPasswordRecovery(false);
     return { error };
   }
@@ -115,6 +129,8 @@ export function AuthProvider({ children }) {
     user: session?.user ?? null,
     loading,
     isPasswordRecovery,
+    linkError,
+    resendConfirmation,
     isConfigured: !!supabase,
     signUp,
     signIn,

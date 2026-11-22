@@ -2,33 +2,49 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { translateAuthError } from "../../lib/authErrors";
-import { AuthField, AuthError } from "./AuthShell";
+import { normalizeEmail, validEmail } from "../../lib/authLogic";
+import { AuthField, AuthError, AuthNotice, AuthStatus, Spinner, useCooldown } from "./AuthShell";
 
 export default function ForgotPassword() {
   const { resetPasswordForEmail, isConfigured } = useAuth();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [wait, startWait] = useCooldown();
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    if (!email) { setError("اكتب إيميلك."); return; }
+  async function send() {
+    const mail = normalizeEmail(email);
+    if (!mail) { setError("اكتب إيميلك."); return false; }
+    if (!validEmail(mail)) { setError("صيغة الإيميل مش صحيحة."); return false; }
     setBusy(true);
-    const { error } = await resetPasswordForEmail(email);
+    let res;
+    try { res = await resetPasswordForEmail(mail); } catch (err) { res = { error: err }; }
     setBusy(false);
-    if (error) { setError(translateAuthError(error)); return; }
-    setSent(true);
+    startWait(60);
+    if (res.error) { setError(translateAuthError(res.error)); return false; }
+    setEmail(mail);
+    return true;
   }
+
+  async function handleSubmit(e) { e.preventDefault(); setError(""); setInfo(""); if (await send()) setSent(true); }
+  async function again() { if (wait > 0) return; setError(""); setInfo(""); if (await send()) setInfo("بعتناه تاني. شوف الوارد والسبام."); }
 
   if (sent) {
     return (
       <>
-        <h1 className="auth-title">اتبعت لك رسالة</h1>
+        <AuthStatus icon="mail" />
+        <h1 className="auth-title">اتبعتت الرسالة</h1>
         <p className="auth-sub">
-          لو الإيميل ده مسجل عندنا، هيوصلك رابط لإعادة تعيين الباسورد على <b>{email}</b>.
+          لو الإيميل ده مسجل عندنا، هيوصلك رابط لإعادة تعيين الباسورد على <b dir="ltr">{email}</b>. الرابط بيشتغل مرة واحدة.
         </p>
+        <AuthNotice message={info} />
+        <AuthError message={error} />
+        <div className="auth-actions-2">
+          <button type="button" className="auth-text-btn" onClick={again} disabled={wait > 0 || busy}>{wait > 0 ? `ابعت تاني (${wait})` : "ابعت تاني"}</button>
+          <button type="button" className="auth-text-btn" onClick={() => { setSent(false); setInfo(""); setError(""); }}>غيّر الإيميل</button>
+        </div>
         <Link to="/auth/login" className="auth-skip">رجوع لتسجيل الدخول</Link>
       </>
     );
@@ -39,11 +55,12 @@ export default function ForgotPassword() {
       <h1 className="auth-title">نسيت الباسورد؟</h1>
       <p className="auth-sub">اكتب إيميلك وهنبعتلك رابط تقدر تظبط بيه باسورد جديد.</p>
 
-      <form onSubmit={handleSubmit}>
-        <AuthField label="الإيميل" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+      {!isConfigured && <AuthError message="الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي." />}
+      <form onSubmit={handleSubmit} noValidate>
+        <AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         <AuthError message={error} />
         <button type="submit" className="btn btn-primary auth-submit" disabled={busy || !isConfigured}>
-          {busy ? "جاري الإرسال..." : "ابعت رابط إعادة التعيين"}
+          {busy ? <><Spinner />جاري الإرسال...</> : "ابعت رابط إعادة التعيين"}
         </button>
       </form>
 
