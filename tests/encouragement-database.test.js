@@ -27,3 +27,8 @@ it('rechecks opt-out, device ownership, token freshness, kill switch, text chang
 it('changing draft time pauses and clears approvals, never enables',async()=>{await actor(owner,"select set_encouragement_draft_time('12:00')");const c=(await db.query('select * from encouragement_config')).rows[0];expect(c.enabled).toBe(false);expect(c.approved_text_version).toBeNull();expect(c.approved_text_hash).toBeNull();await expect(actor(user,"select set_encouragement_draft_time('13:00')")).rejects.toThrow(/owner_only/);await expect(actor(user,'select * from claim_encouragement()')).rejects.toThrow(/permission denied/)});
 
 it('rejects stale-session preference writes',async()=>{await expect(actor(other,`select set_my_encouragement(false,null,'${user}')`)).rejects.toThrow(/session_changed/)});
+it('respects prior explicit opt-out and never automatically enrolls absent preferences',async()=>{
+ await db.exec(`delete from encouragement_preferences where user_id='${other}';insert into push_preferences values('${other}','encouragement',false);`);
+ await expect(actor(other,`select set_my_encouragement(true,'device-b','${other}')`)).rejects.toThrow(/previous_opt_out/);
+ expect((await db.query(`select * from encouragement_preferences where user_id='${other}'`)).rows.length).toBe(0);
+});
