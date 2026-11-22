@@ -33,6 +33,8 @@ export default function Dashboard() {
       latest: Store.getLatestWeight(),
       diffInfo: Store.getWeightDiffVsLastWeek(),
       streak: Store.getStreak(),
+      nutritionStreak: Store.getNutritionStreak(),
+      nutritionWeek: Store.getNutritionWeek(),
       best: Store.getBestStreak(),
       week: Store.getLast7DaysStatus(),
       goal: Store.getGoalWeight(),
@@ -55,7 +57,7 @@ export default function Dashboard() {
     };
   }, [version]);
 
-  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd, bodyFat, hasProgram, spark, setsToday } = data;
+  const { profile, latest, diffInfo, streak, best, week, goal, monthDiff, bmi, recent, todayList, eotd, bodyFat, hasProgram, spark, setsToday, nutritionStreak, nutritionWeek } = data;
 
   async function handleBMIClick() {
     const current = Store.getProfile().heightCm;
@@ -209,6 +211,23 @@ export default function Dashboard() {
         <div className="streak-record">
           <span className="rec-num">{best}</span>
           <span className="rec-txt">أطول سلسلة</span>
+        </div>
+      </div>
+
+      <div className={"glass streak-card food" + (nutritionWeek.at(-1)?.done ? " lit" : "")}>
+        <div className="streak-flame" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🍎</div>
+        <div className="streak-body">
+          <div className="streak-num-row">
+            <span className="streak-num">{nutritionStreak}</span>
+            <span className="streak-label">{nutritionStreak === 0 ? "سجّل أكلك النهارده" : "يوم التزام بالأكل"}</span>
+          </div>
+          <div className="streak-week">
+            {nutritionWeek.map((d) => {
+              const dow = new Date(d.date + "T00:00:00").getDay();
+              const isToday = d.date === localISO();
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "ملتزم" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
+            })}
+          </div>
         </div>
       </div>
 

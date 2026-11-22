@@ -11,6 +11,7 @@ import { mergeExercises, activeRemoteFoods } from "../content/remoteContent";
 import { normalizeExercise } from "../exerciseMeta";
 import { localISO, shiftISO, windowStart } from "../dateKey";
 import { celebrate, momentsFor } from "../celebrate";
+import { foodStreak, foodWeek } from "../stats/foodStreak";
 import { deleteExerciseMedia } from "../exerciseMedia";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
@@ -1619,6 +1620,16 @@ const KEY = "gymak_state_v1";
       if (bodyFat !== undefined) entry.bodyFat = bodyFat == null || bodyFat === "" ? null : Number(bodyFat);
       save(s);
       return { kind: "weight-edit", entry: before };
+    },
+
+    getNutritionStreak() {
+      const s = load();
+      return foodStreak(s.foodLog, s.cheatDays || [], this.getDailyCalorieTarget());
+    },
+
+    getNutritionWeek() {
+      const s = load();
+      return foodWeek(s.foodLog, this.getDailyCalorieTarget());
     },
 
     /** Today and past days that have food entries, newest first, with each item's index. */
