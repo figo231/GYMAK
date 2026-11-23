@@ -2,6 +2,7 @@
 // Logic comparisons keep the Arabic values; these maps are applied at render
 // time only, when the active language is English.
 export const MUSCLE_EN = {
+  "ذراعين": "Arms",
   "صدر": "Chest", "صدر علوي": "Upper chest", "صدر سفلي": "Lower chest",
   "صدر داخلي": "Inner chest", "صدر خارجي": "Outer chest",
   "ظهر": "Back", "ظهر علوي": "Upper back", "ظهر أوسط": "Mid back",
