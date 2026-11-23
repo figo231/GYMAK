@@ -59,22 +59,7 @@ export default function NotifSheet({ onClose }) {
         {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
         {(perm === "prompt" || perm === "prompt-with-rationale") && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 10 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
 
-        {owner && (
-          <div style={{ marginBottom: 12 }}>
-            {!compose ? (
-              <button type="button" className="btn-apply" style={{ width: "100%" }} onClick={() => setCompose(true)}>+ إشعار جديد لكل المستخدمين</button>
-            ) : (
-              <div style={{ padding: 12, borderRadius: 14, border: "1px solid var(--border-soft)", background: "rgba(var(--ink), .04)" }}>
-                <div className="edit-field"><label>العنوان</label><input value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} /></div>
-                <div className="edit-field"><label>النص</label><textarea rows={3} maxLength={240} value={body} onChange={(e) => setBody(e.target.value)} style={{ width: "100%", font: "inherit" }} /></div>
-                <div className="edit-sheet-actions">
-                  <button type="button" onClick={() => setCompose(false)}>إلغاء</button>
-                  <button type="button" disabled={sending || !title.trim() || !body.trim()} onClick={send} style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "var(--on-acc, #111)" }}>{sending ? "بيتبعت..." : "إرسال"}</button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {owner && <Link to="/owner?section=notifications" className="btn btn-secondary" onClick={onClose}>{lang==='en'?'Owner notification controls':'إدارة إشعارات المالك'}</Link>}
 
         {inbox.length === 0 ? (
           <p className="notif-note">مفيش إشعارات محفوظة لسه. الإشعارات اللي يقدر التطبيق يلتقطها أو يستوردها من الجهاز هتظهر هنا.</p>

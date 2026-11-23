@@ -1,3 +1,4 @@
+import {REVIEW_BACKEND_GATED} from "../reviewBuild";
 import { supabase } from "../supabaseClient";
 
 /* Owner-only helpers. Admin-ness is decided server side (admin_users + RLS +
@@ -14,6 +15,7 @@ export async function isOwnerAdmin(userId) {
 }
 
 export async function sendBroadcast({ title, body }) {
+  if(REVIEW_BACKEND_GATED)throw Error("review_backend_disabled");
   if (!supabase) throw new Error("no-supabase");
   const { data: inserted, error } = await supabase
     .from("notifications")

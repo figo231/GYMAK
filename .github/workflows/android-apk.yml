@@ -6,6 +6,10 @@ on:
         description: Optional explicit APK version code for a verification retry
         type: string
         default: ""
+      private_test:
+        description: Encrypt a private installable test APK without release
+        type: boolean
+        default: false
       publish:
         description: Publish the verified APK release
         type: boolean
@@ -19,6 +23,7 @@ jobs:
     env:
       VITE_DISTRIBUTION_CHANNEL: sideload
       VITE_OTA_ENABLED: "false"
+      VITE_REVIEW_BACKEND_GATED: ${{ inputs.private_test && 'true' || 'false' }}
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
@@ -96,6 +101,15 @@ jobs:
         with:
           name: gymak-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Encrypt private test APK
+        if: inputs.private_test && !inputs.publish
+        run: node scripts/encrypt-private-apk.mjs android/app/build/outputs/apk/debug/app-debug.apk GYMAK-private-apk.encrypted.json
+      - uses: actions/upload-artifact@v4
+        if: inputs.private_test && !inputs.publish
+        with:
+          name: gymak-private-apk-encrypted
+          path: GYMAK-private-apk.encrypted.json
+          retention-days: 1
       - name: Publish verified release
         if: inputs.publish
         env:

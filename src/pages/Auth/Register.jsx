@@ -1,3 +1,4 @@
+import {REVIEW_BACKEND_GATED,reviewBackendMessage} from "../../lib/reviewBuild";
 import IdentityFields from "../../components/IdentityFields";
 import {useI18n} from "../../hooks/useI18n";
 import {identityText,validateIdentity} from "../../lib/accountIdentity";
@@ -52,6 +53,7 @@ export default function Register() {
     if (res.error) setError(translateAuthError(res.error)); else setInfo("بعتناه تاني. شوف الوارد والسبام.");
   }
 
+  if(REVIEW_BACKEND_GATED)return <p role="status">{reviewBackendMessage(lang)}</p>;
   if (sent) {
     return (
       <>

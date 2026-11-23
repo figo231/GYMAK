@@ -1,3 +1,4 @@
+import {REVIEW_BACKEND_GATED} from "../lib/reviewBuild";
 import {useEffect,useState,useRef} from 'react';
 import {Capacitor} from '@capacitor/core';
 import {useAuth} from '../hooks/useAuth';
@@ -7,7 +8,7 @@ export default function EncouragementNotice(){
  const [identityOpen,setIdentityOpen]=useState(false);
  useEffect(()=>{const fn=e=>setIdentityOpen(e.detail?.open===true);window.addEventListener('gymak-identity-prompt',fn);return()=>window.removeEventListener('gymak-identity-prompt',fn);},[]);
  const [show,setShow]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
- useEffect(()=>{let live=true;setShow(false);setBusy(false);setMessage('');if(!id||isPasswordRecovery||!Capacitor.isNativePlatform())return;
+ useEffect(()=>{let live=true;setShow(false);setBusy(false);setMessage('');if(REVIEW_BACKEND_GATED||!id||isPasswordRecovery||!Capacitor.isNativePlatform())return;
  readEncouragement(id).then(p=>{if(live&&!p.enrolled)setShow(true);}).catch(()=>{});return()=>{live=false};},[id,isPasswordRecovery]);
  async function finish(enabled){const owner=id;setBusy(true);setMessage('');try{
   if(enabled){const {enrollDefaultEncouragementDevice}=await import('../lib/push/pushService');const ready=await enrollDefaultEncouragementDevice(id);if(!ready){if(current.current!==owner)return;setMessage('إذن الإشعارات مش متاح. مش هنفعّل الإرسال على الجهاز ده. تقدر تقفل التشجيع أو ترجع بعدين.');return;}}

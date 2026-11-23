@@ -98,7 +98,7 @@ function OwnerPanelSession() {
   const {lang}=useI18n();
   const { user } = useAuth();
   const [ok, setOk] = useState(null);
-  const [tab, setTab] = useState("exercises");
+  const [tab, setTab] = useState(new URLSearchParams(window.location.search).get("section")==="notifications"?"notifications":"exercises");
   const [bump, setBump] = useState(0);
   useEffect(() => { isOwnerAdmin(user?.id).then(setOk); }, [user?.id]);
   if (ok === null) return <DetailTopBar backTo="/profile" title={tx("لوحة المالك")} />;
