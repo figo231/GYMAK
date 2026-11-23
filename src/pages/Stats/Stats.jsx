@@ -212,7 +212,7 @@ export default function Stats() {
                     <div className="strength-head">
                       <b>{r.name}</b>
                       <div className="strength-nums">
-                        <span>{tx("من")} <bdi>{fmt(Store.toDisplayWeight(r.from))}</bdi> {tx("إلى")} <bdi>{fmt(Store.toDisplayWeight(r.to))}</bdi> {unit}</span>
+                        <span>{txf("من {0} إلى {1}", [fmt(Store.toDisplayWeight(r.from)), fmt(Store.toDisplayWeight(r.to))])} {unit}</span>
                         <span className={"pct-badge " + (r.pct >= 0 ? "pos" : "neg")} dir="ltr">{capPct(r.pct)}</span>
                       </div>
                     </div>
