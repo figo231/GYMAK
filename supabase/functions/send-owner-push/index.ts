@@ -1,7 +1,7 @@
 import {verifyAdmin} from '../_shared/verifyAdmin.ts';
 import {sendToDeviceToken} from '../_shared/fcmClient.ts';
 import {runOwnerPush} from '../_shared/ownerPushRunner.ts';
-const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS'};
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-gymak-training-generation','Access-Control-Allow-Methods':'POST,OPTIONS'};
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return Response.json({error:'method_not_allowed'},{status:405,headers:cors});

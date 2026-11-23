@@ -1,0 +1,3 @@
+// @vitest-environment node
+import{it,expect}from'vitest';import{readFileSync}from'node:fs';
+it('allows the shared client training-generation header without weakening owner auth',()=>{const s=readFileSync('supabase/functions/send-owner-push/index.ts','utf8');const allowed=s.match(/'Access-Control-Allow-Headers':'([^']+)'/)[1].split(',');for(const header of ['authorization','apikey','content-type','x-client-info','x-gymak-training-generation'])expect(allowed).toContain(header);expect(s).toContain('await verifyAdmin(req)');expect(s).toContain("a.role!=='super_admin'");expect(s).toContain("c?.owner_id!==a.userId");});
