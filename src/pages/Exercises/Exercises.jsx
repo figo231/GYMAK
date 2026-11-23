@@ -9,7 +9,7 @@ import AddExerciseSheet from "./AddExerciseSheet";
 import EmptyState from "../../components/ui/EmptyState";
 import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER, isHomeExercise } from "../../lib/exerciseMeta";
 import { isEn } from "../../lib/i18n/lang";
-import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
+import { equipmentEn, difficultyEn, muscleEn } from "../../lib/i18n/maps";
 import { getFavs, toggleFav } from "../../lib/exerciseFavs";
 import { saveExerciseMedia, deleteExerciseMedia } from "../../lib/exerciseMedia";
 import { tx, txf } from "../../lib/i18n/tx";
@@ -277,11 +277,11 @@ export default function Exercises() {
             const items = groups[muscle];
             const open = isOpen(muscle, idx);
             return (
-              <section key={muscle} aria-label={meta.label}>
+              <section key={muscle} aria-label={isEn() ? muscleEn(meta.label) : meta.label}>
                 <div className={"group-head" + (open ? "" : " closed")}>
                   <button type="button" className="group-head-btn" aria-expanded={open} onClick={() => setOpenMap((m) => ({ ...m, [muscle]: !open }))}>
                     <span className="dot" style={{ background: meta.color, color: meta.color }} />
-                    {meta.label}
+                    {isEn() ? muscleEn(meta.label) : meta.label}
                     <span className="group-count">{items.length} {tx("تمرين")}</span>
                     <svg className="chev-g" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
                   </button>
