@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { syncManager } from "../lib/sync/syncManager";
 import { registerForPush, removePushToken } from "../lib/push/pushService";
+import { isOwnerAdmin } from "../lib/push/ownerBroadcast";
+import Store from "../lib/store/gymakStore";
 import { parseAuthUrl, isDuplicateSignup, recoveryActive, setRecovery, withTimeout } from "../lib/authLogic";
 
 // Captured at load, before supabase-js strips the fragment, so a reload or late mount still knows.
@@ -60,6 +62,16 @@ export function AuthProvider({ children }) {
   // every screen that cares about sync re-derive "are we logged in" itself.
   // Skipped during a password-recovery session — that's a temporary session
   // for setting a new password, not a real "signed in, start syncing" state.
+  // Owner view: the owner account sees all built-in content (checked server side).
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId || isPasswordRecovery) { Store.setOwnerView(false); return undefined; }
+    Store.setOwnerView(false);
+    let cancelled = false;
+    isOwnerAdmin(userId).then((ok) => { if (!cancelled) Store.setOwnerView(ok); });
+    return () => { cancelled = true; Store.setOwnerView(false); };
+  }, [session?.user?.id, isPasswordRecovery]);
+
   useEffect(() => {
     const userId = session?.user?.id;
     if (userId && !isPasswordRecovery) {

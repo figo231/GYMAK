@@ -2,6 +2,8 @@
 // Applied at read time in normalizeExercise when the active language is
 // English; stored data and Arabic source stay untouched. Arabic names are
 // pushed into search aliases there, so Arabic search keeps working.
+import { WOMEN_EXERCISES_EN } from "../content/womenContent";
+
 export const EXERCISES_EN = {
 "bench-press-barbell": { n: "Barbell Bench Press", d: "The core chest builder and the best benchmark for your pressing strength.", i: ["Lie on the bench, feet flat on the floor.", "Grip the bar slightly wider than shoulder width.", "Lower the bar slowly to mid-chest.", "Press it up powerfully to full lockout."] },
 "incline-dumbbell-press": { n: "Incline Dumbbell Press", d: "Targets the upper chest at a 30-45 degree incline.", i: ["Set the bench to 30-45 degrees.", "Hold the dumbbells over your upper chest.", "Lower them slowly to chest sides.", "Press up while keeping the chest squeezed."] },
@@ -138,4 +140,5 @@ export const EXERCISES_EN = {
 "dead-bug": { n: "Dead Bug", d: "Strengthens the stabilizing core muscles.", i: ["Lie with arms and legs pointing up.", "Extend the opposite arm and leg.", "Return.", "Switch sides."] },
 "side-bridge": { n: "Side Plank", d: "A side hold that strengthens the obliques and trunk.", i: ["Lie on your side, propped on your forearm.", "Raise your hips.", "Hold for the set seconds.", "Switch sides."] },
 "farmers-walk": { n: "Farmer's Walk", d: "Walking with heavy weights builds grip and stability.", i: ["Hold two heavy dumbbells.", "Walk with steady steps.", "Keep your back flat.", "Cover the set distance."] },
+...WOMEN_EXERCISES_EN,
 };

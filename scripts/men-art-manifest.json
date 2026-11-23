@@ -1,0 +1,1048 @@
+{
+  "created": "2026-11-23",
+  "style": "Generated fictional adult man, teal shirt, black pants, gray studio",
+  "external_stock_used": false,
+  "complete": true,
+  "records": [
+    {
+      "id": "bench-press-barbell",
+      "source": "men-001.png",
+      "source_sha256": "e5044a8268b1e61e9f35fae2778dad398f576a272e5d1d73a2ec12b1b11145a8",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "incline-dumbbell-press",
+      "source": "men-002.png",
+      "source_sha256": "2a7b0736637229c7d13b9dde60270e01a5f5fbbdaf7222d31a5ade931ea36174",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "cable-crossover",
+      "source": "men-003.png",
+      "source_sha256": "c2bcfa4fa7e2bb5c87c540cfc9adc5c031d9ba33a36b3365afc242b983625267",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "pushup",
+      "source": "men-004.png",
+      "source_sha256": "050615c17837b44fae387d7dd4cd5550fb094dfc4539e072406e2bf1d1eb96ae",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "lat-pulldown",
+      "source": "men-005.png",
+      "source_sha256": "bccc6ef7b265a7b8d9274da0add5c98d6886774864574fe22b5dca0f0e5d25df",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "deadlift",
+      "source": "men-006.png",
+      "source_sha256": "3ab45cef5eec5444775d0a516d1f517deeec5ca190b58d5fd2304abb697f16b1",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "barbell-row",
+      "source": "men-007-v3.png",
+      "source_sha256": "58864adc566665c341baec0ba0b62382a27be99819b3f505def836a59f8e13a2",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "pullup",
+      "source": "men-008-v3.png",
+      "source_sha256": "87bd9d84616d2f38328e40dab209f03fcb98346107e0d5b1d263380c3e329b83",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "shoulder-press-barbell",
+      "source": "men-009.png",
+      "source_sha256": "9bfc858783f7f4021d93ff52a10643cb50f592455d94eb0a4145a011ea7d28c2",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "lateral-raise",
+      "source": "men-010.png",
+      "source_sha256": "00ff3ac58e8cb173a29ebd3f1140a7159ddf9caf980ffa48f78cadbb90c77e09",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "rear-delt-fly",
+      "source": "men-011.png",
+      "source_sha256": "3f1f952e8e7c5e6acae29e9260f5b1ab4db029696ea34aca572fdbcdfebd2a8d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "squat-barbell",
+      "source": "men-012.png",
+      "source_sha256": "74bdd3a2ce47cbc235bfa5097ef37844d09553a56c5e3a2363578d01f5170077",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "leg-press",
+      "source": "men-013.png",
+      "source_sha256": "03bf6f13478ae8e8cc9be3a172b0fa94c9b93076f8938cfa70a178d51c5d2b6f",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "romanian-deadlift",
+      "source": "men-014.png",
+      "source_sha256": "a60e40f5c511e8b70974a724d8477785f0633496dfb6c351049b1790214c471d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "calf-raise",
+      "source": "men-015.png",
+      "source_sha256": "a168895f6006163466d5f75299bb7a26705a5433a18d24a192e8a5e730b627f7",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "barbell-curl",
+      "source": "men-016.png",
+      "source_sha256": "8e59c64b41394c747e7a2fa0738e3a180d919e725bc0c5d4e255e9bb508645e0",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "tricep-pushdown",
+      "source": "men-017.png",
+      "source_sha256": "484fef74c4fe907c7b60b1438a0d45d25f342c3ad510237985ad3747933c1fb7",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "hammer-curl",
+      "source": "men-018.png",
+      "source_sha256": "734ad249cc74f357680d8a3bb553b0948693714650e8d70347ee41dde887b02f",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dips",
+      "source": "men-019.png",
+      "source_sha256": "d1f50a0f99c86b19a4737486f6a83c8028d559feb24d19c98e39b2bba8d6887d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "plank",
+      "source": "men-020.png",
+      "source_sha256": "b56f7103eed6a4e15dc4bd717bcdfc60565193dda6214380278d85b323941f31",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "hanging-leg-raise",
+      "source": "men-021.png",
+      "source_sha256": "8e97dd4028550e3b61f106c83d9fa8893d019cf74afd5792e8a98a2678d1f9b0",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "cable-crunch",
+      "source": "men-022.png",
+      "source_sha256": "073972703b5af4914fb70567843483c2b6f09f86a0c6d0b9c6c15117fc962d72",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-bench-press",
+      "source": "men-023.png",
+      "source_sha256": "6b1ea059ccbf7405fc7c94fabfac74b518faa31598bdf3056bcdd9ce8b670bd9",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "decline-bench-press",
+      "source": "men-024-v2.png",
+      "source_sha256": "c6ebe22611aa15cbd653081824ad05205c142e26b829f3b20daea250cfb11ddf",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-fly",
+      "source": "men-025.png",
+      "source_sha256": "38da713b40f679eb8929feba4a1e94ab6303d1bf77f42a310a0c3145cadc4f46",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "incline-dumbbell-fly",
+      "source": "men-026.png",
+      "source_sha256": "7615ac06891fb52ca46f73997bca54600dbe8edd768d5b4a8fccf6703a2e103a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "machine-chest-fly",
+      "source": "men-027.png",
+      "source_sha256": "937f5bf52e46a342c470659f0e37a1d7934445d3dd32ffc30561d625a228cd45",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "seated-cable-row",
+      "source": "men-028.png",
+      "source_sha256": "8f8dba8eb0403d458ecb89910b34bce55f1ad5c31b2d17eb393bcb53ea4d7d24",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "one-arm-dumbbell-row",
+      "source": "men-029.png",
+      "source_sha256": "d76fb2e58a8fccb07db0f2f6a29b9da0a3b5c9e7bbf9bacb734a72b5c0d0e36b",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "t-bar-row",
+      "source": "men-030.png",
+      "source_sha256": "9ed7b8361d86811ca65eb64cdfa8f667a5bfab05b1bc02109614ce07451832dd",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "chin-up",
+      "source": "men-031.png",
+      "source_sha256": "0e36e0876cb9419968a3a42af9e3072db8091ba6c45817835bf2bb461551111d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "back-extension",
+      "source": "men-032-v3.png",
+      "source_sha256": "ad9f4d6226953940620a66e131ec066ea79cfe5a0e8881b25fdd224ed8ead19a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-shoulder-press",
+      "source": "men-033.png",
+      "source_sha256": "8001d440366ee41b4bdff6a5b538256fb92c86511b6e32f665f0888c1063297c",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "arnold-press",
+      "source": "men-034.png",
+      "source_sha256": "f7a793acedb712278be7f272ebf877ed3e51e450baca11cd09b55cfc6d0a2a9b",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "front-raise",
+      "source": "men-035.png",
+      "source_sha256": "0b598d855db8f8a5750de58b6567dba89448666c12e3245d4928db86eebf0ab1",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "face-pull",
+      "source": "men-036.png",
+      "source_sha256": "f22cc7cf6c9eb4d774931b6b244c638255faf341f4c9ff9bd3b3a0b34e8343ca",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-shrug",
+      "source": "men-037.png",
+      "source_sha256": "c5e8fe1e9f93078775f3a81264f89d24b51696864cf21e0f3071619784ee556b",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "leg-extension",
+      "source": "men-038.png",
+      "source_sha256": "5a3a169f94397d774e94f87c8b0e2b6dbf5da7fec239e3f1316c7946adad815e",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "lying-leg-curl",
+      "source": "men-039.png",
+      "source_sha256": "fc7838a21848f23a107c316bc6b18edcc6627c77db161a165ffb4b0b24ff6be8",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-lunges",
+      "source": "men-040.png",
+      "source_sha256": "c9a031811f12f106b015b6ddb352858ae8d0bd8380ad602eb5c9211e298cf807",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "goblet-squat",
+      "source": "men-041.png",
+      "source_sha256": "8488a330d737d8d84336d27f4ccdcbd871db0fa04db32356b108be7ffa7ca7f2",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "hip-thrust",
+      "source": "men-042.png",
+      "source_sha256": "ec35a4411e62026dcdaec886f458122e93013cf7e53e8506953552b4d720cb01",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "seated-calf-raise",
+      "source": "men-043.png",
+      "source_sha256": "da5314652db52aa0c548ffe20c4bf90a919c7b97735e32c29a5fa2acc79502fd",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "alternate-hammer-curl",
+      "source": "men-044.png",
+      "source_sha256": "02d3012b042c64d72a246e77b3fe3f0886084f8ef2de303ee957cec9fa29f9f1",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-curl",
+      "source": "men-045.png",
+      "source_sha256": "7bc0352e15c2450cc9700410fc866b97de65398fadf35c558914c3c2d4467c1a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "preacher-curl",
+      "source": "men-046.png",
+      "source_sha256": "355bf32f24ef01b4fab6febda05f5bcd375f0ec7a79d9332275b8818ccd19c31",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "concentration-curl",
+      "source": "men-047.png",
+      "source_sha256": "1176cb6b33eb3294762c904da5c25cbb628da66fcb1896a957aeeb2bf2af9eb3",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-triceps-extension",
+      "source": "men-048.png",
+      "source_sha256": "1c0e87f53aa1f0a5f9e23b0286fa287970a399325535cbb8e03df8602fdd08e0",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "skullcrusher",
+      "source": "men-049.png",
+      "source_sha256": "803247b6667c982b947f753feeec34782356e88c2570ce1cde457a30252e5dfe",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "close-grip-bench-press",
+      "source": "men-050-v2.png",
+      "source_sha256": "911b317178ef9db7d0f5e22b8dc128bc00f0168e9a4d0e5d761253c054ce1629",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "crunch",
+      "source": "men-051.png",
+      "source_sha256": "44162bf50212f98a471b1392bbf4f6098bac0f26cdf0056365681b6cd8f76bb0",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "russian-twist",
+      "source": "men-052-v5.png",
+      "source_sha256": "fcb1f20a80ef50774ca6a9f916dbdf01add8a3e37e0d18b469ed06a961701b27",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "air-bike",
+      "source": "men-053.png",
+      "source_sha256": "5805f086223564b17bd351cd9ce30018f131aec0ff5f08c43ee4fe0290b5d39d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "mountain-climbers",
+      "source": "men-054.png",
+      "source_sha256": "1329497093d119d31b6251ad963939696f240a85ede8cc6dfb99547947a9d3e4",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "ab-roller",
+      "source": "men-055.png",
+      "source_sha256": "b8245967cb9fc98f34206625e841fd8aa9e6d7ac3c563d8b01e8b9884025f874",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "lying-leg-raise",
+      "source": "men-056.png",
+      "source_sha256": "79c38d9e3ac52443fd5fc2f9d2ff01d63577b0e24b4410597f01eb910135eba4",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "shrug-barbell",
+      "source": "men-057.png",
+      "source_sha256": "dce71edad6c92a7219a91aa3ed3fa6725310c6a65ec2bd18a46277546ffe284e",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "smith-squat",
+      "source": "men-058.png",
+      "source_sha256": "2d2a247bcd626b4c7080f312b56186afeea8f10e5c151e0428b12b2ac43f3fcb",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "stiff-leg-deadlift",
+      "source": "men-059.png",
+      "source_sha256": "4c2383673bbb0c9780b7192acbcb17876a6c70020b9bf220871f2c640b2af0e6",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "close-bench-dip",
+      "source": "men-060.png",
+      "source_sha256": "1d8be70217aa0d28d46d59143fff915fce043497681555a2a2024d2dda31d976",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "incline-pushup",
+      "source": "men-061.png",
+      "source_sha256": "58757c4fde71a04d00221e9eb2641ff76fb59bd970cb519302d49d1811086391",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "decline-pushup",
+      "source": "men-062.png",
+      "source_sha256": "40e932bf23c906fb80a3312e4339742b403efe7ccc36a16f8e8c118ba082975e",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "close-grip-pushup",
+      "source": "men-063.png",
+      "source_sha256": "4e8c85548c86c8f5f72dc14366c1a3dce072a463aa7ae94b6068b42494147a29",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "machine-chest-press",
+      "source": "men-064.png",
+      "source_sha256": "3a30594a7737069ad9625da1c0cf4918417fc7c89abd2e5ecccda62657f6b59e",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "smith-bench-press",
+      "source": "men-065.png",
+      "source_sha256": "508ef99ddcd6a5498d58be71a75e5f889d6aabbddbb1894c22dfaf8d11785473",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "wide-grip-bench-press",
+      "source": "men-066.png",
+      "source_sha256": "1e922ce5f5f1b39822f974c862395d65fc67fad302a4b2e5dbf2caf10fe6115a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "incline-barbell-press",
+      "source": "men-067.png",
+      "source_sha256": "29424401f7067c2f8943f797df75a2d91aa1b4ac845078ada7c939085bd9470c",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "neutral-grip-db-press",
+      "source": "men-068.png",
+      "source_sha256": "c0a5879ee177674fe599fbc810669fc273133fbaa9ececff91b249900ea78fcf",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "incline-cable-fly",
+      "source": "men-069-v4.png",
+      "source_sha256": "057020531f021a1a2b7ec655406b306500cb474d6f1d0e202e3a769a7a304dce",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "low-cable-crossover",
+      "source": "men-070.png",
+      "source_sha256": "09ab2b19092fe4a7d6bf8c9a400326fc242badb65e6bd91229f59140082a7a2d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "chest-dips",
+      "source": "men-071.png",
+      "source_sha256": "5aa5e5697dc73fd05c0291b10646c24abe9414efcfdd1d94b9d00a5da1479485",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "db-pullover",
+      "source": "men-072.png",
+      "source_sha256": "670f7a010f22d4142ad80e308519ee3102f72aeea8572406429759558cd4a4fc",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "straight-arm-pulldown",
+      "source": "men-073.png",
+      "source_sha256": "1a202a892dc41322cf0542746fc2cf0ad251258af4c22cfbe0fc925d15421af5",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "close-grip-pulldown",
+      "source": "men-074.png",
+      "source_sha256": "dc35e2468903b39ae489f95125f4c495ad82d46066e8a2162c8716427b4101b9",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "underhand-pulldown",
+      "source": "men-075.png",
+      "source_sha256": "e8b14e870219eb4f0c2eb163c34d2fe34f6094a9b3d92b26bb3f3d10b9d56835",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "reverse-grip-row",
+      "source": "men-076.png",
+      "source_sha256": "7d73b47d977b4dbedec81b28fa1c8334d78b9f534200ef271e65b0407a8e7b26",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "inverted-row",
+      "source": "men-077.png",
+      "source_sha256": "009b959f31d55d36df0196c99d2a1420d210ab72726ba9401a8a5ee594b18a1d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "two-db-row",
+      "source": "men-078.png",
+      "source_sha256": "18c480fd2f59d0ec95893aa281d08f36009b5c8efbb6bcdd4d1db1a940d368f2",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "rack-pull",
+      "source": "men-079.png",
+      "source_sha256": "9928b209e656013263cde8d5ad904d2de3a9064fa07362c26a531ad98fc744bf",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "superman",
+      "source": "men-080.png",
+      "source_sha256": "ee01e63aa623baf27ccd34bdc81208f2a95e4671a967210ef60b71b42fd334ee",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "muscle-up",
+      "source": "men-081-v2.png",
+      "source_sha256": "8ef5e482e9f20db0d8df8827a581d7fd196f31b7d2400e5a94002682ebfbad87",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "seated-db-press",
+      "source": "men-082.png",
+      "source_sha256": "4fda9a94ccdddbd1d6baa81eb46b3b7fc65019f2af7d9880a8cd5b4634030456",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "machine-shoulder-press",
+      "source": "men-083.png",
+      "source_sha256": "09bc07d387bf6ae043305c1b45304f28e7cb3764e8e3e826bc767c2a635173d5",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "cable-lateral-raise",
+      "source": "men-084-v2.png",
+      "source_sha256": "ad742e23820833aaf55b4f9a0d75318e93ba559dfc2ba077316d85be086781fe",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "upright-row-db",
+      "source": "men-085.png",
+      "source_sha256": "c73586013f5cfd0aea67f34a8b14d62c80d53ac218cfbbc54276a34de63c662d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "upright-row-barbell",
+      "source": "men-086.png",
+      "source_sha256": "ae4a9a182283d9d03e70df345310e96547502ef30501f2f4c3c37c69dc7a7c86",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "bent-over-rear-raise",
+      "source": "men-087.png",
+      "source_sha256": "e4f4ead99e2e2c2559b062dc36d0395b78b4ca10423e446f30a6868f867b62b6",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "reverse-machine-fly",
+      "source": "men-088.png",
+      "source_sha256": "36707dd35569198485fa73871618a55c104349b75ca67d1c83f702ad448770d5",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "cable-rear-delt-fly",
+      "source": "men-089-v2.png",
+      "source_sha256": "a763589f41dc665007ccd15097ec100af904afb585a0bd4835417cd6d2953851",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "front-plate-raise",
+      "source": "men-090.png",
+      "source_sha256": "a2f204120d6f545a914c2a6da3ec7cedbc25e0b103b3546ceca794a1df7f4617",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "push-press",
+      "source": "men-091.png",
+      "source_sha256": "b7066855b91b7ba71b2d41117e21dda70e1e5b96246cb64b8dce66da8b631bc4",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "cable-shoulder-press",
+      "source": "men-092.png",
+      "source_sha256": "7e2b06e597c8f39b6ed0cfe1479e7ec0a7d761a26acac6ea62f380c43a0caebe",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "hack-squat",
+      "source": "men-093.png",
+      "source_sha256": "51e15b7df9bfdc6a54b64dd727edc41d39bd17eb310bcd519d672d4a297c2439",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "walking-lunge",
+      "source": "men-094.png",
+      "source_sha256": "a78e120bfbd7c6ddd8867da1e5374afa534f37a5fc80b6431d0e78218081287c",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "bodyweight-squat",
+      "source": "men-095.png",
+      "source_sha256": "68c0a72ce31b3b31c611454034661e1c0ea0c207d22fbbb472f71115b56efdde",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dumbbell-squat",
+      "source": "men-096.png",
+      "source_sha256": "d0cee8835ff739a8383f9e686b82f09119ce6b0ec76374d526dbba47c3fce44a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "step-ups",
+      "source": "men-097.png",
+      "source_sha256": "77e71ce41d4ff58ca783bfe271494e6354a7e19615d8120f50a68362274b3751",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "split-squat-db",
+      "source": "men-098.png",
+      "source_sha256": "3bc41a223e82ffd8629bbe992e637ef42aec6d8019e813137f6f33c8461cb609",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "sumo-deadlift",
+      "source": "men-099.png",
+      "source_sha256": "410cde0f740b04f912bc6147859f932054ce21343221c05552fd3ec848f02ab6",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "good-morning",
+      "source": "men-100.png",
+      "source_sha256": "952c5eaaccd811d6080eb66cbd5f1ea17a335addaab2dc7b593bb3a919269663",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "seated-leg-curl",
+      "source": "men-101-v2.png",
+      "source_sha256": "88dfb75edfcbd1069906b5b8837d3932409df22138b3f794aefb23cc1e36697e",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "glute-kickback",
+      "source": "men-102.png",
+      "source_sha256": "5df3bf7971501fe4a4bc5db4fc2edb9e7e0cc02ee442a23fda61e62b91bf1f88",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "glute-bridge",
+      "source": "men-103.png",
+      "source_sha256": "d36c9e50087fa0f5d622491a0422dcb35f026ec66ea262a3d120524df0be2560",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "standing-barbell-calf",
+      "source": "men-104.png",
+      "source_sha256": "49217d7d445e4442c01e662bc7e9d1060bdb678c0c2ab4fea57398f34f90ff3d",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "donkey-calf",
+      "source": "men-105.png",
+      "source_sha256": "caef0bd38922f8654db53eea591a0eb2a64504f4d4fcce40dec85a5253585d7f",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "db-calf",
+      "source": "men-106.png",
+      "source_sha256": "d168700ea6b4ca9a2343233e456abc39f8fdcad6a65662e208cdb47637521ef8",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "thigh-abductor",
+      "source": "men-107.png",
+      "source_sha256": "b2359f59187229fbbf80e929b6cbd285f059d8c2ae2883a98a535faef050764a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "thigh-adductor",
+      "source": "men-108.png",
+      "source_sha256": "d083f97ee0f93a6be7781adef96eb4a2cdfa95b3ccc8f4ac5eb15b4bc7f9f98a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "ez-bar-curl",
+      "source": "men-109.png",
+      "source_sha256": "035a404a71fcfcec2ccad4b137d7d267a0fae6d6ec844202781d43570d1dae9a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "incline-db-curl",
+      "source": "men-110.png",
+      "source_sha256": "85588ba42732db716475bb14887daa9bbc3c0045d4e898d8d8f9565044dcdaaa",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "spider-curl",
+      "source": "men-111.png",
+      "source_sha256": "511919df4960894051f430de1ee7c246ac55ef08083b0bc8c16271339e020982",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "zottman-curl",
+      "source": "men-112.png",
+      "source_sha256": "68a5c055fd27132afb54662f441cf8f583bec347865f9169c0faf0c3edb54985",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "cable-preacher-curl",
+      "source": "men-113.png",
+      "source_sha256": "051edc16de29b40f0402453fe3b67bc0288d11976a78cc8af9f26298cfba835a",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "machine-curl",
+      "source": "men-114.png",
+      "source_sha256": "cbc3034870d4aa86002ab1b5d671ae2d64928de72ef7d551c865dd93b585d2b7",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "standing-cable-curl",
+      "source": "men-115.png",
+      "source_sha256": "f04a02a6f81f682ef013912e9654fd11caf15640d7f64351ec731bc7441ea16b",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "reverse-curl",
+      "source": "men-116.png",
+      "source_sha256": "ccb19278e836a855c0debcb02457adce149d198e01c860b3c136a5bf946f72d3",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "rope-pushdown",
+      "source": "men-117.png",
+      "source_sha256": "3f24942c98628ed85cd889140a24970694ac752332248767059a74840aab2d43",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "overhead-rope-extension",
+      "source": "men-118-v2.png",
+      "source_sha256": "7d92d11234e36659709cf72156b4e5e9f99f31bd4a3e129b9ac2f40060e5e529",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "tricep-kickback",
+      "source": "men-119.png",
+      "source_sha256": "d212b972a6e77f0fd395d2abcdd5af5d0e26b4baf019c3d1c78d95c0b84779ac",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "reverse-pushdown",
+      "source": "men-120.png",
+      "source_sha256": "937d4910346c56a0a3d6e01e1b82be08457798059289e4760eda9254918ec4c6",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "wrist-curl",
+      "source": "men-121-v3.png",
+      "source_sha256": "d9fbec6492f40d017dfe7bd5ded25ba5409fd3e1a8a7145df79514e94a940eed",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "oblique-crunch",
+      "source": "men-122.png",
+      "source_sha256": "53651f3d942469196bc6b53d66765fde9209082cc8316f7cb286f496b4fbd3a9",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "decline-crunch",
+      "source": "men-123.png",
+      "source_sha256": "f7cfe5a4f992b238f4744a794b8567ba266d7764449ca48cf207094e39ecd4f1",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "reverse-crunch",
+      "source": "men-124.png",
+      "source_sha256": "3962d9d4209bdd9be6b7d7159bf9fb32b212861e787adaf3e5465b23b0f26ee3",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "flutter-kicks",
+      "source": "men-125-v3.png",
+      "source_sha256": "65d123261681523d5f2c8ab231aab1f59387df8fd6159cdb419ad82ae14a233b",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "jackknife-situp",
+      "source": "men-126.png",
+      "source_sha256": "0d98e3ac5baa320907040c5dbb11919feaadef2cbd14b6b1900245815adf6e91",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "wood-chop",
+      "source": "men-127.png",
+      "source_sha256": "13a8d8800e9b1a966a1e8e76e2241ca2de1b89213d0093bffb9f2e1be0bf3088",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "dead-bug",
+      "source": "men-128-v3.png",
+      "source_sha256": "2b1b5a4ce816984ca779a367489f39ac4782ecccd6c3ef57041899a913b4019c",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "side-bridge",
+      "source": "men-129.png",
+      "source_sha256": "2a012cd104fa6939044b26a3a8bd6b11b3846c88e6ef35c5d235a085b632b549",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    },
+    {
+      "id": "farmers-walk",
+      "source": "men-130.png",
+      "source_sha256": "00acf034607aba6848f6aab7cbf5766226ea9543a8c9b43de829b292e9a3337b",
+      "frames": 2,
+      "review": "Both generated poses visually reviewed; not trainer certification",
+      "type": "AI-generated illustration"
+    }
+  ]
+}

@@ -89,6 +89,7 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onTo
         <p className="ex-name">{ex.name}</p>
         <div className="ex-tags">
           <span className="badge primary">{ex.muscleLabel}</span>
+          {ex.venue && <span className="badge secondary">{isEn() ? (ex.venue === "home" ? "Home" : "Gym") : (ex.venue === "home" ? "البيت" : "الجيم")}</span>}
           {ex.equipment && <span className="badge secondary">{isEn() ? equipmentEn(ex.equipment) : ex.equipment}</span>}
           {ex.difficulty && (
             <span className={"difficulty-pill diff-" + (ex.difficulty === "مبتدئ" ? "beg" : ex.difficulty === "متقدم" ? "adv" : "mid")} title={ex.difficulty}>

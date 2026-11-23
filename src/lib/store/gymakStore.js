@@ -15,10 +15,15 @@ import { celebrate, momentsFor } from "../celebrate";
 import { foodStreak, foodWeek, isAdherentDay } from "../stats/foodStreak";
 import { challenge30Complete } from "../challenge30";
 import { deleteExerciseMedia } from "../exerciseMedia";
+import { WOMEN_EXERCISES, WOMEN_TEMPLATES, WOMEN_PROGRAMS } from "../content/womenContent";
 /* Ported verbatim from the original app-data.js — same localStorage key,
    same shape, same business logic. Only the module wrapper changed
    (IIFE -> ES module) so existing users' data loads unchanged. */
 const KEY = "gymak_state_v1";
+// Owner view: the owner account sees gender-tagged built-ins regardless of its
+// own gender. The flag is set from the server-side admin check (isOwnerAdmin)
+// after sign-in; it is only a display switch and never touches stored data.
+let ownerView = false;
 
   function todayISO() {
     return localISO(); // YYYY-MM-DD, local calendar day
@@ -97,6 +102,7 @@ const KEY = "gymak_state_v1";
       { title: "علوي وكور", exerciseIds: ["lat-pulldown", "dumbbell-shoulder-press", "seated-cable-row", "lateral-raise", "plank"] },
       { title: "أرداف وسمانة", exerciseIds: ["leg-press", "hip-thrust", "lying-leg-curl", "calf-raise", "crunch"] },
     ],
+    ...WOMEN_TEMPLATES,
     "full-body": [
       { title: "جسم كامل A", exerciseIds: ["goblet-squat", "dumbbell-bench-press", "lat-pulldown", "plank"] },
       { title: "جسم كامل B", exerciseIds: ["leg-press", "shoulder-press-barbell", "barbell-row", "hanging-leg-raise"] },
@@ -105,6 +111,7 @@ const KEY = "gymak_state_v1";
   };
 
   const PROGRAMS = [
+    ...WOMEN_PROGRAMS,
     {
       id: "arnold-split", goal: "bulk", name: "Arnold Split", level: "متقدم", daysPerWeek: "6 أيام / أسبوع",
       dayChips: ["صدر وظهر", "أكتاف وذراعين", "أرجل", "×2 تكرار"],
@@ -419,6 +426,7 @@ const KEY = "gymak_state_v1";
     { id: "hanging-leg-raise", name: "رفع أرجل معلق", muscle: "core", muscleLabel: "بطن سفلي", secondary: "", sets: 3, reps: 12, custom: false, equipment: "وزن الجسم", difficulty: "متقدم", description: "يستهدف البطن السفلي بشكل مباشر وفعّال جدًا.", instructions: ["علّق نفسك من البار بذراعين مفرودتين.", "ارفع الأرجل لأعلى دون تأرجح.", "اضغط البطن في القمة.", "أنزل ببطء وتحكم تام."] },
     { id: "cable-crunch", name: "كرانش كابل", muscle: "core", muscleLabel: "بطن علوي", secondary: "", sets: 3, reps: 15, custom: false, equipment: "كابل", difficulty: "متوسط", description: "يسمح بإضافة مقاومة تدريجية على البطن العلوي.", instructions: ["اركع أمام البكرة وامسك الحبل خلف الرقبة.", "انحنِ للأمام بالانقباض على البطن فقط.", "لا تستخدم الذراعين أو الوركين للسحب.", "ارجع ببطء للوضع المستقيم."] },
     ...EXTRA_EXERCISES,
+    ...WOMEN_EXERCISES,
   ];
 
   const MUSCLE_META = {
@@ -634,7 +642,7 @@ const KEY = "gymak_state_v1";
           } else {
             // add any new metadata fields (equipment/difficulty/etc.) without
             // overwriting anything the user may have customized.
-            for (const k of ["equipment", "difficulty", "description", "instructions"]) {
+            for (const k of ["equipment", "difficulty", "description", "instructions", "only", "venue"]) {
               if (existing[k] === undefined && seed[k] !== undefined) existing[k] = seed[k];
             }
           }
@@ -683,7 +691,13 @@ const KEY = "gymak_state_v1";
 
     // ===== Exercise catalog =====
     getExercises() {
-      return mergeExercises(load().exercises || SEED_EXERCISES.slice()).map(normalizeExercise);
+      const st = load();
+      const gender = st.profile && st.profile.gender;
+      // Gender-tagged built-ins (only: "female") are hidden from everyone else,
+      // History remains stored independently of discovery visibility.
+      return mergeExercises(st.exercises || SEED_EXERCISES.slice())
+        .filter((e) => !e.only || ownerView || e.only === gender)
+        .map(normalizeExercise);
     },
 
     getExerciseById(id) {
@@ -1146,7 +1160,12 @@ const KEY = "gymak_state_v1";
     // ===== Recommended program based on gender (personalization hint, not a rule) =====
     getRecommendedProgramId() {
       const s = load();
-      if (s.profile.gender === "female") return "glutes-tone";
+      if (s.profile.gender === "female") {
+        const mode = this.getGoalMode();
+        if (mode === "glutes") return "w-gym-glutes";
+        if (mode === "tone") return "w-tone-body";
+        return "glutes-tone";
+      }
       if (s.profile.gender === "male") return "push-pull-legs";
       return null;
     },
@@ -1485,13 +1504,31 @@ const KEY = "gymak_state_v1";
 
     // ===== Programs =====
     getPrograms() {
+      const g = load().profile.gender;
+      return PROGRAMS.filter((p) => !p.only || ownerView || p.only === g);
+    },
+
+    setOwnerView(on) {
+      const v = !!on;
+      if (v === ownerView) return;
+      ownerView = v;
+      changeListeners.forEach((fn) => { try { fn(cachedState); } catch (e) { console.error("gymak store change listener failed", e); } });
+    },
+
+    isOwnerView() { return ownerView; },
+
+    // True when gender-tagged women content should show (female user or owner).
+    canSeeWomenContent() { return ownerView || load().profile.gender === "female"; },
+
+    // Every program regardless of gender (coach tools, name lookups).
+    getAllPrograms() {
       return PROGRAMS;
     },
 
     getActiveProgram() {
       const s = load();
       if (!s.activeProgramId) return null;
-      return PROGRAMS.find((p) => p.id === s.activeProgramId) || null;
+      return this.getPrograms().find((p) => p.id === s.activeProgramId) || null;
     },
 
     // Resolves a program's day-by-day template into real exercise records
@@ -1500,6 +1537,7 @@ const KEY = "gymak_state_v1";
     // Exercises the user has deliberately deleted are respected here too —
     // they won't reappear just because a program template references them.
     getProgramDays(id) {
+      if (!this.getPrograms().some((p) => p.id === id)) return [];
       const s = load();
       const byId = new Map(s.exercises.map((e) => [e.id, e]));
       const tombstoned = new Set(s.deletedExerciseIds || []);
@@ -1518,11 +1556,13 @@ const KEY = "gymak_state_v1";
     // template — used to scope the Exercises tab to "this program + my own
     // custom exercises" instead of the entire library.
     getProgramExerciseIds(id) {
+      if (!this.getPrograms().some((p) => p.id === id)) return new Set();
       const template = PROGRAM_TEMPLATES[id] || [];
       return new Set(template.flatMap((d) => d.exerciseIds));
     },
 
     applyProgram(id) {
+      if (!this.getPrograms().some((p) => p.id === id)) return null;
       const s = load();
       s.activeProgramId = id;
       // Auto-generate: make sure every exercise this program's days call for

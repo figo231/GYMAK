@@ -2732,6 +2732,7 @@ export const EN = {
 "🏋️ تماريني (": "🏋️ My exercises (",
 "🏋️ تمرنت": "🏋️ Worked out",
 "🏠 في البيت": "🏠 At home",
+"للبنات": "For women",
 "📊 حلل تقدمي": "📊 Analyze my progress",
 "📋 برنامج جديد": "📋 New program",
 "📋 تقرير أسبوعك": "📋 Your weekly report",

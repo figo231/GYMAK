@@ -1,8 +1,10 @@
 // English display overrides for built-in program templates. Raw Arabic stays
 // in the store; applied at render time only when English is active.
 import { isEn } from "./lang";
+import { WOMEN_PROGRAMS_EN, WOMEN_TEMPLATES } from "../content/womenContent";
 
 const PROGRAMS_EN = {
+  ...WOMEN_PROGRAMS_EN,
   "arnold-split": { name: "Arnold Split", level: "Advanced", daysPerWeek: "6 days / week",
     dayChips: ["Chest & back", "Shoulders & arms", "Legs", "x2 repeat"],
     desc: "Arnold Schwarzenegger's classic split: each muscle trained twice a week at high volume. Best if you have training experience and can work out 6 days a week." },
@@ -48,4 +50,9 @@ const DAY_TITLE_AR = {
 export function dayTitleEn(title) {
   if (!isEn() || !title) return title;
   return DAY_TITLE_AR[title] || title;
+}
+
+// Translate the new program day titles without changing saved schedules.
+for (const [id, days] of Object.entries(WOMEN_TEMPLATES)) {
+  days.forEach((day, i) => { DAY_TITLE_AR[day.title] = WOMEN_PROGRAMS_EN[id].dayChips[i]; });
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { getExerciseFrames, getRemoteExerciseFrames, getExerciseEnglish } from "../src/lib/exerciseImages";
+import { getExerciseFrames, getExerciseEnglish } from "../src/lib/exerciseImages";
 
 describe("exercise animated demos", () => {
   it("serves bundled local WebP frames for a known exercise", () => {
@@ -15,10 +15,30 @@ describe("exercise animated demos", () => {
     expect(getExerciseFrames("not-a-real-exercise")).toBeNull();
   });
 
-  it("keeps the remote jsDelivr URLs available as a fallback reference", () => {
-    const remote = getRemoteExerciseFrames("pushup");
-    expect(remote[0]).toContain("cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@");
-    expect(remote[0]).toMatch(/\/0\.jpg$/);
+  it("does not retain the uncertain-license photo source or downloader", () => {
+    const source = fs.readFileSync(path.resolve(__dirname, "../src/lib/exerciseImages.js"), "utf8");
+    expect(source).not.toContain("cdn.jsdelivr.net");
+    expect(source).not.toContain("getRemoteExerciseFrames");
+    expect(fs.existsSync(path.resolve(__dirname, "../scripts/generate-exercise-frames.sh"))).toBe(false);
+  });
+
+  it("records reviewed generated art for every built-in men's exercise", () => {
+    const manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../scripts/men-art-manifest.json"), "utf8"));
+    expect(manifest.complete).toBe(true);
+    expect(manifest.external_stock_used).toBe(false);
+    expect(manifest.records).toHaveLength(130);
+    expect(new Set(manifest.records.map(r => r.id)).size).toBe(130);
+    for (const record of manifest.records) {
+      expect(record.frames).toBe(2);
+      expect(record.source_sha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(record.type).toBe("AI-generated illustration");
+    }
+  });
+
+  it("uses no muscle drawing as library thumbnail fallback", () => {
+    const source = fs.readFileSync(path.resolve(__dirname, "../src/pages/Exercises/ExerciseThumb.jsx"), "utf8");
+    expect(source).not.toContain("MuscleIllustration");
+    expect(source).toContain("ex-thumb-placeholder");
   });
 
   it("every mapped exercise has both frames committed locally", () => {

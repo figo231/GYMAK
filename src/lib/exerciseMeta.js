@@ -139,7 +139,7 @@ export const EQUIPMENT_ORDER = ["وزن الجسم", "دمبل", "بار", "جه
 // Home-workout filter: only exercises the library itself tags as pure bodyweight.
 export const HOME_EQUIPMENT = "وزن الجسم";
 export function isHomeExercise(ex) {
-  return !!ex && ex.equipment === HOME_EQUIPMENT;
+  return !!ex && (ex.venue === "home" || (!ex.venue && ex.equipment === HOME_EQUIPMENT));
 }
 
 // ----- add-exercise validation -----
@@ -196,7 +196,10 @@ export function pickExerciseOfTheDay({ dateISO, programDays, exercises }) {
   const group = GROUP_ROTATION[n % GROUP_ROTATION.length];
   const pool = (exercises || []).filter((e) => e.muscle === group && e.difficulty !== "متقدم");
   const picks = [];
+  // Women-only moves (only present in a female user's list) lead the rotation.
+  const women = pool.filter((e) => e.only === "female");
+  for (let i = 0; i < women.length && picks.length < 2; i++) picks.push(women[(n + i) % women.length]);
   for (let i = 0; i < pool.length && picks.length < 4; i++) picks.push(pool[(n + i * 3) % pool.length]);
-  const uniq = [...new Map(picks.map((e) => [e.id, e])).values()];
+  const uniq = [...new Map(picks.map((e) => [e.id, e])).values()].slice(0, 4);
   return { title: isEn() ? `${GROUP_TITLE_EN[group]} workout` : `تمرين ${GROUP_TITLE[group]}`, source: "rotation", exercises: uniq };
 }

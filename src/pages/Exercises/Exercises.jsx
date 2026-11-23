@@ -47,6 +47,10 @@ export default function Exercises() {
   const [favOnly, setFavOnly] = useState(false);
   const [mineOnly, setMineOnly] = useState(false);
   const [homeOnly, setHomeOnly] = useState(false);
+  const [gymOnly, setGymOnly] = useState(false);
+  const [womenOnly, setWomenOnly] = useState(false);
+  const isFemale = useMemo(() => Store.getProfile().gender === "female", [version]);
+  const showWomenChip = useMemo(() => Store.canSeeWomenContent(), [version]);
   const [mediaError, setMediaError] = useState("");
   const [sort, setSort] = useState("default");
   const [showFilters, setShowFilters] = useState(false);
@@ -88,6 +92,8 @@ export default function Exercises() {
       if (favOnly && !favs.has(ex.id)) return false;
       if (mineOnly && !ex.custom) return false;
       if (homeOnly && !isHomeExercise(ex)) return false;
+      if (gymOnly && !(ex.venue === "gym" || (!ex.venue && !isHomeExercise(ex)))) return false;
+      if (womenOnly && ex.only !== "female") return false;
       if (search.trim() && !matchesQuery(hays.get(ex.id) || "", search)) return false;
       return true;
     });
@@ -101,8 +107,10 @@ export default function Exercises() {
         return da < db ? 1 : -1;
       });
     }
+    // Women see the women-specific moves first in the default order.
+    if (isFemale) return [...list.filter((e) => e.only === "female"), ...list.filter((e) => e.only !== "female")];
     return list;
-  }, [scopedList, activeMuscle, equip, diff, favOnly, mineOnly, homeOnly, favs, search, hays, sort]);
+  }, [scopedList, activeMuscle, equip, diff, favOnly, mineOnly, homeOnly, gymOnly, womenOnly, isFemale, favs, search, hays, sort]);
 
   const groups = {};
   filtered.forEach((ex) => {
@@ -113,9 +121,9 @@ export default function Exercises() {
 
   const muscleCount = new Set(scopedList.map((ex) => ex.muscle)).size;
   const mineCount = all.filter((e) => e.custom).length;
-  const activeFilterCount = (equip ? 1 : 0) + (diff ? 1 : 0) + (favOnly ? 1 : 0) + (mineOnly ? 1 : 0) + (homeOnly ? 1 : 0) + (sort !== "default" ? 1 : 0);
+  const activeFilterCount = (equip ? 1 : 0) + (diff ? 1 : 0) + (favOnly ? 1 : 0) + (mineOnly ? 1 : 0) + (homeOnly ? 1 : 0) + (gymOnly ? 1 : 0) + (womenOnly ? 1 : 0) + (sort !== "default" ? 1 : 0);
   // On the full unfiltered list, start with groups folded so the page isn't a 130-card scroll.
-  const autoFold = activeMuscle === "all" && !search.trim() && !equip && !diff && !favOnly && !mineOnly && !homeOnly && filtered.length > 40;
+  const autoFold = activeMuscle === "all" && !search.trim() && !equip && !diff && !favOnly && !mineOnly && !homeOnly && !gymOnly && !womenOnly && filtered.length > 40;
   const isOpen = (muscle, idx) => (openMap[muscle] !== undefined ? openMap[muscle] : !autoFold || idx === 0);
 
   async function handleAddSave(payload) {
@@ -142,7 +150,7 @@ export default function Exercises() {
   }
 
   function clearFilters() {
-    setEquip(""); setDiff(""); setFavOnly(false); setMineOnly(false); setHomeOnly(false); setSort("default"); setActiveMuscle("all"); setSearch("");
+    setEquip(""); setDiff(""); setFavOnly(false); setMineOnly(false); setHomeOnly(false); setGymOnly(false); setWomenOnly(false); setSort("default"); setActiveMuscle("all"); setSearch("");
   }
 
   return (
@@ -221,9 +229,17 @@ export default function Exercises() {
         <button type="button" className={"chip chip-btn" + (mineOnly ? " active" : "")} aria-pressed={mineOnly} onClick={() => setMineOnly((v) => !v)}>
           <span>{tx("🏋️ تماريني (")}{mineCount})</span>
         </button>
-        <button type="button" className={"chip chip-btn" + (homeOnly ? " active" : "")} aria-pressed={homeOnly} onClick={() => setHomeOnly((v) => !v)}>
+        <button type="button" className={"chip chip-btn" + (homeOnly ? " active" : "")} aria-pressed={homeOnly} onClick={() => { setHomeOnly((v) => !v); setGymOnly(false); }}>
           <span>{tx("🏠 في البيت")}</span>
         </button>
+        <button type="button" className={"chip chip-btn" + (gymOnly ? " active" : "")} aria-pressed={gymOnly} onClick={() => { setGymOnly((v) => !v); setHomeOnly(false); }}>
+          <span>{isEn() ? "Gym" : "الجيم"}</span>
+        </button>
+        {showWomenChip && (
+          <button type="button" className={"chip chip-btn" + (womenOnly ? " active" : "")} aria-pressed={womenOnly} onClick={() => setWomenOnly((v) => !v)}>
+            <span>{tx("للبنات")}</span>
+          </button>
+        )}
         <span className="page-count" style={{ marginInlineStart: "auto" }}>{filtered.length} {tx("نتيجة")}</span>
       </div>
 

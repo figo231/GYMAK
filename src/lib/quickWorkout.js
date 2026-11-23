@@ -12,7 +12,7 @@ export function pickQuickWorkout(exercises, dateISO = localISO(), size = 6) {
   const seed = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
   // Prefer bodyweight and beginner/intermediate moves — busy days need no setup.
   const score = (ex) => (ex.equipment === "وزن الجسم" ? 0 : ex.equipment === "دمبل" ? 1 : 2) * 10
-    + (ex.difficulty === "مبتدئ" ? 0 : ex.difficulty === "متوسط" ? 1 : 2);
+    + (ex.difficulty === "مبتدئ" ? 0 : ex.difficulty === "متوسط" ? 1 : 2) - (ex.only === "female" ? 5 : 0);
   const picked = [];
   const used = new Set();
   GROUPS.forEach((g, gi) => {

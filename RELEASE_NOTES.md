@@ -1,3 +1,11 @@
+## APK 21, combined exercise library update
+
+- 18 women-specific exercises and five programs, with home/gym filters. Women-only content stays hidden from normal male accounts; the owner sees the full catalog.
+- 296 generated start/end illustration frames across 148 exercises. Local compressed WebP assets replace the old uncertain-provenance photos.
+- Removed muscle-drawing placeholders from library thumbnails. Exercise-detail target diagrams and the stats muscle heatmap remain unchanged.
+- Existing exercise edits, training logs and custom media are preserved. Install over the existing app without uninstalling.
+- Generated pose illustrations were visually reviewed but are not trainer-certified footage.
+
 # مرحبًا بيك في نسخة GYMAK التجريبية (Beta) 🏋️
 
 أهلًا بيك، وشكرًا إنك موافق تجرب GYMAK قبل أي حد تاني!

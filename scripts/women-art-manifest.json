@@ -1,0 +1,151 @@
+{
+  "created": "2026-11-23",
+  "style": "Original generated adult woman, teal top and black leggings; soft light; two pose frames",
+  "external_stock_used": false,
+  "records": [
+    {
+      "id": "donkey-kicks",
+      "source": "women-donkey-pair.png",
+      "source_sha256": "b928e071fa8f2aa2ca5722c4d3e906fb71ef4547f4f75fb2077dd1d92fad0eff",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "fire-hydrant",
+      "source": "women-hydrant-pair.png",
+      "source_sha256": "e950b836120f5dc618258ccfdecf052c749ca107fe3f4f3c08b53fec6264e751",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "side-lying-leg-raise",
+      "source": "women-sideleg-pair.png",
+      "source_sha256": "bea764cdd508817f3d2093a880906b6a34b64eb0607f85f7d94d67e64ec3c4c2",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "inner-thigh-lift",
+      "source": "women-innerthigh-pair.png",
+      "source_sha256": "6ab766301dc7563a1fe404be33a3286979496ae6e85ebdaedfb18b672584b086",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "sumo-squat-db",
+      "source": "women-sumo-pair.png",
+      "source_sha256": "7d50e45df0037bf835999a00e24417270177b01bee09ee6bcf50f1e74b58fb10",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "curtsy-lunge",
+      "source": "women-curtsy-pair.png",
+      "source_sha256": "ab4d53fcdcd52c8af2003ae24b9f0464b771b32e4604cc9c1e124d195d8c4683",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "single-leg-glute-bridge",
+      "source": "women-singlebridge-pair.png",
+      "source_sha256": "f384bd5abfabc70a2b2f2bb34a6b3788dfa13f336fecbf9f1c7362e37a7686f4",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "frog-pump",
+      "source": "women-frogpump-v2.png",
+      "source_sha256": "40286205946f2a57323762193124ea5cd2f77edad0bdd88105ba8bb106887c8d",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "step-up-db",
+      "source": "women-stepup-v4.png",
+      "source_sha256": "bdd9dc44d8e1ff9f071875751d50a9162e47ac858e5878f2626decde954d7f5d",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "wall-sit",
+      "source": "women-wallsit-pair.png",
+      "source_sha256": "019e67d37df16cd13a43d7e875def7636cd6cacfd0bb88030ef4b18ba947be24",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "knee-pushup",
+      "source": "women-kneepush-pair.png",
+      "source_sha256": "c8498d1f6d9a53ca54fd52563bef5a1f5fbdfd071361ae6667974d86ef98945e",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "bird-dog",
+      "source": "women-birddog-pair.png",
+      "source_sha256": "7480e48f73d52896d768bbcdf7139374af581992294b5199cc0be5951a38c401",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "standing-oblique-crunch",
+      "source": "women-oblique-pair.png",
+      "source_sha256": "4d04b22cec4d372b6264808c4c059feea4d4e3aaee00a437656d43a41f135266",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "w-hip-thrust",
+      "source": "women-hipthrust-v3.png",
+      "source_sha256": "a861ee3855a6226218876e1ece731b5f0d5159c509eebbccdb886c9b80bf2305",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "w-cable-kickback",
+      "source": "women-cablekick-pair.png",
+      "source_sha256": "4b71b12cb1b306c4f7481a7bfe0aa3ba7454ac0288486b6d6dede5b147ad683b",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "w-bulgarian-split-squat",
+      "source": "women-bulgarian-pair.png",
+      "source_sha256": "a0e9eafb3eed542cc6e824396385009be6cba92a6f3140d3688c9f25a8595577",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "w-glute-leg-press",
+      "source": "women-legpress-pair.png",
+      "source_sha256": "03c25e965393ab7f9e04af63181b1282fc5d6faa61f58a04f833b319104a1255",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    },
+    {
+      "id": "w-hip-abductor",
+      "source": "women-abductor-pair.png",
+      "source_sha256": "4bd533fd6ad1545e54cc895ecd25af2e1afb44b68e9a4b3e7b046acfd8889725",
+      "frames": 2,
+      "review": "Visual review of both generated poses; not trainer certification",
+      "type": "AI-generated original illustration"
+    }
+  ]
+}
