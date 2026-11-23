@@ -13,7 +13,8 @@ import { tx, txf } from "../../lib/i18n/tx";
 import { isEn } from "../../lib/i18n/lang";
 import { GOAL_MODE_EN } from "../../lib/i18n/maps";
 
-const QUICK = [tx("عيش بلدي"), tx("كشري"), tx("فراخ مشوية"), tx("٢ موز"), tx("لبن"), tx("بيض")];
+// [parse value (Arabic, fed to parseFood), English display label]
+const QUICK = [["عيش بلدي", "Baladi bread"], ["كشري", "Koshari"], ["فراخ مشوية", "Grilled chicken"], ["٢ موز", "2 bananas"], ["لبن", "Milk"], ["بيض", "Eggs"]];
 
 export default function Food() {
   const [version] = useStoreVersion();
@@ -135,7 +136,7 @@ export default function Food() {
         <div className="food-add-title">{tx("كلت إيه؟")}</div>
         <textarea className="food-input" rows={2} value={text} placeholder={tx("مثال: عيش بلدي وفراخ مشوية و٢ موز")} onChange={(e) => { setText(e.target.value); setPreview(null); }} />
         <div className="food-chips">
-          {QUICK.map((q) => <button type="button" key={q} className="section-pill" onClick={() => { setText(q); parse(q); }}>{q}</button>)}
+          {QUICK.map(([q, en]) => <button type="button" key={q} className="section-pill" onClick={() => { setText(q); parse(q); }}>{isEn() ? en : q}</button>)}
         </div>
         {!preview && <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={() => setShowBarcode(true)}>{tx("سجّل بالباركود")}</button>}
         {!preview && <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={!text.trim()} onClick={() => parse()}>{tx("حلّل")}</button>}

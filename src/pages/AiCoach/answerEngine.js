@@ -47,7 +47,8 @@ export function answerFor(q) {
     return tx("العفو! أنا موجود أي وقت محتاجني، كمّل كده 💪");
   }
 
-  const foodTriggerWords = [tx("سعرات"), tx("احسب"), tx("إحسب"), tx("اكلت"), tx("أكلت"), tx("هاكل"), tx("فطار"), tx("فطاري"), tx("غدا"), tx("غدائي"), tx("عشا"), tx("عشائي"), tx("وجبة"), tx("كام سعرة")];
+  // Matches the user's typed Arabic - keep raw, never translate.
+  const foodTriggerWords = ["سعرات", "احسب", "إحسب", "اكلت", "أكلت", "هاكل", "فطار", "فطاري", "غدا", "غدائي", "عشا", "عشائي", "وجبة", "كام سعرة"];
   const hasFoodTrigger = foodTriggerWords.some((w) => text.includes(w));
   const foodItems = Store.parseFood(q);
   if (hasFoodTrigger || foodItems.length >= 2) {
@@ -56,7 +57,7 @@ export function answerFor(q) {
     }
     const dayEntry = Store.logFoodEntries(foodItems);
     const target = Store.getDailyCalorieTarget();
-    const breakdown = foodItems.map((it) => txf(`• {0} ({1}جم) — {2} سعرة`, [it.name, it.grams, it.kcal])).join("\n");
+    const breakdown = foodItems.map((it) => txf(`• {0} ({1}جم) — {2} سعرة`, [Store.foodDisplayName(it.name), it.grams, it.kcal])).join("\n");
     const mealKcal = foodItems.reduce((a, i) => a + i.kcal, 0);
     let msg = txf(`حسبتلك الوجبة دي:\n{0}\n\nإجمالي الوجبة: {1} سعرة (بروتين {2} جم)\n\nإجمالي سعراتك النهاردة: {3} سعرة`, [breakdown, mealKcal, foodItems.reduce((a, i) => a + i.protein, 0).toFixed(1), dayEntry.totalKcal]);
     if (target) {

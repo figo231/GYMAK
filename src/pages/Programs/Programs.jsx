@@ -57,7 +57,7 @@ export default function Programs() {
     if (prev && prev.id === id) { toast(tx("البرنامج ده مطبّق بالفعل.")); return; }
     const target = programs.find((p) => p.id === id);
     if (prev) {
-      const ok = await confirm({ title: tx("تغيّر البرنامج؟"), label: txf(`هتبدّل "{0}" بـ "{1}". سجلاتك وتمارينك ما بتتمسحش.`, [prev.name, target ? target.name : ""]), confirmLabel: tx("غيّر") });
+      const ok = await confirm({ title: tx("تغيّر البرنامج؟"), label: txf(`هتبدّل "{0}" بـ "{1}". سجلاتك وتمارينك ما بتتمسحش.`, [programDisplay(prev).name, target ? programDisplay(target).name : ""]), confirmLabel: tx("غيّر") });
       if (!ok) return;
     }
     Store.applyProgram(id);
