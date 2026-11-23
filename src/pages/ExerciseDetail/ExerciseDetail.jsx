@@ -1,3 +1,4 @@
+import { getExerciseGuide } from "../../lib/exerciseGuides";
 import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
 import { isEn } from "../../lib/i18n/lang";
 import MuscleFigure from "../../lib/muscleFigure";
@@ -52,6 +53,7 @@ function ExerciseDetail({ id }) {
   const toast = useToast();
   const exerciseId = id || "bench-press-barbell";
   const exercise = Store.getExerciseById(exerciseId);
+  const guide = getExerciseGuide(exercise, isEn() ? "en" : "ar");
   const meta = Store.getMuscleMeta(exercise ? exercise.muscle : "chest");
   const last = Store.getLastExerciseLog(exerciseId);
   const mediaKind = exercise ? getMediaKind(exercise.mediaUrl) : null;
@@ -360,20 +362,25 @@ function ExerciseDetail({ id }) {
       {exercise && exercise.instructions?.length ? (
         <div>
           <p className="section-title">{tx("طريقة الأداء الصحيح")}</p>
-          {exercise.description && <p className="ex-description">{exercise.description}</p>}
+          {(guide?.summary || exercise.description) && <p className="ex-description">{guide?.summary || exercise.description}</p>}
+          {guide && <section className="glass exercise-guide-block"><h3>{isEn()?"Before you start":"قبل ما تبدأ"}</h3><p>{guide.setup}</p></section>}
           <div className="glass steps-card">
-            {exercise.instructions.map((step, i) => (
+            {(guide?.steps || exercise.instructions).map((step, i) => (
               <div className="step-row" key={i}>
                 <div className="step-num">{i + 1}</div>
                 <div className="step-txt">{step}</div>
               </div>
             ))}
           </div>
+          {guide && <>
+            <section className="glass exercise-guide-block"><h3>{isEn()?"What to feel":"تحس بإيه؟"}</h3><p>{guide.feel}</p></section>
+            <section className="glass exercise-guide-block"><h3>{isEn()?"Common mistakes":"أخطاء شائعة"}</h3><ul>{guide.mistakes.map(m=><li key={m}>{m}</li>)}</ul></section>
+          </>}
           <div className="tip-card">
             <div className="tip-ic">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /><circle cx="12" cy="12" r="4" /></svg>
             </div>
-            <div className="tip-txt"><b>{tx("نصيحة:")}</b> {tx("لو حسيت بألم في المفصل، قلل مدى الحركة وركّز على الانقباض في أعلى الحركة بدل ما تزود الوزن.")}</div>
+            <div className="tip-txt"><b>{tx("نصيحة:")}</b> {guide?.safety || (isEn()?"Stop for sharp or joint pain. Do not push through it. Seek professional advice if pain persists.":"لو حسيت بألم حاد أو في المفصل، وقف الحركة وما تكملش على الألم. لو الألم مستمر، اسأل مختص.")}</div>
           </div>
         </div>
       ) : (

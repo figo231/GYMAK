@@ -43,6 +43,7 @@ const Professionals = lazy(() => import("./pages/Professionals/Professionals"));
 const Coach = lazy(() => import("./pages/Coach/Coach"));
 
 export const router = createBrowserRouter([
+  { path: "/welcome", element: <Navigate to={/^[a-z0-9-]{1,80}$/.test(new URLSearchParams(window.location.search).get("p") || "") ? "/programs?p=" + encodeURIComponent(new URLSearchParams(window.location.search).get("p")) : "/"} replace /> },
   {
     element: <TabShell />,
     errorElement: <RouteError />,

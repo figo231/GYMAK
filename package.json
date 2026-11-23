@@ -1,6 +1,6 @@
 {
   "name": "gymak",
-  "description": "GYMAK — gym workout, weight, and nutrition tracker",
+  "description": "GYMAK \u2014 gym workout, weight, and nutrition tracker",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prebuild": "node scripts/prepare-web-apk.mjs"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.0.0",

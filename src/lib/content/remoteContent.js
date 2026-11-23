@@ -34,7 +34,7 @@ export function mergeExercises(base) {
   const rows = remoteExercises();
   if (!rows.length) return base;
   const hidden = new Set(rows.filter((r) => !r.active).map((r) => r.id));
-  const byId = new Map(rows.filter((r) => r.active).map((r) => [r.id, { ...r.data, id: r.id, custom: false }]));
+  const byId = new Map(rows.filter((r) => r.active).map((r) => [r.id, { ...r.data, id: r.id, custom: false, ownerContent: true }]));
   const out = base.filter((e) => !hidden.has(e.id)).map((e) => byId.get(e.id) || e);
   const have = new Set(out.map((e) => e.id));
   byId.forEach((e, id) => { if (!have.has(id)) out.push(e); });

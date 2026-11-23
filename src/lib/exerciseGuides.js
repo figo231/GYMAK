@@ -1,0 +1,51 @@
+import { WOMEN_GYM_GUIDES } from "./exerciseGuidesWomenGym";
+import { WOMEN_GUIDES } from "./exerciseGuidesWomen";
+import { PRESS_GUIDES } from "./exerciseGuidesBatch4";
+import { THIRD_GUIDES } from "./exerciseGuidesBatch3";
+import { SECOND_GUIDES } from "./exerciseGuidesBatch2";
+import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
+// Source-grounded coaching copy. Only built-in exercises use this layer;
+// saved custom descriptions and instructions always win in the detail page.
+// Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
+export const EXERCISE_GUIDES = {
+  ...BASIC_GUIDES,
+  ...SECOND_GUIDES,
+  ...THIRD_GUIDES,
+  ...PRESS_GUIDES,
+  ...WOMEN_GUIDES,
+  ...WOMEN_GYM_GUIDES,
+  "bench-press-barbell": {
+    ar: {
+      summary: "تمرين دفع للصدر. الترايسبس والكتف الأمامي بيساعدوا في الحركة. ابدأ بوزن تقدر تتحكم فيه طول المجموعة.",
+      setup: "نام على البنش، وعينيك تحت البار تقريبًا. ثبّت رجليك على الأرض وخلّي رأسك وأعلى ظهرك ومؤخرتك على البنش. اسحب لوحي كتفك لورا وتحت بهدوء.",
+      steps: [
+        "امسك البار أوسع من كتفك بشوية، وإبهامك مقفول حواليه. خلّي رسغك فوق ساعدك، مش مكسور لورا.",
+        "اطلع البار من الحامل بمساعدة لو محتاج، وثبّته فوق صدرك. خُد نفس وشد بطنك قبل النزول.",
+        "انزل بالبار ببطء ناحية منتصف صدرك. خلّي كوعك تحت رسغك، مش مفتوح على الجنب بزيادة. انزل في مدى مريح ومن غير ما تخبط صدرك.",
+        "ادفع البار لفوق ولورا سنة لحد ما يبقى فوق كتفك. طلّع النفس مع الدفع، وارجع لوضع البداية من غير ما تحدف الوزن.",
+        "كرر بنفس التحكم. في الآخر رجّع البار لورا لحد الحامل، واتأكد إنه ثابت في الناحيتين قبل ما تسيبه."
+      ],
+      feel: "المفروض تحس بمجهود في الصدر والترايسبس. الألم الحاد في الكتف أو الرسغ مش علامة إن التمرين شغال.",
+      mistakes: ["تسيب البار ينط من على صدرك.","ترفع مؤخرتك من البنش أو تحرّك رجليك مع كل عدة.","تزود الوزن لدرجة إن البار يميل أو تفقد التحكم."],
+      safety: "ما تتمرنش لحد الفشل لوحدك تحت البار. استخدم حواجز أمان مضبوطة أو حد فاهم يأمّنك. لو في ألم حاد أو مفصلي، وقف الحركة. لو مستمر، اسأل مختص."
+    },
+    en: {
+      summary: "A chest pressing exercise. Your triceps and front shoulders assist. Start with a weight you can control for the whole set.",
+      setup: "Lie with your eyes roughly under the bar. Keep your feet planted and your head, upper back and hips on the bench. Gently draw your shoulder blades back and down.",
+      steps: [
+        "Grip slightly wider than shoulder width, with your thumbs wrapped around the bar. Keep your wrists stacked over your forearms.",
+        "Unrack with help if needed and steady the bar over your chest. Breathe in and brace before lowering.",
+        "Lower slowly toward the middle of your chest. Keep your elbows under your wrists, without flaring them excessively. Use a comfortable range and do not bounce.",
+        "Press up and slightly back until the bar is over your shoulders. Breathe out as you press and keep the weight controlled.",
+        "Repeat with the same control. Finish by moving the bar back to the hooks. Check both sides are secure before letting go."
+      ],
+      feel: "Expect effort in your chest and triceps. Sharp shoulder or wrist pain is not a sign of a productive rep.",
+      mistakes: ["Bouncing the bar off your chest.","Lifting your hips or moving your feet each rep.","Adding so much weight that the bar tilts or you lose control."],
+      safety: "Do not train to failure alone under a bar. Use correctly set safety bars or a competent spotter. Stop for sharp or joint pain. Seek professional advice if it persists."
+    }
+  }
+};
+export function getExerciseGuide(exercise, lang = "ar") {
+  if (!exercise || exercise.custom || exercise.ownerContent) return null;
+  return EXERCISE_GUIDES[exercise.id]?.[lang === "en" ? "en" : "ar"] || null;
+}
