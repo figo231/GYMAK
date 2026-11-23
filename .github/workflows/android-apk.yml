@@ -120,4 +120,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk GYMAK.apk
-          gh release create "apk-${GYMAK_VERSION_CODE}" GYMAK.apk --latest --title "GYMAK ${GYMAK_VERSION_CODE}" --notes "Bundled offline app. Install over the existing app without uninstalling."
+          gh release create "apk-${GYMAK_VERSION_CODE}" GYMAK.apk --target "$GITHUB_SHA" --latest --title "GYMAK ${GYMAK_VERSION_CODE}" --notes "Bundled offline app. Install over the existing app without uninstalling."
+      - name: Publish matching web source after approved APK release
+        if: inputs.publish
+        run: |
+          git fetch origin web-production
+          git checkout -B web-release origin/web-production
+          git rm -r --ignore-unmatch . ':!.github/workflows'
+          git checkout "$GITHUB_SHA" -- . ':!.github/workflows'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet || git commit -m "Publish web source for apk-${GYMAK_VERSION_CODE} ($GITHUB_SHA)"
+          git push origin HEAD:refs/heads/web-production
