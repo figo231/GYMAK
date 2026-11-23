@@ -28,11 +28,14 @@ describe('mixed layout candidate, APK15 first', () => {
     expect(node.querySelector('details')).toBeNull();expect(node.querySelector('[data-testid="water-card"]')).toBeTruthy();
     expect(node.querySelector('a[href="/professionals"]')).toBeNull();expect(node.querySelector('a[href="/messages"]')).toBeNull();
   });
-  it('retains grouped Profile without losing body, achievements or training controls', async () => {
+  it('restores familiar Profile tabs and keeps every control reachable', async () => {
     const { default: Profile } = await import('../src/pages/Profile/Profile');await mount('/profile',Profile);
-    for (const text of ['الحساب ومزامنة البيانات','التفضيلات والخصوصية','المساعدة والدعم','عن التطبيق والمشاركة','قفل التطبيق','مؤقت الراحة بين المجموعات','مؤشر كتلة الجسم BMI','كارت الوزن (صورة)','وضع رمضان']) expect(node.textContent).toContain(text);
-    for (const url of ['/backups','/tour','/contact','/help','/ai-coach','/photos','/measurements','/achievements']) expect(node.querySelector(`a[href="${url}"]`)).toBeTruthy();
-    expect(node.querySelector('a[href="/training#training-settings"]')).toBeNull();
+    expect(node.querySelectorAll('[role="tab"]')).toHaveLength(3);expect(node.querySelector('.p-stats-row')).toBeTruthy();expect(node.querySelector('details')).toBeNull();
+    for(const url of ['/ai-coach','/photos','/measurements'])expect(node.querySelector(`a[href="${url}"]`)).toBeTruthy();
+    act(()=>node.querySelectorAll('[role="tab"]')[1].click());expect(node.textContent).toContain('كارت الوزن (صورة)');expect(node.querySelector('a[href="/achievements"]')).toBeTruthy();
+    act(()=>node.querySelectorAll('[role="tab"]')[2].click());
+    for (const text of ['الحساب ومزامنة البيانات','التفضيلات والخصوصية','المساعدة والدعم','عن التطبيق والمشاركة','قفل التطبيق','تصفير بيانات التدريب']) expect(node.textContent).toContain(text);
+    for(const url of ['/backups','/tour','/contact','/help'])expect(node.querySelector(`a[href="${url}"]`)).toBeTruthy();expect(node.querySelector('details')).toBeNull();
   });
   it('restores the old visible food controls', async () => {
     const { default: Food } = await import('../src/pages/Food/Food');await mount('/food',Food);

@@ -48,6 +48,7 @@ export default function Profile({ panel = null }) {
   const identityOwnerRef=useRef(user?.id);identityOwnerRef.current=user?.id;
   const { theme: activeTheme } = useTheme();
 
+  const [pTab,setPTab]=useState("me");
   const [showEdit, setShowEdit] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -295,7 +296,7 @@ export default function Profile({ panel = null }) {
 
 
 
-          <details className="ux-group"><summary>{tx("مستواك ونشاطك")}</summary><div className="ux-group-body"><div className="p-stats-row">
+<div className="p-stats-row">
             <div className="p-stat"><span>{fmt(Store.getTotalWorkoutDays())}</span><label>{tx("يوم تمرين")}</label></div>
             <div className="p-stat"><span>{fmt(unlockedCount)}</span><label>{tx("إنجاز")}</label></div>
             <div className="p-stat"><span>{fmt(Store.getBestStreak())}</span><label>{tx("أفضل سلسلة")}</label></div>
@@ -304,11 +305,17 @@ export default function Profile({ panel = null }) {
             <div className="p-xp-nums"><span>{fmt(profile.xp)} XP</span><span>{fmt(profile.xpNext)} XP</span></div>
             <div className="p-xp-track"><div className="p-xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
             {(() => { const x = xpToNext(profile); return <div className="xp-next">{x.capped ? tx("وصلت سقف الـXP النهارده. كمّل بكرة.") : txf(`فاضل {0} {1} للمستوى {2}`, [x.exercises, exercisesWord(x.exercises), x.nextLevel])}</div>; })()}
-          </div></div></details><button className="edit-profile-btn" onClick={() => setShowEdit(true)}>{tx("تعديل الملف الشخصي")}</button>
+          </div><button className="edit-profile-btn" onClick={() => setShowEdit(true)}>{tx("تعديل الملف الشخصي")}</button>
 
 
         </div>
-      </div><details className="ux-group" ><summary>{tx("الحساب ومزامنة البيانات")}</summary><div className="ux-group-body"><Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
+      </div>
+      <div className="xd-tabs pf-tabs" role="tablist" aria-label={currentLang==='en'?'Account sections':'أقسام الحساب'}>
+      {[["me",currentLang==='en'?'My profile':'ملفي'],["ach",currentLang==='en'?'Achievements':'الإنجازات'],["set",currentLang==='en'?'Settings':'الإعدادات']].map(([id,label])=><button key={id} type="button" role="tab" aria-selected={pTab===id} className={'xd-tab'+(pTab===id?' on':'')} onClick={()=>setPTab(id)}>{label}</button>)}
+      </div>
+      {pTab==='me'&&<><Profile panel="training"/><Profile panel="body"/></>}
+      {pTab==='ach'&&<Profile panel="ach"/>}
+      {pTab==='set'&&<div className="profile-legacy-settings"><section className="ux-group"><h3 className="legacy-settings-title">{tx("الحساب ومزامنة البيانات")}</h3><div className="ux-group-body"><Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
           <span className="settings-name">{user ? tx("حسابي ومزامنة البيانات") : tx("تسجيل الدخول ومزامنة البيانات")}</span>
           {user && <span className="settings-hint">{syncStatus === "synced" ? txf(`متزامن {0}`, [timeAgoAr(lastSyncAt)]) : syncStatus === "error" ? tx("فيه مشكلة") : syncStatus === "offline" ? tx("أوفلاين") : timeAgoAr(lastSyncAt)}</span>}
@@ -317,7 +324,7 @@ export default function Profile({ panel = null }) {
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
           <span className="settings-name" style={{ color: "var(--danger)" }}>{currentLang==='en'?'Reset training data':'تصفير بيانات التدريب'}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div></div></details><details className="ux-group" ><summary>{tx("التفضيلات والخصوصية")}</summary><div className="ux-group-body"><ActivityPreference /><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
+        </div></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("التفضيلات والخصوصية")}</h3><div className="ux-group-body"><ActivityPreference /><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
           <span className="settings-name">{tx("اللغة والوحدات")}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
@@ -335,14 +342,14 @@ export default function Profile({ panel = null }) {
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">{tx("التذكير اليومي")}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("التنبيهات ←")}</Link></div></details><details className="ux-group" ><summary>{tx("المساعدة والدعم")}</summary><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("المساعدة وأسئلة شائعة ←")}</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("تواصل معانا ←")}</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("جولة تعريفية بالتطبيق ←")}</Link><a
+        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("التنبيهات ←")}</Link></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("المساعدة والدعم")}</h3><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("المساعدة وأسئلة شائعة ←")}</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("تواصل معانا ←")}</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("جولة تعريفية بالتطبيق ←")}</Link><a
           href={Store.getDeveloperWhatsAppUrl()} target="_blank" rel="noreferrer"
           className="settings-row" style={{ textDecoration: "none", color: "inherit" }}
         >
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" /></svg></div>
           <span className="settings-name">{tx("تواصل مع المطور")}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </a></div></details><details className="ux-group" ><summary>{tx("عن التطبيق والمشاركة")}</summary><div className="ux-group-body"><button type="button" className="glass coach-card" style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={async () => { const r = await shareText({ title: "GYMAK", text: tx("بتمرن وبتتابع أكلك؟ جرّب GYMAK، تطبيق جيم وتغذية بالعربي ببلاش."), url: APP_URL }); if (r === "copied") toast(tx("اللينك اتنسخ")); }}>{tx("شارك التطبيق مع صحابك ←")}</button><div
+        </a></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("عن التطبيق والمشاركة")}</h3><div className="ux-group-body"><button type="button" className="glass coach-card" style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={async () => { const r = await shareText({ title: "GYMAK", text: tx("بتمرن وبتتابع أكلك؟ جرّب GYMAK، تطبيق جيم وتغذية بالعربي ببلاش."), url: APP_URL }); if (r === "copied") toast(tx("اللينك اتنسخ")); }}>{tx("شارك التطبيق مع صحابك ←")}</button><div
           className="settings-row"
           style={{ cursor: checkingUpdate ? "default" : "pointer", opacity: checkingUpdate ? 0.6 : 1 }}
           {...press(handleCheckUpdate)}
@@ -356,7 +363,7 @@ export default function Profile({ panel = null }) {
           {checkingUpdate && <span className="settings-hint">{tx("بيدور...")}</span>}
           {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div></div></details><details className="ux-group"><summary>{tx("إعدادات التدريب ومدربيني ووضع رمضان")}</summary><div className="ux-group-body"><Profile panel="training" /></div></details><details className="ux-group"><summary>{tx("قياسات الجسم وصور التقدم")}</summary><div className="ux-group-body"><Profile panel="body" /></div></details><details className="ux-group"><summary>{tx("الإنجازات ومشاركة التقدم")}</summary><div className="ux-group-body"><Profile panel="ach" /></div></details>{isOwner && <details className="ux-group" ><summary>{tx("إدارة التطبيق")}</summary><div className="ux-group-body">{isOwner && (
+        </div></div></section>{isOwner && <section className="ux-group"><h3 className="legacy-settings-title">{tx("إدارة التطبيق")}</h3><div className="ux-group-body">{isOwner && (
           <Link to="/owner" className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" /></svg></div>
             <span className="settings-name">{tx("لوحة المالك")}</span>
@@ -368,7 +375,7 @@ export default function Profile({ panel = null }) {
             <span className="settings-name">{tx("لوحة الإدارة والرسايل")}</span>
             <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
           </Link>
-        )}</div></details>}</div>}{panel === "body" && <>      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
+        )}</div></section>}</div>}</div>}{panel === "body" && <>      <div className="section-title" style={{ display: "flex", justifyContent: "space-between", margin: "20px 4px 12px" }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("قياسات الجسم")}</h2>
         <span className="sub" style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>{latest ? txf(`آخر تحديث: {0}`, [arDateFull(latest.date)]) : tx("لسه مفيش قياس")}</span>
       </div>
