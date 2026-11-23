@@ -2668,7 +2668,7 @@ export const EN = {
 "وموافق عليها، وفاهم إن ده مش E2EE، وموافق على حفظ الرسائل ومشاركتها مع الطرف اللي هختاره.": "and accept them, understanding this isn't E2EE, and consent to messages being stored & shared with the party I choose.",
 "يا": "O",
 "يا {*}": "Hey {*}",
-"يا {0}": "Hey {0}",
+"يا {0}": "{0}",
 "ياخد": "Takes",
 "يارب": "Hopefully",
 "يتبع إعدادات جهازك": "Follows your device settings",
