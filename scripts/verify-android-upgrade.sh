@@ -106,3 +106,8 @@ grep -q 'OK (1 test)' verification/ota-crypto.txt
 
 # Fresh instrumentation process gets one activation slot, reload never gets another.
 run_test otaActivationOnlyOncePerProcess
+
+# Native bundle switch and automatic rollback. Fixtures stay on this emulator.
+adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/ota-rollback.txt
+grep -q 'OK (2 tests)' verification/ota-rollback.txt
+adb pull /sdcard/Android/data/com.gymak.app/files/ota-rollback.png verification/ota-rollback.png

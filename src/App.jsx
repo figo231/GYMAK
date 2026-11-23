@@ -14,6 +14,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SplashScreen from "./components/SplashScreen";
 import Onboarding from "./components/Onboarding";
 import PWAUpdatePrompt from "./components/PWAUpdatePrompt";
+import CompleteIdentityPrompt from "./components/CompleteIdentityPrompt";
 import EncouragementNotice from "./components/EncouragementNotice";
 import ApkUpdateSheet from "./components/ApkUpdateSheet";
 import RestTimer from "./components/RestTimer";
@@ -95,6 +96,7 @@ export default function App() {
                   <RouterProvider router={router} />
                 </Suspense>
                 {!showSplash && !locked && onboarded && <EncouragementNotice key={"encouragement"} />}
+                {!showSplash && !locked && onboarded && <CompleteIdentityPrompt key={"identity"} />}
                 <RestTimer />
                 <Celebration />
                 {showSplash && <SplashScreen />}
