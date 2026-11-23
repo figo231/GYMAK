@@ -1,8 +1,10 @@
+import {REVIEW_BACKEND_GATED} from './reviewBuild';
 import { supabase } from './supabaseClient';
 const prefix='gymak_encouragement_stop_v1:';
 export const stopPending=(id)=>!!id&&localStorage.getItem(prefix+id)==='1';
 async function checkUser(id){const {data,error}=await supabase.auth.getUser();if(error||data?.user?.id!==id)throw new Error('session_changed');}
 export async function flushEncouragementStop(id){
+ if(REVIEW_BACKEND_GATED)return false;
  if(!supabase||!stopPending(id))return true;
  await checkUser(id);
  const {error}=await supabase.rpc('set_my_encouragement',{p_enabled:false,p_device_id:null,p_expected_user:id});
@@ -10,12 +12,14 @@ export async function flushEncouragementStop(id){
  localStorage.removeItem(prefix+id);return true;
 }
 export async function readEncouragement(id){
+ if(REVIEW_BACKEND_GATED)throw new Error('review_backend_disabled');
  if(!supabase||!id)return {enabled:true,enrolled:false};
  await flushEncouragementStop(id);await checkUser(id);
  const {data,error}=await supabase.rpc('my_encouragement');if(error)throw error;
  return {enabled:data?.enabled===true,enrolled:data?.enrolled===true};
 }
 export async function changeEncouragement(id,enabled){
+ if(REVIEW_BACKEND_GATED)throw new Error('review_backend_disabled');
  if(!id||!supabase)throw new Error('sign_in_required');
  // Never claim an offline opt-out reached the server. Retry only for this account.
  if(!enabled){localStorage.setItem(prefix+id,'1');return flushEncouragementStop(id);}
