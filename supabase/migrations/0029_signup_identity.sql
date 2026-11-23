@@ -1,4 +1,5 @@
 begin;
+-- Requires the additive rollout controls created by0027.
 -- Preserve legacy username claims without renaming or assigning duplicates.
 -- Ambiguous legacy handles stay reserved with no owner until manually resolved.
 create table public.account_username_reservations (
@@ -43,6 +44,7 @@ create function public.complete_account_identity(p_name text,p_gender text,p_use
 declare handle text:=lower(trim(p_username));label text:=trim(p_name);
 begin
  if auth.uid() is null or p_expected_user is distinct from auth.uid() then raise exception 'session_changed';end if;
+ if not exists(select 1 from public.apk18_rollout_control where id and identity_signup) then raise exception 'identity_paused';end if;
  if label is null or char_length(label) not between 2 and 40 then raise exception 'invalid_name';end if;
  if p_gender is null or p_gender not in ('male','female') then raise exception 'invalid_gender';end if;
  if handle is null or handle !~ '^[a-z][a-z0-9_]{2,23}$' then raise exception 'invalid_username';end if;
@@ -62,6 +64,7 @@ create function public.capture_signup_identity() returns trigger language plpgsq
 declare m jsonb:=new.raw_user_meta_data;handle text;label text;sex text;
 begin
  if m->>'identity_version' is distinct from 'v1' then return new;end if;
+ if not exists(select 1 from public.apk18_rollout_control where id and identity_signup) then raise exception 'identity_paused';end if;
  handle:=lower(trim(m->>'username'));label:=trim(m->>'display_name');sex:=m->>'gender';
  if label is null or char_length(label) not between 2 and 40 then raise exception 'invalid_name';end if;
  if sex is null or sex not in ('male','female') then raise exception 'invalid_gender';end if;

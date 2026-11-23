@@ -54,7 +54,7 @@ beforeEach(async()=>{installed=false;
  await rpc("owner","chat_set_user_role",[ids.doctor,"doctor"]);
  // Everyone accepts the original privacy-notice-only version, then 0027 lands.
  for(const name of ["client","doctor","coach","owner","sender","stranger"])await rpc(name,"chat_accept_terms",[V1]);
- await db.exec(moderation);installed=true;
+ await db.exec(moderation);await db.exec('update apk18_rollout_control set chat_writes=true');installed=true;
 });
 describe("UGC terms, report and block SQL against an actual embedded PostgreSQL engine",()=>{
  it("keeps every pre-existing function, constraint and policy definition unchanged",async()=>{

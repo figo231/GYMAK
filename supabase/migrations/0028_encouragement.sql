@@ -93,7 +93,7 @@ end $$;
 create function public.claim_encouragement() returns setof public.encouragement_deliveries language plpgsql security definer set search_path=public,pg_temp as $$
 declare c public.encouragement_config; wall timestamp; day date; mid smallint;
 begin
- delete from public.encouragement_deliveries where local_day < (now() at time zone 'Africa/Cairo')::date-90;
+ -- Retention deletion is not part of this additive rollout; keep all audit rows.
  select * into c from public.encouragement_config where id=true;
  wall:=clock_timestamp() at time zone 'Africa/Cairo';day:=wall::date;
  if not c.enabled or c.approved_text_version is distinct from 'encouragement-v1' or c.approved_text_hash is distinct from public.encouragement_text_hash() or wall < day+c.local_time or wall >= day+c.local_time+interval '15 minutes' then return; end if;

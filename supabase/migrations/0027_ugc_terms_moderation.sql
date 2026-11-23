@@ -4,6 +4,11 @@
 -- that exposes ONLY content a user reported. Requires 0022/0023 (feedback) and 0024 (chat).
 -- Additive candidate, one-time transactional migration. Do not apply without approval.
 begin;
+create table public.apk18_rollout_control(id boolean primary key default true check(id),chat_writes boolean not null default false,identity_signup boolean not null default false);
+insert into public.apk18_rollout_control(id) values(true);
+alter table public.apk18_rollout_control enable row level security;
+revoke all on public.apk18_rollout_control from public,anon,authenticated;
+grant all on public.apk18_rollout_control to service_role;
 
 -- 1) Terms of Use acceptance, versioned independently so a future ToU change forces re-consent.
 create table if not exists public.terms_acceptances (
@@ -327,6 +332,7 @@ grant execute on function public.chat_has_consent_v2(),public.chat_bootstrap_v2(
 create function public.enforce_chat_safety_v2() returns trigger language plpgsql security definer set search_path='' as $$
 declare a uuid; b uuid;
 begin
+ if not exists(select 1 from public.apk18_rollout_control where id and chat_writes) then raise exception 'chat_paused';end if;
  if TG_TABLE_NAME='chat_messages' then
   select client_id,professional_id into a,b from public.chat_conversations where id=new.conversation_id;
  else a:=new.client_id;b:=new.professional_id;end if;
