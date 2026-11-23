@@ -1,3 +1,5 @@
+import OwnerNotifications from "./OwnerNotifications";
+import {useI18n} from "../../hooks/useI18n";
 import { useEffect, useState } from "react";
 import OwnerProfessionalCards from "./OwnerProfessionalCards";
 import OwnerChatRoles from "./OwnerChatRoles";
@@ -92,6 +94,7 @@ function PublishedList({ table, label }) {
 }
 
 function OwnerPanelSession() {
+  const {lang}=useI18n();
   const { user } = useAuth();
   const [ok, setOk] = useState(null);
   const [tab, setTab] = useState("exercises");
@@ -99,7 +102,7 @@ function OwnerPanelSession() {
   useEffect(() => { isOwnerAdmin(user?.id).then(setOk); }, [user?.id]);
   if (ok === null) return <DetailTopBar backTo="/profile" title="لوحة المالك" />;
   if (!ok) return (<><DetailTopBar backTo="/profile" title="لوحة المالك" /><p className="notif-note" style={{ padding: 16 }}>الصفحة دي لحساب المالك بس.</p></>);
-  const tabs = [["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"], ["suggestions", "المقترحين"], ["reports", "البلاغات"], ["encouragement", "التشجيع"]];
+  const tabs = [["notifications",lang==='en'?"Notifications":"الإشعارات"],["exercises", "التمارين"], ["foods", "الأكل"], ["coaches", "المستخدمون"], ["suggestions", "المقترحين"], ["reports", "البلاغات"], ["encouragement", "التشجيع"]];
   return (
     <>
       <DetailTopBar backTo="/profile" title="لوحة المالك" />
@@ -108,6 +111,7 @@ function OwnerPanelSession() {
           <button key={k} type="button" onClick={() => setTab(k)} className={"btn" + (tab === k ? " btn-primary" : "")} style={{ flex: "1 0 28%", padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", cursor: "pointer", fontWeight: 800, background: tab === k ? undefined : "none", color: tab === k ? undefined : "inherit" }}>{l}</button>
         ))}
       </div>
+      {tab === "notifications" && <OwnerNotifications />}
       {tab === "exercises" && (<><ExerciseForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_exercises" label="تمارين" /></>)}
       {tab === "foods" && (<><FoodForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_foods" label="أكلات" /></>)}
       {tab === "coaches" && <OwnerChatRoles />}
