@@ -61,7 +61,7 @@
   "rewrites": [
     {
       "source": "/welcome",
-      "destination": "/landing.html"
+      "destination": "/index.html"
     },
     {
       "source": "/((?!assets/|.*\\..*).*)",

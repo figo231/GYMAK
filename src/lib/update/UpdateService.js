@@ -7,15 +7,8 @@ function isNativeApp() {
   return typeof window !== "undefined" && !!window.Capacitor?.isNativePlatform?.();
 }
 
-function isTWA() {
-  // Android's Trusted Web Activity wrapper (what PWABuilder produces)
-  // launches the app with this referrer — the standard way to distinguish
-  // "running as the wrapped APK" from "running as a browser tab / installed PWA".
-  return typeof document !== "undefined" && document.referrer.startsWith("android-app://");
-}
-
 function getStrategy() {
-  return isNativeApp() || isTWA() ? apkUpdateStrategy : pwaUpdateStrategy;
+  return isNativeApp() ? apkUpdateStrategy : pwaUpdateStrategy;
 }
 
 const listeners = new Set();
@@ -70,7 +63,7 @@ const UpdateService = {
 
   /** Which strategy is active — exposed in case UI ever needs to label things differently per platform. */
   platform() {
-    return isNativeApp() || isTWA() ? "apk" : "pwa";
+    return isNativeApp() ? "apk" : "pwa";
   },
 };
 

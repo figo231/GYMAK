@@ -12,7 +12,7 @@ export default function ApkUpdateSheet() {
     return UpdateService.subscribe((e) => { if (e.type === "apk-available") setOpen(true); });
   }, []);
 
-  if (!open) return null;
+  if (!open || UpdateService.platform() !== "apk") return null;
 
   async function go() {
     setBusy(true);
