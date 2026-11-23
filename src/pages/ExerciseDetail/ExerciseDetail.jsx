@@ -178,8 +178,8 @@ function ExerciseDetail({ id }) {
           <h1 className="xd-title">{exercise ? exercise.name : tx("تمرين غير موجود")}</h1>
           {exercise && (
             <div className="xd-chips">
-              {exercise.equipment && <span className="xd-chip">{isEn() ? equipmentEn(exercise.equipment) : exercise.equipment}</span>
-              {exercise.difficulty && <span className="xd-chip">{isEn() ? difficultyEn(exercise.difficulty) : exercise.difficulty}</span>
+              {exercise.equipment && <span className="xd-chip">{isEn() ? equipmentEn(exercise.equipment) : exercise.equipment}</span>}
+              {exercise.difficulty && <span className="xd-chip">{isEn() ? difficultyEn(exercise.difficulty) : exercise.difficulty}</span>}
               {best > 0 && <span className="xd-chip hot">{tx("أفضل")} {Store.formatWeight(best)}</span>}
             </div>
           )}

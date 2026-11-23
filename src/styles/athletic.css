@@ -469,7 +469,7 @@ html.ath.pro-ui .mp-tabs button.on{background:#FF6A1A;border-color:var(--accent-
 html.ath.pro-ui .mp-day{padding:14px;margin-bottom:10px}
 html.ath.pro-ui .mp-day-top{display:flex;justify-content:space-between;margin-bottom:8px}
 html.ath.pro-ui .mp-day-top span{color:var(--accent-text);font-weight:700;font-size:13px}
-html.ath.pro-ui .mp-meal{display:grid;grid-template-columns:48px 1fr auto;gap:8px;font-size:12.5px;padding:6px 0;border-top:1px solid rgba(var(--ink),.07);line-height:1.6}
+html.ath.pro-ui .mp-meal{display:grid;grid-template-columns:minmax(48px,max-content) 1fr auto;gap:8px;font-size:12.5px;padding:6px 0;border-top:1px solid rgba(var(--ink),.07);line-height:1.6}
 html.ath.pro-ui .mp-slot{font-weight:800;color:var(--accent-text)}
 html.ath.pro-ui .mp-kcal{opacity:.6}
 html.ath.pro-ui .mp-shop{padding:12px 14px}
