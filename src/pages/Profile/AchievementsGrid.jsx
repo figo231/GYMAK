@@ -19,11 +19,11 @@ export default function AchievementsGrid({ achievements, onShare = null }) {
         if (a.unlocked) {
           if (onShare) {
             return (
-              <button type="button" className="badge-card" key={a.id} onClick={() => onShare(a)} aria-label={txf(`شارك وسام {0}`, [a.name])} style={{ cursor: "pointer", border: "none", font: "inherit" }}>
+              <button type="button" className="badge-card" key={a.id} onClick={() => onShare(a)} aria-label={txf(`شارك وسام {0}`, [tx(a.name)])} style={{ cursor: "pointer", border: "none", font: "inherit" }}>
                 <div className="badge-ic" style={{ background: style.grad }}>
                   <svg width="20" height="20" viewBox="0 0 24 24"><BadgePaths path={style.path} fill={style.fill} /></svg>
                 </div>
-                <div className="badge-name">{a.name}</div>
+                <div className="badge-name">{tx(a.name)}</div>
                 <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>{tx("شارك 📤")}</div>
               </button>
             );
@@ -33,7 +33,7 @@ export default function AchievementsGrid({ achievements, onShare = null }) {
               <div className="badge-ic" style={{ background: style.grad }}>
                 <svg width="20" height="20" viewBox="0 0 24 24"><BadgePaths path={style.path} fill={style.fill} /></svg>
               </div>
-              <div className="badge-name">{a.name}</div>
+              <div className="badge-name">{tx(a.name)}</div>
             </div>
           );
         }
@@ -45,7 +45,7 @@ export default function AchievementsGrid({ achievements, onShare = null }) {
                 <path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
-            <div className="badge-name">{a.name}</div>
+            <div className="badge-name">{tx(a.name)}</div>
             {a.target > 1 && <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>{a.progress}/{a.target}</div>}
           </div>
         );
