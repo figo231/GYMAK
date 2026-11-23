@@ -1,3 +1,4 @@
+import { tx } from "./i18n/tx";
 // One-rep-max estimates and working-weight suggestions. All weights in kg.
 // Epley is used up to 10 reps, Brzycki above, both are rough beyond 12 reps.
 export function estimate1RM(weight, reps) {
@@ -9,14 +10,14 @@ export function estimate1RM(weight, reps) {
 }
 
 export const ZONES = [
-  { pct: 95, reps: "2", goal: "قوة قصوى" },
-  { pct: 90, reps: "3-4", goal: "قوة" },
-  { pct: 85, reps: "5-6", goal: "قوة" },
-  { pct: 80, reps: "7-8", goal: "قوة وعضل" },
-  { pct: 75, reps: "9-10", goal: "تضخيم" },
-  { pct: 70, reps: "11-12", goal: "تضخيم" },
-  { pct: 65, reps: "13-15", goal: "تحمل عضلي" },
-  { pct: 60, reps: "15-20", goal: "تحمل عضلي" },
+  { pct: 95, reps: "2", goal: tx("قوة قصوى") },
+  { pct: 90, reps: "3-4", goal: tx("قوة") },
+  { pct: 85, reps: "5-6", goal: tx("قوة") },
+  { pct: 80, reps: "7-8", goal: tx("قوة وعضل") },
+  { pct: 75, reps: "9-10", goal: tx("تضخيم") },
+  { pct: 70, reps: "11-12", goal: tx("تضخيم") },
+  { pct: 65, reps: "13-15", goal: tx("تحمل عضلي") },
+  { pct: 60, reps: "15-20", goal: tx("تحمل عضلي") },
 ];
 
 // Round to the nearest plate step (2.5 kg by default, never below one step).

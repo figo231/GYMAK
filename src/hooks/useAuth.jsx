@@ -99,12 +99,12 @@ export function AuthProvider({ children }) {
     return()=>{window.removeEventListener('online',tick);document.removeEventListener('visibilitychange',tick);};
   },[session?.user?.id,isPasswordRecovery]);
 
-  async function signUp(email, password) {
+  async function signUp(email, password, identity) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
     const { data, error } = await withTimeout(supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/login` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/login`, ...(identity ? {data:{identity_version:"v1",display_name:identity.name.trim(),gender:identity.gender,username:identity.username.trim().toLowerCase()}} : {}) },
     }));
     return { error, data, duplicate: !error && isDuplicateSignup(data) };
   }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { validBarcode, lookupBarcode, itemFor, cameraScanSupported } from "../../lib/barcode";
+import { tx } from "../../lib/i18n/tx";
 
-const MSG = { invalid: "الرقم ده مش باركود صحيح. اتأكد من الأرقام.", notfound: "المنتج ده مش موجود في قاعدة البيانات. سجّله بالاسم أو دخّل القيم بإيدك.", network: "معرفناش نوصل للإنترنت. جرّب تاني." };
+const MSG = { invalid: tx("الرقم ده مش باركود صحيح. اتأكد من الأرقام."), notfound: tx("المنتج ده مش موجود في قاعدة البيانات. سجّله بالاسم أو دخّل القيم بإيدك."), network: tx("معرفناش نوصل للإنترنت. جرّب تاني.") };
 
 export default function BarcodeSheet({ onClose, onAdd }) {
   const [code, setCode] = useState("");
@@ -47,7 +48,7 @@ export default function BarcodeSheet({ onClose, onAdd }) {
           timer = setTimeout(tick, 400);
         };
         tick();
-      } catch { setCam(false); setErr("مقدرناش نفتح الكاميرا. اكتب رقم الباركود بإيدك."); }
+      } catch { setCam(false); setErr(tx("مقدرناش نفتح الكاميرا. اكتب رقم الباركود بإيدك.")); }
     })();
     return () => { stop = true; clearTimeout(timer); if (stream) stream.getTracks().forEach((t) => t.stop()); };
   }, [cam]);
@@ -55,29 +56,29 @@ export default function BarcodeSheet({ onClose, onAdd }) {
   const item = prod ? itemFor(prod, grams) : null;
   return (
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-sheet" role="dialog" aria-modal="true" aria-label="باركود">
+      <div className="edit-sheet" role="dialog" aria-modal="true" aria-label={tx("باركود")}>
         <div className="edit-sheet-handle" />
-        <h3>سجّل بالباركود</h3>
+        <h3>{tx("سجّل بالباركود")}</h3>
         {cam && <video ref={videoRef} className="bc-video" playsInline muted />}
-        <div className="edit-field"><label htmlFor="bc-code">رقم الباركود (الأرقام اللي تحت الخطوط)</label>
+        <div className="edit-field"><label htmlFor="bc-code">{tx("رقم الباركود (الأرقام اللي تحت الخطوط)")}</label>
           <input id="bc-code" dir="ltr" inputMode="numeric" value={code} maxLength={14} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} /></div>
         <div className="ad-actions">
-          <button type="button" className="btn btn-primary" disabled={busy || code.length < 8} onClick={() => search()}>{busy ? "بندوّر..." : "دوّر"}</button>
-          {cameraScanSupported() && <button type="button" className="btn" onClick={() => { setErr(""); setCam(!cam); }}>{cam ? "اقفل الكاميرا" : "افتح الكاميرا"}</button>}
+          <button type="button" className="btn btn-primary" disabled={busy || code.length < 8} onClick={() => search()}>{busy ? tx("بندوّر...") : tx("دوّر")}</button>
+          {cameraScanSupported() && <button type="button" className="btn" onClick={() => { setErr(""); setCam(!cam); }}>{cam ? tx("اقفل الكاميرا") : tx("افتح الكاميرا")}</button>}
         </div>
         {err && <div className="ct-err" role="alert">{err}</div>}
         {prod && (
           <div className="bc-result">
             <b>{prod.name}{prod.brand ? ` · ${prod.brand}` : ""}</b>
-            <small>لكل 100 جم: {prod.per100.kcal} سعرة · بروتين {prod.per100.protein} · كارب {prod.per100.carbs} · دهون {prod.per100.fat}</small>
-            <div className="edit-field"><label htmlFor="bc-g">الكمية اللي أكلتها (جم)</label>
+            <small>{tx("لكل 100 جم:")} {prod.per100.kcal} {tx("سعرة · بروتين")} {prod.per100.protein} {tx("· كارب")} {prod.per100.carbs} {tx("· دهون")} {prod.per100.fat}</small>
+            <div className="edit-field"><label htmlFor="bc-g">{tx("الكمية اللي أكلتها (جم)")}</label>
               <input id="bc-g" type="number" inputMode="decimal" min="1" value={grams} onChange={(e) => setGrams(e.target.value)} /></div>
-            {item ? <small>هتتسجل: {item.kcal} سعرة · بروتين {item.protein} · كارب {item.carbs} · دهون {item.fat}</small> : <small>اكتب كمية صحيحة.</small>}
-            <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} disabled={!item} onClick={() => onAdd(item)}>سجّل</button>
+            {item ? <small>{tx("هتتسجل:")} {item.kcal} {tx("سعرة · بروتين")} {item.protein} {tx("· كارب")} {item.carbs} {tx("· دهون")} {item.fat}</small> : <small>{tx("اكتب كمية صحيحة.")}</small>}
+            <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 8 }} disabled={!item} onClick={() => onAdd(item)}>{tx("سجّل")}</button>
           </div>
         )}
-        <button type="button" className="btn" style={{ width: "100%", marginTop: 8, background: "transparent", border: "1px solid var(--border-soft)" }} onClick={onClose}>إلغاء</button>
-        <p className="notif-note">البيانات من Open Food Facts وبتتجمّع من المستخدمين. ممكن تكون ناقصة أو مش دقيقة، وبعد التسجيل تقدر تعدّلها.</p>
+        <button type="button" className="btn" style={{ width: "100%", marginTop: 8, background: "transparent", border: "1px solid var(--border-soft)" }} onClick={onClose}>{tx("إلغاء")}</button>
+        <p className="notif-note">{tx("البيانات من Open Food Facts وبتتجمّع من المستخدمين. ممكن تكون ناقصة أو مش دقيقة، وبعد التسجيل تقدر تعدّلها.")}</p>
       </div>
     </div>
   );

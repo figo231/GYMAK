@@ -13,6 +13,7 @@ import WeeklyCard from "./WeeklyCard";
 import TrendChart from "./TrendChart";
 import { loadMeasures, FIELDS } from "../../lib/measure/measure";
 import { windowStart } from "../../lib/dateKey";
+import { tx, txf } from "../../lib/i18n/tx";
 
 const STRENGTH_COLORS = ["#C9A24B,#F1DFA8", "#22C55E,#86EFAC", "#A67C2E,#E6C877", "#F59E0B,#FDE68A", "#EC4899,#FBCFE8"];
 const TONE_COLOR = { good: "var(--success)", bad: "var(--danger)", neutral: "var(--text-dim)" };
@@ -85,21 +86,21 @@ export default function Stats() {
     <>
       <SectionNav group="progress" />
       <div className="page-head">
-        <h1 className="page-title">الإحصائيات</h1>
-        <div className="page-count">تقدمك خلال {period.long}</div>
+        <h1 className="page-title">{tx("الإحصائيات")}</h1>
+        <div className="page-count">{tx("تقدمك خلال")} {period.long}</div>
       </div>
 
       {!hasAnyData ? (
         <div className="glass stats-empty">
-          <p>لسه مفيش بيانات. سجّل أول تمرين وأول وزن وهتشوف تقدمك هنا.</p>
+          <p>{tx("لسه مفيش بيانات. سجّل أول تمرين وأول وزن وهتشوف تقدمك هنا.")}</p>
           <div className="row">
-            <Link to="/exercises" className="btn">سجّل تمرين</Link>
-            <Link to="/" className="btn">سجّل وزنك</Link>
+            <Link to="/exercises" className="btn">{tx("سجّل تمرين")}</Link>
+            <Link to="/" className="btn">{tx("سجّل وزنك")}</Link>
           </div>
         </div>
       ) : (
         <>
-          <div className="period-tabs" role="group" aria-label="الفترة الزمنية">
+          <div className="period-tabs" role="group" aria-label={tx("الفترة الزمنية")}>
             {PERIODS.map((p) => (
               <button
                 type="button"
@@ -113,8 +114,8 @@ export default function Stats() {
             ))}
           </div>
 
-          <div className="xd-tabs sx-tabs" role="tablist" aria-label="عرض الإحصائيات">
-            {[["overview", "نظرة عامة"], ["body", "الجسم"], ["strength", "القوة"]].map(([id, l]) => (
+          <div className="xd-tabs sx-tabs" role="tablist" aria-label={tx("عرض الإحصائيات")}>
+            {[["overview", tx("نظرة عامة")], ["body", tx("الجسم")], ["strength", tx("القوة")]].map(([id, l]) => (
               <button key={id} type="button" role="tab" aria-selected={view === id} className={"xd-tab" + (view === id ? " on" : "")} onClick={() => setView(id)}>{l}</button>
             ))}
           </div>
@@ -122,35 +123,35 @@ export default function Stats() {
           {view === "overview" && (<>
           <div className="sx-hero" data-testid="stats-hero">
             <div className="sx-hero-main">
-              <span className="sx-hero-cap">تغيّر الوزن · {period.long}</span>
+              <span className="sx-hero-cap">{tx("تغيّر الوزن ·")} {period.long}</span>
               <b className="sx-hero-num" dir="ltr">{summary.diffDisp != null ? signed(summary.diffDisp) : "—"}<small>{unit}</small></b>
             </div>
             <div className="sx-hero-row">
-              <div><b>{summary.days}</b><span>يوم تمرين</span></div>
-              <div><b>{summary.sets}</b><span>مجموعة</span></div>
-              <div><b>{summary.prCount}</b><span>رقم قياسي</span></div>
+              <div><b>{summary.days}</b><span>{tx("يوم تمرين")}</span></div>
+              <div><b>{summary.sets}</b><span>{tx("مجموعة")}</span></div>
+              <div><b>{summary.prCount}</b><span>{tx("رقم قياسي")}</span></div>
             </div>
           </div>
 
           <WeeklyCard />
 
-          <SectionTitle title="أيام التمرين" sub="آخر 28 يوم" />
+          <SectionTitle title={tx("أيام التمرين")} sub={tx("آخر 28 يوم")} />
           <div className="glass" style={{ padding: 14 }}>
-            <div className="heat-grid" role="img" aria-label={`تمرنت ${heat.filter((h) => h.on).length} يوم من آخر 28 يوم`}>
+            <div className="heat-grid" role="img" aria-label={txf(`تمرنت {0} يوم من آخر 28 يوم`, [heat.filter((h) => h.on).length])}>
               {heat.map((h) => (
                 <div key={h.date} className={"heat-cell" + (h.on ? " on" : "") + (h.today ? " today" : "")}>{+h.date.slice(8)}</div>
               ))}
             </div>
           </div>
 
-          <SectionTitle title="ملخص الفترة" sub={period.long} />
+          <SectionTitle title={tx("ملخص الفترة")} sub={period.long} />
           <div className="glass" style={{ padding: "4px 14px" }}>
             <div className="mini-row">
               <div className="mini-left">
                 <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
                 <div>
-                  <div className="mini-name">أعلى وزن شلته في مجموعة</div>
-                  <div className="mini-sub">أعلى وزن مسجل في الفترة، مش مجموع الأوزان أو وزن جسمك</div>
+                  <div className="mini-name">{tx("أعلى وزن شلته في مجموعة")}</div>
+                  <div className="mini-sub">{tx("أعلى وزن مسجل في الفترة، مش مجموع الأوزان أو وزن جسمك")}</div>
                 </div>
               </div>
               <div className="mini-val" dir="ltr">{summary.peakWeight}</div>
@@ -159,49 +160,49 @@ export default function Stats() {
               <div className="mini-left">
                 <div className="mini-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" /></svg></div>
                 <div>
-                  <div className="mini-name">أطول ستريك</div>
-                  <div className="mini-sub">أيام متتالية على الإطلاق</div>
+                  <div className="mini-name">{tx("أطول ستريك")}</div>
+                  <div className="mini-sub">{tx("أيام متتالية على الإطلاق")}</div>
                 </div>
               </div>
-              <div className="mini-val">{Store.getBestStreak()} يوم</div>
+              <div className="mini-val">{Store.getBestStreak()} {tx("يوم")}</div>
             </div>
           </div>
           </>)}
           {view === "body" && (<>
-          <SectionTitle title="تطور الوزن" sub={period.long} />
+          <SectionTitle title={tx("تطور الوزن")} sub={period.long} />
           <GoalCard history={history} />
           <WeightChart history={history} goal={goal} goalTo={goalTrajectory(history, goal, Store.getGoalDeadline())?.to ?? null} periodLabel={period.long} />
 
           {measureFields.length > 0 && (
             <>
-              <SectionTitle title="قياسات الجسم" sub={period.long} />
+              <SectionTitle title={tx("قياسات الجسم")} sub={period.long} />
               <div className="glass chart-card" style={{ padding: "14px" }}>
-                <div className="chip-row" role="group" aria-label="القياس">
+                <div className="chip-row" role="group" aria-label={tx("القياس")}>
                   {measureFields.map(([k, l]) => (
                     <button type="button" key={k} className={"m-chip" + (k === activeField ? " on" : "")} aria-pressed={k === activeField} onClick={() => setMField(k)}>{l}</button>
                   ))}
                 </div>
-                <TrendChart points={measurePts} unit="سم" label={FIELDS.find(([k]) => k === activeField)?.[1]} />
+                <TrendChart points={measurePts} unit={tx("سم")} label={FIELDS.find(([k]) => k === activeField)?.[1]} />
               </div>
             </>
           )}
 
           {bodyFat.length > 0 && (
             <>
-              <SectionTitle title="نسبة الدهون" sub={period.long} />
+              <SectionTitle title={tx("نسبة الدهون")} sub={period.long} />
               <div className="glass chart-card" style={{ padding: "14px" }}>
-                <TrendChart points={bodyFat} unit="%" label="نسبة الدهون" />
+                <TrendChart points={bodyFat} unit="%" label={tx("نسبة الدهون")} />
               </div>
             </>
           )}
 
           </>)}
           {view === "strength" && (<>
-          <SectionTitle title="تطور القوة" sub="أفضل وزن: أول مرة مقابل دلوقتي" />
+          <SectionTitle title={tx("تطور القوة")} sub={tx("أفضل وزن: أول مرة مقابل دلوقتي")} />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!strengthRows.length ? (
               <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "6px 0", lineHeight: 1.7 }}>
-                سجّل نفس التمرين في يومين بينهم أسبوع على الأقل عشان نقدر نتابع تطورك فيه.
+                {tx("سجّل نفس التمرين في يومين بينهم أسبوع على الأقل عشان نقدر نتابع تطورك فيه.")}
               </p>
             ) : (
               strengthRows.map((r, i) => {
@@ -211,24 +212,24 @@ export default function Stats() {
                     <div className="strength-head">
                       <b>{r.name}</b>
                       <div className="strength-nums">
-                        <span>من <bdi>{fmt(Store.toDisplayWeight(r.from))}</bdi> إلى <bdi>{fmt(Store.toDisplayWeight(r.to))}</bdi> {unit}</span>
+                        <span>{tx("من")} <bdi>{fmt(Store.toDisplayWeight(r.from))}</bdi> {tx("إلى")} <bdi>{fmt(Store.toDisplayWeight(r.to))}</bdi> {unit}</span>
                         <span className={"pct-badge " + (r.pct >= 0 ? "pos" : "neg")} dir="ltr">{capPct(r.pct)}</span>
                       </div>
                     </div>
                     <div className="strength-track">
                       <div className="strength-fill" style={{ width: `${width}%`, background: `linear-gradient(90deg,${STRENGTH_COLORS[i % STRENGTH_COLORS.length]})` }} />
                     </div>
-                    <div className="strength-sub">تقدير أقصى وزن لمرة واحدة: <bdi>{fmt(Store.toDisplayWeight(r.e1rm))}</bdi> {unit}</div>
+                    <div className="strength-sub">{tx("تقدير أقصى وزن لمرة واحدة:")} <bdi>{fmt(Store.toDisplayWeight(r.e1rm))}</bdi> {unit}</div>
                   </div>
                 );
               })
             )}
           </div>
 
-          <SectionTitle title="أرقام قياسية جديدة (PRs)" />
+          <SectionTitle title={tx("أرقام قياسية جديدة (PRs)")} />
           {!prs.length ? (
             <div className="glass" style={{ padding: 16, textAlign: "center", color: "var(--text-dim)", fontSize: 12.5, lineHeight: 1.7 }}>
-              لسه مفيش أرقام قياسية. أول ما ترفع وزن أعلى من قبل في أي تمرين هيتسجل هنا تلقائيًا.
+              {tx("لسه مفيش أرقام قياسية. أول ما ترفع وزن أعلى من قبل في أي تمرين هيتسجل هنا تلقائيًا.")}
             </div>
           ) : (
             prs.map((pr, i) => (
@@ -242,21 +243,21 @@ export default function Stats() {
                 </div>
                 <div className="pr-value">
                   <div className="pr-num">{Store.formatWeight(pr.weight)}</div>
-                  {pr.prevWeight > 0 && <div className="pr-old-label">كان <span className="pr-old">{Store.formatWeight(pr.prevWeight)}</span></div>}
+                  {pr.prevWeight > 0 && <div className="pr-old-label">{tx("كان")} <span className="pr-old">{Store.formatWeight(pr.prevWeight)}</span></div>}
                 </div>
               </div>
             ))
           )}
 
-          <SectionTitle title="خريطة العضلات" sub={period.long} />
+          <SectionTitle title={tx("خريطة العضلات")} sub={period.long} />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             <MuscleHeatmap sets={muscleKeys} />
           </div>
 
-          <SectionTitle title="توزيع المجموعات على العضلات" sub="مقارنة بالفترة اللي قبلها" />
+          <SectionTitle title={tx("توزيع المجموعات على العضلات")} sub={tx("مقارنة بالفترة اللي قبلها")} />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!muscles.length ? (
-              <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "6px 0" }}>مفيش تمارين متسجلة في الفترة دي.</p>
+              <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "6px 0" }}>{tx("مفيش تمارين متسجلة في الفترة دي.")}</p>
             ) : muscles.map((m) => (
               <div className="muscle-row" key={m.label}>
                 <span className="m-name">{m.label}</span>

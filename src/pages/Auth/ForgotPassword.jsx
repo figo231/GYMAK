@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { translateAuthError } from "../../lib/authErrors";
 import { normalizeEmail, validEmail } from "../../lib/authLogic";
 import { AuthField, AuthError, AuthNotice, AuthStatus, Spinner, useCooldown } from "./AuthShell";
+import { tx, txf } from "../../lib/i18n/tx";
 
 export default function ForgotPassword() {
   const { resetPasswordForEmail, isConfigured } = useAuth();
@@ -16,8 +17,8 @@ export default function ForgotPassword() {
 
   async function send() {
     const mail = normalizeEmail(email);
-    if (!mail) { setError("اكتب إيميلك."); return false; }
-    if (!validEmail(mail)) { setError("صيغة الإيميل مش صحيحة."); return false; }
+    if (!mail) { setError(tx("اكتب إيميلك.")); return false; }
+    if (!validEmail(mail)) { setError(tx("صيغة الإيميل مش صحيحة.")); return false; }
     setBusy(true);
     let res;
     try { res = await resetPasswordForEmail(mail); } catch (err) { res = { error: err }; }
@@ -29,42 +30,42 @@ export default function ForgotPassword() {
   }
 
   async function handleSubmit(e) { e.preventDefault(); setError(""); setInfo(""); if (await send()) setSent(true); }
-  async function again() { if (wait > 0) return; setError(""); setInfo(""); if (await send()) setInfo("بعتناه تاني. شوف الوارد والسبام."); }
+  async function again() { if (wait > 0) return; setError(""); setInfo(""); if (await send()) setInfo(tx("بعتناه تاني. شوف الوارد والسبام.")); }
 
   if (sent) {
     return (
       <>
         <AuthStatus icon="mail" />
-        <h1 className="auth-title">اتبعتت الرسالة</h1>
+        <h1 className="auth-title">{tx("اتبعتت الرسالة")}</h1>
         <p className="auth-sub">
-          لو الإيميل ده مسجل عندنا، هيوصلك رابط لإعادة تعيين الباسورد على <b dir="ltr">{email}</b>. الرابط بيشتغل مرة واحدة.
+          {tx("لو الإيميل ده مسجل عندنا، هيوصلك رابط لإعادة تعيين الباسورد على")} <b dir="ltr">{email}</b>{tx(". الرابط بيشتغل مرة واحدة.")}
         </p>
         <AuthNotice message={info} />
         <AuthError message={error} />
         <div className="auth-actions-2">
-          <button type="button" className="auth-text-btn" onClick={again} disabled={wait > 0 || busy}>{wait > 0 ? `ابعت تاني (${wait})` : "ابعت تاني"}</button>
-          <button type="button" className="auth-text-btn" onClick={() => { setSent(false); setInfo(""); setError(""); }}>غيّر الإيميل</button>
+          <button type="button" className="auth-text-btn" onClick={again} disabled={wait > 0 || busy}>{wait > 0 ? txf(`ابعت تاني ({0})`, [wait]) : tx("ابعت تاني")}</button>
+          <button type="button" className="auth-text-btn" onClick={() => { setSent(false); setInfo(""); setError(""); }}>{tx("غيّر الإيميل")}</button>
         </div>
-        <Link to="/auth/login" className="auth-skip">رجوع لتسجيل الدخول</Link>
+        <Link to="/auth/login" className="auth-skip">{tx("رجوع لتسجيل الدخول")}</Link>
       </>
     );
   }
 
   return (
     <>
-      <h1 className="auth-title">نسيت الباسورد؟</h1>
-      <p className="auth-sub">اكتب إيميلك وهنبعتلك رابط تقدر تظبط بيه باسورد جديد.</p>
+      <h1 className="auth-title">{tx("نسيت الباسورد؟")}</h1>
+      <p className="auth-sub">{tx("اكتب إيميلك وهنبعتلك رابط تقدر تظبط بيه باسورد جديد.")}</p>
 
-      {!isConfigured && <AuthError message="الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي." />}
+      {!isConfigured && <AuthError message={tx("الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي.")} />}
       <form onSubmit={handleSubmit} noValidate>
-        <AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        <AuthField label={tx("الإيميل")} icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         <AuthError message={error} />
         <button type="submit" className="btn btn-primary auth-submit" disabled={busy || !isConfigured}>
-          {busy ? <><Spinner />جاري الإرسال...</> : "ابعت رابط إعادة التعيين"}
+          {busy ? <><Spinner />{tx("جاري الإرسال...")}</> : tx("ابعت رابط إعادة التعيين")}
         </button>
       </form>
 
-      <Link to="/auth/login" className="auth-skip">رجوع لتسجيل الدخول</Link>
+      <Link to="/auth/login" className="auth-skip">{tx("رجوع لتسجيل الدخول")}</Link>
     </>
   );
 }

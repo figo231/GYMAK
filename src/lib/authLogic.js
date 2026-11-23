@@ -1,3 +1,4 @@
+import { tx } from "./i18n/tx";
 // Pure helpers for the sign-in screens.
 export const MIN_PASSWORD = 8;
 export const normalizeEmail = (e) => String(e || "").trim().toLowerCase();
@@ -8,13 +9,13 @@ export function passwordStrength(pw) {
   const p = String(pw || "");
   if (!p) return { score: 0, label: "", ok: false };
   const ok = p.length >= MIN_PASSWORD;
-  if (!ok) return { score: 1, label: "قصير", ok };
+  if (!ok) return { score: 1, label: tx("قصير"), ok };
   let score = 2;
   if (p.length >= 12) score++;
   const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(p)).length;
   if (classes >= 3) score++;
   score = Math.min(4, score);
-  return { score, label: ["", "قصير", "مقبول", "كويس", "قوي"][score], ok };
+  return { score, label: ["", tx("قصير"), tx("مقبول"), tx("كويس"), tx("قوي")][score], ok };
 }
 
 // Supabase answers a sign-up for an already-registered email with a fake user

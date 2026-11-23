@@ -3,39 +3,40 @@ import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { usePrompt } from "../../hooks/useDialog";
 import { answerFor, welcomeMessage, resolveGoalAnswer } from "./answerEngine";
+import { tx } from "../../lib/i18n/tx";
 
 const SUGGESTION_CARDS = [
   {
-    q: "اقترح برنامج",
-    title: "اقترح برنامج تدريبي",
-    desc: "خطة أسبوعية مناسبة لمستواك وهدفك",
+    q: tx("اقترح برنامج"),
+    title: tx("اقترح برنامج تدريبي"),
+    desc: tx("خطة أسبوعية مناسبة لمستواك وهدفك"),
     color: "var(--glow-blue)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
     ),
   },
   {
-    q: "احسبلي سعرات: 2 بيضة ورغيف عيش بلدي وكوب لبن",
-    title: "احسب سعرات وجبة",
-    desc: "اكتب مكوّناتك واحنا نحسبها",
+    q: tx("احسبلي سعرات: 2 بيضة ورغيف عيش بلدي وكوب لبن"),
+    title: tx("احسب سعرات وجبة"),
+    desc: tx("اكتب مكوّناتك واحنا نحسبها"),
     color: "var(--success)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" /></svg>
     ),
   },
   {
-    q: "حلل تقدمي",
-    title: "حلل تقدمي",
-    desc: "نظرة سريعة على أدائك الأخير",
+    q: tx("حلل تقدمي"),
+    title: tx("حلل تقدمي"),
+    desc: tx("نظرة سريعة على أدائك الأخير"),
     color: "var(--purple-text)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5M10 19v-8M16 19V9M22 19V3" /></svg>
     ),
   },
   {
-    q: "عدّل هدفي",
-    title: "عدّل هدفك",
-    desc: "غيّر وزنك المستهدف في أي وقت",
+    q: tx("عدّل هدفي"),
+    title: tx("عدّل هدفك"),
+    desc: tx("غيّر وزنك المستهدف في أي وقت"),
     color: "var(--warn-text)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="0.8" fill="#fff" /></svg>
@@ -44,10 +45,10 @@ const SUGGESTION_CARDS = [
 ];
 
 const QUICK_PROMPTS = [
-  { q: "اقترح برنامج", label: "📋 برنامج جديد" },
-  { q: "نصايح غذائية", label: "🍽️ نصايح غذائية" },
-  { q: "حلل تقدمي", label: "📊 حلل تقدمي" },
-  { q: "عدّل هدفي", label: "🎯 عدّل هدفي" },
+  { q: tx("اقترح برنامج"), label: tx("📋 برنامج جديد") },
+  { q: tx("نصايح غذائية"), label: tx("🍽️ نصايح غذائية") },
+  { q: tx("حلل تقدمي"), label: tx("📊 حلل تقدمي") },
+  { q: tx("عدّل هدفي"), label: tx("🎯 عدّل هدفي") },
 ];
 
 function TypingIndicator() {
@@ -89,7 +90,7 @@ export default function AiCoach() {
       const result = answerFor(q);
       if (result && typeof result === "object" && result.needsGoalPrompt) {
         const current = Store.getGoalWeight();
-        const val = await promptAsync({ title: "اكتب وزنك المستهدف (كجم):", inputType: "number", defaultValue: current || "" });
+        const val = await promptAsync({ title: tx("اكتب وزنك المستهدف (كجم):"), inputType: "number", defaultValue: current || "" });
         setThinking(false);
         addBotMsg(resolveGoalAnswer(val));
       } else {
@@ -115,8 +116,8 @@ export default function AiCoach() {
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /><path d="M9 10.5s1 1 3 1 3-1 3-1" /></svg>
         </div>
         <div className="coach-meta">
-          <p className="coach-title">المدرّب الذكي</p>
-          <div className="coach-status"><span className="status-dot" />متصل الآن</div>
+          <p className="coach-title">{tx("المدرّب الذكي")}</p>
+          <div className="coach-status"><span className="status-dot" />{tx("متصل الآن")}</div>
         </div>
       </div>
 
@@ -126,7 +127,7 @@ export default function AiCoach() {
             <div className="coach-empty-avatar">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Z" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /><path d="M9 10.5s1 1 3 1 3-1 3-1" /></svg>
             </div>
-            <p className="coach-empty-title">أهلاً، أنا مدرّبك الذكي 💪</p>
+            <p className="coach-empty-title">{tx("أهلاً، أنا مدرّبك الذكي 💪")}</p>
             <p className="coach-empty-sub">{welcomeMessage()}</p>
 
             <div className="coach-suggest-grid">
@@ -168,7 +169,7 @@ export default function AiCoach() {
       <div className="input-bar">
         <div className="glass input-field">
           <input
-            type="text" placeholder="اسأل مدربك الذكي..." value={input}
+            type="text" placeholder={tx("اسأل مدربك الذكي...")} value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
           />

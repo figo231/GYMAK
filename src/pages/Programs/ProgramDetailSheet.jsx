@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import ExerciseAnim from "../../components/ExerciseAnim";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
+import { tx, txf } from "../../lib/i18n/tx";
+import { programDisplay } from "../../lib/i18n/programsEn";
 
 const LEVEL_CLASS = { "مبتدئ": "lvl-beginner", "متوسط": "lvl-inter", "متقدم": "lvl-advanced" };
 
-export default function ProgramDetailSheet({ program, isActive, onClose, onApply, onShare, t }) {
+export default function ProgramDetailSheet({ program: programRaw, isActive, onClose, onApply, onShare, t }) {
+  const program = programDisplay(programRaw);
   const [version, setVersion] = useState(0);
   const confirmAsync = useConfirm();
   const days = Store.getProgramDays(program.id);
@@ -13,8 +16,8 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
 
   async function handleDeleteExercise(ex) {
     const ok = await confirmAsync({
-      title: `تحذف "${ex.name}" نهائيًا من مكتبة تمارينك؟`,
-      danger: true, confirmLabel: "حذف", cancelLabel: "إلغاء",
+      title: txf(`تحذف "{0}" نهائيًا من مكتبة تمارينك؟`, [ex.name]),
+      danger: true, confirmLabel: tx("حذف"), cancelLabel: tx("إلغاء"),
     });
     if (ok) {
       Store.deleteExercise(ex.id);
@@ -39,10 +42,10 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
           </div>
           <span className={"prog-level " + (LEVEL_CLASS[program.level] || "lvl-beginner")}>{program.level}</span>
         </div>
-        <p className="detail-section-label">نظرة عامة</p>
+        <p className="detail-section-label">{tx("نظرة عامة")}</p>
         <p className="detail-desc">{program.desc}</p>
 
-        <p className="detail-section-label">تقسيم الأيام — يتولّد تلقائيًا</p>
+        <p className="detail-section-label">{tx("تقسيم الأيام — يتولّد تلقائيًا")}</p>
         {hasTemplate ? (
           <div className="prog-days-generated" key={version}>
             {days.map((day, i) => (
@@ -56,11 +59,11 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
                     <div className="prog-gen-ex" key={ex.id}>
                       <span className="prog-gen-ex-thumb"><ExerciseAnim exerciseId={ex.id} still alt={ex.name} /></span>
                       <span className="prog-gen-ex-name">{ex.name}</span>
-                      <span className="prog-gen-ex-sr"><bdi dir="ltr">{ex.sets}×{ex.reps}</bdi> {ex.unit === "sec" ? "ثانية" : ""}</span>
+                      <span className="prog-gen-ex-sr"><bdi dir="ltr">{ex.sets}×{ex.reps}</bdi> {ex.unit === "sec" ? tx("ثانية") : ""}</span>
                       <button
                         type="button"
                         className="prog-gen-ex-del"
-                        aria-label={`حذف ${ex.name}`}
+                        aria-label={txf(`حذف {0}`, [ex.name])}
                         onClick={() => handleDeleteExercise(ex)}
                       >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
@@ -83,15 +86,15 @@ export default function ProgramDetailSheet({ program, isActive, onClose, onApply
         )}
 
         <div className="detail-actions">
-          <button type="button" onClick={onClose}>إغلاق</button>
-          {onShare && <button type="button" onClick={onShare}>شارك</button>}
+          <button type="button" onClick={onClose}>{tx("إغلاق")}</button>
+          {onShare && <button type="button" onClick={onShare}>{tx("شارك")}</button>}
           <button
             type="button"
             className={isActive ? "applied" : "primary"}
             disabled={isActive}
             onClick={onApply}
           >
-            {isActive ? "✓ " + (t("prog_applied") || "مطبّق") : (t("prog_apply") || "تطبيق البرنامج")}
+            {isActive ? "✓ " + (t("prog_applied") || tx("مطبّق")) : (t("prog_apply") || tx("تطبيق البرنامج"))}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { fmtLoggedWeight } from "./format";
 import { localISO, windowStart } from "../dateKey";
+import { tx, txf } from "../i18n/tx";
 /* Weekly summary: the last 7 days (today included) vs the 7 days before. Pure, store passed in. */
 export function pctChange(cur, prev) {
   if (!prev) return cur > 0 ? null : 0; // null = "new", nothing to compare with
@@ -29,21 +30,21 @@ export function buildWeekly(store, waterDays = []) {
 }
 
 export function headline(w) {
-  if (w.empty) return "الأسبوع ده لسه فاضي. تمرينة واحدة بتبدأ السلسلة 💪";
-  if (w.prs > 0) return `أسبوع قوي: ${w.prs} ${w.prs === 1 ? "رقم قياسي جديد" : "أرقام قياسية جديدة"} 🏆`;
-  if (w.daysDelta > 0) return `زودت ${w.daysDelta} ${w.daysDelta === 1 ? "يوم" : "أيام"} تمرين عن الأسبوع اللي فات 🔥`;
-  if (w.days >= 4) return "التزام ممتاز الأسبوع ده 🔥";
-  if (w.daysDelta < 0) return "الأسبوع ده أقل شوية. رجّع الإيقاع بتمرينة بكرة.";
-  return "ثبات حلو. كمّل على نفس الإيقاع.";
+  if (w.empty) return tx("الأسبوع ده لسه فاضي. تمرينة واحدة بتبدأ السلسلة 💪");
+  if (w.prs > 0) return txf(`أسبوع قوي: {0} {1} 🏆`, [w.prs, w.prs === 1 ? tx("رقم قياسي جديد") : tx("أرقام قياسية جديدة")]);
+  if (w.daysDelta > 0) return txf(`زودت {0} {1} تمرين عن الأسبوع اللي فات 🔥`, [w.daysDelta, w.daysDelta === 1 ? tx("يوم") : tx("أيام")]);
+  if (w.days >= 4) return tx("التزام ممتاز الأسبوع ده 🔥");
+  if (w.daysDelta < 0) return tx("الأسبوع ده أقل شوية. رجّع الإيقاع بتمرينة بكرة.");
+  return tx("ثبات حلو. كمّل على نفس الإيقاع.");
 }
 
-export function weeklyCardData(w, tonLabel = "كجم", conv = (x) => x) {
+export function weeklyCardData(w, tonLabel = tx("كجم"), conv = (x) => x) {
   if (!w || w.empty) return null;
   return {
     kind: "weekly",
-    title: "أسبوعي مع GYMAK",
+    title: tx("أسبوعي مع GYMAK"),
     big: `${w.days}`,
-    unit: w.days === 1 ? "يوم تمرين" : "أيام تمرين",
-    sub: `${w.sets} مجموعة · أعلى وزن: ${fmtLoggedWeight(w.peakWeight == null ? null : conv(w.peakWeight), tonLabel)}${w.prs ? ` · ${w.prs} رقم قياسي` : ""}`,
+    unit: w.days === 1 ? tx("يوم تمرين") : tx("أيام تمرين"),
+    sub: txf(`{0} مجموعة · أعلى وزن: {1}{2}`, [w.sets, fmtLoggedWeight(w.peakWeight == null ? null : conv(w.peakWeight), tonLabel), w.prs ? txf(` · {0} رقم قياسي`, [w.prs]) : ""]),
   };
 }

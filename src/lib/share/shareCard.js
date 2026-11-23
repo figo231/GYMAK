@@ -1,8 +1,9 @@
+import { tx, txf } from "../i18n/tx";
 /* Progress share cards drawn on a canvas (1080x1350, dark + ember). No network, no deps. */
 const W = 1080, H = 1350;
 
 /** Pure: builds the card content from store-like data. */
-export function weightCardData(entries, unit = "كجم", conv = (x) => x) {
+export function weightCardData(entries, unit = tx("كجم"), conv = (x) => x) {
   if (!entries || entries.length < 2) return null;
   const first = entries[0], last = entries[entries.length - 1];
   const diff = Math.round((conv(last.weight) - conv(first.weight)) * 10) / 10;
@@ -10,21 +11,21 @@ export function weightCardData(entries, unit = "كجم", conv = (x) => x) {
   const lost = diff < 0;
   return {
     kind: "weight",
-    title: lost ? "نزّلت من وزني" : diff > 0 ? "زوّدت في وزني" : "ثبّت وزني",
+    title: lost ? tx("نزّلت من وزني") : diff > 0 ? tx("زوّدت في وزني") : tx("ثبّت وزني"),
     big: `${diff > 0 ? "+" : ""}${diff}`.replace("-", "−"),
     unit,
-    sub: `من ${Math.round(conv(first.weight) * 10) / 10} إلى ${Math.round(conv(last.weight) * 10) / 10} ${unit} في ${days} يوم`,
+    sub: txf(`من {0} إلى {1} {2} في {3} يوم`, [Math.round(conv(first.weight) * 10) / 10, Math.round(conv(last.weight) * 10) / 10, unit, days]),
   };
 }
-export function prCardData(pr, unit = "كجم", conv = (x) => x) {
+export function prCardData(pr, unit = tx("كجم"), conv = (x) => x) {
   if (!pr) return null;
   const w = Math.round(conv(pr.weight) * 10) / 10, p = Math.round(conv(pr.prevWeight) * 10) / 10;
   return {
     kind: "pr",
-    title: "رقم قياسي جديد 🏆",
+    title: tx("رقم قياسي جديد 🏆"),
     big: `${w}`,
     unit,
-    sub: `${pr.exerciseName}${p > 0 ? ` (كان ${p})` : ""}`,
+    sub: txf(`{0}{1}`, [pr.exerciseName, p > 0 ? txf(` (كان {0})`, [p]) : ""]),
   };
 }
 
@@ -32,10 +33,10 @@ export function achievementCardData(a) {
   if (!a || !a.unlocked) return null;
   return {
     kind: "badge",
-    title: "وسام افتُتح 🏅",
+    title: tx("وسام افتُتح 🏅"),
     big: a.name,
     unit: "",
-    sub: "صفحة الإنجازات في GYMAK",
+    sub: tx("صفحة الإنجازات في GYMAK"),
   };
 }
 
@@ -85,7 +86,7 @@ export function drawCard(canvas, data, name = "") {
 
   if (name) { ctx.fillStyle = "#F4F1EA"; ctx.font = `600 44px ${FONT}`; ctx.fillText(name, W / 2, 1150); }
   ctx.fillStyle = "rgba(244,241,234,.5)"; ctx.font = `500 32px ${FONT}`;
-  ctx.fillText("اتابع تمارينك وأكلك مع GYMAK", W / 2, 1230);
+  ctx.fillText(tx("اتابع تمارينك وأكلك مع GYMAK"), W / 2, 1230);
   return canvas;
 }
 
@@ -107,11 +108,11 @@ export function drawBeforeAfter(canvas, before, after, meta = {}) {
   ctx.textAlign = "center"; ctx.direction = "rtl";
   ctx.fillStyle = EMBER; ctx.font = `800 56px ${FONT}`; ctx.fillText("GYMAK", W / 2, 120);
   ctx.fillStyle = "#F4F1EA"; ctx.font = `700 48px ${FONT}`;
-  ctx.fillText("قبل", 60 + pw + 24 + pw / 2, y + ph + 70); ctx.fillText("بعد", 60 + pw / 2, y + ph + 70);
+  ctx.fillText(tx("قبل"), 60 + pw + 24 + pw / 2, y + ph + 70); ctx.fillText(tx("بعد"), 60 + pw / 2, y + ph + 70);
   ctx.font = `500 38px ${FONT}`; ctx.fillStyle = "rgba(244,241,234,.7)";
   if (meta.sub) ctx.fillText(meta.sub, W / 2, y + ph + 150);
   ctx.fillStyle = "rgba(244,241,234,.45)"; ctx.font = `500 30px ${FONT}`;
-  ctx.fillText("اتابع تمارينك وأكلك مع GYMAK", W / 2, H - 50);
+  ctx.fillText(tx("اتابع تمارينك وأكلك مع GYMAK"), W / 2, H - 50);
   return canvas;
 }
 

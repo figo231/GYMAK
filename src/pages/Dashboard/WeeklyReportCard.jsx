@@ -4,6 +4,7 @@ import Store from "../../lib/store/gymakStore";
 import { buildWeekly } from "../../lib/stats/weekly";
 import { weekStart } from "../../lib/challenges";
 import { localISO } from "../../lib/dateKey";
+import { tx } from "../../lib/i18n/tx";
 
 const KEY = "gymak_weekly_report_v1";
 
@@ -22,15 +23,15 @@ export default function WeeklyReportCard() {
   return (
     <div className="glass tip-card" data-testid="weekly-report" style={{ padding: "12px 14px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <div style={{ fontSize: 13, fontWeight: 800 }}>📋 تقرير أسبوعك</div>
-        <button type="button" className="hist-btn" aria-label="إخفاء تقرير الأسبوع" onClick={() => { try { localStorage.setItem(KEY, week); } catch { /* private mode */ } setDismissed(true); }}>✕</button>
+        <div style={{ fontSize: 13, fontWeight: 800 }}>{tx("📋 تقرير أسبوعك")}</div>
+        <button type="button" className="hist-btn" aria-label={tx("إخفاء تقرير الأسبوع")} onClick={() => { try { localStorage.setItem(KEY, week); } catch { /* private mode */ } setDismissed(true); }}>✕</button>
       </div>
       <div style={{ fontSize: 13, lineHeight: 2 }}>
-        🏋️ تمرنت <b>{w.days}</b> {w.days === 1 ? "يوم" : "أيام"}
-        {w.foodDays != null && <> · 🍎 التزام بالأكل <b>{w.foodDays}/7</b></>}
-        {w.weightDiff != null && <> · ⚖️ الوزن {w.weightDiff > 0 ? "زاد" : "نزل"} <bdi dir="ltr"><b>{Math.abs(conv(w.weightDiff)).toFixed(1)}</b></bdi> {unit}</>}
+        {tx("🏋️ تمرنت")} <b>{w.days}</b> {w.days === 1 ? tx("يوم") : tx("أيام")}
+        {w.foodDays != null && <> {tx("· 🍎 التزام بالأكل")} <b>{w.foodDays}/7</b></>}
+        {w.weightDiff != null && <> {tx("· ⚖️ الوزن")} {w.weightDiff > 0 ? tx("زاد") : tx("نزل")} <bdi dir="ltr"><b>{Math.abs(conv(w.weightDiff)).toFixed(1)}</b></bdi> {unit}</>}
       </div>
-      <Link to="/stats" className="btn btn-secondary" style={{ display: "block", textAlign: "center", marginTop: 8 }}>التفاصيل والمشاركة</Link>
+      <Link to="/stats" className="btn btn-secondary" style={{ display: "block", textAlign: "center", marginTop: 8 }}>{tx("التفاصيل والمشاركة")}</Link>
     </div>
   );
 }

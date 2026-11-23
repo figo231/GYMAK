@@ -1,4 +1,5 @@
 import { BADGE_STYLE } from "./badgeData";
+import { tx, txf } from "../../lib/i18n/tx";
 
 function BadgePaths({ path, fill }) {
   return path.split("|").map((d, i) =>
@@ -18,12 +19,12 @@ export default function AchievementsGrid({ achievements, onShare = null }) {
         if (a.unlocked) {
           if (onShare) {
             return (
-              <button type="button" className="badge-card" key={a.id} onClick={() => onShare(a)} aria-label={`شارك وسام ${a.name}`} style={{ cursor: "pointer", border: "none", font: "inherit" }}>
+              <button type="button" className="badge-card" key={a.id} onClick={() => onShare(a)} aria-label={txf(`شارك وسام {0}`, [a.name])} style={{ cursor: "pointer", border: "none", font: "inherit" }}>
                 <div className="badge-ic" style={{ background: style.grad }}>
                   <svg width="20" height="20" viewBox="0 0 24 24"><BadgePaths path={style.path} fill={style.fill} /></svg>
                 </div>
                 <div className="badge-name">{a.name}</div>
-                <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>شارك 📤</div>
+                <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>{tx("شارك 📤")}</div>
               </button>
             );
           }

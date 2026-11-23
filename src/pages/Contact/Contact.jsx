@@ -5,6 +5,7 @@ import { sendFeedback, PUBLIC_EMAIL } from "../../lib/feedback";
 import { fetchMyFeedback } from "../../lib/admin";
 import { reportContent } from "../../lib/moderation";
 import ReportDialog from "../../components/ReportDialog";
+import { tx } from "../../lib/i18n/tx";
 
 export default function Contact() {
   const { user } = useAuth();
@@ -29,44 +30,44 @@ export default function Contact() {
   }
   return (
     <div className="ct-page">
-      <div className="section-head"><h1 className="section-title">تواصل معانا</h1></div>
+      <div className="section-head"><h1 className="section-title">{tx("تواصل معانا")}</h1></div>
       {replied.length > 0 && (
         <div className="glass ct-replies">
-          <b>ردود علينا</b>
+          <b>{tx("ردود علينا")}</b>
           {replied.map((m) => (
             <div key={m.id} className="ct-reply"><p className="ct-q">{m.message}</p><p className="ct-a">{m.admin_reply}</p>
-              <button type="button" className="pc-report-link" onClick={() => { setReport(m); setReported(""); }}>إبلاغ عن الرد</button></div>
+              <button type="button" className="pc-report-link" onClick={() => { setReport(m); setReported(""); }}>{tx("إبلاغ عن الرد")}</button></div>
           ))}
           {reported && <p className="notif-note" role="status">{reported}</p>}
         </div>
       )}
       {done ? (
         <div className="glass ct-done" role="status">
-          <b>وصلتنا رسالتك ✓</b>
-          <p>شكرًا ليك. هنقراها، ولو فيه رد هيظهرلك هنا في الصفحة دي.</p>
+          <b>{tx("وصلتنا رسالتك ✓")}</b>
+          <p>{tx("شكرًا ليك. هنقراها، ولو فيه رد هيظهرلك هنا في الصفحة دي.")}</p>
           {done !== "ok" && <small dir="ltr">ref: {done}</small>}
-          <button type="button" className="btn" style={{ width: "100%", marginTop: 12 }} onClick={() => setDone(null)}>ابعت رسالة تانية</button>
+          <button type="button" className="btn" style={{ width: "100%", marginTop: 12 }} onClick={() => setDone(null)}>{tx("ابعت رسالة تانية")}</button>
         </div>
       ) : user ? (
         <div className="glass ct-form">
-          <p>مشكلة، فكرة، أو أي حاجة ناقصة؟ اكتب لنا.</p>
-          <textarea className="food-input" rows={6} maxLength={2000} value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب رسالتك هنا..." aria-label="رسالتك" />
+          <p>{tx("مشكلة، فكرة، أو أي حاجة ناقصة؟ اكتب لنا.")}</p>
+          <textarea className="food-input" rows={6} maxLength={2000} value={text} onChange={(e) => setText(e.target.value)} placeholder={tx("اكتب رسالتك هنا...")} aria-label={tx("رسالتك")} />
           <div className="ct-count" dir="ltr">{text.length} / 2000</div>
           {err && <div className="ct-err" role="alert">{err}</div>}
-          <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={busy || text.trim().length < 5} onClick={send}>{busy ? "بيتبعت..." : "ابعت"}</button>
+          <button type="button" className="btn btn-primary" style={{ width: "100%" }} disabled={busy || text.trim().length < 5} onClick={send}>{busy ? tx("بيتبعت...") : tx("ابعت")}</button>
         </div>
       ) : (
         <div className="glass ct-form">
-          <p>سجّل دخولك عشان تبعت رسالة من جوه التطبيق، أو ابعت لنا على الإيميل.</p>
-          <Link to="/auth/login" className="btn btn-primary" style={{ display: "block", textAlign: "center", marginBottom: 8 }}>تسجيل الدخول</Link>
+          <p>{tx("سجّل دخولك عشان تبعت رسالة من جوه التطبيق، أو ابعت لنا على الإيميل.")}</p>
+          <Link to="/auth/login" className="btn btn-primary" style={{ display: "block", textAlign: "center", marginBottom: 8 }}>{tx("تسجيل الدخول")}</Link>
           <a className="btn" style={{ display: "block", textAlign: "center" }} href={`mailto:${PUBLIC_EMAIL}`}>{PUBLIC_EMAIL}</a>
         </div>
       )}
       {report && <ReportDialog
-        title="إبلاغ عن رد الدعم"
-        hint="نص الرد هيتبعت مع البلاغ لصاحب التطبيق للمراجعة."
+        title={tx("إبلاغ عن رد الدعم")}
+        hint={tx("نص الرد هيتبعت مع البلاغ لصاحب التطبيق للمراجعة.")}
         onClose={() => setReport(null)}
-        submit={async (reason, details) => { await reportContent({ targetType: "support_reply", reason, feedbackId: report.id, details }); setReported("وصل البلاغ. شكرًا ليك."); }} />}
+        submit={async (reason, details) => { await reportContent({ targetType: "support_reply", reason, feedbackId: report.id, details }); setReported(tx("وصل البلاغ. شكرًا ليك.")); }} />}
     </div>
   );
 }

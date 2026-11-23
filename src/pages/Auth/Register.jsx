@@ -1,3 +1,6 @@
+import IdentityFields from "../../components/IdentityFields";
+import {useI18n} from "../../hooks/useI18n";
+import {identityText,validateIdentity} from "../../lib/accountIdentity";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -8,6 +11,8 @@ import { AuthField, AuthError, AuthNotice, AuthStatus, PasswordMeter, Spinner, u
 export default function Register() {
   const { signUp, resendConfirmation, isConfigured } = useAuth();
   const navigate = useNavigate();
+  const {lang}=useI18n();const it=identityText[lang==='en'?'en':'ar'];
+  const [identity,setIdentity]=useState({name:"",gender:"",username:""});
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -21,6 +26,7 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError(""); setDuplicate(false);
+    const invalid=validateIdentity(identity);if(invalid){setError(it[invalid]);return;}
     const mail = normalizeEmail(email);
     if (!mail || !password) { setError("املا الإيميل والباسورد."); return; }
     if (!validEmail(mail)) { setError("صيغة الإيميل مش صحيحة."); return; }
@@ -28,9 +34,9 @@ export default function Register() {
     if (password !== confirm) { setError("الباسوردين مش متطابقين."); return; }
     setBusy(true);
     let res;
-    try { res = await signUp(mail, password); } catch (err) { res = { error: err }; }
+    try { res = await signUp(mail, password,identity); } catch (err) { res = { error: err }; }
     setBusy(false);
-    if (res.error) { setError(translateAuthError(res.error)); return; }
+    if (res.error) { setError(/database|username/i.test(res.error.message||"")?it.signup_conflict:translateAuthError(res.error)); return; }
     if (res.duplicate) { setDuplicate(true); setError("الإيميل ده مسجل قبل كده."); return; }
     setEmail(mail);
     setSent(true);
@@ -75,6 +81,7 @@ export default function Register() {
       {!isConfigured && <AuthError message="الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي." />}
 
       <form onSubmit={handleSubmit} noValidate>
+        <IdentityFields value={identity} onChange={setIdentity} lang={lang} disabled={busy}/>
         <AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         <AuthField label="الباسورد" icon="lock" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={`${MIN_PASSWORD} حروف على الأقل`} hint={<PasswordMeter value={password} />} />
         <AuthField label="تأكيد الباسورد" icon="lock" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" />

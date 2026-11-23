@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtClock, remaining, getRestSettings } from "../lib/rest/restTimer";
+import { tx } from "../lib/i18n/tx";
 
 function beep() {
   try {
@@ -59,7 +60,7 @@ export default function RestTimer() {
       display: "flex", alignItems: "center", gap: 12, backdropFilter: "blur(12px)", boxShadow: "0 8px 30px rgba(0,0,0,.45)",
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, opacity: 0.75 }}>{finished ? "الراحة خلصت، كمّل المجموعة الجاية 💪" : "وقت الراحة"}</div>
+        <div style={{ fontSize: 12, opacity: 0.75 }}>{finished ? tx("الراحة خلصت، كمّل المجموعة الجاية 💪") : tx("وقت الراحة")}</div>
         <div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: "#e3c06a" }}>{fmtClock(left)}</div>
         <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,.1)", marginTop: 4 }}>
           <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: "#e3c06a", transition: "width .25s linear" }} />
@@ -70,7 +71,7 @@ export default function RestTimer() {
           style={{ background: "none", border: "1px solid rgba(217,184,99,.5)", color: "#f6efdc", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>+15</button>
       )}
       <button type="button" onClick={() => setEndAt(0)}
-        style={{ background: "none", border: "1px solid rgba(217,184,99,.5)", color: "#f6efdc", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>{finished ? "تمام" : "تخطي"}</button>
+        style={{ background: "none", border: "1px solid rgba(217,184,99,.5)", color: "#f6efdc", borderRadius: 10, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>{finished ? tx("تمام") : tx("تخطي")}</button>
     </div>
   );
 }

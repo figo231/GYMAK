@@ -17,9 +17,11 @@ import TipCard from "./TipCard";
 import WeeklyReportCard from "./WeeklyReportCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 import { pickQuickWorkout, quickWorkoutMinutes } from "../../lib/quickWorkout";
+import { tx, txf } from "../../lib/i18n/tx";
+import { dayTitleEn } from "../../lib/i18n/programsEn";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
-const DAY_LETTERS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]; // Sun..Sat
+const DAY_LETTERS = [tx("ح"), tx("ن"), tx("ث"), tx("ر"), tx("خ"), tx("ج"), tx("س")]; // Sun..Sat
 
 export default function Dashboard() {
   const [version, refresh] = useStoreVersion();
@@ -64,20 +66,20 @@ export default function Dashboard() {
 
   async function handleBMIClick() {
     const current = Store.getProfile().heightCm;
-    const val = await promptAsync({ title: "اكتب طولك بالسنتيمتر (لحساب BMI):", inputType: "number", defaultValue: current || "" });
+    const val = await promptAsync({ title: tx("اكتب طولك بالسنتيمتر (لحساب BMI):"), inputType: "number", defaultValue: current || "" });
     if (val === null || val === undefined || val === "") return;
     const n = parseFloat(val);
-    if (!validHeight(n)) { toast(`الطول لازم يكون بين ${HEIGHT_RANGE[0]} و ${HEIGHT_RANGE[1]} سم.`); return; }
+    if (!validHeight(n)) { toast(txf(`الطول لازم يكون بين {0} و {1} سم.`, [HEIGHT_RANGE[0], HEIGHT_RANGE[1]])); return; }
     Store.setHeight(n); refresh();
   }
 
   async function handleGoalClick() {
     const currentKg = Store.getGoalWeight();
     const currentDisp = currentKg != null ? Store.toDisplayWeight(currentKg) : "";
-    const val = await promptAsync({ title: `اكتب وزنك المستهدف (${Store.unitLabel()}):`, inputType: "number", defaultValue: currentDisp });
+    const val = await promptAsync({ title: txf(`اكتب وزنك المستهدف ({0}):`, [Store.unitLabel()]), inputType: "number", defaultValue: currentDisp });
     if (val === null || val === undefined || val === "") return;
     const kg = Store.fromDisplayWeight(parseFloat(val));
-    if (!validGoalKg(kg)) { toast(`الوزن المستهدف لازم يكون بين ${GOAL_RANGE_KG[0]} و ${GOAL_RANGE_KG[1]} كجم.`); return; }
+    if (!validGoalKg(kg)) { toast(txf(`الوزن المستهدف لازم يكون بين {0} و {1} كجم.`, [GOAL_RANGE_KG[0], GOAL_RANGE_KG[1]])); return; }
     Store.setGoalWeight(kg); refresh();
   }
 
@@ -86,11 +88,11 @@ export default function Dashboard() {
     const r = parseWeightForm(form, (v) => Store.fromDisplayWeight(v));
     if (!r.ok) return r.error;
     const res = Store.saveWeight(r.kg, r.bodyFat, r.date);
-    if (!res.ok) return "مقدرناش نحفظ الوزن. راجع الأرقام.";
+    if (!res.ok) return tx("مقدرناش نحفظ الوزن. راجع الأرقام.");
     setShowWeightSheet(false);
     refresh();
     buzz(12);
-    toast("اتسجّل الوزن", { action: { label: "تراجع", onClick: () => { Store.undoSaveWeight(res); refresh(); } }, duration: 5000 });
+    toast(tx("اتسجّل الوزن"), { action: { label: tx("تراجع"), onClick: () => { Store.undoSaveWeight(res); refresh(); } }, duration: 5000 });
     return null;
   }
 
@@ -118,45 +120,45 @@ export default function Dashboard() {
     <div className="home">
       <div className="header">
         <div className="avatar-wrap">
-          <div className="avatar-ring"><img src={profile.avatar || "/icon-192.png"} alt="صورتي" /></div>
+          <div className="avatar-ring"><img src={profile.avatar || "/icon-192.png"} alt={tx("صورتي")} /></div>
           <div className="level-badge">Lv. {profile.level}</div>
         </div>
         <div className="header-info">
-          <p className="header-name">أهلاً، {profile.name || "بطل الجيم"}</p>
+          <p className="header-name">{tx("أهلاً،")} {profile.name || tx("بطل الجيم")}</p>
           <p className="header-sub">
             <span>{fmt(profile.xp)} / {fmt(profile.xpNext)} XP</span>
             <span style={{ color: "var(--text-dim)" }}>·</span>
-            <span>{xp.capped ? "وصلت سقف الـXP النهارده" : `فاضل ${xp.exercises} ${exercisesWord(xp.exercises)} للمستوى ${xp.nextLevel}`}</span>
+            <span>{xp.capped ? tx("وصلت سقف الـXP النهارده") : txf(`فاضل {0} {1} للمستوى {2}`, [xp.exercises, exercisesWord(xp.exercises), xp.nextLevel])}</span>
           </p>
           <div className="xp-track"><div className="xp-fill" style={{ width: `${Math.min(100, (profile.xp / profile.xpNext) * 100)}%` }} /></div>
         </div>
-        <Link to="/profile?notif=1" className="header-icon-btn" aria-label="الإشعارات وإعداداتها" style={{ textDecoration: "none", position: "relative" }}>
+        <Link to="/profile?notif=1" className="header-icon-btn" aria-label={tx("الإشعارات وإعداداتها")} style={{ textDecoration: "none", position: "relative" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg>
         </Link>
       </div>
 
       <div className={"glass hero" + (hero.kind === "done" ? " is-done" : "")} data-testid="hero">
-        <div className="hero-eyebrow">{hero.kind === "done" ? "تمرين النهارده" : hero.kind === "plan" ? "خطة النهارده" : hero.kind === "suggest" ? "مقترح النهارده" : "ابدأ"}</div>
+        <div className="hero-eyebrow">{hero.kind === "done" ? tx("تمرين النهارده") : hero.kind === "plan" ? tx("خطة النهارده") : hero.kind === "suggest" ? tx("مقترح النهارده") : tx("ابدأ")}</div>
         {hero.kind === "done" && (<>
-          <div className="hero-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>خلصت النهارده</div>
-          <div className="hero-sub">{streak > 0 ? `سلسلتك ${streak} ${streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"}. ارتاح وارجع بكرة.` : "ارتاح وارجع بكرة."}</div>
-          <Link to="/exercises" className="btn btn-secondary hero-cta">سجّل تمرين تاني</Link>
+          <div className="hero-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>{tx("خلصت النهارده")}</div>
+          <div className="hero-sub">{streak > 0 ? txf(`سلسلتك {0} {1}. ارتاح وارجع بكرة.`, [streak, streak === 1 ? tx("يوم") : streak === 2 ? tx("يومين") : streak <= 10 ? tx("أيام") : tx("يوم")]) : tx("ارتاح وارجع بكرة.")}</div>
+          <Link to="/exercises" className="btn btn-secondary hero-cta">{tx("سجّل تمرين تاني")}</Link>
         </>)}
         {hero.kind === "plan" && (<>
-          <div className="hero-title">{hero.total} {exercisesWord(hero.total)} النهارده</div>
-          <div className="hero-sub">{hero.done} من {hero.total} خلصوا. الجاي: {hero.next.name}</div>
+          <div className="hero-title">{hero.total} {exercisesWord(hero.total)} {tx("النهارده")}</div>
+          <div className="hero-sub">{hero.done} {tx("من")} {hero.total} {tx("خلصوا. الجاي:")} {hero.next.name}</div>
           <div className="hero-track" role="progressbar" aria-valuemin={0} aria-valuemax={hero.total} aria-valuenow={hero.done}><div style={{ width: `${(hero.done / hero.total) * 100}%` }} /></div>
-          <Link to={`/exercise/${encodeURIComponent(hero.next.id)}`} className="btn btn-primary hero-cta">{hero.done ? "كمّل" : "ابدأ"}</Link>
+          <Link to={`/exercise/${encodeURIComponent(hero.next.id)}`} className="btn btn-primary hero-cta">{hero.done ? tx("كمّل") : tx("ابدأ")}</Link>
         </>)}
         {hero.kind === "suggest" && (<>
-          <div className="hero-title">{hero.title}</div>
-          <div className="hero-sub">{hero.exercises.length} {exercisesWord(hero.exercises.length)} مقترحة. الأول: {hero.exercises[0].name}</div>
-          <button type="button" className="btn btn-primary hero-cta" onClick={startSuggested}>ابدأ</button>
+          <div className="hero-title">{dayTitleEn(hero.title)}</div>
+          <div className="hero-sub">{hero.exercises.length} {exercisesWord(hero.exercises.length)} {tx("مقترحة. الأول:")} {hero.exercises[0].name}</div>
+          <button type="button" className="btn btn-primary hero-cta" onClick={startSuggested}>{tx("ابدأ")}</button>
         </>)}
         {hero.kind === "empty" && (<>
-          <div className="hero-title">اختار تمرينك</div>
-          <div className="hero-sub">ابدأ بتمرين واحد النهارده، وسلسلتك تبدأ.</div>
-          <Link to="/exercises" className="btn btn-primary hero-cta">تسجيل تمرين</Link>
+          <div className="hero-title">{tx("اختار تمرينك")}</div>
+          <div className="hero-sub">{tx("ابدأ بتمرين واحد النهارده، وسلسلتك تبدأ.")}</div>
+          <Link to="/exercises" className="btn btn-primary hero-cta">{tx("تسجيل تمرين")}</Link>
         </>)}
       </div>
 
@@ -164,20 +166,20 @@ export default function Dashboard() {
         <button type="button" className="glass quick-workout-btn" data-testid="quick-workout" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 14px", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", color: "inherit", margin: "0 0 10px" }}
           onClick={() => {
             const picked = pickQuickWorkout(Store.getExercises(), Store.getTodayKey());
-            if (!picked.length) { toast("ضيف تمارين الأول من صفحة التمارين."); return; }
+            if (!picked.length) { toast(tx("ضيف تمارين الأول من صفحة التمارين.")); return; }
             Store.addManyToTodayPlan(picked.map((e) => e.id));
             buzz(15);
-            toast(`جهزت لك تمرين سريع: ${picked.length} تمارين، حوالي ${quickWorkoutMinutes(picked)} دقيقة ⚡`);
+            toast(txf(`جهزت لك تمرين سريع: {0} تمارين، حوالي {1} دقيقة ⚡`, [picked.length, quickWorkoutMinutes(picked)]));
             refresh();
           }}>
-          ⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز
+          {tx("⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز")}
         </button>
       )}
 
       <div className="today-strip" data-testid="today-strip">
-        <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>تمارين</span></Link>
-        <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>مياه</span></button>
-        <Link to="/food" className="ts-item"><b dir="ltr">{kcalToday}</b><span>سعرات</span></Link>
+        <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>{tx("تمارين")}</span></Link>
+        <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>{tx("مياه")}</span></button>
+        <Link to="/food" className="ts-item"><b dir="ltr">{kcalToday}</b><span>{tx("سعرات")}</span></Link>
       </div>
 
       <TipCard />
@@ -185,11 +187,11 @@ export default function Dashboard() {
 
       {recent.length === 0 && (
         <div className="glass start-card" data-testid="start-card">
-          <div className="start-title">ابدأ في 3 خطوات</div>
+          <div className="start-title">{tx("ابدأ في 3 خطوات")}</div>
           {[
-            { done: !!latest, text: "سجّل وزنك", onClick: () => setShowWeightSheet(true) },
-            { done: !!hasProgram, text: "اختار برنامج", to: "/programs" },
-            { done: false, text: "سجّل أول تمرين", to: "/exercises" },
+            { done: !!latest, text: tx("سجّل وزنك"), onClick: () => setShowWeightSheet(true) },
+            { done: !!hasProgram, text: tx("اختار برنامج"), to: "/programs" },
+            { done: false, text: tx("سجّل أول تمرين"), to: "/exercises" },
           ].map((s, i) => {
             const inner = (<><span className={"start-n" + (s.done ? " done" : "")}>{s.done ? "✓" : i + 1}</span><span className="start-t">{s.text}</span></>);
             return s.to
@@ -215,20 +217,20 @@ export default function Dashboard() {
         <div className="streak-body">
           <div className="streak-num-row">
             <span className="streak-num">{streak}</span>
-            <span className="streak-label">{streak === 0 ? "ابدأ سلسلتك النهارده" : "يوم متتالي"}</span>
+            <span className="streak-label">{streak === 0 ? tx("ابدأ سلسلتك النهارده") : tx("يوم متتالي")}</span>
           </div>
           <div className="streak-week">
             {week.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
               const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "اتمرنت" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("اتمرنت") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>
-          {atRisk && <div className="streak-warn">سجّل تمرين النهارده عشان سلسلة الـ{streak} {streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"} متتقطعش</div>}
+          {atRisk && <div className="streak-warn">{tx("سجّل تمرين النهارده عشان سلسلة الـ")}{streak} {streak === 1 ? tx("يوم") : streak === 2 ? tx("يومين") : streak <= 10 ? tx("أيام") : tx("يوم")} {tx("متتقطعش")}</div>}
         </div>
         <div className="streak-record">
           <span className="rec-num">{best}</span>
-          <span className="rec-txt">أطول سلسلة</span>
+          <span className="rec-txt">{tx("أطول سلسلة")}</span>
         </div>
       </div>
 
@@ -237,13 +239,13 @@ export default function Dashboard() {
         <div className="streak-body">
           <div className="streak-num-row">
             <span className="streak-num">{nutritionStreak}</span>
-            <span className="streak-label">{nutritionStreak === 0 ? "سجّل أكلك النهارده" : "يوم التزام بالأكل"}</span>
+            <span className="streak-label">{nutritionStreak === 0 ? tx("سجّل أكلك النهارده") : tx("يوم التزام بالأكل")}</span>
           </div>
           <div className="streak-week">
             {nutritionWeek.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
               const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={`${DAY_LETTERS[dow]}${isToday ? " (النهارده)" : ""}: ${d.done ? "ملتزم" : "لا"}`}>{DAY_LETTERS[dow]}</div>;
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("ملتزم") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>
         </div>
@@ -264,7 +266,7 @@ export default function Dashboard() {
                 </span>
               )}
               {sparkG && (
-                <svg className="spark" viewBox="0 0 84 26" width="84" height="26" role="img" aria-label="آخر أوزانك" dir="ltr">
+                <svg className="spark" viewBox="0 0 84 26" width="84" height="26" role="img" aria-label={tx("آخر أوزانك")} dir="ltr">
                   <path d={sparkG.d} fill="none" stroke="var(--glow-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   <circle cx={sparkG.last[0]} cy={sparkG.last[1]} r="2.6" fill="var(--glow-blue)" />
                 </svg>
@@ -272,15 +274,15 @@ export default function Dashboard() {
             </>) : (
               <div className="empty-mini">
                 <div className="empty-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 20h14M7 20V9l5-5 5 5v11M10 20v-5h4v5" /></svg></div>
-                <div className="empty-t">لسه مسجلتش وزنك</div>
-                <button type="button" className="btn btn-secondary empty-btn" onClick={() => setShowWeightSheet(true)}>سجّل أول وزن</button>
+                <div className="empty-t">{tx("لسه مسجلتش وزنك")}</div>
+                <button type="button" className="btn btn-secondary empty-btn" onClick={() => setShowWeightSheet(true)}>{tx("سجّل أول وزن")}</button>
               </div>
             )}
           </div>
           <div className="weight-meta">
-            <div className="weight-meta-row"><span>الدهون</span><span>{bodyFat ? <bdi dir="ltr">{bodyFat.value}%</bdi> : "—"}</span></div>
-            <div className="weight-meta-row tap" {...press(handleGoalClick)} aria-label="غيّر الوزن المستهدف">
-              <span>الهدف</span><span>{goal != null ? Store.formatWeight(goal) : "—"}</span>
+            <div className="weight-meta-row"><span>{tx("الدهون")}</span><span>{bodyFat ? <bdi dir="ltr">{bodyFat.value}%</bdi> : "—"}</span></div>
+            <div className="weight-meta-row tap" {...press(handleGoalClick)} aria-label={tx("غيّر الوزن المستهدف")}>
+              <span>{tx("الهدف")}</span><span>{goal != null ? Store.formatWeight(goal) : "—"}</span>
             </div>
           </div>
         </div>
@@ -290,13 +292,13 @@ export default function Dashboard() {
             <div className="qa-tile-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg>
             </div>
-            <span>تسجيل تمرين</span>
+            <span>{tx("تسجيل تمرين")}</span>
           </Link>
           <div className="glass qa-tile" style={{ cursor: "pointer" }} {...press(() => setShowWeightSheet(true))}>
             <div className="qa-tile-icon" style={{ background: "rgba(255, 148, 87, 0.14)" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text-soft)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" /><path d="M12 8v4l3 2" /></svg>
             </div>
-            <span>تسجيل وزن</span>
+            <span>{tx("تسجيل وزن")}</span>
           </div>
         </div>
       </div>
@@ -306,9 +308,9 @@ export default function Dashboard() {
 
       <div className="home-body">
       <div className="section-title">
-        <h2>مؤشرات الجسم</h2>
+        <h2>{tx("مؤشرات الجسم")}</h2>
         <Link to="/measurements">
-          المقاسات
+          {tx("المقاسات")}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
       </div>
@@ -316,19 +318,19 @@ export default function Dashboard() {
         <div className="glass inbody-card">
           {bodyFat ? (<>
             <span className="inbody-val"><bdi dir="ltr">{bodyFat.value}<small>%</small></bdi></span>
-            <div className="inbody-name">دهون الجسم</div>
-            <div className="inbody-sub">{`آخر قياس ${relDayAr(bodyFat.date, today)}`}</div>
+            <div className="inbody-name">{tx("دهون الجسم")}</div>
+            <div className="inbody-sub">{txf(`آخر قياس {0}`, [relDayAr(bodyFat.date, today)])}</div>
           </>) : (<>
             <div className="inbody-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M12 3c3 4 5 6.500 5 9.500a5 5 0 0 1-10 0C7 9.500 9 7 12 3Z" /></svg></div>
-            <div className="inbody-name">دهون الجسم</div>
-            <button type="button" className="inbody-btn" onClick={() => setShowWeightSheet(true)}>سجّلها</button>
+            <div className="inbody-name">{tx("دهون الجسم")}</div>
+            <button type="button" className="inbody-btn" onClick={() => setShowWeightSheet(true)}>{tx("سجّلها")}</button>
           </>)}
         </div>
         <div className="glass inbody-card">
           {!monthView ? (<>
             <div className="inbody-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 17l5-5 4 4 7-8" /></svg></div>
-            <div className="inbody-name">تغيّر الوزن</div>
-            <button type="button" className="inbody-btn" onClick={() => setShowWeightSheet(true)}>سجّل وزنين</button>
+            <div className="inbody-name">{tx("تغيّر الوزن")}</div>
+            <button type="button" className="inbody-btn" onClick={() => setShowWeightSheet(true)}>{tx("سجّل وزنين")}</button>
           </>) : (<>
           <span className="inbody-val" style={{ color: toneColor(monthView.tone) }} dir="ltr">
             {monthView && monthView.dir !== "flat" && (
@@ -336,18 +338,18 @@ export default function Dashboard() {
             )}
             {monthView ? <>{monthView.diff > 0 ? "+" : ""}{monthView.diff}<small>{unit}</small></> : "—"}
           </span>
-          <div className="inbody-name">{monthView.label === "الشهر" ? "تغيّر الشهر" : `تغيّر ${monthView.label}`}</div>
+          <div className="inbody-name">{monthView.label === "الشهر" ? tx("تغيّر الشهر") : txf(`تغيّر {0}`, [monthView.label])}</div>
           </>)}
         </div>
-        <div className="glass inbody-card tap" {...press(handleBMIClick)} aria-label="BMI، دوس لتحديد طولك">
+        <div className="glass inbody-card tap" {...press(handleBMIClick)} aria-label={tx("BMI، دوس لتحديد طولك")}>
           {bmi != null ? (<>
             <span className="inbody-val">{bmi}</span>
             <div className="inbody-name">BMI</div>
-            <div className="inbody-sub">{`${bmiCat} · ${Store.getProfile().heightCm} سم`}</div>
+            <div className="inbody-sub">{txf(`{0} · {1} سم`, [bmiCat, Store.getProfile().heightCm])}</div>
           </>) : (<>
             <div className="inbody-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" /></svg></div>
             <div className="inbody-name">BMI</div>
-            <span className="inbody-btn">حدد طولك</span>
+            <span className="inbody-btn">{tx("حدد طولك")}</span>
           </>)}
         </div>
       </div>
@@ -355,12 +357,12 @@ export default function Dashboard() {
 
       {todayList.length > 0 && (
         <div className="home-plan">
-          <div className="section-title"><h2>تمارين النهارده</h2></div>
+          <div className="section-title"><h2>{tx("تمارين النهارده")}</h2></div>
           <div className="glass" style={{ padding: "4px 14px", marginBottom: 12 }}>
             {todayList.map(({ ex, done }) => (
               <div className="today-row" key={ex.id}>
                 <Link to={`/exercise/${encodeURIComponent(ex.id)}`} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit", flex: 1, minWidth: 0 }}>
-                  <span className={"today-check" + (done ? " done pop" : "")} aria-label={done ? "اتسجل" : "لسه"}>
+                  <span className={"today-check" + (done ? " done pop" : "")} aria-label={done ? tx("اتسجل") : tx("لسه")}>
                     {done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5 9-10" /></svg>}
                   </span>
                   <div style={{ minWidth: 0 }}>
@@ -368,7 +370,7 @@ export default function Dashboard() {
                     <div className="plan-sub">{ex.muscleLabel} · <bdi dir="ltr">{ex.sets}×{ex.reps}</bdi> {unitLabel(ex)}</div>
                   </div>
                 </Link>
-                <button type="button" className="today-x" aria-label={`شيل ${ex.name} من تمارين النهارده`} onClick={() => { Store.toggleTodayPlan(ex.id); refresh(); }}>×</button>
+                <button type="button" className="today-x" aria-label={txf(`شيل {0} من تمارين النهارده`, [ex.name])} onClick={() => { Store.toggleTodayPlan(ex.id); refresh(); }}>×</button>
               </div>
             ))}
           </div>
@@ -377,9 +379,9 @@ export default function Dashboard() {
 
       <div className="home-last">
       <div className="section-title">
-        <h2>آخر تمرين مسجّل</h2>
+        <h2>{tx("آخر تمرين مسجّل")}</h2>
         <Link to="/exercises">
-          عرض الكل
+          {tx("عرض الكل")}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link>
       </div>
@@ -387,8 +389,8 @@ export default function Dashboard() {
         {!recent.length ? (
           <div className="empty-mini wide">
             <div className="empty-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12" /></svg></div>
-            <div className="empty-t">لسه ما سجلتش أي تمرين</div>
-            <Link to="/exercises" className="btn btn-secondary empty-btn">سجّل أول تمرين</Link>
+            <div className="empty-t">{tx("لسه ما سجلتش أي تمرين")}</div>
+            <Link to="/exercises" className="btn btn-secondary empty-btn">{tx("سجّل أول تمرين")}</Link>
           </div>
         ) : (
           recent.map((r, i) => (

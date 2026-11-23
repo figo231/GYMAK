@@ -18,6 +18,7 @@ import MuscleIllustration from "../Exercises/MuscleIllustration";
 import ExerciseThumb from "../Exercises/ExerciseThumb";
 import { Link } from "react-router-dom";
 import { findAlternatives, equipmentOptions } from "../../lib/alternatives";
+import { tx, txf } from "../../lib/i18n/tx";
 
 // Classifies a user-supplied media URL so we know whether to render a
 // <video>, an <img> (gif/still), or a YouTube embed. Anything we can't
@@ -123,25 +124,25 @@ function ExerciseDetail({ id }) {
     if (!justSaved) return;
     const snap = Store.deleteExerciseLog(exerciseId, justSaved.index);
     setJustSaved(null);
-    if (snap) toast("اتلغت المجموعة", { duration: 5000, action: { label: "تراجع", onClick: () => Store.restore(snap) } });
+    if (snap) toast(tx("اتلغت المجموعة"), { duration: 5000, action: { label: tx("تراجع"), onClick: () => Store.restore(snap) } });
   }
 
   async function removeSet(l) {
-    const ok = await confirmAsync({ title: "مسح المجموعة؟", label: `${Store.formatWeight(l.weight)} × ${l.sets}×${l.reps}`, confirmLabel: "مسح", danger: true });
+    const ok = await confirmAsync({ title: tx("مسح المجموعة؟"), label: `${Store.formatWeight(l.weight)} × ${l.sets}×${l.reps}`, confirmLabel: tx("مسح"), danger: true });
     if (!ok) return;
     const snap = Store.deleteExerciseLog(exerciseId, l.i);
-    if (snap) toast("تم مسح المجموعة", { duration: 6000, action: { label: "تراجع", onClick: () => Store.restore(snap) } });
+    if (snap) toast(tx("تم مسح المجموعة"), { duration: 6000, action: { label: tx("تراجع"), onClick: () => Store.restore(snap) } });
   }
 
   function toggleFav() { Store.toggleFavorite(exerciseId); buzz(8); }
 
-  const fmtSet = (l) => `${l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? "وزن الجسم" : "بدون وزن")} · ${l.sets}×${l.reps}${secUnit ? " ث" : ""}`;
+  const fmtSet = (l) => txf(`{0} · {1}×{2}{3}`, [l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? tx("وزن الجسم") : tx("بدون وزن")), l.sets, l.reps, secUnit ? tx(" ث") : ""]);
 
   async function handleDelete() {
     if (!exercise) return;
     const ok = await confirmAsync({
-      title: `تحذف "${exercise.name}" نهائيًا من مكتبة تمارينك؟`,
-      danger: true, confirmLabel: "حذف", cancelLabel: "إلغاء",
+      title: txf(`تحذف "{0}" نهائيًا من مكتبة تمارينك؟`, [exercise.name]),
+      danger: true, confirmLabel: tx("حذف"), cancelLabel: tx("إلغاء"),
     });
     if (ok) {
       Store.deleteExercise(exercise.id);
@@ -153,17 +154,17 @@ function ExerciseDetail({ id }) {
     <>
       <header className="xd-hero" style={exercise ? { "--mc": meta.color } : undefined}>
         <div className="xd-bar">
-          <button type="button" className="xd-ico" aria-label="رجوع" onClick={() => navigate(-1)}>
+          <button type="button" className="xd-ico" aria-label={tx("رجوع")} onClick={() => navigate(-1)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
           <div className="xd-bar-end">
             {exercise && (
-              <button type="button" className={"xd-ico" + (fav ? " on" : "")} aria-pressed={fav} aria-label={fav ? "شيل من المفضلة" : "ضيف للمفضلة"} onClick={toggleFav}>
+              <button type="button" className={"xd-ico" + (fav ? " on" : "")} aria-pressed={fav} aria-label={fav ? tx("شيل من المفضلة") : tx("ضيف للمفضلة")} onClick={toggleFav}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" /></svg>
               </button>
             )}
             {exercise && (
-              <button type="button" className="xd-ico detail-delete-btn" aria-label="حذف التمرين" onClick={handleDelete}>
+              <button type="button" className="xd-ico detail-delete-btn" aria-label={tx("حذف التمرين")} onClick={handleDelete}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
               </button>
             )}
@@ -172,25 +173,25 @@ function ExerciseDetail({ id }) {
         {exercise && <div className="xd-art" aria-hidden="true"><MuscleIllustration muscle={exercise.muscle} color={meta.color} size={150} /></div>}
         <div className="xd-meta">
           <span className="xd-kicker">{exercise ? exercise.muscleLabel + (exercise.secondary ? " + " + exercise.secondary : "") : ""}</span>
-          <h1 className="xd-title">{exercise ? exercise.name : "تمرين غير موجود"}</h1>
+          <h1 className="xd-title">{exercise ? exercise.name : tx("تمرين غير موجود")}</h1>
           {exercise && (
             <div className="xd-chips">
               {exercise.equipment && <span className="xd-chip">{exercise.equipment}</span>}
               {exercise.difficulty && <span className="xd-chip">{exercise.difficulty}</span>}
-              {best > 0 && <span className="xd-chip hot">أفضل {Store.formatWeight(best)}</span>}
+              {best > 0 && <span className="xd-chip hot">{tx("أفضل")} {Store.formatWeight(best)}</span>}
             </div>
           )}
         </div>
       </header>
-      {exercise && <section className="glass muscle-figure-panel" aria-label="العضلات المستهدفة">
-        <h2>العضلات المستهدفة</h2><p>اللون الذهبي بيوضح مجموعة {exercise.muscleLabel}. الرسم للتوضيح، مش لقياس نشاط العضلة.</p>
-        <div className="muscle-figure-pair"><div><MuscleFigure view="front" highlight={exercise.muscle} width={110} label={`العضلات من الأمام: ${exercise.muscleLabel}`} /><small>أمام</small></div><div><MuscleFigure view="back" highlight={exercise.muscle} width={110} label={`العضلات من الخلف: ${exercise.muscleLabel}`} /><small>خلف</small></div></div>
+      {exercise && <section className="glass muscle-figure-panel" aria-label={tx("العضلات المستهدفة")}>
+        <h2>{tx("العضلات المستهدفة")}</h2><p>{tx("اللون الذهبي بيوضح مجموعة")} {exercise.muscleLabel}{tx(". الرسم للتوضيح، مش لقياس نشاط العضلة.")}</p>
+        <div className="muscle-figure-pair"><div><MuscleFigure view="front" highlight={exercise.muscle} width={110} label={txf(`العضلات من الأمام: {0}`, [exercise.muscleLabel])} /><small>{tx("أمام")}</small></div><div><MuscleFigure view="back" highlight={exercise.muscle} width={110} label={txf(`العضلات من الخلف: {0}`, [exercise.muscleLabel])} /><small>{tx("خلف")}</small></div></div>
       </section>}
 
 
       {exercise && (
-        <div className="xd-tabs" role="tablist" aria-label="أقسام التمرين">
-          {[["log", "سجّل"], ["how", "الأداء"], ["more", "السجل والبدائل"]].map(([id, l]) => (
+        <div className="xd-tabs" role="tablist" aria-label={tx("أقسام التمرين")}>
+          {[["log", tx("سجّل")], ["how", tx("الأداء")], ["more", tx("السجل والبدائل")]].map(([id, l]) => (
             <button key={id} type="button" role="tab" aria-selected={tab === id} className={"xd-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{l}</button>
           ))}
         </div>
@@ -199,7 +200,7 @@ function ExerciseDetail({ id }) {
       {!exercise && (
         <div className="glass" style={{ padding: 14 }}>
           <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7, margin: 0 }}>
-            مينفعش نسجل أداء لتمرين مش موجود. ارجع لمكتبة التمارين واختار تمرين من القائمة.
+            {tx("مينفعش نسجل أداء لتمرين مش موجود. ارجع لمكتبة التمارين واختار تمرين من القائمة.")}
           </p>
         </div>
       )}
@@ -207,69 +208,69 @@ function ExerciseDetail({ id }) {
       {exercise && (
       <div className="glass log-card" id="log">
         <div className="log-head">
-          <span className="log-title">سجّل مجموعة</span>
-          {best > 0 && <span className="log-best">أفضل وزن: {Store.formatWeight(best)}</span>}
+          <span className="log-title">{tx("سجّل مجموعة")}</span>
+          {best > 0 && <span className="log-best">{tx("أفضل وزن:")} {Store.formatWeight(best)}</span>}
         </div>
         {prevSession && (
           <div className="log-prev">
-            <span>آخر مرة ({relDayAr(prevSession.date, today)})</span>
+            <span>{tx("آخر مرة (")}{relDayAr(prevSession.date, today)})</span>
             <b dir="ltr">{prevSession.sets.map((l) => `${l.weight > 0 ? Store.toDisplayWeight(l.weight) : 0}×${l.sets}×${l.reps}`).slice(0, 3).join("  ·  ")}</b>
           </div>
         )}
-        {!prevSession && allLogs.length === 0 && <div className="log-prev"><span>أول مرة تسجل التمرين ده. ابدأ بوزن خفيف.</span></div>}
+        {!prevSession && allLogs.length === 0 && <div className="log-prev"><span>{tx("أول مرة تسجل التمرين ده. ابدأ بوزن خفيف.")}</span></div>}
         <div className="log-grid3">
             <div className="log-field">
-              <label className="log-label" htmlFor="log-weight">{"الوزن (" + unit + ")"}</label>
+              <label className="log-label" htmlFor="log-weight">{tx("الوزن (") + unit + ")"}</label>
               <div className="stepper">
-                <button type="button" className="step-btn" aria-label="أقل الوزن" onClick={() => bump("weight", -1)}>−</button>
+                <button type="button" className="step-btn" aria-label={tx("أقل الوزن")} onClick={() => bump("weight", -1)}>−</button>
                 <input id="log-weight" ref={weightRef} type="number" inputMode="decimal" dir="ltr" value={weight} min="0"
                   onChange={(e) => { setError(null); setWeight(e.target.value); }} aria-invalid={error && error.includes("الوزن") ? true : undefined} />
-                <button type="button" className="step-btn" aria-label="أكتر الوزن" onClick={() => bump("weight", 1)}>+</button>
+                <button type="button" className="step-btn" aria-label={tx("أكتر الوزن")} onClick={() => bump("weight", 1)}>+</button>
               </div>
             </div>
             <div className="log-field">
-              <label className="log-label" htmlFor="log-sets">مجموعات</label>
+              <label className="log-label" htmlFor="log-sets">{tx("مجموعات")}</label>
               <div className="stepper">
-                <button type="button" className="step-btn" aria-label="أقل المجموعات" onClick={() => bump("sets", -1)}>−</button>
+                <button type="button" className="step-btn" aria-label={tx("أقل المجموعات")} onClick={() => bump("sets", -1)}>−</button>
                 <input id="log-sets" ref={setsRef} type="number" inputMode="numeric" dir="ltr" value={sets} min="0"
                   onChange={(e) => { setError(null); setSets(e.target.value); }} aria-invalid={error && error.includes("المجموعات") ? true : undefined} />
-                <button type="button" className="step-btn" aria-label="أكتر المجموعات" onClick={() => bump("sets", 1)}>+</button>
+                <button type="button" className="step-btn" aria-label={tx("أكتر المجموعات")} onClick={() => bump("sets", 1)}>+</button>
               </div>
             </div>
             <div className="log-field">
-              <label className="log-label" htmlFor="log-reps">{secUnit ? "ثواني" : "تكرارات"}</label>
+              <label className="log-label" htmlFor="log-reps">{secUnit ? tx("ثواني") : tx("تكرارات")}</label>
               <div className="stepper">
-                <button type="button" className="step-btn" aria-label="أقل التكرارات" onClick={() => bump("reps", -1)}>−</button>
+                <button type="button" className="step-btn" aria-label={tx("أقل التكرارات")} onClick={() => bump("reps", -1)}>−</button>
                 <input id="log-reps" ref={repsRef} type="number" inputMode="numeric" dir="ltr" value={reps} min="0"
                   onChange={(e) => { setError(null); setReps(e.target.value); }} aria-invalid={error && error.includes("التكرارات") ? true : undefined} />
-                <button type="button" className="step-btn" aria-label="أكتر التكرارات" onClick={() => bump("reps", 1)}>+</button>
+                <button type="button" className="step-btn" aria-label={tx("أكتر التكرارات")} onClick={() => bump("reps", 1)}>+</button>
               </div>
             </div>
         </div>
-        {isBodyweight(exercise) && <p className="log-hint">الوزن 0 معناه وزن الجسم بس.</p>}
+        {isBodyweight(exercise) && <p className="log-hint">{tx("الوزن 0 معناه وزن الجسم بس.")}</p>}
         {error && <p className="log-error" role="alert">{error}</p>}
-        <button type="button" className="log-btn" onClick={handleSave}>تسجيل المجموعة</button>
+        <button type="button" className="log-btn" onClick={handleSave}>{tx("تسجيل المجموعة")}</button>
         {justSaved && (
           <div className="log-saved" role="status">
-            <span>تم الحفظ ✓{justSaved.xp ? " +25 XP" : ""}</span>
-            <button type="button" onClick={undoLast}>تراجع</button>
+            <span>{tx("تم الحفظ ✓")}{justSaved.xp ? " +25 XP" : ""}</span>
+            <button type="button" onClick={undoLast}>{tx("تراجع")}</button>
           </div>
         )}
         {orm && (
           <div className="orm">
             <button type="button" className="orm-head" aria-expanded={showOrm} onClick={() => setShowOrm((v) => !v)}>
-              <span>الحد الأقصى المقدّر (1RM)</span>
+              <span>{tx("الحد الأقصى المقدّر (1RM)")}</span>
               <b dir="ltr">{Math.round(ormDisplay * 10) / 10} {unit}</b>
             </button>
             {showOrm && (
               <div className="orm-body">
-                <p className="orm-note">تقدير من أفضل مجموعة ليك ({Store.formatWeight(orm.from.weight)} × {orm.from.reps}). دقيق لحد 12 تكرار تقريبًا. استخدمه كدليل مش كحقيقة ثابتة.</p>
+                <p className="orm-note">{tx("تقدير من أفضل مجموعة ليك (")}{Store.formatWeight(orm.from.weight)} × {orm.from.reps}{tx("). دقيق لحد 12 تكرار تقريبًا. استخدمه كدليل مش كحقيقة ثابتة.")}</p>
                 <div className="orm-table" role="table">
                   {ormTable.map((r) => (
                     <div className="orm-row" role="row" key={r.percent}>
                       <span role="cell" dir="ltr">{r.percent}%</span>
                       <b role="cell" dir="ltr">{r.weight} {unit}</b>
-                      <span role="cell" className="orm-reps">~{r.reps} تكرار</span>
+                      <span role="cell" className="orm-reps">~{r.reps} {tx("تكرار")}</span>
                     </div>
                   ))}
                 </div>
@@ -279,11 +280,11 @@ function ExerciseDetail({ id }) {
         )}
         {todaySets.length > 0 && (
           <div className="log-today">
-            <div className="log-today-head"><span>النهارده · {todaySets.length} {todaySets.length === 1 ? "تسجيلة" : "تسجيلات"}</span><span dir="ltr">{Store.formatWeight(volume(todaySets))}</span></div>
+            <div className="log-today-head"><span>{tx("النهارده ·")} {todaySets.length} {todaySets.length === 1 ? tx("تسجيلة") : tx("تسجيلات")}</span><span dir="ltr">{Store.formatWeight(volume(todaySets))}</span></div>
             {todaySets.map((l) => (
               <div className="log-today-row" key={l.i}>
                 <span>{fmtSet(l)}</span>
-                <button type="button" aria-label="مسح المجموعة" onClick={() => removeSet(l)}>مسح</button>
+                <button type="button" aria-label={tx("مسح المجموعة")} onClick={() => removeSet(l)}>{tx("مسح")}</button>
               </div>
             ))}
           </div>
@@ -296,13 +297,13 @@ function ExerciseDetail({ id }) {
       {tab === "how" && (<>
       {exercise && hasExerciseAnim(exercise.id) && (
         <div className="media-frame media-frame-lg">
-          <span className="media-tag">طريقة الأداء</span>
+          <span className="media-tag">{tx("طريقة الأداء")}</span>
           <ExerciseAnim exerciseId={exercise.id} alt={exercise.name} />
         </div>
       )}
 
       <div className="media-frame media-frame-lg anatomy-frame">
-        <span className="media-tag">خريطة العضلات</span>
+        <span className="media-tag">{tx("خريطة العضلات")}</span>
         <MuscleAnatomy
           muscle={exercise ? exercise.muscle : "chest"}
           muscleLabel={exercise ? exercise.muscleLabel : ""}
@@ -313,7 +314,7 @@ function ExerciseDetail({ id }) {
 
       {localMedia.url && (
         <div className="media-frame media-frame-lg">
-          <span className="media-tag">صورتك أنت (على جهازك بس)</span>
+          <span className="media-tag">{tx("صورتك أنت (على جهازك بس)")}</span>
           {localMedia.kind === "video" ? (
             <video className="media-real" src={localMedia.url} autoPlay loop muted playsInline controls />
           ) : (
@@ -342,8 +343,8 @@ function ExerciseDetail({ id }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="muscle-legend">
-                <div className="legend-item"><span className="legend-dot" style={{ background: "var(--accent-text)", color: "var(--accent-text)" }} />أساسية</div>
-                <div className="legend-item"><span className="legend-dot" style={{ background: "var(--text-secondary)", color: "var(--text-secondary)" }} />مساعدة</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: "var(--accent-text)", color: "var(--accent-text)" }} />{tx("أساسية")}</div>
+                <div className="legend-item"><span className="legend-dot" style={{ background: "var(--text-secondary)", color: "var(--text-secondary)" }} />{tx("مساعدة")}</div>
               </div>
               <div className="muscle-tags">
                 <span className="m-tag primary">{exercise.muscleLabel}</span>
@@ -356,7 +357,7 @@ function ExerciseDetail({ id }) {
 
       {exercise && exercise.instructions?.length ? (
         <div>
-          <p className="section-title">طريقة الأداء الصحيح</p>
+          <p className="section-title">{tx("طريقة الأداء الصحيح")}</p>
           {exercise.description && <p className="ex-description">{exercise.description}</p>}
           <div className="glass steps-card">
             {exercise.instructions.map((step, i) => (
@@ -370,13 +371,13 @@ function ExerciseDetail({ id }) {
             <div className="tip-ic">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /><circle cx="12" cy="12" r="4" /></svg>
             </div>
-            <div className="tip-txt"><b>نصيحة:</b> لو حسيت بألم في المفصل، قلل مدى الحركة وركّز على الانقباض في أعلى الحركة بدل ما تزود الوزن.</div>
+            <div className="tip-txt"><b>{tx("نصيحة:")}</b> {tx("لو حسيت بألم في المفصل، قلل مدى الحركة وركّز على الانقباض في أعلى الحركة بدل ما تزود الوزن.")}</div>
           </div>
         </div>
       ) : (
         <div className="glass" style={{ padding: 14 }}>
           <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7, margin: 0 }}>
-            التمرين ده مضاف منك، فمعندناش خطوات أداء جاهزة ليه.
+            {tx("التمرين ده مضاف منك، فمعندناش خطوات أداء جاهزة ليه.")}
           </p>
         </div>
       )}
@@ -385,18 +386,18 @@ function ExerciseDetail({ id }) {
 
       {tab === "more" && exercise && (<>
       <div className="xd-hist">
-        <p className="section-title">آخر التسجيلات</p>
-        {allLogs.length === 0 ? <div className="glass" style={{ padding: 14, fontSize: 13, color: "var(--text-secondary)" }}>لسه مسجلتش التمرين ده.</div> : allLogs.slice(-8).reverse().map((l, k) => (
+        <p className="section-title">{tx("آخر التسجيلات")}</p>
+        {allLogs.length === 0 ? <div className="glass" style={{ padding: 14, fontSize: 13, color: "var(--text-secondary)" }}>{tx("لسه مسجلتش التمرين ده.")}</div> : allLogs.slice(-8).reverse().map((l, k) => (
           <div className="glass xd-hrow" key={k}><span>{relDayAr(l.date, today)}</span><b dir="ltr">{fmtSet(l)}</b></div>
         ))}
       </div>
       {alts.length > 0 && (
         <div className="alts">
-          <p className="section-title">بدائل للتمرين ده</p>
-          <p className="alts-sub">مفيش المعدة أو التمرين مش مناسب؟ جرّب واحد من دول لنفس العضلة.</p>
-          <div className="goal-tabs" role="tablist" aria-label="نوع المعدة">
+          <p className="section-title">{tx("بدائل للتمرين ده")}</p>
+          <p className="alts-sub">{tx("مفيش المعدة أو التمرين مش مناسب؟ جرّب واحد من دول لنفس العضلة.")}</p>
+          <div className="goal-tabs" role="tablist" aria-label={tx("نوع المعدة")}>
             {["all", ...altOpts].map((o) => (
-              <button key={o} type="button" role="tab" aria-selected={altEq === o} className={"goal-tab" + (altEq === o ? " on" : "")} onClick={() => setAltEq(o)}>{o === "all" ? "الكل" : o}</button>
+              <button key={o} type="button" role="tab" aria-selected={altEq === o} className={"goal-tab" + (altEq === o ? " on" : "")} onClick={() => setAltEq(o)}>{o === "all" ? tx("الكل") : o}</button>
             ))}
           </div>
           {altShown.map((a) => (

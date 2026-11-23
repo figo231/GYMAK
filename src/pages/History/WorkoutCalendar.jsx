@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { monthGrid, shiftMonth, WEEK_HEADS, MONTH_NAMES } from "../../lib/calendarGrid";
+import { tx, txf } from "../../lib/i18n/tx";
 
 export default function WorkoutCalendar({ dayStats, today, selected, onSelect }) {
   const t = today.split("-").map(Number);
@@ -11,9 +12,9 @@ export default function WorkoutCalendar({ dayStats, today, selected, onSelect })
   return (
     <div className="wc glass">
       <div className="wc-head">
-        <button type="button" className="wc-nav" aria-label="الشهر اللي قبله" onClick={() => go(-1)}>›</button>
-        <div className="wc-title"><b>{MONTH_NAMES[ym.month]} {ym.year}</b><span>{count} يوم تمرين</span></div>
-        <button type="button" className="wc-nav" aria-label="الشهر اللي بعده" onClick={() => go(1)}>‹</button>
+        <button type="button" className="wc-nav" aria-label={tx("الشهر اللي قبله")} onClick={() => go(-1)}>›</button>
+        <div className="wc-title"><b>{MONTH_NAMES[ym.month]} {ym.year}</b><span>{count} {tx("يوم تمرين")}</span></div>
+        <button type="button" className="wc-nav" aria-label={tx("الشهر اللي بعده")} onClick={() => go(1)}>‹</button>
       </div>
       <div className="wc-grid" role="grid">
         {WEEK_HEADS.map((h) => <div key={h} className="wc-dow">{h}</div>)}
@@ -23,12 +24,12 @@ export default function WorkoutCalendar({ dayStats, today, selected, onSelect })
           const cls = "wc-day" + (st ? " on" : "") + (c.iso === today ? " today" : "") + (c.iso === selected ? " sel" : "") + (st && st.sets >= 15 ? " hi" : "");
           return (
             <button key={i} type="button" className={cls} disabled={!st} aria-pressed={c.iso === selected}
-              aria-label={st ? `${c.day}: ${st.exercises} تمارين` : String(c.day)}
+              aria-label={st ? txf(`{0}: {1} تمارين`, [c.day, st.exercises]) : String(c.day)}
               onClick={() => onSelect(c.iso === selected ? null : c.iso)}>{c.day}</button>
           );
         })}
       </div>
-      {selected && <button type="button" className="wc-clear" onClick={() => onSelect(null)}>عرض كل الأيام</button>}
+      {selected && <button type="button" className="wc-clear" onClick={() => onSelect(null)}>{tx("عرض كل الأيام")}</button>}
     </div>
   );
 }

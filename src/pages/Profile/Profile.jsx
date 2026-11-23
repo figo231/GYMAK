@@ -1,3 +1,4 @@
+import {saveIdentity} from "../../lib/accountIdentity";
 import ActivityPreference from './ActivityPreference';
 import { shareText, APP_URL } from "../../lib/shareLink";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -40,6 +41,7 @@ export default function Profile({ panel = null }) {
   const toast = useToast();
   const { lang: currentLang, setLang } = useI18n();
   const { user } = useAuth();
+  const identityOwnerRef=useRef(user?.id);identityOwnerRef.current=user?.id;
   const { theme: activeTheme } = useTheme();
 
   const [showEdit, setShowEdit] = useState(false);
@@ -165,7 +167,10 @@ export default function Profile({ panel = null }) {
     refresh();
   }
 
-  function handleEditSave({ name, username, bio, gender }) {
+  async function handleEditSave({ name, username, bio, gender }) {
+    const owner=user?.id;
+    if(owner){await saveIdentity(owner,{name,username,gender});}
+    if(identityOwnerRef.current!==owner)throw Error("session_changed");
     Store.setProfileName(name);
     Store.setUsername(username);
     Store.setBio(bio);

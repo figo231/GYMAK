@@ -7,12 +7,13 @@ import { CHAT_HEALTH_NOTE, CHAT_MAX_LENGTH, CHAT_PRIVACY, CHAT_ROLE_LABELS, acce
 import { TERMS_URL, blockChatUser, fetchMyChatBlocks, reportContent, unblockChatUser } from "../../lib/moderation";
 import ReportDialog from "../../components/ReportDialog";
 import "./privateChat.css";
+import { tx, txf } from "../../lib/i18n/tx";
 
 function stamp(value) {
   try { return new Date(value).toLocaleString("ar-EG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 function ErrorBox({ text }) { return text ? <p className="pc-error" role="alert">{text}</p> : null; }
-function PrivacyNote() { return <details className="pc-privacy"><summary>خصوصية الرسائل وحدود الخدمة</summary><p>{CHAT_PRIVACY}</p><p>{CHAT_HEALTH_NOTE}</p><p>مفيش مرفقات ولا اتصال فيديو داخل التطبيق. روابط المكالمات بتفتح خارج التطبيق لما تدوس عليها، وشروط خدمة المكالمة منفصلة.</p></details>; }
+function PrivacyNote() { return <details className="pc-privacy"><summary>{tx("خصوصية الرسائل وحدود الخدمة")}</summary><p>{CHAT_PRIVACY}</p><p>{CHAT_HEALTH_NOTE}</p><p>{tx("مفيش مرفقات ولا اتصال فيديو داخل التطبيق. روابط المكالمات بتفتح خارج التطبيق لما تدوس عليها، وشروط خدمة المكالمة منفصلة.")}</p></details>; }
 
 export function Consent({ onAccept }) {
   const [agree, setAgree] = useState(false); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
@@ -22,13 +23,13 @@ export function Consent({ onAccept }) {
     try { await acceptChatTerms(); onAccept(); } catch (e) { setErr(chatError(e)); setBusy(false); }
   }
   return <section className="pc-consent glass">
-    <h2>قبل أول محادثة</h2>
-    <p><b>شروط الاستخدام (باختصار):</b> ممنوع التحرش أو الإساءة أو المحتوى غير اللائق أو الاحتيال أو انتحال الشخصية أو مشاركة بيانات الغير. الرسائل للإرشادات العامة ومش للطوارئ. تقدر تبلّغ عن أي رسالة أو مستخدم، وتحظر أي طرف من محادثتك معاه، وصاحب التطبيق بيراجع المحتوى المُبلَّغ عنه بس. <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">اقرأ شروط الاستخدام كاملة</a>.</p>
+    <h2>{tx("قبل أول محادثة")}</h2>
+    <p><b>{tx("شروط الاستخدام (باختصار):")}</b> {tx("ممنوع التحرش أو الإساءة أو المحتوى غير اللائق أو الاحتيال أو انتحال الشخصية أو مشاركة بيانات الغير. الرسائل للإرشادات العامة ومش للطوارئ. تقدر تبلّغ عن أي رسالة أو مستخدم، وتحظر أي طرف من محادثتك معاه، وصاحب التطبيق بيراجع المحتوى المُبلَّغ عنه بس.")} <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">{tx("اقرأ شروط الاستخدام كاملة")}</a>.</p>
     <p>{CHAT_PRIVACY}</p><p>{CHAT_HEALTH_NOTE}</p>
-    <p>بدء المحادثة بيشارك رسالتك واسمك الظاهر مع الطرف اللي اخترته بس. المتابعة مع مدرب ومشاركة بيانات التمرين ليها موافقة منفصلة.</p>
-    <p>الرسايل بتتحفظ على السيرفر، ومش بتدخل في نسخة بيانات التمرين المحلية. حذف الحساب بيحذف محادثاته من الخدمة، لكن مش بيمسح نسخة أو لقطة شاشة احتفظ بيها الطرف التاني.</p>
-    <label className="pc-check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />قرأت <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">شروط الاستخدام</a> وموافق عليها، وفاهم إن ده مش E2EE، وموافق على حفظ الرسائل ومشاركتها مع الطرف اللي هختاره.</label>
-    <ErrorBox text={err} /><button type="button" className="btn btn-primary" disabled={!agree || busy} onClick={accept}>{busy ? "بيتحفظ..." : "موافق، افتح الرسائل"}</button>
+    <p>{tx("بدء المحادثة بيشارك رسالتك واسمك الظاهر مع الطرف اللي اخترته بس. المتابعة مع مدرب ومشاركة بيانات التمرين ليها موافقة منفصلة.")}</p>
+    <p>{tx("الرسايل بتتحفظ على السيرفر، ومش بتدخل في نسخة بيانات التمرين المحلية. حذف الحساب بيحذف محادثاته من الخدمة، لكن مش بيمسح نسخة أو لقطة شاشة احتفظ بيها الطرف التاني.")}</p>
+    <label className="pc-check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />{tx("قرأت")} <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">{tx("شروط الاستخدام")}</a> {tx("وموافق عليها، وفاهم إن ده مش E2EE، وموافق على حفظ الرسائل ومشاركتها مع الطرف اللي هختاره.")}</label>
+    <ErrorBox text={err} /><button type="button" className="btn btn-primary" disabled={!agree || busy} onClick={accept}>{busy ? tx("بيتحفظ...") : tx("موافق، افتح الرسائل")}</button>
   </section>;
 }
 
@@ -82,23 +83,23 @@ function Inbox() {
     finally { if (live.current) setStarting(""); }
   }
   return <>
-    <div className="pc-heading"><h2>محادثاتك</h2><button type="button" className="pc-small" disabled={busy} onClick={load}>{busy ? "بيحدّث..." : "تحديث"}</button></div>
-    <p className="pc-hint">التنبيه هنا داخل التطبيق بس، مش إشعار في الخلفية. افتح الرسائل عشان تشوف الجديد. مفيش ضمان لرد فوري.</p>
+    <div className="pc-heading"><h2>{tx("محادثاتك")}</h2><button type="button" className="pc-small" disabled={busy} onClick={load}>{busy ? tx("بيحدّث...") : tx("تحديث")}</button></div>
+    <p className="pc-hint">{tx("التنبيه هنا داخل التطبيق بس، مش إشعار في الخلفية. افتح الرسائل عشان تشوف الجديد. مفيش ضمان لرد فوري.")}</p>
     <ErrorBox text={err} />
-    {!busy && !err && rows.length === 0 && <p className="pc-empty glass">لسه مفيش محادثات. افتح المدربين المقترحين لطلب تواصل، أو اختار جهة مقبولة من تحت.</p>}
+    {!busy && !err && rows.length === 0 && <p className="pc-empty glass">{tx("لسه مفيش محادثات. افتح المدربين المقترحين لطلب تواصل، أو اختار جهة مقبولة من تحت.")}</p>}
     <div className="pc-list">{rows.map((r) => <Link key={r.id} to={`/messages/${r.id}`} className="pc-thread glass">
-      <span className="pc-avatar" aria-hidden="true">{r.peer_label?.slice(0, 1) || "؟"}</span>
-      <span className="pc-thread-main"><strong>{r.peer_label}</strong><small>{r.kind === "doctor" ? "محادثة تغذية" : "متابعة تدريب"}{!r.writable ? (r.blocked ? " · محظور" : " · للقراءة بس") : ""}</small><time dateTime={r.last_message_at}>{stamp(r.last_message_at)}</time></span>
-      {Number(r.unread) > 0 && <span className="pc-unread" aria-label={`${r.unread} رسالة غير مقروءة`}>{r.unread}</span>}
+      <span className="pc-avatar" aria-hidden="true">{r.peer_label?.slice(0, 1) || tx("؟")}</span>
+      <span className="pc-thread-main"><strong>{r.peer_label}</strong><small>{r.kind === "doctor" ? tx("محادثة تغذية") : tx("متابعة تدريب")}{!r.writable ? (r.blocked ? tx(" · محظور") : tx(" · للقراءة بس")) : ""}</small><time dateTime={r.last_message_at}>{stamp(r.last_message_at)}</time></span>
+      {Number(r.unread) > 0 && <span className="pc-unread" aria-label={txf(`{0} رسالة غير مقروءة`, [r.unread])}>{r.unread}</span>}
     </Link>)}</div>
-    {more && <button type="button" className="pc-small" disabled={busy} onClick={older}>محادثات أقدم</button>}
-    <div className="pc-heading"><h2>ابدأ محادثة</h2></div>
-    <p className="pc-hint">الأشخاص اللي قبلوا طلب تواصلك، ومدربيك اللي وافقت على متابعتهم. الصفة مش توثيق مهني.</p>
+    {more && <button type="button" className="pc-small" disabled={busy} onClick={older}>{tx("محادثات أقدم")}</button>}
+    <div className="pc-heading"><h2>{tx("ابدأ محادثة")}</h2></div>
+    <p className="pc-hint">{tx("الأشخاص اللي قبلوا طلب تواصلك، ومدربيك اللي وافقت على متابعتهم. الصفة مش توثيق مهني.")}</p>
     <div className="pc-list">{contacts.map((c) => <button type="button" className="pc-contact glass" key={`${c.user_id}-${c.kind}`} disabled={!!starting} onClick={() => open(c)}>
-      <span><strong>{c.label}</strong><small>{CHAT_ROLE_LABELS[c.kind]}</small></span><span>{starting === c.user_id ? "بيفتح..." : "افتح المحادثة ←"}</span>
+      <span><strong>{c.label}</strong><small>{CHAT_ROLE_LABELS[c.kind]}</small></span><span>{starting === c.user_id ? tx("بيفتح...") : tx("افتح المحادثة ←")}</span>
     </button>)}</div>
-    {contactsMore && <button type="button" className="pc-small" disabled={busy || contactsBusy} onClick={moreContacts}>جهات محادثة أكتر</button>}
-    {!busy && !contacts.length && <p className="pc-empty glass">مفيش حد متاح تبدأ معاه محادثة دلوقتي. لقبول دعوة مدربك، افتح <Link to="/coach">مدربيني</Link>.</p>}
+    {contactsMore && <button type="button" className="pc-small" disabled={busy || contactsBusy} onClick={moreContacts}>{tx("جهات محادثة أكتر")}</button>}
+    {!busy && !contacts.length && <p className="pc-empty glass">{tx("مفيش حد متاح تبدأ معاه محادثة دلوقتي. لقبول دعوة مدربك، افتح")} <Link to="/coach">{tx("مدربيني")}</Link>.</p>}
     <PrivacyNote />
   </>;
 }
@@ -112,7 +113,7 @@ function MessageText({ body }) {
     if (!Capacitor.isNativePlatform()) return;
     event.preventDefault(); if (opening) return; setOpening(true); setErr("");
     try { const { Browser } = await import("@capacitor/browser"); await Browser.open({ url: safe.href }); }
-    catch { setErr("الرابط متفتحش. جرب تاني أو انسخه وافتحه بنفسك."); }
+    catch { setErr(tx("الرابط متفتحش. جرب تاني أو انسخه وافتحه بنفسك.")); }
     finally { setOpening(false); }
   }
   return <><p className="pc-message-text">{splitChatLinks(body).map((part, i) => part.href ? <a key={i} href={part.href} target="_blank" rel="noopener noreferrer nofollow" referrerPolicy="no-referrer" onClick={(event) => open(event, part.href)}>{part.text}<small className="pc-link-host" dir="ltr">{part.host}</small></a> : <span key={i}>{part.text}</span>)}</p>{err && <small role="alert">{err}</small>}</>;
@@ -130,7 +131,7 @@ function Thread({ id, userId }) {
     try {
       const t = await fetchChatThread(id);
       if (!live.current || n !== request.current) return;
-      if (!t) { setThread(null); setRows([]); setErr("المحادثة مش موجودة أو مش متاحة لحسابك."); setBusy(false); return; }
+      if (!t) { setThread(null); setRows([]); setErr(tx("المحادثة مش موجودة أو مش متاحة لحسابك.")); setBusy(false); return; }
       const messages = await fetchChatMessages(id);
       if (!live.current || n !== request.current) return;
       setThread(t); setRows((old) => mergeChatMessages(old, messages)); setErr("");
@@ -170,47 +171,47 @@ function Thread({ id, userId }) {
       const row = await sendChatMessage(id, v.body, pending.current.id);
       if (!live.current) return;
       setRows((old) => mergeChatMessages(old, [row])); setDraft(""); pending.current = null; await load();
-    } catch (e) { if (live.current) { setSendErr(`${chatError(e)} لو الإرسال مش مؤكد، اضغط إرسال بنفس النص لإعادة المحاولة من غير تكرار.`); if (/chat_read_only|chat_blocked|chat_not_allowed|consent_required/.test(e?.message || "")) load(); } }
+    } catch (e) { if (live.current) { setSendErr(txf(`{0} لو الإرسال مش مؤكد، اضغط إرسال بنفس النص لإعادة المحاولة من غير تكرار.`, [chatError(e)])); if (/chat_read_only|chat_blocked|chat_not_allowed|consent_required/.test(e?.message || "")) load(); } }
     finally { if (live.current) setSending(false); }
   }
   const blockedByMe = !!thread && myBlocks.some((b) => b.blocked_id === thread.peer_id);
   async function toggleBlock() {
     if (blockBusy || !thread) return; setBlockBusy(true); setNote("");
     try {
-      if (blockedByMe) { await unblockChatUser(thread.peer_id); setNote("اتلغى الحظر. الرسايل الجديدة رجعت متاحة لو المتابعة لسه شغالة."); }
-      else { await blockChatUser(thread.peer_id); setNote("اتحظر المستخدم. الرسايل الجديدة بينكم متوقفة في الاتجاهين."); }
+      if (blockedByMe) { await unblockChatUser(thread.peer_id); setNote(tx("اتلغى الحظر. الرسايل الجديدة رجعت متاحة لو المتابعة لسه شغالة.")); }
+      else { await blockChatUser(thread.peer_id); setNote(tx("اتحظر المستخدم. الرسايل الجديدة بينكم متوقفة في الاتجاهين.")); }
       await load();
     } catch (e) { if (live.current) setErr(chatError(e)); }
     finally { if (live.current) setBlockBusy(false); }
   }
   return <>
-    <DetailTopBar title={thread?.peer_label || "المحادثة"} backTo="/messages" right={<button type="button" className="pc-small" disabled={busy} onClick={load}>تحديث</button>} />
+    <DetailTopBar title={thread?.peer_label || tx("المحادثة")} backTo="/messages" right={<button type="button" className="pc-small" disabled={busy} onClick={load}>{tx("تحديث")}</button>} />
     {thread && <div className="pc-thread-actions">
-      <button type="button" className="pc-small" onClick={() => setReport({ kind: "user" })}>إبلاغ عن {thread.peer_label}</button>
-      <button type="button" className="pc-small" disabled={blockBusy} onClick={toggleBlock}>{blockBusy ? "..." : blockedByMe ? "إلغاء الحظر" : "حظر"}</button>
+      <button type="button" className="pc-small" onClick={() => setReport({ kind: "user" })}>{tx("إبلاغ عن")} {thread.peer_label}</button>
+      <button type="button" className="pc-small" disabled={blockBusy} onClick={toggleBlock}>{blockBusy ? "..." : blockedByMe ? tx("إلغاء الحظر") : tx("حظر")}</button>
     </div>}
     {note && <p className="pc-hint" role="status">{note}</p>}
-    {thread?.blocked && <p className="pc-blocked-note" role="status">{blockedByMe ? "حظرت المستخدم ده. الرسايل الجديدة متوقفة في الاتجاهين، والسجل القديم ظاهر للقراءة بس." : "المحادثة متوقفة بسبب حظر. الرسايل القديمة ظاهرة للقراءة بس."}</p>}
+    {thread?.blocked && <p className="pc-blocked-note" role="status">{blockedByMe ? tx("حظرت المستخدم ده. الرسايل الجديدة متوقفة في الاتجاهين، والسجل القديم ظاهر للقراءة بس.") : tx("المحادثة متوقفة بسبب حظر. الرسايل القديمة ظاهرة للقراءة بس.")}</p>}
     <PrivacyNote />
-    {thread?.kind === "doctor" && <p className="pc-hint">إرشادات عامة، مش للطوارئ ولا بديل عن الكشف. صفة الحساب مش توثيق لترخيص طبي.</p>}
-    {!online && <p className="pc-error" role="status">أنت غير متصل. الرسايل الجديدة محتاجة نت. النص اللي لسه متبعتش هيضيع لو قفلت الصفحة.</p>}
+    {thread?.kind === "doctor" && <p className="pc-hint">{tx("إرشادات عامة، مش للطوارئ ولا بديل عن الكشف. صفة الحساب مش توثيق لترخيص طبي.")}</p>}
+    {!online && <p className="pc-error" role="status">{tx("أنت غير متصل. الرسايل الجديدة محتاجة نت. النص اللي لسه متبعتش هيضيع لو قفلت الصفحة.")}</p>}
     <ErrorBox text={err} />
-    {busy && <p className="pc-hint" role="status">بنحمّل المحادثة...</p>}
-    <section className="pc-messages" aria-label="الرسائل" aria-live="polite" aria-relevant="additions">
-      {more && <button type="button" className="pc-small" disabled={olderBusy} onClick={older}>{olderBusy ? "بيحمّل..." : "رسائل أقدم"}</button>}
-      {!busy && thread && !rows.length && <p className="pc-empty">اكتب أول رسالة. متبعتش معلومات شخصية أو مستندات طبية مش ضرورية.</p>}
-      {rows.map((m) => <article className={`pc-message ${m.author_id === userId ? "mine" : "theirs"}`} key={m.id}><span className="pc-author">{m.author_id === userId ? "أنت" : thread?.peer_label}</span><MessageText body={m.body} /><time dateTime={m.created_at}>{stamp(m.created_at)}</time>{m.author_id !== userId && <span className="pc-message-actions"><button type="button" className="pc-report-link" onClick={() => setReport({ kind: "message", message: m })}>إبلاغ</button></span>}</article>)}
+    {busy && <p className="pc-hint" role="status">{tx("بنحمّل المحادثة...")}</p>}
+    <section className="pc-messages" aria-label={tx("الرسائل")} aria-live="polite" aria-relevant="additions">
+      {more && <button type="button" className="pc-small" disabled={olderBusy} onClick={older}>{olderBusy ? tx("بيحمّل...") : tx("رسائل أقدم")}</button>}
+      {!busy && thread && !rows.length && <p className="pc-empty">{tx("اكتب أول رسالة. متبعتش معلومات شخصية أو مستندات طبية مش ضرورية.")}</p>}
+      {rows.map((m) => <article className={`pc-message ${m.author_id === userId ? "mine" : "theirs"}`} key={m.id}><span className="pc-author">{m.author_id === userId ? tx("أنت") : thread?.peer_label}</span><MessageText body={m.body} /><time dateTime={m.created_at}>{stamp(m.created_at)}</time>{m.author_id !== userId && <span className="pc-message-actions"><button type="button" className="pc-report-link" onClick={() => setReport({ kind: "message", message: m })}>{tx("إبلاغ")}</button></span>}</article>)}
       <div ref={end} />
     </section>
-    {thread && !thread.writable && !thread.blocked && <p className="pc-error" role="status">المحادثة للقراءة بس: المتابعة أو الصفة اتغيّرت. الرسايل القديمة لسه ظاهرة للطرفين.</p>}
+    {thread && !thread.writable && !thread.blocked && <p className="pc-error" role="status">{tx("المحادثة للقراءة بس: المتابعة أو الصفة اتغيّرت. الرسايل القديمة لسه ظاهرة للطرفين.")}</p>}
     {thread?.writable && <form className="pc-compose glass" onSubmit={send}>
-      <label htmlFor="private-chat-draft">رسالتك</label><textarea id="private-chat-draft" rows={3} maxLength={CHAT_MAX_LENGTH} value={draft} disabled={sending} onChange={(e) => { setDraft(e.target.value); setSendErr(""); }} placeholder="اكتب سؤالك أو ردك..." />
-      <div className="pc-compose-row"><small>{draft.length} / {CHAT_MAX_LENGTH}</small><button className="btn btn-primary" type="submit" disabled={sending || !online || !draft.trim()}>{sending ? "بيتأكد الإرسال..." : pending.current && sendErr ? "إعادة المحاولة" : "إرسال"}</button></div><ErrorBox text={sendErr} />
-      <small>الروابط بتفتح بالضغط فقط. مفيش مرفقات أو معاينة تلقائية. الرد مش فوري.</small>
+      <label htmlFor="private-chat-draft">{tx("رسالتك")}</label><textarea id="private-chat-draft" rows={3} maxLength={CHAT_MAX_LENGTH} value={draft} disabled={sending} onChange={(e) => { setDraft(e.target.value); setSendErr(""); }} placeholder={tx("اكتب سؤالك أو ردك...")} />
+      <div className="pc-compose-row"><small>{draft.length} / {CHAT_MAX_LENGTH}</small><button className="btn btn-primary" type="submit" disabled={sending || !online || !draft.trim()}>{sending ? tx("بيتأكد الإرسال...") : pending.current && sendErr ? tx("إعادة المحاولة") : tx("إرسال")}</button></div><ErrorBox text={sendErr} />
+      <small>{tx("الروابط بتفتح بالضغط فقط. مفيش مرفقات أو معاينة تلقائية. الرد مش فوري.")}</small>
     </form>}
     {report && thread && <ReportDialog
-      title={report.kind === "user" ? `إبلاغ عن ${thread.peer_label}` : "إبلاغ عن رسالة"}
-      hint={report.kind === "user" ? "البلاغ بيوصل لصاحب التطبيق. لو عاوز توقف الرسايل فورًا، استخدم زرار الحظر كمان." : "نص الرسالة دي هيتبعت مع البلاغ لصاحب التطبيق للمراجعة."}
+      title={report.kind === "user" ? txf(`إبلاغ عن {0}`, [thread.peer_label]) : tx("إبلاغ عن رسالة")}
+      hint={report.kind === "user" ? tx("البلاغ بيوصل لصاحب التطبيق. لو عاوز توقف الرسايل فورًا، استخدم زرار الحظر كمان.") : tx("نص الرسالة دي هيتبعت مع البلاغ لصاحب التطبيق للمراجعة.")}
       onClose={() => setReport(null)}
       submit={(reason, details) => report.kind === "user"
         ? reportContent({ targetType: "chat_user", reason, targetUserId: thread.peer_id, conversationId: id, details })
@@ -223,8 +224,8 @@ function ChatSession({ userId }) {
   const [reload, setReload] = useState(0);
   useEffect(() => { let active = true; setBoot(null); setErr(""); chatBootstrap().then((b) => { if (active) setBoot(b); }).catch((e) => { if (active) setErr(chatError(e)); }); return () => { active = false; }; }, [userId, reload]);
   return <div className="pc-page" dir="rtl">
-    {!threadId && <><DetailTopBar title="رسائل الدكتور والمدرب" backTo="/profile" /><Link to="/professionals" className="pc-contact glass"><span><strong>المدربين المقترحين</strong><small>مدربين ودكاترة تغذية، وطلبات التواصل</small></span><span>شوف الاقتراحات ←</span></Link></>}
-    {err ? <><ErrorBox text={err} /><button type="button" className="pc-small" onClick={() => setReload((n) => n + 1)}>جرّب تاني</button><Link to="/profile" className="pc-small">حسابي</Link></> : !boot ? <p role="status" className="pc-hint">بنجهّز الرسائل...</p> : !boot.consent ? <Consent onAccept={() => setReload((n) => n + 1)} /> : threadId ? <Thread key={threadId} id={threadId} userId={userId} /> : <Inbox />}
+    {!threadId && <><DetailTopBar title={tx("رسائل الدكتور والمدرب")} backTo="/profile" /><Link to="/professionals" className="pc-contact glass"><span><strong>{tx("المدربين المقترحين")}</strong><small>{tx("مدربين ودكاترة تغذية، وطلبات التواصل")}</small></span><span>{tx("شوف الاقتراحات ←")}</span></Link></>}
+    {err ? <><ErrorBox text={err} /><button type="button" className="pc-small" onClick={() => setReload((n) => n + 1)}>{tx("جرّب تاني")}</button><Link to="/profile" className="pc-small">{tx("حسابي")}</Link></> : !boot ? <p role="status" className="pc-hint">{tx("بنجهّز الرسائل...")}</p> : !boot.consent ? <Consent onAccept={() => setReload((n) => n + 1)} /> : threadId ? <Thread key={threadId} id={threadId} userId={userId} /> : <Inbox />}
   </div>;
 }
 export default function PrivateChat() {

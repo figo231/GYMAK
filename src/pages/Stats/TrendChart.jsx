@@ -1,9 +1,10 @@
 import { arDate, signed, timeFractions } from "../../lib/stats/format";
+import { tx, txf } from "../../lib/i18n/tx";
 
 // Small line chart for any dated series. Always drawn oldest-left, newest-right.
 export default function TrendChart({ points, unit = "", label }) {
   if (points.length < 2) {
-    return <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "10px 0", lineHeight: 1.7 }}>سجّل قياسين على الأقل في الفترة دي عشان يظهر الرسم.</p>;
+    return <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "10px 0", lineHeight: 1.7 }}>{tx("سجّل قياسين على الأقل في الفترة دي عشان يظهر الرسم.")}</p>;
   }
   const vals = points.map((p) => p.value);
   const lo = Math.min(...vals), hi = Math.max(...vals), range = hi - lo || 1;
@@ -20,7 +21,7 @@ export default function TrendChart({ points, unit = "", label }) {
         <span className="chart-diff" style={{ direction: "ltr", unicodeBidi: "isolate", color: "var(--text-dim)", background: "rgba(var(--ink), 0.07)" }}>{signed(diff)} {unit}</span>
       </div>
       <div dir="ltr" className="wchart">
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`${label || ""} من ${vals[0]} إلى ${vals.at(-1)} ${unit}`}>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={txf(`{0} من {1} إلى {2} {3}`, [label || "", vals[0], vals.at(-1), unit])}>
           <path d={d} fill="none" stroke="var(--glow-blue)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx={Math.min(last[0], W - 5)} cy={last[1]} r="4" fill="var(--bg-deep-2)" stroke="var(--glow-blue)" strokeWidth="2.4" />
         </svg>

@@ -8,23 +8,26 @@ import ExerciseCard from "./ExerciseCard";
 import AddExerciseSheet from "./AddExerciseSheet";
 import EmptyState from "../../components/ui/EmptyState";
 import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER, isHomeExercise } from "../../lib/exerciseMeta";
+import { isEn } from "../../lib/i18n/lang";
+import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
 import { getFavs, toggleFav } from "../../lib/exerciseFavs";
 import { saveExerciseMedia, deleteExerciseMedia } from "../../lib/exerciseMedia";
+import { tx, txf } from "../../lib/i18n/tx";
 
 const FILTERS = [
-  { m: "all", label: "الكل" },
-  { m: "chest", color: "var(--muscle-chest)", label: "صدر" },
-  { m: "back", color: "var(--muscle-back)", label: "ظهر" },
-  { m: "shoulders", color: "var(--muscle-shoulders)", label: "أكتاف" },
-  { m: "legs", color: "var(--muscle-legs)", label: "أرجل" },
-  { m: "arms", color: "var(--muscle-arms)", label: "ذراعين" },
-  { m: "core", color: "var(--muscle-core)", label: "بطن" },
+  { m: "all", label: tx("الكل") },
+  { m: "chest", color: "var(--muscle-chest)", label: tx("صدر") },
+  { m: "back", color: "var(--muscle-back)", label: tx("ظهر") },
+  { m: "shoulders", color: "var(--muscle-shoulders)", label: tx("أكتاف") },
+  { m: "legs", color: "var(--muscle-legs)", label: tx("أرجل") },
+  { m: "arms", color: "var(--muscle-arms)", label: tx("ذراعين") },
+  { m: "core", color: "var(--muscle-core)", label: tx("بطن") },
 ];
 
 const SORTS = [
-  { k: "default", label: "الترتيب الأصلي" },
-  { k: "alpha", label: "أبجدي" },
-  { k: "recent", label: "آخر تمرين" },
+  { k: "default", label: tx("الترتيب الأصلي") },
+  { k: "alpha", label: tx("أبجدي") },
+  { k: "recent", label: tx("آخر تمرين") },
 ];
 
 function lastDate(id) {
@@ -128,7 +131,7 @@ export default function Exercises() {
         refresh();
       } catch {
         await deleteExerciseMedia(ex.id);
-        setMediaError("التمرين اتضاف بس الصورة/الفيديو ماتحفظوش (يمكن مساحة الجهاز ممتلئة).");
+        setMediaError(tx("التمرين اتضاف بس الصورة/الفيديو ماتحفظوش (يمكن مساحة الجهاز ممتلئة)."));
       }
     }
   }
@@ -148,10 +151,10 @@ export default function Exercises() {
       <RamadanCard kind="train" />
       <div className="page-head">
         <div>
-          <h1 className="page-title">التمارين</h1>
-          <div className="page-count">{scopedList.length} تمرين · {muscleCount} مجموعات عضلية</div>
+          <h1 className="page-title">{tx("التمارين")}</h1>
+          <div className="page-count">{scopedList.length} {tx("تمرين ·")} {muscleCount} {tx("مجموعات عضلية")}</div>
         </div>
-        <button type="button" className="add-btn" aria-label="إضافة تمرين جديد" onClick={() => openAdd()}>
+        <button type="button" className="add-btn" aria-label={tx("إضافة تمرين جديد")} onClick={() => openAdd()}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </button>
       </div>
@@ -162,7 +165,7 @@ export default function Exercises() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10.5, color: "var(--text-dim)", fontWeight: 700 }}>البرنامج الحالي</div>
+            <div style={{ fontSize: 10.5, color: "var(--text-dim)", fontWeight: 700 }}>{tx("البرنامج الحالي")}</div>
             <div style={{ fontSize: 13, fontWeight: 800 }}>{activeProgram.name}</div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
               {activeProgram.dayChips.map((c) => (
@@ -170,17 +173,17 @@ export default function Exercises() {
               ))}
             </div>
           </div>
-          <Link to="/programs" style={{ textDecoration: "none", fontSize: 11, fontWeight: 800, color: "var(--accent-text)", background: "rgba(147,197,253,0.12)", padding: "6px 10px", borderRadius: 12, flexShrink: 0 }}>تغيير</Link>
+          <Link to="/programs" style={{ textDecoration: "none", fontSize: 11, fontWeight: 800, color: "var(--accent-text)", background: "rgba(147,197,253,0.12)", padding: "6px 10px", borderRadius: 12, flexShrink: 0 }}>{tx("تغيير")}</Link>
         </div>
       )}
 
       {activeProgram && (
-        <div className="prog-scope-toggle" role="group" aria-label="نطاق التمارين">
+        <div className="prog-scope-toggle" role="group" aria-label={tx("نطاق التمارين")}>
           <button type="button" className={"prog-scope-opt" + (scope === "program" ? " active" : "")} aria-pressed={scope === "program"} onClick={() => setScope("program")}>
-            برنامجي + تماريني الخاصة
+            {tx("برنامجي + تماريني الخاصة")}
           </button>
           <button type="button" className={"prog-scope-opt" + (scope === "all" ? " active" : "")} aria-pressed={scope === "all"} onClick={() => setScope("all")}>
-            كل المكتبة
+            {tx("كل المكتبة")}
           </button>
         </div>
       )}
@@ -188,10 +191,10 @@ export default function Exercises() {
       <div className="ex-sticky">
         <div className="glass search-bar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-          <input type="search" aria-label="بحث في التمارين" placeholder="دور بالاسم أو العضلة أو المعدة (dumbbell...)" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input type="search" aria-label={tx("بحث في التمارين")} placeholder={tx("دور بالاسم أو العضلة أو المعدة (dumbbell...)")} value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        <div className="filters" role="group" aria-label="العضلة">
+        <div className="filters" role="group" aria-label={tx("العضلة")}>
           {FILTERS.map((f) => (
             <button
               type="button"
@@ -209,47 +212,47 @@ export default function Exercises() {
 
       <div className="ex-toolbar">
         <button type="button" className={"chip chip-btn" + (showFilters ? " active" : "")} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
-          <span>فلاتر وترتيب</span>
+          <span>{tx("فلاتر وترتيب")}</span>
           {activeFilterCount > 0 && <span className="count-dot">{activeFilterCount}</span>}
         </button>
         <button type="button" className={"chip chip-btn" + (favOnly ? " active" : "")} aria-pressed={favOnly} onClick={() => setFavOnly((v) => !v)}>
-          <span>⭐ المفضلة</span>
+          <span>{tx("⭐ المفضلة")}</span>
         </button>
         <button type="button" className={"chip chip-btn" + (mineOnly ? " active" : "")} aria-pressed={mineOnly} onClick={() => setMineOnly((v) => !v)}>
-          <span>🏋️ تماريني ({mineCount})</span>
+          <span>{tx("🏋️ تماريني (")}{mineCount})</span>
         </button>
         <button type="button" className={"chip chip-btn" + (homeOnly ? " active" : "")} aria-pressed={homeOnly} onClick={() => setHomeOnly((v) => !v)}>
-          <span>🏠 في البيت</span>
+          <span>{tx("🏠 في البيت")}</span>
         </button>
-        <span className="page-count" style={{ marginInlineStart: "auto" }}>{filtered.length} نتيجة</span>
+        <span className="page-count" style={{ marginInlineStart: "auto" }}>{filtered.length} {tx("نتيجة")}</span>
       </div>
 
       {showFilters && (
         <div className="glass ex-filter-panel">
           <div className="ex-filter-row">
-            <span className="ex-filter-label">المعدة</span>
-            <button type="button" className={"chip chip-btn sm" + (!equip ? " active" : "")} onClick={() => setEquip("")}>الكل</button>
+            <span className="ex-filter-label">{tx("المعدة")}</span>
+            <button type="button" className={"chip chip-btn sm" + (!equip ? " active" : "")} onClick={() => setEquip("")}>{tx("الكل")}</button>
             {equipOptions.map((x) => (
-              <button type="button" key={x} className={"chip chip-btn sm" + (equip === x ? " active" : "")} aria-pressed={equip === x} onClick={() => setEquip(equip === x ? "" : x)}>{x}</button>
+              <button type="button" key={x} className={"chip chip-btn sm" + (equip === x ? " active" : "")} aria-pressed={equip === x} onClick={() => setEquip(equip === x ? "" : x)}>{isEn() ? equipmentEn(x) : x}</button>
             ))}
           </div>
           <div className="ex-filter-row">
-            <span className="ex-filter-label">الصعوبة</span>
-            <button type="button" className={"chip chip-btn sm" + (!diff ? " active" : "")} onClick={() => setDiff("")}>الكل</button>
+            <span className="ex-filter-label">{tx("الصعوبة")}</span>
+            <button type="button" className={"chip chip-btn sm" + (!diff ? " active" : "")} onClick={() => setDiff("")}>{tx("الكل")}</button>
             {DIFFICULTIES.map((x) => (
-              <button type="button" key={x} className={"chip chip-btn sm" + (diff === x ? " active" : "")} aria-pressed={diff === x} onClick={() => setDiff(diff === x ? "" : x)}>{x}</button>
+              <button type="button" key={x} className={"chip chip-btn sm" + (diff === x ? " active" : "")} aria-pressed={diff === x} onClick={() => setDiff(diff === x ? "" : x)}>{isEn() ? difficultyEn(x) : x}</button>
             ))}
           </div>
           <div className="ex-filter-row">
-            <span className="ex-filter-label">الترتيب</span>
+            <span className="ex-filter-label">{tx("الترتيب")}</span>
             {SORTS.map((x) => (
               <button type="button" key={x.k} className={"chip chip-btn sm" + (sort === x.k ? " active" : "")} aria-pressed={sort === x.k} onClick={() => setSort(x.k)}>{x.label}</button>
             ))}
           </div>
           <div className="diff-legend">
-            <span>مبتدئ: حركة بسيطة وآمنة للبداية</span>
-            <span>متوسط: محتاج تكنيك وأوزان معقولة</span>
-            <span>متقدم: حركة مركبة محتاجة خبرة</span>
+            <span>{tx("مبتدئ: حركة بسيطة وآمنة للبداية")}</span>
+            <span>{tx("متوسط: محتاج تكنيك وأوزان معقولة")}</span>
+            <span>{tx("متقدم: حركة مركبة محتاجة خبرة")}</span>
           </div>
         </div>
       )}
@@ -259,15 +262,15 @@ export default function Exercises() {
       {!filtered.length ? (
         <EmptyState
           type="search"
-          title={mineOnly && !search.trim() ? "لسه ما ضفتش تمارين خاصة بيك" : favOnly && !search.trim() ? "مفيش تمارين في المفضلة لسه" : "مفيش تمارين مطابقة"}
-          subtitle={mineOnly && !search.trim() ? "دوس على + وضيف تمرينك بصورة أو فيديو من الكاميرا." : favOnly && !search.trim() ? "دوس على النجمة في أي تمرين عشان يتحفظ هنا." : "جرّب كلمة تانية أو شيل الفلاتر، أو ضيفه كتمرين خاص بيك."}
-          ctaLabel={search.trim() ? `+ أضف "${search.trim()}"` : "+ إضافة تمرين"}
+          title={mineOnly && !search.trim() ? tx("لسه ما ضفتش تمارين خاصة بيك") : favOnly && !search.trim() ? tx("مفيش تمارين في المفضلة لسه") : tx("مفيش تمارين مطابقة")}
+          subtitle={mineOnly && !search.trim() ? tx("دوس على + وضيف تمرينك بصورة أو فيديو من الكاميرا.") : favOnly && !search.trim() ? tx("دوس على النجمة في أي تمرين عشان يتحفظ هنا.") : tx("جرّب كلمة تانية أو شيل الفلاتر، أو ضيفه كتمرين خاص بيك.")}
+          ctaLabel={search.trim() ? txf(`+ أضف "{0}"`, [search.trim()]) : tx("+ إضافة تمرين")}
           onCta={() => openAdd(search.trim())}
         />
       ) : (
         <>
           {activeFilterCount > 0 && (
-            <button type="button" className="chip chip-btn sm" style={{ marginBottom: 8 }} onClick={clearFilters}>مسح الفلاتر</button>
+            <button type="button" className="chip chip-btn sm" style={{ marginBottom: 8 }} onClick={clearFilters}>{tx("مسح الفلاتر")}</button>
           )}
           {groupKeys.map((muscle, idx) => {
             const meta = Store.getMuscleMeta(muscle);
@@ -279,7 +282,7 @@ export default function Exercises() {
                   <button type="button" className="group-head-btn" aria-expanded={open} onClick={() => setOpenMap((m) => ({ ...m, [muscle]: !open }))}>
                     <span className="dot" style={{ background: meta.color, color: meta.color }} />
                     {meta.label}
-                    <span className="group-count">{items.length} تمرين</span>
+                    <span className="group-count">{items.length} {tx("تمرين")}</span>
                     <svg className="chev-g" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
                   </button>
                 </div>
@@ -298,7 +301,7 @@ export default function Exercises() {
               </section>
             );
           })}
-          <div className="ex-help">اضغط مطوّل على أي تمرين لحذفه، أو افتحه واحذفه من جوا.</div>
+          <div className="ex-help">{tx("اضغط مطوّل على أي تمرين لحذفه، أو افتحه واحذفه من جوا.")}</div>
         </>
       )}
 

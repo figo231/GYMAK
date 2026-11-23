@@ -1,9 +1,10 @@
 import { useTheme } from "../../hooks/useTheme";
+import { tx } from "../../lib/i18n/tx";
 
 const OPTIONS = [
-  { id: "system", label: "تلقائي", sub: "يتبع إعدادات جهازك" },
-  { id: "light", label: "فاتح", sub: "خلفية بيضاء ناصعة" },
-  { id: "dark", label: "داكن", sub: "مريح للعين ليلًا" },
+  { id: "system", label: tx("تلقائي"), sub: tx("يتبع إعدادات جهازك") },
+  { id: "light", label: tx("فاتح"), sub: tx("خلفية بيضاء ناصعة") },
+  { id: "dark", label: tx("داكن"), sub: tx("مريح للعين ليلًا") },
 ];
 
 function ThemePreview({ mode }) {
@@ -38,8 +39,8 @@ export default function AppearanceSheet({ onClose }) {
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="edit-sheet">
         <div className="edit-sheet-handle" />
-        <h3>المظهر</h3>
-        <p className="appearance-sub">اختار شكل التطبيق اللي يريحك أكتر</p>
+        <h3>{tx("المظهر")}</h3>
+        <p className="appearance-sub">{tx("اختار شكل التطبيق اللي يريحك أكتر")}</p>
 
         <div className="theme-grid">
           {OPTIONS.map((opt) => (
@@ -63,11 +64,11 @@ export default function AppearanceSheet({ onClose }) {
 
         <div className="appearance-current">
           <span className="status-dot" />
-          الوضع الحالي: {theme === "dark" ? "داكن" : "فاتح"}{pref === "system" ? " (تلقائي)" : ""}
+          {tx("الوضع الحالي:")} {theme === "dark" ? tx("داكن") : tx("فاتح")}{pref === "system" ? tx(" (تلقائي)") : ""}
         </div>
 
         <div className="edit-sheet-actions">
-          <button type="button" onClick={onClose}>إغلاق</button>
+          <button type="button" onClick={onClose}>{tx("إغلاق")}</button>
         </div>
       </div>
     </div>

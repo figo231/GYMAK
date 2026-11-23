@@ -1,6 +1,7 @@
+import { tx } from "../i18n/tx";
 /* Progress photos: stored ONLY on this device (IndexedDB). Never uploaded, never synced, never shared with a coach. */
 const DB = "gymak_photos_v1", STORE = "photos";
-export const POSES = [["front", "من الأمام"], ["side", "من الجنب"], ["back", "من الضهر"]];
+export const POSES = [["front", tx("من الأمام")], ["side", tx("من الجنب")], ["back", tx("من الضهر")]];
 export const MAX_PHOTOS = 200;
 
 export function createIdbAdapter(idb = typeof indexedDB !== "undefined" ? indexedDB : null) {

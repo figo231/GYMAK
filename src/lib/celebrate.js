@@ -1,3 +1,4 @@
+import { tx, txf } from "./i18n/tx";
 // Tiny event bus for "moment" cards (PR, level-up, streak milestone).
 export const STREAK_MILESTONES = [7, 14, 30, 50, 100, 200, 365];
 export const isStreakMilestone = (n) => STREAK_MILESTONES.includes(n);
@@ -13,13 +14,13 @@ export function onCelebrate(fn) {
 }
 
 // Builds the card content. Priority when several happen at once: level-up > streak > PR.
-export function momentsFor({ levelUp, level, streak, pr, unit = "كجم", conv = (x) => x }) {
+export function momentsFor({ levelUp, level, streak, pr, unit = tx("كجم"), conv = (x) => x }) {
   const out = [];
-  if (levelUp) out.push({ kind: "level", title: "مستوى جديد", big: String(level), unit: "", sub: `وصلت للمستوى ${level}. كمّل كده.` });
-  if (streak && isStreakMilestone(streak)) out.push({ kind: "streak", title: "سلسلة قوية", big: String(streak), unit: "يوم متتالي", sub: `${streak} يوم تمرين ورا بعض. ده التزام حقيقي.` });
+  if (levelUp) out.push({ kind: "level", title: tx("مستوى جديد"), big: String(level), unit: "", sub: txf(`وصلت للمستوى {0}. كمّل كده.`, [level]) });
+  if (streak && isStreakMilestone(streak)) out.push({ kind: "streak", title: tx("سلسلة قوية"), big: String(streak), unit: tx("يوم متتالي"), sub: txf(`{0} يوم تمرين ورا بعض. ده التزام حقيقي.`, [streak]) });
   if (pr) {
     const w = Math.round(conv(pr.weight) * 10) / 10, p = Math.round(conv(pr.prevWeight) * 10) / 10;
-    out.push({ kind: "pr", title: "رقم قياسي جديد", big: String(w), unit, sub: `${pr.exerciseName}${p > 0 ? ` (كان ${p})` : ""}` });
+    out.push({ kind: "pr", title: tx("رقم قياسي جديد"), big: String(w), unit, sub: txf(`{0}{1}`, [pr.exerciseName, p > 0 ? txf(` (كان {0})`, [p]) : ""]) });
   }
   return out;
 }

@@ -2,6 +2,7 @@
 // (deadline, goal weight) and tells the user whether their recent rate keeps
 // them on that path. Pure functions; all weights in kg, dates ISO.
 import { localISO } from "../dateKey";
+import { tx } from "../i18n/tx";
 
 function days(a, b) {
   return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
@@ -53,10 +54,10 @@ export function goalProgress(history, goal, deadline, todayKey = localISO()) {
 }
 
 export const GOAL_STATUS_LABEL = {
-  done: "وصلت لهدفك 🎉",
-  missed: "المعاد عدّى — جدّد الهدف بتاريخ جديد",
-  ahead: "ماشي أسرع من الخطة 🔥",
-  on: "ماشي صح على الخطة ✅",
-  behind: "تحتاج تزود الإيقاع عشان تلحق المعاد",
-  "no-data": "سجّل وزنك كام مرة عشان نعرف إنت ماشي صح ولا لأ",
+  done: tx("وصلت لهدفك 🎉"),
+  missed: tx("المعاد عدّى — جدّد الهدف بتاريخ جديد"),
+  ahead: tx("ماشي أسرع من الخطة 🔥"),
+  on: tx("ماشي صح على الخطة ✅"),
+  behind: tx("تحتاج تزود الإيقاع عشان تلحق المعاد"),
+  "no-data": tx("سجّل وزنك كام مرة عشان نعرف إنت ماشي صح ولا لأ"),
 };

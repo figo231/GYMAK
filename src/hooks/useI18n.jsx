@@ -21,6 +21,10 @@ export function I18nProvider({ children }) {
       setLang: (next) => {
         Store.setLang(next);
         setLangState(next);
+        // Plain tx() calls live outside React's re-render reach (module-level
+        // data normalisers, non-subscribed components), so a full reload is
+        // the reliable way to repaint every screen in the new language.
+        if (typeof window !== "undefined") window.location.reload();
       },
     }),
     [lang]

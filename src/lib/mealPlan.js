@@ -1,3 +1,4 @@
+import { tx, txf } from "./i18n/tx";
 /* Egyptian weekly meal plan + shopping list. Pure: caller passes `lookup(name, grams)` -> {kcal, protein} | null. */
 export const POOLS = {
   breakfast: [
@@ -28,7 +29,7 @@ export const POOLS = {
   ],
 };
 const SLOTS = ["breakfast", "lunch", "dinner", "snack"];
-export const SLOT_LABEL = { breakfast: "فطار", lunch: "غدا", dinner: "عشا", snack: "سناك" };
+export const SLOT_LABEL = { breakfast: tx("فطار"), lunch: tx("غدا"), dinner: tx("عشا"), snack: tx("سناك") };
 
 const round10 = (n) => Math.max(10, Math.round(n / 10) * 10);
 
@@ -62,5 +63,5 @@ export function shoppingList(days) {
   for (const d of days) for (const m of d.meals) for (const it of m.items) map.set(it.name, (map.get(it.name) || 0) + it.grams);
   return [...map.entries()].map(([name, grams]) => ({ name, grams })).sort((a, b) => b.grams - a.grams);
 }
-export const fmtGrams = (g) => (g >= 1000 ? `${(Math.round(g / 100) / 10).toString()} كجم` : `${g} جم`);
-export function listText(list) { return "قائمة التسوق (GYMAK)\n" + list.map((x) => `- ${x.name}: ${fmtGrams(x.grams)}`).join("\n"); }
+export const fmtGrams = (g) => (g >= 1000 ? txf(`{0} كجم`, [(Math.round(g / 100) / 10).toString()]) : txf(`{0} جم`, [g]));
+export function listText(list, displayName = (x) => x) { return (isEn() ? "Shopping list (GYMAK)" : "قائمة التسوق (GYMAK)") + "\n" + list.map((x) => `- ${displayName(x.name)}: ${fmtGrams(x.grams)}`).join("\n"); }

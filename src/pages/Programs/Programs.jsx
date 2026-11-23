@@ -9,8 +9,10 @@ import { useI18n } from "../../hooks/useI18n";
 import SectionNav from "../../components/layout/SectionNav";
 import { programLink, programIdFromSearch, shareText } from "../../lib/shareLink";
 import ProgramDetailSheet from "./ProgramDetailSheet";
+import { tx, txf } from "../../lib/i18n/tx";
+import { programDisplay } from "../../lib/i18n/programsEn";
 
-const GOALS = [["all", "الكل"], ["bulk", "تضخيم"], ["cut", "تنشيف"], ["strength", "قوة"], ["fitness", "لياقة"]];
+const GOALS = [["all", tx("الكل")], ["bulk", tx("تضخيم")], ["cut", tx("تنشيف")], ["strength", tx("قوة")], ["fitness", tx("لياقة")]];
 const GOAL_LABEL = Object.fromEntries(GOALS);
 const LEVEL_CLASS = { "مبتدئ": "lvl-beginner", "متوسط": "lvl-inter", "متقدم": "lvl-advanced" };
 const LEVEL_BARS = { "مبتدئ": 1, "متوسط": 2, "متقدم": 3 };
@@ -35,7 +37,7 @@ export default function Programs() {
   const [goal, setGoal] = useState("all");
 
   const programs = useMemo(() => Store.getPrograms(), [version]);
-  const active = useMemo(() => Store.getActiveProgram(), [version]);
+  const active = useMemo(() => programDisplay(Store.getActiveProgram()), [version]);
   const recommendedId = useMemo(() => Store.getRecommendedProgramId(), [version]);
   const shownRaw = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
   const shown = recommendedId ? [...shownRaw].sort((a, b) => (b.id === recommendedId) - (a.id === recommendedId)) : shownRaw;
@@ -46,37 +48,37 @@ export default function Programs() {
     if (id) setDetailId(id);
   }, []);
   async function handleShare(p) {
-    const r = await shareText({ title: p.name, text: `برنامج ${p.name} على GYMAK`, url: programLink(p.id) });
-    if (r === "copied") toast("اتنسخ لينك البرنامج.");
-    else if (r === "failed") toast("معرفناش نشارك اللينك.");
+    const r = await shareText({ title: p.name, text: txf(`برنامج {0} على GYMAK`, [p.name]), url: programLink(p.id) });
+    if (r === "copied") toast(tx("اتنسخ لينك البرنامج."));
+    else if (r === "failed") toast(tx("معرفناش نشارك اللينك."));
   }
   async function handleApply(id) {
     const prev = Store.getActiveProgram();
-    if (prev && prev.id === id) { toast("البرنامج ده مطبّق بالفعل."); return; }
+    if (prev && prev.id === id) { toast(tx("البرنامج ده مطبّق بالفعل.")); return; }
     const target = programs.find((p) => p.id === id);
     if (prev) {
-      const ok = await confirm({ title: "تغيّر البرنامج؟", label: `هتبدّل "${prev.name}" بـ "${target ? target.name : ""}". سجلاتك وتمارينك ما بتتمسحش.`, confirmLabel: "غيّر" });
+      const ok = await confirm({ title: tx("تغيّر البرنامج؟"), label: txf(`هتبدّل "{0}" بـ "{1}". سجلاتك وتمارينك ما بتتمسحش.`, [programDisplay(prev).name, target ? programDisplay(target).name : ""]), confirmLabel: tx("غيّر") });
       if (!ok) return;
     }
     Store.applyProgram(id);
     buzz(15);
-    toast(`اتطبّق: ${target ? target.name : ""}`, {
+    toast(txf(`اتطبّق: {0}`, [target ? target.name : ""]), {
       duration: 6000,
-      action: { label: "تراجع", onClick: () => { if (prev) Store.applyProgram(prev.id); else Store.stopProgram(); } },
+      action: { label: tx("تراجع"), onClick: () => { if (prev) Store.applyProgram(prev.id); else Store.stopProgram(); } },
     });
   }
   async function handleStop() {
     if (!active) return;
-    const ok = await confirm({ title: "توقّف البرنامج الحالي؟", label: "سجلاتك وتمارينك هتفضل زي ما هي.", confirmLabel: "إيقاف", danger: true });
+    const ok = await confirm({ title: tx("توقّف البرنامج الحالي؟"), label: tx("سجلاتك وتمارينك هتفضل زي ما هي."), confirmLabel: tx("إيقاف"), danger: true });
     if (!ok) return;
     const prev = Store.stopProgram();
-    toast("البرنامج اتوقّف.", { duration: 6000, action: { label: "تراجع", onClick: () => { if (prev) Store.applyProgram(prev); } } });
+    toast(tx("البرنامج اتوقّف."), { duration: 6000, action: { label: tx("تراجع"), onClick: () => { if (prev) Store.applyProgram(prev); } } });
   }
 
   return (
     <>
-      <SectionNav group="train" title="تدريب" />
-      <p className="pg-sub">اختار برنامج وطبّقه تلقائيًا على جدولك</p>
+      <SectionNav group="train" title={tx("تدريب")} />
+      <p className="pg-sub">{tx("اختار برنامج وطبّقه تلقائيًا على جدولك")}</p>
 
       {active && (
         <div className="glass active-banner">
@@ -84,33 +86,34 @@ export default function Programs() {
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="active-name">البرنامج الحالي: {active.name}</div>
+            <div className="active-name">{tx("البرنامج الحالي:")} {active.name}</div>
             <div className="active-sub">{active.daysPerWeek}</div>
           </div>
           <div className="active-actions">
-            <Link to="/exercises" className="btn btn-primary active-go">ابدأ</Link>
-            <button type="button" className="active-stop" onClick={handleStop}>إيقاف</button>
+            <Link to="/exercises" className="btn btn-primary active-go">{tx("ابدأ")}</Link>
+            <button type="button" className="active-stop" onClick={handleStop}>{tx("إيقاف")}</button>
           </div>
         </div>
       )}
 
-      <div className="goal-tabs" role="tablist" aria-label="الهدف">
+      <div className="goal-tabs" role="tablist" aria-label={tx("الهدف")}>
         {GOALS.map(([id, label]) => (
           <button key={id} type="button" role="tab" aria-selected={goal === id} className={"goal-tab" + (goal === id ? " on" : "")} onClick={() => setGoal(id)}>{label}</button>
         ))}
       </div>
 
-      {shown.length === 0 && <div className="glass" style={{ padding: 20, textAlign: "center", color: "var(--text-dim)", fontWeight: 700, fontSize: 13 }}>مفيش برامج بالهدف ده دلوقتي.</div>}
-      {shown.map((p) => {
+      {shown.length === 0 && <div className="glass" style={{ padding: 20, textAlign: "center", color: "var(--text-dim)", fontWeight: 700, fontSize: 13 }}>{tx("مفيش برامج بالهدف ده دلوقتي.")}</div>}
+      {shown.map((pRaw) => {
+        const p = programDisplay(pRaw);
         const isActive = active && active.id === p.id;
         const isRecommended = recommendedId === p.id && !isActive;
         const days = (String(p.daysPerWeek).match(/[0-9٠-٩]+/) || ["•"])[0];
         return (
           <div className={"pg-card" + (isActive ? " is-on" : "") + (isRecommended ? " feature" : "")} key={p.id}>
-            <button type="button" className="pg-main" onClick={() => setDetailId(p.id)} aria-label={`تفاصيل ${p.name}`}>
-              <div className="pg-days"><b>{days}</b><span>أيام</span></div>
+            <button type="button" className="pg-main" onClick={() => setDetailId(p.id)} aria-label={txf(`تفاصيل {0}`, [p.name])}>
+              <div className="pg-days"><b>{days}</b><span>{tx("أيام")}</span></div>
               <div className="pg-body">
-                {isRecommended && <span className="pg-badge">★ موصى به ليك</span>}
+                {isRecommended && <span className="pg-badge">{tx("★ موصى به ليك")}</span>}
                 <span className="pg-name">{p.name}</span>
                 <span className="pg-meta">{p.goal ? GOAL_LABEL[p.goal] : ""} · {p.level}</span>
                 {isRecommended && <span className="pg-desc">{p.desc}</span>}
@@ -118,7 +121,7 @@ export default function Programs() {
               </div>
             </button>
             <button type="button" className={"pg-apply" + (isActive ? " on" : "")} aria-disabled={isActive || undefined} onClick={() => handleApply(p.id)}>
-              {isActive ? "✓ مطبّق" : "طبّق"}
+              {isActive ? tx("✓ مطبّق") : tx("طبّق")}
             </button>
           </div>
         );
