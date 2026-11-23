@@ -5,7 +5,7 @@ import {MemoryRouter} from 'react-router-dom';
 import {routineDurationLabel} from '../src/lib/warmup';
 vi.mock('../src/hooks/useAuth',()=>({useAuth:()=>({user:null})}));
 vi.mock('../src/hooks/useToast',()=>({useToast:()=>()=>{}}));
-vi.mock('../src/lib/push/ownerBroadcast',()=>({BROADCAST_ENABLED:false}));
+vi.mock('../src/lib/push/ownerBroadcast',()=>({BROADCAST_ENABLED:false,broadcastFeedback:()=>({accepted:'accepted',failed:'failed'})}));
 vi.mock('../src/lib/push/pushService',()=>({getInbox:()=>[],importDelivered:async()=>{},getPushPermission:async()=>'unsupported',initBroadcastPush:vi.fn(),deleteInboxItem:vi.fn(),clearInbox:vi.fn()}));
 let root,el;afterEach(()=>{if(root)act(()=>root.unmount());el?.remove();root=null;localStorage.clear()});
 function mount(component){el=document.createElement('div');document.body.append(el);root=createRoot(el);act(()=>root.render(component));}
