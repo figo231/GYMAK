@@ -99,3 +99,7 @@ adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
 run_test keepsDataAndRunsOffline
 cp verification/keepsDataAndRunsOffline.txt verification/apk17-upgrade.txt
 adb pull /sdcard/Android/data/com.gymak.app/files/offline-upgrade.png verification/apk17-offline-upgrade.png
+
+# Signature contract against the exact native updater dependency.
+adb shell am instrument -w -e class com.gymak.app.OtaCryptoTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/ota-crypto.txt
+grep -q 'OK (1 test)' verification/ota-crypto.txt
