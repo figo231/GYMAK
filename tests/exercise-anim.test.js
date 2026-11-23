@@ -11,6 +11,12 @@ describe("exercise animated demos", () => {
     ]);
   });
 
+  it("hides the incorrect bundled floor-bridge demo without losing search aliases", () => {
+    expect(getExerciseFrames("glute-bridge")).toBeNull();
+    expect(getExerciseFrames("hip-thrust")).not.toBeNull();
+    expect(getExerciseEnglish("glute-bridge")).toBe("Barbell Glute Bridge");
+  });
+
   it("returns null for an unknown exercise id", () => {
     expect(getExerciseFrames("not-a-real-exercise")).toBeNull();
   });

@@ -142,6 +142,9 @@ export function getExerciseFrames(id) {
   if (WOMEN_IMAGE_IDS.has(id)) return [`/women-exercises/${id}/0.webp`, `/women-exercises/${id}/1.webp`];
   const rf = remoteExerciseFrames(id);
   if (rf) return rf;
+  // APK23 visual audit: bundled floor-bridge art actually shows a bench hip thrust.
+  // Hide only that incorrect bundled demo. A later owner-provided replacement above still wins.
+  if (id === "glute-bridge") return null;
   const k = IMAGE_IDS[id];
   return k ? [LOCAL_BASE + id + "/0.webp", LOCAL_BASE + id + "/1.webp"] : null;
 }
