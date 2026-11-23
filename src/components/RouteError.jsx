@@ -2,6 +2,7 @@ import { useRouteError, useNavigate } from "react-router-dom";
 
 export default function RouteError() {
   const error = useRouteError();
+  try { window.__gymakRenderFailed=true; } catch {}
   const navigate = useNavigate();
 
   if (import.meta.env.DEV) {
