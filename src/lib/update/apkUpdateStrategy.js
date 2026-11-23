@@ -47,7 +47,7 @@ async function check() {
   inFlight = (async () => {
     const me = await installedInfo();
     // A Play build must only update through Play, not a differently signed APK.
-    if (/play/i.test(me.version)) { latest = null; localStorage.removeItem(PENDING_KEY); return false; }
+    if (import.meta.env.VITE_DISTRIBUTION_CHANNEL === "play" || /play/i.test(me.version)) { latest = null; localStorage.removeItem(PENDING_KEY); return false; }
     const remote = await fetchLatest();
     if (remote.build > me.build) {
       latest = remote;

@@ -1,3 +1,4 @@
+import {bootWithOta} from "./lib/update/otaBootstrap";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
@@ -25,6 +26,6 @@ function renderApp(){ReactDOM.createRoot(document.getElementById("root")).render
     <App />
   </React.StrictMode>
 );}
-import("./lib/update/otaUpdateStrategy").then(async m=>{const switching=await m.activateOtaBeforeRender();if(!switching)renderApp();}).catch(()=>renderApp());
+bootWithOta({render:renderApp,activate:async canCommit=>{const m=await import("./lib/update/otaUpdateStrategy");return m.activateOtaBeforeRender(canCommit);}});
 
 import("./lib/content/remoteContent").then((m) => m.refreshRemoteContent()).catch(() => {});

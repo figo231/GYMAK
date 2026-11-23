@@ -9,6 +9,10 @@ on:
 jobs:
   aab:
     runs-on: ubuntu-latest
+    env:
+      VITE_DISTRIBUTION_CHANNEL: play
+      VITE_OTA_ENABLED: "false"
+      VITE_PLAY_OTA_REVIEW_HOLD: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

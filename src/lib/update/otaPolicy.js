@@ -26,12 +26,13 @@ export async function stageOta({plugin,manifest,identity,storage}){
  // an in-progress session. Record candidate only; activate at next JS bootstrap.
  storage.setItem('gymak_ota_staged_v1',JSON.stringify({id:bundle.id,nativeBuild:identity.nativeBuild}));return true;
 }
-export async function activateStagedOta({plugin,storage,nativeBuild}){
+export async function activateStagedOta({plugin,storage,nativeBuild,canCommit=()=>true}){
  const raw=storage.getItem('gymak_ota_staged_v1');if(!raw)return false;
  storage.removeItem('gymak_ota_staged_v1'); // clear BEFORE reload to prevent loop
  let candidate;try{candidate=JSON.parse(raw);}catch{return false;}
  if(candidate.nativeBuild!==nativeBuild||typeof candidate.id!=='string')return false;
  const {bundles=[]}=await plugin.list();
  if(!bundles.some(b=>b.id===candidate.id&&['pending','success'].includes(b.status)))return false;
+ if(!canCommit())return false;
  await plugin.set({id:candidate.id});return true;
 }
