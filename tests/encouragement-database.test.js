@@ -30,5 +30,5 @@ it('rejects stale-session preference writes',async()=>{await expect(actor(other,
 it('respects prior explicit opt-out and never automatically enrolls absent preferences',async()=>{
  await db.exec(`delete from encouragement_preferences where user_id='${other}';insert into push_preferences values('${other}','encouragement',false);`);
  await expect(actor(other,`select set_my_encouragement(true,'device-b','${other}')`)).rejects.toThrow(/previous_opt_out/);
- expect((await db.query(`select * from encouragement_preferences where user_id='${other}'`)).rows.length).toBe(0);
+ expect((await db.query(`select * from encouragement_preferences where user_id='${other}'`)).rows.length).toBe(0);const effective=(await actor(other,'select my_encouragement() state'))[0].state;expect(effective.enabled).toBe(false);expect(effective.enrolled).toBe(true);
 });

@@ -46,7 +46,7 @@ grant all on public.encouragement_preferences,public.encouragement_config,public
 create function public.my_encouragement() returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin
  if auth.uid() is null then raise exception 'sign_in_required'; end if;
- return jsonb_build_object('enabled',coalesce((select enabled from public.encouragement_preferences where user_id=auth.uid()),true),'enrolled',exists(select 1 from public.encouragement_preferences where user_id=auth.uid()));
+ return jsonb_build_object('enabled',coalesce((select enabled from public.encouragement_preferences where user_id=auth.uid()),true) and not exists(select 1 from public.push_preferences where user_id=auth.uid() and category='encouragement' and not enabled),'enrolled',exists(select 1 from public.encouragement_preferences where user_id=auth.uid()) or exists(select 1 from public.push_preferences where user_id=auth.uid() and category='encouragement' and not enabled));
 end $$;
 create function public.set_my_encouragement(p_enabled boolean,p_device_id text default null,p_expected_user uuid default null) returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
