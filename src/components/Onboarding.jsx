@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SLIDES } from "./onboardingSlides";
+import { SLIDES_EN } from "./onboardingSlidesEn";
+import { isEn } from "../lib/i18n/lang";
 import { tx } from "../lib/i18n/tx";
 
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 2.4, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -17,12 +19,14 @@ const ICONS = {
 
 export default function Onboarding({ onFinish }) {
   const [step, setStep] = useState(0);
+  const [demoChoice, setDemoChoice] = useState(null);
   const last = step === SLIDES.length - 1;
-  const slide = SLIDES[step];
+  const en = isEn();
+  const slide = en ? { ...SLIDES[step], ...SLIDES_EN[step] } : SLIDES[step];
   const next = () => (last ? onFinish() : setStep((s) => s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
   const ref = useRef(null);
-  useEffect(() => { ref.current?.focus(); }, [step]);
+  useEffect(() => { setDemoChoice(null); ref.current?.focus(); }, [step]);
   useEffect(() => {
     const k = (e) => { if (e.key === "Escape") onFinish(); };
     window.addEventListener("keydown", k);
@@ -30,12 +34,19 @@ export default function Onboarding({ onFinish }) {
   }, [onFinish]);
 
   return (
-    <div className="onboarding-screen" role="dialog" aria-modal="true" aria-label={tx("جولة التطبيق")}>
+    <div className="onboarding-screen" role="dialog" aria-modal="true" aria-label={tx("جولة التطبيق")} dir={en ? "ltr" : "rtl"}>
       <button type="button" className="onboarding-skip" onClick={onFinish}>{tx("تخطي")}</button>
       <div className="onboarding-slide" key={step} tabIndex={-1} ref={ref}>
         <div className="onboarding-illo">{ICONS[slide.icon]}</div>
         <h2 className="onboarding-title">{slide.title}</h2>
         <p className="onboarding-desc">{slide.desc}</p>
+        <div className="onboarding-demo" aria-label={en ? "Practice example" : "مثال توضيحي"}>
+          <p className="onboarding-demo-label">{slide.demo}</p>
+          <div className="onboarding-demo-items">{slide.items.map((item,i)=>slide.interactive ?
+            <button type="button" key={item} aria-pressed={demoChoice===i} className={demoChoice===i?"selected":""} onClick={()=>setDemoChoice(i)}>{demoChoice===i?"✓ ":""}{item}</button> :
+            <span key={item}>{item}</span>)}</div>
+          {slide.interactive&&<small aria-live="polite">{demoChoice===null?(en?"Tap to try. No data will be saved.":"اضغط للتجربة، من غير حفظ أي بيانات"):(en?"Done! This is practice only. Your data is unchanged.":"تمام! دي تجربة بس، بياناتك زي ما هي.")}</small>}
+        </div>
       </div>
       <div className="onboarding-count" dir="ltr">{step + 1} / {SLIDES.length}</div>
       <div className="onboarding-dots" aria-hidden="true">

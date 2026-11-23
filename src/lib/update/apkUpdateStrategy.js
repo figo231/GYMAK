@@ -2,7 +2,7 @@ import { App } from "@capacitor/app";
 // A native APK has a fixed bundle. Public GitHub release metadata is only
 // checked online; Android always asks the person before installing an update.
 const LATEST_API = "https://api.github.com/repos/figo231/GYMAK/releases/latest";
-export const APK_URL = "https://github.com/figo231/GYMAK/releases/latest/download/GYMAK.apk";
+export const APK_URL = "https://gymak-eight.vercel.app/download/GYMAK.apk";
 const SEEN_KEY = "gymak_apk_seen";
 const PENDING_KEY = "gymak_apk_pending";
 const MIN_CHECK_GAP = 60_000;
