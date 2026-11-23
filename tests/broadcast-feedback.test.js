@@ -1,0 +1,9 @@
+import {beforeEach,it,expect,vi} from 'vitest';
+const m=vi.hoisted(()=>({invoke:vi.fn(),single:vi.fn()}));
+vi.mock('../src/lib/supabaseClient',()=>({supabase:{from:()=>({insert:()=>({select:()=>({single:m.single})})}),functions:{invoke:m.invoke}}}));
+import {sendBroadcast,broadcastFeedback} from '../src/lib/push/ownerBroadcast';
+beforeEach(()=>{m.invoke.mockReset();m.single.mockReset();m.single.mockResolvedValue({data:{id:'fixture-notification'},error:null});});
+it('calls the sender once and reports only FCM acceptance',async()=>{m.invoke.mockResolvedValue({data:{ok:true},error:null});expect(await sendBroadcast({title:'test',body:'body'})).toEqual({accepted:true});expect(m.invoke).toHaveBeenCalledTimes(1);expect(m.invoke).toHaveBeenCalledWith('send-notification',{body:{notificationId:'fixture-notification'}});});
+it('rejects a200 response when provider rejected or result is ambiguous',async()=>{for(const data of [{ok:false,result:{errorCode:'UNAVAILABLE'}},null,{}]){m.invoke.mockResolvedValue({data,error:null});await expect(sendBroadcast({title:'test',body:'body'})).rejects.toThrow('broadcast_not_accepted');}expect(m.invoke).toHaveBeenCalledTimes(3);});
+it('does not retry network or auth errors',async()=>{m.invoke.mockResolvedValue({error:{message:'network error'}});await expect(sendBroadcast({title:'test',body:'body'})).rejects.toThrow('network error');expect(m.invoke).toHaveBeenCalledTimes(1);});
+it('has honest acceptance and retry warning text in both languages',()=>{expect(broadcastFeedback('en').accepted).toContain('does not confirm receipt');expect(broadcastFeedback('ar').accepted).toContain('مش تأكيد');expect(broadcastFeedback('en').failed).toContain('Do not retry automatically');expect(broadcastFeedback('ar').failed).toContain('متعيدش الإرسال');});

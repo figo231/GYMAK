@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getInbox, importDelivered, getPushPermission, initBroadcastPush, deleteInboxItem, clearInbox } from "../../lib/push/pushService";
-import { BROADCAST_ENABLED, isOwnerAdmin, sendBroadcast } from "../../lib/push/ownerBroadcast";
+import { BROADCAST_ENABLED, isOwnerAdmin, sendBroadcast, broadcastFeedback } from "../../lib/push/ownerBroadcast";
+import { useI18n } from "../../hooks/useI18n";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 
@@ -10,6 +11,7 @@ import { useToast } from "../../hooks/useToast";
    compose box to broadcast a notification from inside the app. */
 export default function NotifSheet({ onClose }) {
   const toast = useToast();
+  const {lang}=useI18n();const feedback=broadcastFeedback(lang);
   const { user } = useAuth();
   const [inbox, setInbox] = useState(getInbox());
   const [perm, setPerm] = useState(null);
@@ -38,10 +40,10 @@ export default function NotifSheet({ onClose }) {
     setSending(true);
     try {
       await sendBroadcast({ title: title.trim(), body: body.trim() });
-      toast("اتبعت الإشعار لكل المستخدمين ✅");
+      toast(feedback.accepted);
       setTitle(""); setBody(""); setCompose(false);
     } catch (e) {
-      toast("معرفناش نبعت الإشعار: " + (e?.message || "خطأ"));
+      toast(feedback.failed);
     } finally { setSending(false); }
   }
 
