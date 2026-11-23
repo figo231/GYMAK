@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SLIDES } from "./onboardingSlides";
+import { tx } from "../lib/i18n/tx";
 
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 2.4, strokeLinecap: "round", strokeLinejoin: "round" };
 const ICONS = {
@@ -29,8 +30,8 @@ export default function Onboarding({ onFinish }) {
   }, [onFinish]);
 
   return (
-    <div className="onboarding-screen" role="dialog" aria-modal="true" aria-label="جولة التطبيق">
-      <button type="button" className="onboarding-skip" onClick={onFinish}>تخطي</button>
+    <div className="onboarding-screen" role="dialog" aria-modal="true" aria-label={tx("جولة التطبيق")}>
+      <button type="button" className="onboarding-skip" onClick={onFinish}>{tx("تخطي")}</button>
       <div className="onboarding-slide" key={step} tabIndex={-1} ref={ref}>
         <div className="onboarding-illo">{ICONS[slide.icon]}</div>
         <h2 className="onboarding-title">{slide.title}</h2>
@@ -41,8 +42,8 @@ export default function Onboarding({ onFinish }) {
         {SLIDES.map((_, i) => <span key={i} className={"onboarding-dot" + (i === step ? " active" : "")} />)}
       </div>
       <div className="onboarding-actions">
-        {step > 0 && <button type="button" className="onboarding-back" onClick={back}>السابق</button>}
-        <button type="button" className="onboarding-cta" onClick={next}>{last ? "يلا نبدأ" : "التالي"}</button>
+        {step > 0 && <button type="button" className="onboarding-back" onClick={back}>{tx("السابق")}</button>}
+        <button type="button" className="onboarding-cta" onClick={next}>{last ? tx("يلا نبدأ") : tx("التالي")}</button>
       </div>
     </div>
   );

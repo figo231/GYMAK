@@ -1,5 +1,6 @@
 import { localISO } from "../dateKey";
 import { supabase } from "../supabaseClient";
+import { tx } from "../i18n/tx";
 
 const lower = (s) => String(s || "").trim().toLowerCase();
 async function me() {
@@ -33,10 +34,10 @@ export async function respondInvite(id, accept) {
 export async function inviteTrainee(email) {
   const u = await me();
   const e = lower(email);
-  if (!/^\S+@\S+\.\S+$/.test(e)) throw new Error("إيميل غير صحيح");
-  if (e === u.email) throw new Error("مينفعش تدعو نفسك");
+  if (!/^\S+@\S+\.\S+$/.test(e)) throw new Error(tx("إيميل غير صحيح"));
+  if (e === u.email) throw new Error(tx("مينفعش تدعو نفسك"));
   const { error } = await supabase.from("coach_links").insert({ coach_id: u.id, coach_email: u.email, trainee_email: e, status: "pending" });
-  if (error) throw new Error(error.code === "23505" ? "الدعوة دي اتبعتت قبل كده" : error.message);
+  if (error) throw new Error(error.code === "23505" ? tx("الدعوة دي اتبعتت قبل كده") : error.message);
 }
 export async function myTrainees() {
   const u = await me();

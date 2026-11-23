@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import UpdateService from "../lib/update/UpdateService";
 import { useI18n } from "../hooks/useI18n";
+import { tx } from "../lib/i18n/tx";
 
 // If the user doesn't tap "تحديث الآن", apply the update on their behalf
 // after this long so a stale build can't linger indefinitely open.
@@ -37,7 +38,7 @@ export default function PWAUpdatePrompt() {
 
   const text = lang === "en"
     ? { title: "A new version of GYMAK is available", action: "Update now" }
-    : { title: "يتوفر إصدار جديد من GYMAK", action: "تحديث الآن" };
+    : { title: tx("يتوفر إصدار جديد من GYMAK"), action: tx("تحديث الآن") };
 
   return (
     <div className="pwa-update-toast" role="status" aria-live="polite">

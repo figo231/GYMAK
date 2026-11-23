@@ -1,6 +1,7 @@
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { arDate, signed, timeFractions, weightTone } from "../../lib/stats/format";
+import { tx, txf } from "../../lib/i18n/tx";
 
 const TONE = {
   good: { color: "var(--success)", bg: "rgba(34,197,94,0.13)" },
@@ -19,7 +20,7 @@ export default function WeightChart({ history, goal = null, goalTo = null, perio
           <span className="chart-now">{last} <small style={{ fontSize: 12, color: "var(--text-dim)" }}>{unit}</small></span>
         </div>
         <div style={{ padding: "24px 0", textAlign: "center", color: "var(--text-dim)", fontSize: 12 }}>
-          {history.length ? `محتاج قياسين على الأقل في ${periodLabel || "الفترة دي"} عشان يظهر الرسم.` : "سجّل وزنك مرتين على الأقل عشان يظهر الرسم البياني."}
+          {history.length ? txf(`محتاج قياسين على الأقل في {0} عشان يظهر الرسم.`, [periodLabel || "الفترة دي"]) : tx("سجّل وزنك مرتين على الأقل عشان يظهر الرسم البياني.")}
         </div>
       </div>
     );
@@ -57,7 +58,7 @@ export default function WeightChart({ history, goal = null, goalTo = null, perio
       </div>
       {/* Chart is always drawn oldest on the left, newest on the right; labels follow the same direction. */}
       <div dir="ltr" className="wchart">
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`رسم تطور الوزن، من ${fmt(disp(weights[0]))} إلى ${fmt(disp(weights.at(-1)))} ${unit}`}>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={txf(`رسم تطور الوزن، من {0} إلى {1} {2}`, [fmt(disp(weights[0])), fmt(disp(weights.at(-1))), unit])}>
           <defs>
             <linearGradient id="wArea" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--glow-blue)" stopOpacity="0.35" />
@@ -82,7 +83,7 @@ export default function WeightChart({ history, goal = null, goalTo = null, perio
         </svg>
         <span className="wchart-y top">{fmt(disp(hi))}</span>
         <span className="wchart-y bot">{fmt(disp(lo))}</span>
-        {goalIn != null && <span className="wchart-goal" style={{ top: `${(yOf(goalIn) / H) * 100}%` }}>الهدف {fmt(disp(goalIn))}</span>}
+        {goalIn != null && <span className="wchart-goal" style={{ top: `${(yOf(goalIn) / H) * 100}%` }}>{tx("الهدف")} {fmt(disp(goalIn))}</span>}
       </div>
       <div className="chart-labels" dir="ltr">
         <span>{arDate(history[0].date)}</span>

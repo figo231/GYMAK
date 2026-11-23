@@ -1,4 +1,5 @@
 import { localISO, shiftISO } from "./dateKey";
+import { tx } from "./i18n/tx";
 /* Weekly challenge + monthly badges, computed from workout days. Pure, nothing stored. Egypt week starts Saturday. */
 export function weekStart(todayKey = localISO()) {
   const [y, m, d] = todayKey.split("-").map(Number);
@@ -21,9 +22,9 @@ export function weeklyChallenge(workoutDays = [], todayKey = localISO()) {
 }
 
 export const MONTH_TIERS = [
-  { id: "bronze", label: "برونز", days: 8 },
-  { id: "silver", label: "فضة", days: 12 },
-  { id: "gold", label: "ذهب", days: 20 },
+  { id: "bronze", label: tx("برونز"), days: 8 },
+  { id: "silver", label: tx("فضة"), days: 12 },
+  { id: "gold", label: tx("ذهب"), days: 20 },
 ];
 export function monthlyBadges(workoutDays = [], todayKey = localISO()) {
   const key = todayKey.slice(0, 7);

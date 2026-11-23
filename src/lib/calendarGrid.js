@@ -1,7 +1,8 @@
+import { tx } from "./i18n/tx";
 // Month grid for the workout calendar. Week starts on Saturday (Egypt).
 const pad = (n) => String(n).padStart(2, "0");
-export const WEEK_HEADS = ["س", "ح", "ن", "ث", "ر", "خ", "ج"]; // Sat..Fri
-export const MONTH_NAMES = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+export const WEEK_HEADS = [tx("س"), tx("ح"), tx("ن"), tx("ث"), tx("ر"), tx("خ"), tx("ج")]; // Sat..Fri
+export const MONTH_NAMES = [tx("يناير"), tx("فبراير"), tx("مارس"), tx("أبريل"), tx("مايو"), tx("يونيو"), tx("يوليو"), tx("أغسطس"), tx("سبتمبر"), tx("أكتوبر"), tx("نوفمبر"), tx("ديسمبر")];
 
 // month is 0-based. Returns weeks: arrays of 7 cells, each null or { day, iso }.
 export function monthGrid(year, month) {

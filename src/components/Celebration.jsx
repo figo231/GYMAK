@@ -3,6 +3,7 @@ import { onCelebrate } from "../lib/celebrate";
 import { drawCard, canvasToBlob } from "../lib/share/shareCard";
 import { buzz } from "../lib/haptics";
 import Store from "../lib/store/gymakStore";
+import { tx } from "../lib/i18n/tx";
 
 const ICONS = {
   level: <path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7L12 3Z" />,
@@ -44,8 +45,8 @@ export default function Celebration() {
         <div className="cele-big" dir="ltr">{cur.big}{cur.unit ? <small>{cur.unit}</small> : null}</div>
         <div className="cele-sub">{cur.sub}</div>
         <div className="cele-actions">
-          <button type="button" className="btn btn-secondary" onClick={share}>مشاركة</button>
-          <button type="button" className="btn btn-primary" ref={doneRef} onClick={next}>تمام</button>
+          <button type="button" className="btn btn-secondary" onClick={share}>{tx("مشاركة")}</button>
+          <button type="button" className="btn btn-primary" ref={doneRef} onClick={next}>{tx("تمام")}</button>
         </div>
       </div>
     </div>

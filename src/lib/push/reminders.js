@@ -1,3 +1,4 @@
+import { tx } from "../i18n/tx";
 // Extra reminder types (pure logic). The daily workout reminder (id 4101) lives in nativeReminder.js.
 export const IDS = { meals: 4102, weigh: 4104, missed: 4120, waterBase: 4110, supplements: 4106 };
 export const WATER_HOURS = [10, 12, 14, 16, 18, 20];
@@ -25,10 +26,10 @@ const hm = (t) => String(t).split(":").map(Number);
 export function buildNotifications(prefs) {
   const p = normalizeReminders(prefs);
   const list = [];
-  if (p.meals.on) { const [hour, minute] = hm(p.meals.time); list.push({ id: IDS.meals, title: "GYMAK", body: "سجّل أكلك النهاردة عشان أرقامك تفضل دقيقة.", schedule: { on: { hour, minute }, allowWhileIdle: true } }); }
-  if (p.water.on) WATER_HOURS.forEach((hour, i) => list.push({ id: IDS.waterBase + i, title: "GYMAK", body: "اشرب مياه. سجّل كوباية.", schedule: { on: { hour, minute: 0 }, allowWhileIdle: true } }));
-  if (p.weigh.on) { const [hour, minute] = hm(p.weigh.time); list.push({ id: IDS.weigh, title: "GYMAK", body: "وقت وزنة الأسبوع. سجّل وزنك.", schedule: { on: { weekday: 7, hour, minute }, allowWhileIdle: true } }); }
-  if (p.supplements.on) { const [hour, minute] = hm(p.supplements.time); list.push({ id: IDS.supplements, title: "GYMAK", body: "وقت المكملات 💊 الكرياتين بعد التمرين، والأوميجا مع الأكل.", schedule: { on: { hour, minute }, allowWhileIdle: true } }); }
+  if (p.meals.on) { const [hour, minute] = hm(p.meals.time); list.push({ id: IDS.meals, title: "GYMAK", body: tx("سجّل أكلك النهاردة عشان أرقامك تفضل دقيقة."), schedule: { on: { hour, minute }, allowWhileIdle: true } }); }
+  if (p.water.on) WATER_HOURS.forEach((hour, i) => list.push({ id: IDS.waterBase + i, title: "GYMAK", body: tx("اشرب مياه. سجّل كوباية."), schedule: { on: { hour, minute: 0 }, allowWhileIdle: true } }));
+  if (p.weigh.on) { const [hour, minute] = hm(p.weigh.time); list.push({ id: IDS.weigh, title: "GYMAK", body: tx("وقت وزنة الأسبوع. سجّل وزنك."), schedule: { on: { weekday: 7, hour, minute }, allowWhileIdle: true } }); }
+  if (p.supplements.on) { const [hour, minute] = hm(p.supplements.time); list.push({ id: IDS.supplements, title: "GYMAK", body: tx("وقت المكملات 💊 الكرياتين بعد التمرين، والأوميجا مع الأكل."), schedule: { on: { hour, minute }, allowWhileIdle: true } }); }
   return list;
 }
 export const ALL_IDS = [IDS.meals, IDS.weigh, IDS.missed, IDS.supplements, ...WATER_HOURS.map((_, i) => IDS.waterBase + i)];
@@ -40,5 +41,5 @@ export function missedNotification(prefs, now, trainedToday) {
   const [h, m] = hm(p.missed.time);
   const at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
   if (at <= now) return null;
-  return { id: IDS.missed, title: "GYMAK", body: "لسه متمرنتش النهاردة. حتى 20 دقيقة تفرق.", schedule: { at, allowWhileIdle: true } };
+  return { id: IDS.missed, title: "GYMAK", body: tx("لسه متمرنتش النهاردة. حتى 20 دقيقة تفرق."), schedule: { at, allowWhileIdle: true } };
 }

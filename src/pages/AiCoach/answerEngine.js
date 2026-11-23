@@ -1,6 +1,7 @@
 import Store from "../../lib/store/gymakStore";
 import { fmt } from "../../lib/format";
 import { setsRepsFull } from "../../lib/exerciseMeta";
+import { tx, txf } from "../../lib/i18n/tx";
 
 export function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -10,14 +11,14 @@ export function welcomeMessage() {
   const streak = Store.getStreak();
   const progress = Store.getStrengthProgress(1)[0];
   const profile = Store.getProfile();
-  const namePart = profile.name ? `يا ${profile.name}` : "";
+  const namePart = profile.name ? txf(`يا {0}`, [profile.name]) : "";
   if (streak >= 3 && progress) {
-    return `أهلاً ${namePart}! مكمّل ${streak} يوم متتالي، وقوتك في ${progress.name} زادت من ${progress.from} لـ ${progress.to} كجم. حابب أساعدك في إيه النهاردة؟`;
+    return txf(`أهلاً {0}! مكمّل {1} يوم متتالي، وقوتك في {2} زادت من {3} لـ {4} كجم. حابب أساعدك في إيه النهاردة؟`, [namePart, streak, progress.name, progress.from, progress.to]);
   }
   if (streak >= 1) {
-    return `أهلاً ${namePart}! مكمّل ${streak} يوم متتالي، استمر كده. حابب أساعدك في إيه؟`;
+    return txf(`أهلاً {0}! مكمّل {1} يوم متتالي، استمر كده. حابب أساعدك في إيه؟`, [namePart, streak]);
   }
-  return `أهلاً ${namePart}! دوّن أول تمرين أو وزن عشان أقدر أحلل تقدمك وأساعدك أكتر. حابب أساعدك في إيه؟`;
+  return txf(`أهلاً {0}! دوّن أول تمرين أو وزن عشان أقدر أحلل تقدمك وأساعدك أكتر. حابب أساعدك في إيه؟`, [namePart]);
 }
 
 function findExerciseByName(text) {
@@ -38,31 +39,31 @@ export function answerFor(q) {
 
   if (/^(أهلا|اهلا|هاي|هلا|صباح|مساء|hi|hello)/.test(text)) {
     return pick([
-      "أهلاً بيك! جاهز نشتغل على تمرينك النهاردة؟",
-      "هاي! حابب أساعدك في البرنامج، الأكل، ولا تحليل تقدمك؟",
+      tx("أهلاً بيك! جاهز نشتغل على تمرينك النهاردة؟"),
+      tx("هاي! حابب أساعدك في البرنامج، الأكل، ولا تحليل تقدمك؟"),
     ]);
   }
   if (text.includes("شكرا") || text.includes("متشكر") || text.includes("thanks")) {
-    return "العفو! أنا موجود أي وقت محتاجني، كمّل كده 💪";
+    return tx("العفو! أنا موجود أي وقت محتاجني، كمّل كده 💪");
   }
 
-  const foodTriggerWords = ["سعرات", "احسب", "إحسب", "اكلت", "أكلت", "هاكل", "فطار", "فطاري", "غدا", "غدائي", "عشا", "عشائي", "وجبة", "كام سعرة"];
+  const foodTriggerWords = [tx("سعرات"), tx("احسب"), tx("إحسب"), tx("اكلت"), tx("أكلت"), tx("هاكل"), tx("فطار"), tx("فطاري"), tx("غدا"), tx("غدائي"), tx("عشا"), tx("عشائي"), tx("وجبة"), tx("كام سعرة")];
   const hasFoodTrigger = foodTriggerWords.some((w) => text.includes(w));
   const foodItems = Store.parseFood(q);
   if (hasFoodTrigger || foodItems.length >= 2) {
     if (!foodItems.length) {
-      return 'اكتبلي الأكلات بوضوح زي: "فطاري 2 بيضة ورغيف عيش بلدي وكوب لبن" وأنا هحسبلك السعرات والبروتين تلقائي.';
+      return tx('اكتبلي الأكلات بوضوح زي: "فطاري 2 بيضة ورغيف عيش بلدي وكوب لبن" وأنا هحسبلك السعرات والبروتين تلقائي.');
     }
     const dayEntry = Store.logFoodEntries(foodItems);
     const target = Store.getDailyCalorieTarget();
-    const breakdown = foodItems.map((it) => `• ${it.name} (${it.grams}جم) — ${it.kcal} سعرة`).join("\n");
+    const breakdown = foodItems.map((it) => txf(`• {0} ({1}جم) — {2} سعرة`, [it.name, it.grams, it.kcal])).join("\n");
     const mealKcal = foodItems.reduce((a, i) => a + i.kcal, 0);
-    let msg = `حسبتلك الوجبة دي:\n${breakdown}\n\nإجمالي الوجبة: ${mealKcal} سعرة (بروتين ${foodItems.reduce((a, i) => a + i.protein, 0).toFixed(1)} جم)\n\nإجمالي سعراتك النهاردة: ${dayEntry.totalKcal} سعرة`;
+    let msg = txf(`حسبتلك الوجبة دي:\n{0}\n\nإجمالي الوجبة: {1} سعرة (بروتين {2} جم)\n\nإجمالي سعراتك النهاردة: {3} سعرة`, [breakdown, mealKcal, foodItems.reduce((a, i) => a + i.protein, 0).toFixed(1), dayEntry.totalKcal]);
     if (target) {
       const remaining = target - dayEntry.totalKcal;
-      msg += remaining >= 0 ? ` من أصل ${target} — باقيلك ${remaining} سعرة.` : ` من أصل ${target} — زودت ${Math.abs(remaining)} سعرة عن هدفك.`;
+      msg += remaining >= 0 ? txf(` من أصل {0} — باقيلك {1} سعرة.`, [target, remaining]) : txf(` من أصل {0} — زودت {1} سعرة عن هدفك.`, [target, Math.abs(remaining)]);
     } else {
-      msg += `. سجّل وزنك من الصفحة الرئيسية عشان أقدرلك أحدد هدف سعرات يومي دقيق.`;
+      msg += tx(`. سجّل وزنك من الصفحة الرئيسية عشان أقدرلك أحدد هدف سعرات يومي دقيق.`);
     }
     return msg;
   }
@@ -70,19 +71,19 @@ export function answerFor(q) {
   const foundEx = findExerciseByName(text);
   if (foundEx && (text.includes("ازاي") || text.includes("طريقة") || text.includes("إزاي") || text.includes("اداء") || text.includes("أداء"))) {
     const last = Store.getLastExerciseLog(foundEx.id);
-    let msg = `${foundEx.name} بيستهدف ${foundEx.muscleLabel}${foundEx.secondary ? " ومعاه " + foundEx.secondary : ""}. الرينج المقترح ${setsRepsFull(foundEx)}.`;
-    if (last) msg += ` آخر مرة سجلت ${last.weight} كجم بـ ${setsRepsFull(foundEx, last.sets, last.reps)}.`;
-    msg += " تقدر تشوف خطوات الأداء بالتفصيل في صفحة التمرين نفسه.";
+    let msg = txf(`{0} بيستهدف {1}{2}. الرينج المقترح {3}.`, [foundEx.name, foundEx.muscleLabel, foundEx.secondary ? " ومعاه " + foundEx.secondary : "", setsRepsFull(foundEx)]);
+    if (last) msg += txf(` آخر مرة سجلت {0} كجم بـ {1}.`, [last.weight, setsRepsFull(foundEx, last.sets, last.reps)]);
+    msg += tx(" تقدر تشوف خطوات الأداء بالتفصيل في صفحة التمرين نفسه.");
     return msg;
   }
 
   if (text.includes("برنامج")) {
     const active = Store.getActiveProgram();
-    if (active) return `عندك حاليًا برنامج ${active.name} مطبّق (${active.daysPerWeek}). لو عايز تغيّره ادخل على "برامج التدريب الجاهزة" من صفحة حسابي.`;
+    if (active) return txf(`عندك حاليًا برنامج {0} مطبّق ({1}). لو عايز تغيّره ادخل على "برامج التدريب الجاهزة" من صفحة حسابي.`, [active.name, active.daysPerWeek]);
     const recId = Store.getRecommendedProgramId();
     const recProg = recId ? Store.getPrograms().find((p) => p.id === recId) : null;
-    if (recProg) return `لسه ما اخترتش برنامج. بناءً على بياناتك أقترحلك تجرب "${recProg.name}" (${recProg.daysPerWeek})، تقدر تطبّقه من "برامج التدريب الجاهزة" في صفحة حسابي.`;
-    return `لسه ما اخترتش برنامج تدريب. تقدر تختار واحد من "برامج التدريب الجاهزة" في صفحة حسابي حسب مستواك وعدد أيامك المتاحة.`;
+    if (recProg) return txf(`لسه ما اخترتش برنامج. بناءً على بياناتك أقترحلك تجرب "{0}" ({1})، تقدر تطبّقه من "برامج التدريب الجاهزة" في صفحة حسابي.`, [recProg.name, recProg.daysPerWeek]);
+    return tx(`لسه ما اخترتش برنامج تدريب. تقدر تختار واحد من "برامج التدريب الجاهزة" في صفحة حسابي حسب مستواك وعدد أيامك المتاحة.`);
   }
 
   if (text.includes("أكل") || text.includes("اكل") || text.includes("غذائ") || text.includes("تغذية") || text.includes("بروتين") || text.includes("دايت")) {
@@ -92,25 +93,25 @@ export function answerFor(q) {
       const cutting = text.includes("تنشيف") || text.includes("خس") || text.includes("نزل وزن");
       const bulking = text.includes("تضخيم") || text.includes("زياد") || text.includes("بلك");
       let extra = "";
-      if (cutting) extra = " ولو هدفك تنشيف، خلي عجز السعرات معقول (300-500 سعرة تحت احتياجك) عشان محتفظش بالعضل.";
-      if (bulking) extra = " ولو هدفك تضخيم، زوّد 250-400 سعرة فوق احتياجك مع تدريب مقاومة منتظم.";
-      return `بوزنك الحالي (${fmt(latest.weight)} كجم)، هدف بروتين معقول يوميًا حوالي ${protein} جم. وزّعه على 3-4 وجبات، وخلي الكارب حوالين وقت التمرين.${extra}`;
+      if (cutting) extra = tx(" ولو هدفك تنشيف، خلي عجز السعرات معقول (300-500 سعرة تحت احتياجك) عشان محتفظش بالعضل.");
+      if (bulking) extra = tx(" ولو هدفك تضخيم، زوّد 250-400 سعرة فوق احتياجك مع تدريب مقاومة منتظم.");
+      return txf(`بوزنك الحالي ({0} كجم)، هدف بروتين معقول يوميًا حوالي {1} جم. وزّعه على 3-4 وجبات، وخلي الكارب حوالين وقت التمرين.{2}`, [fmt(latest.weight), protein, extra]);
     }
-    return "سجّل وزنك الأول من الصفحة الرئيسية عشان أقدر أحسبلك احتياجك من البروتين بدقة.";
+    return tx("سجّل وزنك الأول من الصفحة الرئيسية عشان أقدر أحسبلك احتياجك من البروتين بدقة.");
   }
 
   if (text.includes("وجع") || text.includes("ألم") || text.includes("الم ") || text.includes("إصاب") || text.includes("اصاب")) {
-    return "لو حاسس بألم فعلي (مش مجرد تعب عضلي عادي)، وقف التمرين اللي بيوجعك فورًا ولا تكمل عليه. الراحة والثلج بيساعدوا في أول 48 ساعة، ولو الألم استمر أو كان قوي، لازم تشوف دكتور عظام أو مختص علاج طبيعي بدل ما تكمل تمرين. أنا مش بديل عن استشارة طبية.";
+    return tx("لو حاسس بألم فعلي (مش مجرد تعب عضلي عادي)، وقف التمرين اللي بيوجعك فورًا ولا تكمل عليه. الراحة والثلج بيساعدوا في أول 48 ساعة، ولو الألم استمر أو كان قوي، لازم تشوف دكتور عظام أو مختص علاج طبيعي بدل ما تكمل تمرين. أنا مش بديل عن استشارة طبية.");
   }
 
   if (text.includes("كسل") || text.includes("مش قادر") || text.includes("تعبان") || text.includes("motivation") || text.includes("مش عايز اكمل")) {
     const streak = Store.getStreak();
-    if (streak >= 1) return `إنت فعلاً مكمّل ${streak} يوم متتالي، متكسرش السلسلة دلوقتي. جرب تمرين خفيف اليوم بدل ما تسيبه خالص، أحسن من إنك توقف كليًا.`;
-    return "كل بطل بدأ بيوم واحد بس. مش لازم تمرين قوي، ابدأ بربع ساعة بسيطة وسجلها هنا، وهتلاقي نفسك عايز تكمل.";
+    if (streak >= 1) return txf(`إنت فعلاً مكمّل {0} يوم متتالي، متكسرش السلسلة دلوقتي. جرب تمرين خفيف اليوم بدل ما تسيبه خالص، أحسن من إنك توقف كليًا.`, [streak]);
+    return tx("كل بطل بدأ بيوم واحد بس. مش لازم تمرين قوي، ابدأ بربع ساعة بسيطة وسجلها هنا، وهتلاقي نفسك عايز تكمل.");
   }
 
   if (text.includes("نوم") || text.includes("راحة") || text.includes("recovery")) {
-    return "النوم من أهم عوامل بناء العضل — حاول تاخد 7-8 ساعات، وخلي بين كل تمرين لنفس العضلة يوم أو يومين راحة على الأقل عشان تسترجع صح.";
+    return tx("النوم من أهم عوامل بناء العضل — حاول تاخد 7-8 ساعات، وخلي بين كل تمرين لنفس العضلة يوم أو يومين راحة على الأقل عشان تسترجع صح.");
   }
 
   if (text.includes("حلل") || text.includes("تقدم") || text.includes("إحصائ") || text.includes("احصائ")) {
@@ -119,9 +120,9 @@ export function answerFor(q) {
     const tonnage = Math.round(Store.getTonnage(30));
     const top = Store.getStrengthProgress(1)[0];
     const bmi = Store.getBMI();
-    let msg = `ستريكك الحالي ${streak} يوم (أعلى رقم ${best}). إجمالي الأوزان المرفوعة آخر 30 يوم: ${fmt(tonnage)} كجم.`;
-    if (top) msg += ` أكتر تمرين تحسّن فيه: ${top.name} (${top.pct > 0 ? "+" : ""}${top.pct}%).`;
-    if (bmi) msg += ` مؤشر كتلة جسمك حاليًا ${bmi}.`;
+    let msg = txf(`ستريكك الحالي {0} يوم (أعلى رقم {1}). إجمالي الأوزان المرفوعة آخر 30 يوم: {2} كجم.`, [streak, best, fmt(tonnage)]);
+    if (top) msg += txf(` أكتر تمرين تحسّن فيه: {0} ({1}{2}%).`, [top.name, top.pct > 0 ? "+" : "", top.pct]);
+    if (bmi) msg += txf(` مؤشر كتلة جسمك حاليًا {0}.`, [bmi]);
     return msg;
   }
 
@@ -131,19 +132,19 @@ export function answerFor(q) {
 
   if (text.includes("وزن")) {
     const diff = Store.getWeightDiffOverDays(7);
-    if (diff) return `وزنك اتغيّر ${diff.diff > 0 ? "+" : ""}${diff.diff} كجم آخر أسبوع (من ${diff.from} لـ ${diff.to}).`;
-    return "سجّل وزنك أكتر من مرة عشان أقدر أتابع تغيّره معاك.";
+    if (diff) return txf(`وزنك اتغيّر {0}{1} كجم آخر أسبوع (من {2} لـ {3}).`, [diff.diff > 0 ? "+" : "", diff.diff, diff.from, diff.to]);
+    return tx("سجّل وزنك أكتر من مرة عشان أقدر أتابع تغيّره معاك.");
   }
 
   if (text.includes("انجاز") || text.includes("إنجاز") || text.includes("مستوى") || text.includes("لفل") || text.includes("level")) {
     const ach = Store.getAchievements();
     const unlocked = ach.filter((a) => a.unlocked).length;
-    return `فاتح ${unlocked} من ${ach.length} إنجاز لحد دلوقتي، وإنت في المستوى ${profile.level}. كمّل تسجيل تمارينك عشان تفتح الباقي.`;
+    return txf(`فاتح {0} من {1} إنجاز لحد دلوقتي، وإنت في المستوى {2}. كمّل تسجيل تمارينك عشان تفتح الباقي.`, [unlocked, ach.length, profile.level]);
   }
 
   return pick([
-    "تقدر تسألني عن: البرنامج، النصايح الغذائية، تحليل تقدمك، تعديل هدف الوزن، أو حتى ازاي تأدي تمرين معين.",
-    "أنا هنا أساعدك في التمرين، الأكل، أو أي سؤال عن تقدمك — قولي محتاج إيه بالظبط؟",
+    tx("تقدر تسألني عن: البرنامج، النصايح الغذائية، تحليل تقدمك، تعديل هدف الوزن، أو حتى ازاي تأدي تمرين معين."),
+    tx("أنا هنا أساعدك في التمرين، الأكل، أو أي سؤال عن تقدمك — قولي محتاج إيه بالظبط؟"),
   ]);
 }
 
@@ -151,7 +152,7 @@ export function answerFor(q) {
 export function resolveGoalAnswer(val) {
   if (val && !isNaN(parseFloat(val))) {
     Store.setGoalWeight(parseFloat(val));
-    return `تمام، هدفك الجديد هو ${fmt(parseFloat(val))} كجم. هتلاقيه محدث في الصفحة الرئيسية.`;
+    return txf(`تمام، هدفك الجديد هو {0} كجم. هتلاقيه محدث في الصفحة الرئيسية.`, [fmt(parseFloat(val))]);
   }
-  return "محدّش أي تغيير في الهدف.";
+  return tx("محدّش أي تغيير في الهدف.");
 }

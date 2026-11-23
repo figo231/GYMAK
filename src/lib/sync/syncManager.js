@@ -1,6 +1,7 @@
 import { supabase } from "../supabaseClient";
 import Store from "../store/gymakStore";
 import { pushAll, pullAll } from "./domains";
+import { tx } from "../i18n/tx";
 
 const SYNC_STATE_KEY = "gymak_sync_state_v1";
 const MAX_RETRY_DELAY = 5 * 60 * 1000; // 5 min ceiling
@@ -227,11 +228,11 @@ class SyncManager {
         // decides the session is gone; if the user re-authenticates instead
         // (token silently refreshes), the next local change or manual sync
         // picks back up normally.
-        this._setStatus("error", { error: "انتهت صلاحية جلستك. سجّل دخولك تاني عشان المزامنة تكمل.", errorKind: "auth" });
+        this._setStatus("error", { error: tx("انتهت صلاحية جلستك. سجّل دخولك تاني عشان المزامنة تكمل."), errorKind: "auth" });
         return;
       }
       if (isNetworkError(err)) {
-        this._setStatus("error", { error: "معنديش اتصال بالخادم دلوقتي. هنعيد المحاولة تلقائيًا.", errorKind: "network" });
+        this._setStatus("error", { error: tx("معنديش اتصال بالخادم دلوقتي. هنعيد المحاولة تلقائيًا."), errorKind: "network" });
       } else {
         this._setStatus("error", { error: err?.message || String(err), errorKind: "server" });
       }

@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { tx } from "./i18n/tx";
 
 /** Accepted image MIME types for avatar/cover uploads. */
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -31,14 +32,14 @@ const MAX_BLOB_MB = 5;
  *   to the local base64 workflow (see Profile.jsx).
  */
 export async function uploadProfileImage(userId, blob, kind) {
-  if (!supabase) throw new Error("Supabase غير مُهيّأ");
-  if (!userId) throw new Error("لازم تكون مسجّل دخول عشان ترفع صورة على السحابة");
-  if (kind !== "avatar" && kind !== "cover") throw new Error("kind غير صحيح");
+  if (!supabase) throw new Error(tx("Supabase غير مُهيّأ"));
+  if (!userId) throw new Error(tx("لازم تكون مسجّل دخول عشان ترفع صورة على السحابة"));
+  if (kind !== "avatar" && kind !== "cover") throw new Error(tx("kind غير صحيح"));
   if (!blob || !ALLOWED_TYPES.includes(blob.type)) {
-    throw new Error("صيغة الصورة غير مدعومة");
+    throw new Error(tx("صيغة الصورة غير مدعومة"));
   }
   if (blob.size > MAX_BLOB_MB * 1024 * 1024) {
-    throw new Error("الصورة بعد الضغط لسه كبيرة قوي");
+    throw new Error(tx("الصورة بعد الضغط لسه كبيرة قوي"));
   }
 
   const path = `${userId}/${kind}.jpg`;
@@ -48,7 +49,7 @@ export async function uploadProfileImage(userId, blob, kind) {
   if (uploadError) throw uploadError;
 
   const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-  if (!data?.publicUrl) throw new Error("تعذر الحصول على رابط الصورة بعد الرفع");
+  if (!data?.publicUrl) throw new Error(tx("تعذر الحصول على رابط الصورة بعد الرفع"));
   // Cache-busting: the path is deterministic (always {userId}/{kind}.jpg), so
   // browsers/CDNs would otherwise keep serving a stale cached copy after a
   // re-upload. Appending a changing query param forces a fresh fetch without

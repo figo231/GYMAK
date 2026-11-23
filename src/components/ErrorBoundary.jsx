@@ -1,5 +1,6 @@
 import { Component } from "react";
 import { reportError } from "../lib/crashReporting";
+import { tx } from "../lib/i18n/tx";
 
 /* Error boundaries must be class components — React has no hook equivalent
    for componentDidCatch/getDerivedStateFromError yet. This is a gap the
@@ -34,12 +35,12 @@ export default class ErrorBoundary extends Component {
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div className="bg-ambient" />
         <div className="glass" style={{ maxWidth: 380, padding: 28, textAlign: "center" }}>
-          <p style={{ fontSize: 15, fontWeight: 800, margin: "0 0 8px" }}>حصل خطأ غير متوقع</p>
+          <p style={{ fontSize: 15, fontWeight: 800, margin: "0 0 8px" }}>{tx("حصل خطأ غير متوقع")}</p>
           <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.7, margin: "0 0 20px" }}>
-            بياناتك محفوظة على جهازك ومفيهاش أي مشكلة. جرب ترجع للصفحة الرئيسية.
+            {tx("بياناتك محفوظة على جهازك ومفيهاش أي مشكلة. جرب ترجع للصفحة الرئيسية.")}
           </p>
           <button className="btn btn-primary" style={{ width: "100%" }} onClick={this.handleReload}>
-            رجوع للصفحة الرئيسية
+            {tx("رجوع للصفحة الرئيسية")}
           </button>
         </div>
       </div>

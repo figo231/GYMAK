@@ -1,3 +1,4 @@
+import { tx, txf } from "./i18n/tx";
 // Pure helpers for logging a set on the exercise detail page.
 export const LIMITS = { weightKg: 1000, sets: 50, reps: 1000 };
 
@@ -18,13 +19,13 @@ export function initialForm(ex, last, toDisplay) {
 // Validates what the user typed. weightKg is converted already. Zero weight is fine (body weight / holds).
 export function parseLogForm({ weight, sets, reps }, fromDisplay) {
   const w = parseFloat(weight);
-  if (!Number.isFinite(w) || w < 0) return { ok: false, field: "weight", error: "اكتب الوزن (0 لو بوزن الجسم)." };
+  if (!Number.isFinite(w) || w < 0) return { ok: false, field: "weight", error: tx("اكتب الوزن (0 لو بوزن الجسم).") };
   const kg = fromDisplay(w);
-  if (kg > LIMITS.weightKg) return { ok: false, field: "weight", error: "الوزن كبير أوي، راجعه." };
+  if (kg > LIMITS.weightKg) return { ok: false, field: "weight", error: tx("الوزن كبير أوي، راجعه.") };
   const s = parseInt(sets, 10);
-  if (!(s >= 1) || s > LIMITS.sets) return { ok: false, field: "sets", error: `عدد المجموعات لازم يكون من 1 لـ ${LIMITS.sets}.` };
+  if (!(s >= 1) || s > LIMITS.sets) return { ok: false, field: "sets", error: txf(`عدد المجموعات لازم يكون من 1 لـ {0}.`, [LIMITS.sets]) };
   const r = parseInt(reps, 10);
-  if (!(r >= 1) || r > LIMITS.reps) return { ok: false, field: "reps", error: "اكتب عدد التكرارات (1 على الأقل)." };
+  if (!(r >= 1) || r > LIMITS.reps) return { ok: false, field: "reps", error: tx("اكتب عدد التكرارات (1 على الأقل).") };
   return { ok: true, kg, sets: s, reps: r };
 }
 

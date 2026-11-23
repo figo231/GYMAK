@@ -1,12 +1,13 @@
 import { supabase } from "./supabaseClient";
+import { tx } from "./i18n/tx";
 
 export function validateReply(text) {
   const t = String(text || "").trim();
-  if (!t) return { ok: false, error: "اكتب الرد الأول." };
-  if (t.length > 2000) return { ok: false, error: "الرد طويل. الحد الأقصى 2000 حرف." };
+  if (!t) return { ok: false, error: tx("اكتب الرد الأول.") };
+  if (t.length > 2000) return { ok: false, error: tx("الرد طويل. الحد الأقصى 2000 حرف.") };
   return { ok: true, text: t };
 }
-export const STATUS_LABEL = { new: "جديدة", read: "اتقرأت", replied: "اترد عليها" };
+export const STATUS_LABEL = { new: tx("جديدة"), read: tx("اتقرأت"), replied: tx("اترد عليها") };
 export function countByStatus(rows) {
   const c = { new: 0, read: 0, replied: 0 };
   (rows || []).forEach((r) => { if (c[r.status] !== undefined) c[r.status]++; });
@@ -36,7 +37,7 @@ export async function fetchFeedback(client = supabase, limit = 100) {
     const { data: ps } = await client.from("profiles").select("id,name,username").in("id", ids);
     (ps || []).forEach((p) => { names[p.id] = p.name || p.username || ""; });
   }
-  return rows.map((r) => ({ ...r, who: names[r.user_id] || "مستخدم" }));
+  return rows.map((r) => ({ ...r, who: names[r.user_id] || tx("مستخدم") }));
 }
 export async function setFeedbackStatus(id, status, client = supabase) {
   const { error } = await client.from("feedback").update({ status }).eq("id", id);
@@ -46,7 +47,7 @@ export async function replyFeedback(id, text, client = supabase) {
   const v = validateReply(text);
   if (!v.ok) return v;
   const { error } = await client.from("feedback").update({ admin_reply: v.text, replied_at: new Date().toISOString(), status: "replied" }).eq("id", id);
-  return error ? { ok: false, error: "معرفناش نحفظ الرد. جرّب تاني." } : { ok: true };
+  return error ? { ok: false, error: tx("معرفناش نحفظ الرد. جرّب تاني.") } : { ok: true };
 }
 export async function fetchMyFeedback(client = supabase) {
   if (!client) return [];

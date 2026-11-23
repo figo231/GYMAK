@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { drawCard, canvasToBlob } from "../../lib/share/shareCard";
 import { useToast } from "../../hooks/useToast";
+import { tx } from "../../lib/i18n/tx";
 
 export default function ShareCardSheet({ data, name, onClose }) {
   const ref = useRef(null);
@@ -15,7 +16,7 @@ export default function ShareCardSheet({ data, name, onClose }) {
       revoked = URL.createObjectURL(blob);
       ref.current = blob;
       setUrl(revoked);
-    })().catch(() => toast("مقدرناش نعمل الصورة."));
+    })().catch(() => toast(tx("مقدرناش نعمل الصورة.")));
     return () => { if (revoked) URL.revokeObjectURL(revoked); };
   }, [data, name, toast]);
 
@@ -26,17 +27,17 @@ export default function ShareCardSheet({ data, name, onClose }) {
       if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
     } catch (e) { if (e && e.name === "AbortError") return; }
     const a = document.createElement("a"); a.href = url; a.download = "gymak-progress.png"; a.click();
-    toast("اتحفظت الصورة على جهازك.");
+    toast(tx("اتحفظت الصورة على جهازك."));
   }
   return (
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="edit-sheet" style={{ maxHeight: "90vh", overflowY: "auto" }}>
         <div className="edit-sheet-handle" />
-        <h3>كارت التقدم</h3>
-        {url ? <img src={url} alt="كارت التقدم" style={{ width: "100%", borderRadius: 14 }} /> : <p className="notif-note">بيجهز...</p>}
+        <h3>{tx("كارت التقدم")}</h3>
+        {url ? <img src={url} alt={tx("كارت التقدم")} style={{ width: "100%", borderRadius: 14 }} /> : <p className="notif-note">{tx("بيجهز...")}</p>}
         <div className="edit-sheet-actions" style={{ marginTop: 12 }}>
-          <button type="button" onClick={onClose}>إغلاق</button>
-          <button type="button" className="primary" onClick={share} disabled={!url}>مشاركة / حفظ</button>
+          <button type="button" onClick={onClose}>{tx("إغلاق")}</button>
+          <button type="button" className="primary" onClick={share} disabled={!url}>{tx("مشاركة / حفظ")}</button>
         </div>
       </div>
     </div>

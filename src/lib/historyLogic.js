@@ -1,13 +1,14 @@
 import { localISO, shiftISO } from "./dateKey";
+import { tx } from "./i18n/tx";
 
-const MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-const DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+const MONTHS = [tx("يناير"), tx("فبراير"), tx("مارس"), tx("أبريل"), tx("مايو"), tx("يونيو"), tx("يوليو"), tx("أغسطس"), tx("سبتمبر"), tx("أكتوبر"), tx("نوفمبر"), tx("ديسمبر")];
+const DAYS = [tx("الأحد"), tx("الاثنين"), tx("الثلاثاء"), tx("الأربعاء"), tx("الخميس"), tx("الجمعة"), tx("السبت")];
 
 // "النهارده" / "امبارح" / "الخميس 19 نوفمبر" (adds the year when it is not this year). Latin digits.
 export function dayLabel(iso, today = localISO()) {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "";
-  if (iso === today) return "النهارده";
-  if (iso === shiftISO(today, -1)) return "امبارح";
+  if (iso === today) return tx("النهارده");
+  if (iso === shiftISO(today, -1)) return tx("امبارح");
   const [y, m, d] = iso.split("-").map(Number);
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   const base = `${DAYS[wd]} ${d} ${MONTHS[m - 1]}`;

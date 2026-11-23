@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { passwordStrength } from "../../lib/authLogic";
+import { tx } from "../../lib/i18n/tx";
 
 export default function AuthShell() {
   return (
@@ -14,7 +15,7 @@ export default function AuthShell() {
               <img src="/icon-512.png" alt="GYMAK" className="auth-logo-mark" />
             </div>
             <p className="auth-wordmark">GYMAK</p>
-            <p className="auth-tagline">جسمك اللي هتفتخر بيه يبدأ من هنا</p>
+            <p className="auth-tagline">{tx("جسمك اللي هتفتخر بيه يبدأ من هنا")}</p>
           </div>
         </div>
         <div className="glass auth-card">
@@ -57,7 +58,7 @@ export function AuthField({ label, type, icon, hint, id: idProp, ...props }) {
       <div className="auth-input-wrap">
         <input id={id} type={effectiveType} dir={latin ? "ltr" : undefined} className={latin ? "is-latin" : undefined} {...extra} {...props} />
         {isPassword && (
-          <button type="button" className="auth-reveal-btn" aria-label={reveal ? "إخفاء الباسورد" : "إظهار الباسورد"} aria-pressed={reveal} onClick={() => setReveal((r) => !r)}>
+          <button type="button" className="auth-reveal-btn" aria-label={reveal ? tx("إخفاء الباسورد") : tx("إظهار الباسورد")} aria-pressed={reveal} onClick={() => setReveal((r) => !r)}>
             {reveal ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
             ) : (

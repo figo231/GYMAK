@@ -1,22 +1,23 @@
 import { NavLink } from "react-router-dom";
+import { tx } from "../../lib/i18n/tx";
 
 const GROUPS = {
   progress: [
-    { to: "/stats", label: "ملخص" },
-    { to: "/history", label: "السجل" },
-    { to: "/measurements", label: "القياسات" },
-    { to: "/photos", label: "الصور" },
+    { to: "/stats", label: tx("ملخص") },
+    { to: "/history", label: tx("السجل") },
+    { to: "/measurements", label: tx("القياسات") },
+    { to: "/photos", label: tx("الصور") },
   ],
   food: [
-    { to: "/food", label: "النهارده" },
-    { to: "/meal-plan", label: "خطة الأسبوع" },
-    { to: "/supplements", label: "مكملات" },
+    { to: "/food", label: tx("النهارده") },
+    { to: "/meal-plan", label: tx("خطة الأسبوع") },
+    { to: "/supplements", label: tx("مكملات") },
   ],
   train: [
-    { to: "/exercises", label: "التمارين" },
-    { to: "/programs", label: "البرامج" },
-    { to: "/warmup", label: "إحماء وإطالة" },
-    { to: "/strength", label: "قوتك" },
+    { to: "/exercises", label: tx("التمارين") },
+    { to: "/programs", label: tx("البرامج") },
+    { to: "/warmup", label: tx("إحماء وإطالة") },
+    { to: "/strength", label: tx("قوتك") },
   ],
 };
 
@@ -25,7 +26,7 @@ export default function SectionNav({ group, title }) {
   return (
     <div className="section-head">
       {title && <h1 className="section-title">{title}</h1>}
-      <nav className="section-nav" aria-label={title || "أقسام"}>
+      <nav className="section-nav" aria-label={title || tx("أقسام")}>
         {items.map((i) => (
           <NavLink key={i.to} to={i.to} className={({ isActive }) => "section-pill" + (isActive ? " active" : "")}>{i.label}</NavLink>
         ))}

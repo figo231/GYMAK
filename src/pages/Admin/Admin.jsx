@@ -9,8 +9,9 @@ import { fetchFeedback, setFeedbackStatus, replyFeedback, countByStatus, filterF
 import { fetchOwnerStats } from "../../lib/privateChat";
 import OwnerChatRoles from "../Owner/OwnerChatRoles";
 import { dayLabel } from "../../lib/historyLogic";
+import { tx } from "../../lib/i18n/tx";
 
-const FILTERS = [["all", "الكل"], ["new", "جديدة"], ["read", "اتقرأت"], ["replied", "اترد عليها"]];
+const FILTERS = [["all", tx("الكل")], ["new", tx("جديدة")], ["read", tx("اتقرأت")], ["replied", tx("اترد عليها")]];
 
 function AdminSession() {
   const { user } = useAuth();
@@ -26,8 +27,8 @@ function AdminSession() {
 
   async function load() {
     try{setActivity(await fetchAppActivity());}catch{setActivity(null);}
-    try { setRows(await fetchFeedback()); setErr(""); } catch { setErr("معرفناش نحمّل الرسايل."); }
-    try { setStats(await fetchOwnerStats()); } catch { setErr("معرفناش نحمّل الإحصائيات. جرّب تحديث الصفحة."); }
+    try { setRows(await fetchFeedback()); setErr(""); } catch { setErr(tx("معرفناش نحمّل الرسايل.")); }
+    try { setStats(await fetchOwnerStats()); } catch { setErr(tx("معرفناش نحمّل الإحصائيات. جرّب تحديث الصفحة.")); }
   }
   useEffect(() => { isOwnerAdmin(user?.id).then((ok) => { setAllowed(ok); if (ok) load(); }); }, [user?.id]);
 
@@ -36,62 +37,62 @@ function AdminSession() {
 
   async function mark(r, status) {
     const ok = await setFeedbackStatus(r.id, status);
-    if (!ok) { toast("معرفناش نحدّث الحالة"); return; }
+    if (!ok) { toast(tx("معرفناش نحدّث الحالة")); return; }
     setRows((x) => x.map((y) => (y.id === r.id ? { ...y, status } : y)));
   }
   async function sendReply(r) {
     const res = await replyFeedback(r.id, draft);
     if (!res.ok) { toast(res.error); return; }
-    toast("الرد اتبعت"); setReplying(null); setDraft(""); load();
+    toast(tx("الرد اتبعت")); setReplying(null); setDraft(""); load();
   }
 
-  if (allowed === null) return <div className="help-page"><DetailTopBar title="الإدارة" backTo="/profile" /></div>;
-  if (!allowed) return <div className="help-page"><DetailTopBar title="الإدارة" backTo="/profile" /><p className="notif-note">الصفحة دي للمالك بس.</p></div>;
+  if (allowed === null) return <div className="help-page"><DetailTopBar title={tx("الإدارة")} backTo="/profile" /></div>;
+  if (!allowed) return <div className="help-page"><DetailTopBar title={tx("الإدارة")} backTo="/profile" /><p className="notif-note">{tx("الصفحة دي للمالك بس.")}</p></div>;
   const n = (v) => (v == null ? "–" : v);
   return (
     <div className="help-page ad-page">
-      <DetailTopBar title="لوحة الإدارة" backTo="/profile" />
+      <DetailTopBar title={tx("لوحة الإدارة")} backTo="/profile" />
       <div className="th-stats ad-stats">
-        <div><b>{n(stats?.total)}</b><span>ملف شخصي على السيرفر</span></div>
-        <div><b>{n(stats?.week)}</b><span>جدد آخر 7 أيام</span></div>
-        <div><b>{counts.new}</b><span>رسايل جديدة</span></div>
+        <div><b>{n(stats?.total)}</b><span>{tx("ملف شخصي على السيرفر")}</span></div>
+        <div><b>{n(stats?.week)}</b><span>{tx("جدد آخر 7 أيام")}</span></div>
+        <div><b>{counts.new}</b><span>{tx("رسايل جديدة")}</span></div>
       </div>
-      <p className="notif-note">راجل {n(stats?.male)} · ست {n(stats?.female)}</p>
-      <h2>الحسابات النشطة المشاركة في القياس</h2><p className="notif-note">قياس اختياري للحسابات المسجلة فقط، مش إجمالي كل المستخدمين. اليوم حسب UTC. يبدأ من تفعيل الميزة، مفيش أرقام تاريخية مفترضة.</p>
-      {activity ? <div className="th-stats ad-stats"><div><b>{activity.today}</b><span>اليوم</span></div><div><b>{activity.week}</b><span>آخر 7 أيام</span></div><div><b>{activity.month}</b><span>آخر 30 يوم</span></div></div> : <p className="notif-note">القياس غير متاح الآن.</p>}
+      <p className="notif-note">{tx("راجل")} {n(stats?.male)} {tx("· ست")} {n(stats?.female)}</p>
+      <h2>{tx("الحسابات النشطة المشاركة في القياس")}</h2><p className="notif-note">{tx("قياس اختياري للحسابات المسجلة فقط، مش إجمالي كل المستخدمين. اليوم حسب UTC. يبدأ من تفعيل الميزة، مفيش أرقام تاريخية مفترضة.")}</p>
+      {activity ? <div className="th-stats ad-stats"><div><b>{activity.today}</b><span>{tx("اليوم")}</span></div><div><b>{activity.week}</b><span>{tx("آخر 7 أيام")}</span></div><div><b>{activity.month}</b><span>{tx("آخر 30 يوم")}</span></div></div> : <p className="notif-note">{tx("القياس غير متاح الآن.")}</p>}
       <OwnerChatRoles />
-      <h2 style={{ fontSize: 18, marginTop: 28 }}>رسائل الدعم</h2>
-      <p className="notif-note">آخر 100 رسالة دعم، مش قائمة كل المستخدمين.</p>
+      <h2 style={{ fontSize: 18, marginTop: 28 }}>{tx("رسائل الدعم")}</h2>
+      <p className="notif-note">{tx("آخر 100 رسالة دعم، مش قائمة كل المستخدمين.")}</p>
       <div className="goal-tabs" role="tablist">
         {FILTERS.map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={filter === k} className={"goal-tab" + (filter === k ? " on" : "")} onClick={() => setFilter(k)}>{l}{k !== "all" ? ` (${counts[k]})` : ""}</button>
         ))}
       </div>
       {err && <div className="ct-err" role="alert">{err}</div>}
-      {!err && shown.length === 0 && <p className="notif-note">مفيش رسايل هنا.</p>}
+      {!err && shown.length === 0 && <p className="notif-note">{tx("مفيش رسايل هنا.")}</p>}
       {shown.map((r) => (
         <div key={r.id} className="glass ad-msg">
           <div className="ad-meta"><b>{r.who}</b><span>{dayLabel(r.created_at.slice(0, 10))} · {STATUS_LABEL[r.status]}{r.app_version ? ` · v${r.app_version}` : ""}</span></div>
           <p className="ad-text">{r.message}</p>
-          {r.admin_reply && <p className="ad-reply"><b>ردك:</b> {r.admin_reply}</p>}
+          {r.admin_reply && <p className="ad-reply"><b>{tx("ردك:")}</b> {r.admin_reply}</p>}
           {replying === r.id ? (
             <div>
-              <textarea className="food-input" rows={4} maxLength={2000} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="اكتب الرد..." aria-label="الرد" />
+              <textarea className="food-input" rows={4} maxLength={2000} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={tx("اكتب الرد...")} aria-label={tx("الرد")} />
               <div className="ad-actions">
-                <button type="button" className="btn btn-primary" onClick={() => sendReply(r)}>ابعت الرد</button>
-                <button type="button" className="btn" onClick={() => { setReplying(null); setDraft(""); }}>إلغاء</button>
+                <button type="button" className="btn btn-primary" onClick={() => sendReply(r)}>{tx("ابعت الرد")}</button>
+                <button type="button" className="btn" onClick={() => { setReplying(null); setDraft(""); }}>{tx("إلغاء")}</button>
               </div>
             </div>
           ) : (
             <div className="ad-actions">
-              <button type="button" className="btn btn-primary" onClick={() => { setReplying(r.id); setDraft(r.admin_reply || ""); }}>{r.admin_reply ? "عدّل الرد" : "رد"}</button>
-              {r.status === "new" && <button type="button" className="btn" onClick={() => mark(r, "read")}>علّم كمقروءة</button>}
-              {r.status === "read" && <button type="button" className="btn" onClick={() => mark(r, "new")}>رجّعها جديدة</button>}
+              <button type="button" className="btn btn-primary" onClick={() => { setReplying(r.id); setDraft(r.admin_reply || ""); }}>{r.admin_reply ? tx("عدّل الرد") : tx("رد")}</button>
+              {r.status === "new" && <button type="button" className="btn" onClick={() => mark(r, "read")}>{tx("علّم كمقروءة")}</button>}
+              {r.status === "read" && <button type="button" className="btn" onClick={() => mark(r, "new")}>{tx("رجّعها جديدة")}</button>}
             </div>
           )}
         </div>
       ))}
-      <Link to="/owner" className="btn" style={{ display: "block", textAlign: "center", marginTop: 12 }}>لوحة المالك (إشعارات ومحتوى)</Link>
+      <Link to="/owner" className="btn" style={{ display: "block", textAlign: "center", marginTop: 12 }}>{tx("لوحة المالك (إشعارات ومحتوى)")}</Link>
     </div>
   );
 }

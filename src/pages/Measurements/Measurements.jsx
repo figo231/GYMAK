@@ -9,6 +9,7 @@ import { dayLabel } from "../../lib/historyLogic";
 import Store from "../../lib/store/gymakStore";
 import TrendChart from "../Stats/TrendChart";
 import { FIELDS, loadMeasures, saveMeasure, deleteMeasure, restoreMeasure, measureDeltas, validateMeasures, latestByField, seriesForField } from "../../lib/measure/measure";
+import { tx, txf } from "../../lib/i18n/tx";
 
 // Waist and hips going down is the usual goal; for the rest we do not judge the direction.
 const DOWN_IS_GOOD = new Set(["waist", "hips"]);
@@ -47,7 +48,7 @@ export default function Measurements() {
   const [chartKey, setChartKey] = useState("weight");
   const chartOptions = useMemo(() => {
     const opts = [];
-    if (Store.getWeightHistory(1000).length >= 2) opts.push(["weight", "الوزن"]);
+    if (Store.getWeightHistory(1000).length >= 2) opts.push(["weight", tx("الوزن")]);
     for (const [k, label] of FIELDS) if (seriesForField(k, entries).length >= 2) opts.push([k, label]);
     return opts;
   }, [entries]);
@@ -63,32 +64,32 @@ export default function Measurements() {
     const v = validateMeasures(vals);
     setErrors(v.errors);
     if (Object.keys(v.errors).length) { toast(Object.values(v.errors)[0]); return; }
-    if (!v.count) { toast("اكتب قياس واحد على الأقل (بالسنتيمتر)."); return; }
-    if (date > today) { toast("مينفعش تسجّل قياس في تاريخ لسه ماجاش."); return; }
+    if (!v.count) { toast(tx("اكتب قياس واحد على الأقل (بالسنتيمتر).")); return; }
+    if (date > today) { toast(tx("مينفعش تسجّل قياس في تاريخ لسه ماجاش.")); return; }
     const had = entries.find((e) => e.date === date);
     if (editingEntry) deleteMeasure(editingEntry.date); // replace, so cleared fields are removed
     saveMeasure(vals, date);
     setEditingEntry(null);
     reload(); setVals({}); setAdding(false); buzz(15);
-    toast(had ? "اتحدّثت قياسات اليوم ده" : "اتسجلت القياسات", had ? { duration: 6000, action: { label: "تراجع", onClick: () => { restoreMeasure(had); reload(); } } } : undefined);
+    toast(had ? tx("اتحدّثت قياسات اليوم ده") : tx("اتسجلت القياسات"), had ? { duration: 6000, action: { label: tx("تراجع"), onClick: () => { restoreMeasure(had); reload(); } } } : undefined);
   }
   async function del(e) {
-    const ok = await confirm({ title: "مسح القياسات؟", label: dayLabel(e.date, today), confirmLabel: "مسح", danger: true });
+    const ok = await confirm({ title: tx("مسح القياسات؟"), label: dayLabel(e.date, today), confirmLabel: tx("مسح"), danger: true });
     if (!ok) return;
     deleteMeasure(e.date); reload();
-    toast("تم مسح القياسات", { duration: 6000, action: { label: "تراجع", onClick: () => { restoreMeasure(e); reload(); } } });
+    toast(tx("تم مسح القياسات"), { duration: 6000, action: { label: tx("تراجع"), onClick: () => { restoreMeasure(e); reload(); } } });
   }
   const setField = (k, v) => { setVals((o) => ({ ...o, [k]: v })); if (errors[k]) setErrors((o) => { const n = { ...o }; delete n[k]; return n; }); };
 
   return (
     <>
-      <SectionNav group="progress" title="تقدّمي" />
+      <SectionNav group="progress" title={tx("تقدّمي")} />
       <div className="mx-head">
         <div>
-          <div className="mx-title">قياسات الجسم</div>
-          <div className="mx-sub">{latest ? `آخر قياس ${dayLabel(latest.date, today)}` : "لسه مفيش قياسات"}</div>
+          <div className="mx-title">{tx("قياسات الجسم")}</div>
+          <div className="mx-sub">{latest ? txf(`آخر قياس {0}`, [dayLabel(latest.date, today)]) : tx("لسه مفيش قياسات")}</div>
         </div>
-        <button type="button" className="mx-add" aria-expanded={adding || entries.length === 0} onClick={() => { if (adding) { setEditingEntry(null); setVals({}); setDate(today); } setAdding((v) => !v); }}>{adding ? "إلغاء" : "+ قياس جديد"}</button>
+        <button type="button" className="mx-add" aria-expanded={adding || entries.length === 0} onClick={() => { if (adding) { setEditingEntry(null); setVals({}); setDate(today); } setAdding((v) => !v); }}>{adding ? tx("إلغاء") : tx("+ قياس جديد")}</button>
       </div>
 
       {Object.keys(byField).length > 0 && (
@@ -98,9 +99,9 @@ export default function Measurements() {
             return (
               <div className="glass ms-tile" key={k}>
                 <div className="ms-tile-label">{label}</div>
-                <div className="ms-tile-val"><span dir="ltr">{f.value}</span><small> سم</small></div>
+                <div className="ms-tile-val"><span dir="ltr">{f.value}</span><small> {tx("سم")}</small></div>
                 <div className={"ms-tile-delta " + toneFor(k, f.delta)}>
-                  {f.delta == null ? "أول قياس" : f.delta === 0 ? "ثابت" : <bdi dir="ltr">{f.delta > 0 ? "+" : "−"}{Math.abs(f.delta)}</bdi>}
+                  {f.delta == null ? tx("أول قياس") : f.delta === 0 ? tx("ثابت") : <bdi dir="ltr">{f.delta > 0 ? "+" : "−"}{Math.abs(f.delta)}</bdi>}
                   <Spark series={f.series} />
                 </div>
               </div>
@@ -111,21 +112,21 @@ export default function Measurements() {
 
       {chartOptions.length > 0 && (
         <div className="glass ms-card">
-          <div className="ms-card-title">رسم التقدّم</div>
-          <div className="filters" role="group" aria-label="اختر القياس" style={{ marginBottom: 10 }}>
+          <div className="ms-card-title">{tx("رسم التقدّم")}</div>
+          <div className="filters" role="group" aria-label={tx("اختر القياس")} style={{ marginBottom: 10 }}>
             {chartOptions.map(([k, label]) => (
               <button type="button" key={k} className={"chip chip-btn sm" + (activeChart === k ? " active" : "")} aria-pressed={activeChart === k} onClick={() => setChartKey(k)}>{label}</button>
             ))}
           </div>
-          <TrendChart points={chartPoints} unit={activeChart === "weight" ? "كجم" : "سم"} label={chartOptions.find(([k]) => k === activeChart)?.[1]} />
+          <TrendChart points={chartPoints} unit={activeChart === "weight" ? tx("كجم") : tx("سم")} label={chartOptions.find(([k]) => k === activeChart)?.[1]} />
         </div>
       )}
 
       {(adding || entries.length === 0) && (
       <div className="glass ms-card mx-form">
-        <div className="ms-card-title">قياس جديد (سم)</div>
+        <div className="ms-card-title">{tx("قياس جديد (سم)")}</div>
         <div className="edit-field">
-          <label htmlFor="ms-date">التاريخ</label>
+          <label htmlFor="ms-date">{tx("التاريخ")}</label>
           <input id="ms-date" type="date" dir="ltr" value={date} max={today} onChange={(e) => setDate(e.target.value || today)} />
         </div>
         <div className="ms-grid">
@@ -138,33 +139,33 @@ export default function Measurements() {
           ))}
         </div>
         {Object.values(errors)[0] && <p className="log-error" role="alert" style={{ marginTop: 10 }}>{Object.values(errors)[0]}</p>}
-        <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} onClick={add}>حفظ</button>
-        <p className="notif-note" style={{ marginTop: 10 }}>القياسات بتتحفظ على جهازك وبتدخل في النسخة الاحتياطية (من الملف الشخصي)، لكن مش بتتزامن مع حسابك.</p>
+        <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} onClick={add}>{tx("حفظ")}</button>
+        <p className="notif-note" style={{ marginTop: 10 }}>{tx("القياسات بتتحفظ على جهازك وبتدخل في النسخة الاحتياطية (من الملف الشخصي)، لكن مش بتتزامن مع حسابك.")}</p>
       </div>
       )}
 
       {Object.keys(deltas).length > 0 && (
         <div className="glass ms-card">
-          <div className="ms-card-title">التغيير من أول قياس</div>
+          <div className="ms-card-title">{tx("التغيير من أول قياس")}</div>
           {FIELDS.filter(([k]) => k in deltas).map(([k, label]) => (
             <div key={k} className="ms-delta-row">
               <span>{label}</span>
-              <b className={"ms-tile-delta " + toneFor(k, deltas[k])}><span><bdi dir="ltr">{deltas[k] > 0 ? "+" : deltas[k] < 0 ? "−" : ""}{Math.abs(deltas[k])}</bdi> سم</span></b>
+              <b className={"ms-tile-delta " + toneFor(k, deltas[k])}><span><bdi dir="ltr">{deltas[k] > 0 ? "+" : deltas[k] < 0 ? "−" : ""}{Math.abs(deltas[k])}</bdi> {tx("سم")}</span></b>
             </div>
           ))}
         </div>
       )}
 
-      <div className="ms-card-title" style={{ margin: "14px 4px 8px" }}>السجل</div>
-      {entries.length === 0 && <EmptyState type="trophy" compact title="لسه مسجلتش أي قياس" subtitle="سجّل أول قياس النهارده وقارن بعد كام أسبوع." />}
+      <div className="ms-card-title" style={{ margin: "14px 4px 8px" }}>{tx("السجل")}</div>
+      {entries.length === 0 && <EmptyState type="trophy" compact title={tx("لسه مسجلتش أي قياس")} subtitle="سجّل أول قياس النهارده وقارن بعد كام أسبوع." />}
       {[...entries].reverse().map((e) => (
         <div className="glass hist-row" key={e.date}>
           <div className="hist-main">
             <div className="hist-name">{dayLabel(e.date, today)}</div>
             <div className="hist-meta">{FIELDS.filter(([k]) => e[k] != null).map(([k, l]) => `${l} ${e[k]}`).join(" · ")}</div>
           </div>
-          <button type="button" className="hist-btn" aria-label={`تعديل قياسات ${dayLabel(e.date, today)}`} onClick={() => startEdit(e)}>✎</button>
-          <button type="button" className="hist-btn danger" aria-label={`مسح قياسات ${dayLabel(e.date, today)}`} onClick={() => del(e)}>
+          <button type="button" className="hist-btn" aria-label={txf(`تعديل قياسات {0}`, [dayLabel(e.date, today)])} onClick={() => startEdit(e)}>✎</button>
+          <button type="button" className="hist-btn danger" aria-label={txf(`مسح قياسات {0}`, [dayLabel(e.date, today)])} onClick={() => del(e)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" /></svg>
           </button>
         </div>

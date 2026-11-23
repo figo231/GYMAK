@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { tx } from "../lib/i18n/tx";
 
 const DialogContext = createContext(null);
 
@@ -23,14 +24,14 @@ export function DialogProvider({ children }) {
     return new Promise((resolve) => {
       resolver.current = resolve;
       setValue(opts.defaultValue != null ? String(opts.defaultValue) : "");
-      setDialog({ kind: "prompt", confirmLabel: "حفظ", cancelLabel: "إلغاء", inputType: "text", ...opts });
+      setDialog({ kind: "prompt", confirmLabel: tx("حفظ"), cancelLabel: tx("إلغاء"), inputType: "text", ...opts });
     });
   }, []);
 
   const confirmAsync = useCallback((opts) => {
     return new Promise((resolve) => {
       resolver.current = resolve;
-      setDialog({ kind: "confirm", confirmLabel: "تأكيد", cancelLabel: "إلغاء", ...opts });
+      setDialog({ kind: "confirm", confirmLabel: tx("تأكيد"), cancelLabel: tx("إلغاء"), ...opts });
     });
   }, []);
 

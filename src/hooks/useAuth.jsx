@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import { syncManager } from "../lib/sync/syncManager";
 import { registerForPush, removePushToken } from "../lib/push/pushService";
 import { parseAuthUrl, isDuplicateSignup, recoveryActive, setRecovery, withTimeout } from "../lib/authLogic";
+import { tx } from "../lib/i18n/tx";
 
 // Captured at load, before supabase-js strips the fragment, so a reload or late mount still knows.
 const BOOT = typeof window !== "undefined" ? parseAuthUrl(window.location.hash, window.location.search) : {};
@@ -12,7 +13,7 @@ if (BOOT.type === "recovery" && typeof sessionStorage !== "undefined") setRecove
 
 const AuthContext = createContext(null);
 
-const NO_CLIENT_ERROR = { message: "لسه معملناش ربط مع Supabase (متغيرات البيئة ناقصة). راجع .env.example." };
+const NO_CLIENT_ERROR = { message: tx("لسه معملناش ربط مع Supabase (متغيرات البيئة ناقصة). راجع .env.example.") };
 
 /**
  * Session persistence: supabase-js already persists the session to

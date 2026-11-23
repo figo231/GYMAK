@@ -20,13 +20,14 @@ import RestTimer from "./components/RestTimer";
 import LockScreen from "./components/LockScreen";
 import Celebration from "./components/Celebration";
 import { isLockEnabled, shouldRelock } from "./lib/appLock";
+import { tx } from "./lib/i18n/tx";
 
 const ONBOARD_KEY = "gymak_onboarded_v1";
 
 function RouteFallback() {
   // Lightweight, matches the glass aesthetic — shown only during lazy chunk loads.
   return (
-    <div className="app" aria-busy="true" aria-label="جاري التحميل">
+    <div className="app" aria-busy="true" aria-label={tx("جاري التحميل")}>
       <div className="sk sk-head" />
       <div className="sk sk-card" style={{ height: 120 }} />
       <div className="sk sk-card" style={{ height: 150 }} />

@@ -1,8 +1,9 @@
 /* Body measurements (cm). Device-local, separate key (not part of synced store state). */
 import { localISO } from "../dateKey";
+import { tx, txf } from "../i18n/tx";
 const KEY = "gymak_measure_v1";
 export const FIELDS = [
-  ["waist", "الوسط"], ["chest", "الصدر"], ["hips", "الأرداف"], ["arm", "الذراع"], ["thigh", "الفخذ"], ["neck", "الرقبة"],
+  ["waist", tx("الوسط")], ["chest", tx("الصدر")], ["hips", tx("الأرداف")], ["arm", tx("الذراع")], ["thigh", tx("الفخذ")], ["neck", tx("الرقبة")],
 ];
 const todayKey = () => localISO();
 
@@ -49,7 +50,7 @@ export function validateMeasures(values) {
     const raw = values[k];
     if (raw === "" || raw == null) continue;
     const n = parseFloat(raw);
-    if (!Number.isFinite(n) || n < RANGE_CM[0] || n > RANGE_CM[1]) errors[k] = `${label}: اكتب رقم بين ${RANGE_CM[0]} و ${RANGE_CM[1]} سم.`;
+    if (!Number.isFinite(n) || n < RANGE_CM[0] || n > RANGE_CM[1]) errors[k] = txf(`{0}: اكتب رقم بين {1} و {2} سم.`, [label, RANGE_CM[0], RANGE_CM[1]]);
     else count++;
   }
   return { errors, count, ok: count > 0 && Object.keys(errors).length === 0 };

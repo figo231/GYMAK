@@ -5,6 +5,7 @@ import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
 import { useI18n } from "../../hooks/useI18n";
 import { unitLabel, setsRepsText, daysAgoLabel } from "../../lib/exerciseMeta";
+import { tx, txf } from "../../lib/i18n/tx";
 
 export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onToggleToday, onDeleted }) {
   const navigate = useNavigate();
@@ -18,8 +19,8 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onTo
   const setsLabel = last ? setsRepsText(last.sets, last.reps) : setsRepsText(ex.sets, ex.reps);
 
   async function runDelete() {
-    const msg = lang === "en" ? `Delete "${ex.name}"?` : `تحذف "${ex.name}" نهائيًا من قائمة تمارينك؟`;
-    const ok = await confirmAsync({ title: msg, danger: true, confirmLabel: "حذف", cancelLabel: "إلغاء" });
+    const msg = lang === "en" ? `Delete "${ex.name}"?` : txf(`تحذف "{0}" نهائيًا من قائمة تمارينك؟`, [ex.name]);
+    const ok = await confirmAsync({ title: msg, danger: true, confirmLabel: tx("حذف"), cancelLabel: tx("إلغاء") });
     if (ok) {
       Store.deleteExercise(ex.id);
       onDeleted?.();
@@ -97,13 +98,13 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onTo
       <div className="ex-meta">
         <div className="ex-sets" dir="ltr">{setsLabel}</div>
         <div className="ex-unit">{unitLabel(ex)}</div>
-        {last && <div className="ex-last">{daysAgoLabel(last.date, Store.getTodayKey())} · {last.weight} كجم</div>}
+        {last && <div className="ex-last">{daysAgoLabel(last.date, Store.getTodayKey())} · {last.weight} {tx("كجم")}</div>}
       </div>
       <div className="ex-actions">
       <button
           type="button"
           className={"ex-act-btn ex-fav-btn" + (fav ? " on" : "")}
-          aria-label={fav ? `شيل ${ex.name} من المفضلة` : `ضيف ${ex.name} للمفضلة`}
+          aria-label={fav ? txf(`شيل {0} من المفضلة`, [ex.name]) : txf(`ضيف {0} للمفضلة`, [ex.name])}
           aria-pressed={!!fav}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onFavTap}
@@ -113,7 +114,7 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onTo
         <button
           type="button"
           className={"ex-act-btn ex-today-btn" + (inToday ? " on" : "")}
-          aria-label={inToday ? `شيل ${ex.name} من تمارين النهارده` : `ضيف ${ex.name} لتمارين النهارده`}
+          aria-label={inToday ? txf(`شيل {0} من تمارين النهارده`, [ex.name]) : txf(`ضيف {0} لتمارين النهارده`, [ex.name])}
           aria-pressed={!!inToday}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onTodayTap}

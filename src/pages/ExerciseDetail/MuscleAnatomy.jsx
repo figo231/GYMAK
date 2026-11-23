@@ -1,4 +1,5 @@
 import Store from "../../lib/store/gymakStore";
+import { tx } from "../../lib/i18n/tx";
 
 /* Professional front/back anatomical muscle diagram — replaces the old
    stick-figure "move guide" animation. Every muscle group is its own
@@ -101,7 +102,7 @@ export default function MuscleAnatomy({ muscle, muscleLabel, secondary, color })
         <rect x="49" y="120" width="10" height="30" rx="5" {...F("shin_r")} />
         <ellipse cx="36" cy="154" rx="7" ry="4" {...F("foot_f_l")} />
         <ellipse cx="54" cy="154" rx="7" ry="4" {...F("foot_f_r")} />
-        <text x="45" y="171" textAnchor="middle" fontSize="9" fontWeight="700" fill="currentColor" opacity="0.55">أمامي</text>
+        <text x="45" y="171" textAnchor="middle" fontSize="9" fontWeight="700" fill="currentColor" opacity="0.55">{tx("أمامي")}</text>
       </g>
 
       {/* ---------- BACK VIEW ---------- */}
@@ -126,7 +127,7 @@ export default function MuscleAnatomy({ muscle, muscleLabel, secondary, color })
         <rect x="49" y="126" width="10" height="24" rx="5" {...F("calf_r")} />
         <ellipse cx="36" cy="154" rx="7" ry="4" {...F("foot_b_l")} />
         <ellipse cx="54" cy="154" rx="7" ry="4" {...F("foot_b_r")} />
-        <text x="45" y="171" textAnchor="middle" fontSize="9" fontWeight="700" fill="currentColor" opacity="0.55">خلفي</text>
+        <text x="45" y="171" textAnchor="middle" fontSize="9" fontWeight="700" fill="currentColor" opacity="0.55">{tx("خلفي")}</text>
       </g>
     </svg>
   );

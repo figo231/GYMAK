@@ -9,18 +9,19 @@ import { useToast } from "../../hooks/useToast";
 import { buildCsv, exportPayload, clearLocalData, parseBackup, applyBackup, timeAgoAr } from "../../lib/profileLogic";
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
+import { tx } from "../../lib/i18n/tx";
 
 /* Enabled 2026-11-22: edge function deployed and verified end to end with a disposable account (function, session invalidation, row cascade). */
 const DELETE_ACCOUNT_ENABLED = true;
 
 const STATUS_LABEL = {
-  idle: { text: "جاهز", color: "var(--text-dim)" },
-  migrating: { text: "بننقل بياناتك القديمة...", color: "var(--warn-text)" },
-  syncing: { text: "جاري المزامنة...", color: "var(--warn-text)" },
-  synced: { text: "متزامن ✓", color: "var(--success)" },
-  offline: { text: "أوفلاين — هيتم المزامنة أول ما ترجع النت", color: "var(--text-dim)" },
-  error: { text: "فيه مشكلة في المزامنة", color: "var(--danger)" },
-  disabled: { text: "المزامنة مش متاحة دلوقتي", color: "var(--text-dim)" },
+  idle: { text: tx("جاهز"), color: "var(--text-dim)" },
+  migrating: { text: tx("بننقل بياناتك القديمة..."), color: "var(--warn-text)" },
+  syncing: { text: tx("جاري المزامنة..."), color: "var(--warn-text)" },
+  synced: { text: tx("متزامن ✓"), color: "var(--success)" },
+  offline: { text: tx("أوفلاين — هيتم المزامنة أول ما ترجع النت"), color: "var(--text-dim)" },
+  error: { text: tx("فيه مشكلة في المزامنة"), color: "var(--danger)" },
+  disabled: { text: tx("المزامنة مش متاحة دلوقتي"), color: "var(--text-dim)" },
 };
 
 export default function Account() {
@@ -34,8 +35,8 @@ export default function Account() {
 
   async function handleDeleteAccount() {
     const ok = await confirmAsync({
-      title: "هيتمسح حسابك وكل بياناتك من السيرفر نهائيًا ومفيش رجوع. متأكد؟",
-      danger: true, confirmLabel: "حذف حسابي", cancelLabel: "إلغاء",
+      title: tx("هيتمسح حسابك وكل بياناتك من السيرفر نهائيًا ومفيش رجوع. متأكد؟"),
+      danger: true, confirmLabel: tx("حذف حسابي"), cancelLabel: tx("إلغاء"),
     });
     if (!ok || !supabase) return;
     setBusy(true);
@@ -43,10 +44,10 @@ export default function Account() {
       const { error } = await supabase.functions.invoke("delete-account", { body: {} });
       if (error) throw error;
       await signOut();
-      toast("اتمسح حسابك");
+      toast(tx("اتمسح حسابك"));
       navigate("/profile", { replace: true });
     } catch {
-      toast("معرفناش نحذف الحساب دلوقتي، جرب تاني أو ابعتلنا على الإيميل.");
+      toast(tx("معرفناش نحذف الحساب دلوقتي، جرب تاني أو ابعتلنا على الإيميل."));
     } finally { setBusy(false); }
   }
 
@@ -67,7 +68,7 @@ export default function Account() {
     a.href = url; a.download = `gymak-data-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast("اتحمّلت نسخة من بياناتك.");
+    toast(tx("اتحمّلت نسخة من بياناتك."));
   }
 
   async function handleImportFile(file) {
@@ -75,25 +76,25 @@ export default function Account() {
     const parsed = parseBackup(await file.text());
     if (!parsed.ok) { toast(parsed.error); return; }
     const ok = await confirmAsync({
-      title: "هنستبدل بيانات الجهاز دلوقتي ببيانات النسخة اللي اخترتها. اللي على الجهاز هيتمسح. متأكد؟",
-      danger: true, confirmLabel: "استرجاع", cancelLabel: "إلغاء",
+      title: tx("هنستبدل بيانات الجهاز دلوقتي ببيانات النسخة اللي اخترتها. اللي على الجهاز هيتمسح. متأكد؟"),
+      danger: true, confirmLabel: tx("استرجاع"), cancelLabel: tx("إلغاء"),
     });
     if (!ok) return;
     applyBackup(parsed.payload);
-    toast("اتسترجعت البيانات.");
+    toast(tx("اتسترجعت البيانات."));
     setTimeout(() => window.location.assign("/profile"), 600);
   }
 
   async function handleChangePassword() {
     if (!user?.email) return;
     const { error } = await resetPasswordForEmail(user.email);
-    toast(error ? "معرفناش نبعت الرسالة دلوقتي، جرب تاني." : "بعتنالك رسالة على الإيميل لتغيير كلمة السر.");
+    toast(error ? tx("معرفناش نبعت الرسالة دلوقتي، جرب تاني.") : tx("بعتنالك رسالة على الإيميل لتغيير كلمة السر."));
   }
 
   async function handleSignOut() {
     const wipe = await confirmAsync({
-      title: "هتسجّل خروج. تمسح بيانات التطبيق من الجهاز كمان؟ (بياناتك على حسابك مش هتتأثر)",
-      confirmLabel: "امسح واخرج", cancelLabel: "اخرج وسيبها",
+      title: tx("هتسجّل خروج. تمسح بيانات التطبيق من الجهاز كمان؟ (بياناتك على حسابك مش هتتأثر)"),
+      confirmLabel: tx("امسح واخرج"), cancelLabel: tx("اخرج وسيبها"),
     });
     setBusy(true);
     await signOut();
@@ -107,10 +108,10 @@ export default function Account() {
 
   return (
     <>
-      <DetailTopBar title="حسابي" backTo="/profile" />
+      <DetailTopBar title={tx("حسابي")} backTo="/profile" />
 
       <div className="glass" style={{ padding: 16, marginBottom: 16 }}>
-        <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 700, marginBottom: 4 }}>مسجّل دخول بـ</div>
+        <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 700, marginBottom: 4 }}>{tx("مسجّل دخول بـ")}</div>
         <div style={{ fontSize: 14, fontWeight: 800 }}>{user?.email}</div>
       </div>
 
@@ -119,43 +120,43 @@ export default function Account() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className="sync-spinner" />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 800 }}>بننقل بياناتك القديمة للحساب</div>
-              <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>ده بيحصل مرة واحدة بس. متقفلش الصفحة.</div>
+              <div style={{ fontSize: 13, fontWeight: 800 }}>{tx("بننقل بياناتك القديمة للحساب")}</div>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>{tx("ده بيحصل مرة واحدة بس. متقفلش الصفحة.")}</div>
             </div>
           </div>
         </div>
       )}
 
       <div className="glass" style={{ padding: 16, marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>مزامنة البيانات</div>
+        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>{tx("مزامنة البيانات")}</div>
 
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: statusInfo.color, color: statusInfo.color }} />الحالة</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: statusInfo.color, color: statusInfo.color }} />{tx("الحالة")}</div>
           <div><span className="ib-val" style={{ color: statusInfo.color, fontSize: 12 }}>{statusInfo.text}</span></div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--info-text)", color: "var(--info-text)" }} />آخر مزامنة</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--info-text)", color: "var(--info-text)" }} />{tx("آخر مزامنة")}</div>
           <div><span className="ib-val" style={{ fontSize: 12 }}>{timeAgoAr(lastSyncAt)}</span></div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--accent-text-soft)", color: "var(--accent-text-soft)" }} />نقل البيانات القديمة</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--accent-text-soft)", color: "var(--accent-text-soft)" }} />{tx("نقل البيانات القديمة")}</div>
           <div>
             <span className="ib-val" style={{ fontSize: 12, color: lastMigration?.status === "failed" ? "var(--danger)" : undefined }}>
-              {isMigrated ? "تم ✓" : lastMigration?.status === "failed" ? "فشل، هنعيد المحاولة" : "لسه"}
+              {isMigrated ? tx("تم ✓") : lastMigration?.status === "failed" ? tx("فشل، هنعيد المحاولة") : tx("لسه")}
             </span>
           </div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--purple-text)", color: "var(--purple-text)" }} />تغييرات لسه ماتزامنتش</div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--purple-text)", color: "var(--purple-text)" }} />{tx("تغييرات لسه ماتزامنتش")}</div>
           <div><span className="ib-val" style={{ fontSize: 12 }}>{pendingChangeCount}</span></div>
         </div>
         <div className="inbody-row" style={{ padding: "8px 0" }}>
-          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--success)", color: "var(--success)" }} />الجهاز ده</div>
-          <div><span className="ib-val" style={{ fontSize: 12 }}>{UpdateService.platform() === "apk" ? "تطبيق أندرويد" : "المتصفح"}</span></div>
+          <div className="ib-label"><span className="ib-dot" style={{ background: "var(--success)", color: "var(--success)" }} />{tx("الجهاز ده")}</div>
+          <div><span className="ib-val" style={{ fontSize: 12 }}>{UpdateService.platform() === "apk" ? tx("تطبيق أندرويد") : tx("المتصفح")}</span></div>
         </div>
         {lastDroppedCount > 0 && (
           <div className="inbody-row" style={{ padding: "8px 0" }}>
-            <div className="ib-label"><span className="ib-dot" style={{ background: "var(--warn-text)", color: "var(--warn-text)" }} />سجلات اتجاهلت</div>
+            <div className="ib-label"><span className="ib-dot" style={{ background: "var(--warn-text)", color: "var(--warn-text)" }} />{tx("سجلات اتجاهلت")}</div>
             <div><span className="ib-val" style={{ fontSize: 12 }}>{lastDroppedCount}</span></div>
           </div>
         )}
@@ -166,7 +167,7 @@ export default function Account() {
             {lastErrorKind === "auth" && (
               <div style={{ marginTop: 8 }}>
                 <button type="button" className="auth-link-sm" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }} onClick={() => navigate("/auth/login")}>
-                  سجّل دخولك تاني
+                  {tx("سجّل دخولك تاني")}
                 </button>
               </div>
             )}
@@ -177,16 +178,16 @@ export default function Account() {
           type="button" onClick={syncNow} disabled={status === "syncing" || status === "migrating" || status === "disabled"}
           className="btn btn-primary" style={{ width: "100%", marginTop: 14 }}
         >
-          {status === "syncing" || status === "migrating" ? "جاري المزامنة..." : "زامن دلوقتي"}
+          {status === "syncing" || status === "migrating" ? tx("جاري المزامنة...") : tx("زامن دلوقتي")}
         </button>
       </div>
 
       <div className="glass" style={{ padding: 16, marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>الحساب والبيانات</div>
-        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleChangePassword}>تغيير كلمة السر (بالإيميل)</button>
-        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExport}>تحميل نسخة من بياناتي</button>
-        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExportCsv}>تصدير Excel (CSV)</button>
-        <button type="button" className="btn" style={{ width: "100%" }} onClick={() => importRef.current?.click()}>استرجاع من نسخة</button>
+        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>{tx("الحساب والبيانات")}</div>
+        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleChangePassword}>{tx("تغيير كلمة السر (بالإيميل)")}</button>
+        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExport}>{tx("تحميل نسخة من بياناتي")}</button>
+        <button type="button" className="btn" style={{ width: "100%", marginBottom: 8 }} onClick={handleExportCsv}>{tx("تصدير Excel (CSV)")}</button>
+        <button type="button" className="btn" style={{ width: "100%" }} onClick={() => importRef.current?.click()}>{tx("استرجاع من نسخة")}</button>
         <input ref={importRef} type="file" accept="application/json,.json" style={{ display: "none" }} onChange={(e) => { handleImportFile(e.target.files?.[0]); e.target.value = ""; }} />
       </div>
 
@@ -194,14 +195,14 @@ export default function Account() {
         type="button" className="btn" onClick={handleSignOut} disabled={busy}
         style={{ width: "100%", background: "rgba(244,63,94,0.12)", color: "var(--danger)", padding: 13, borderRadius: 14, border: "none", fontWeight: 800, fontSize: 13.5, cursor: "pointer" }}
       >
-        {busy ? "جاري الخروج..." : "تسجيل الخروج"}
+        {busy ? tx("جاري الخروج...") : tx("تسجيل الخروج")}
       </button>
       {DELETE_ACCOUNT_ENABLED && (
       <button
         type="button" className="btn" onClick={handleDeleteAccount} disabled={busy}
         style={{ width: "100%", marginTop: 10, background: "none", color: "var(--danger)", padding: 12, borderRadius: 14, border: "1px solid rgba(244,63,94,0.35)", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}
       >
-        حذف حسابي وبياناتي نهائيًا
+        {tx("حذف حسابي وبياناتي نهائيًا")}
       </button>
       )}
     </>

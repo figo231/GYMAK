@@ -1,3 +1,4 @@
+import { tx } from "./i18n/tx";
 // Local automatic backups of the app data. Snapshots live in IndexedDB (own database, separate from photos).
 // Pure helpers are exported for tests; the IndexedDB parts are small and guarded.
 export const STATE_KEY = "gymak_state_v1";
@@ -18,11 +19,11 @@ export function summarize(text) {
 export function isMeaningful(sum) { return !!sum && (sum.workoutDays + sum.weights + sum.foodDays) > 0; }
 
 export function validateBackup(text) {
-  if (typeof text !== "string" || text.length < 2 || text.length > 20 * 1024 * 1024) return { ok: false, error: "الملف مش صالح." };
+  if (typeof text !== "string" || text.length < 2 || text.length > 20 * 1024 * 1024) return { ok: false, error: tx("الملف مش صالح.") };
   let s;
-  try { s = JSON.parse(text); } catch { return { ok: false, error: "الملف مش نسخة GYMAK صالحة." }; }
-  if (!s || typeof s !== "object" || Array.isArray(s)) return { ok: false, error: "الملف مش نسخة GYMAK صالحة." };
-  if (!s.profile || typeof s.profile !== "object" || !Array.isArray(s.weightLogs) || typeof s.exerciseLogs !== "object" || !Array.isArray(s.workoutDays)) return { ok: false, error: "الملف مش نسخة GYMAK صالحة." };
+  try { s = JSON.parse(text); } catch { return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") }; }
+  if (!s || typeof s !== "object" || Array.isArray(s)) return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") };
+  if (!s.profile || typeof s.profile !== "object" || !Array.isArray(s.weightLogs) || typeof s.exerciseLogs !== "object" || !Array.isArray(s.workoutDays)) return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") };
   return { ok: true, summary: summarize(text) };
 }
 export function shouldSnapshot(lastTs, now = Date.now()) { return !lastTs || now - lastTs >= MIN_GAP_MS; }

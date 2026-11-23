@@ -1,11 +1,12 @@
 import { supabase } from "./supabaseClient";
 import { withTimeout } from "./authLogic";
+import { tx } from "./i18n/tx";
 
 export const CHAT_TERMS_VERSION = "2026-11-23-tou-v1";
 export const CHAT_MAX_LENGTH = 2000;
-export const CHAT_ROLE_LABELS = { user: "مستخدم", coach: "مدرب", doctor: "دكتور تغذية" };
-export const CHAT_PRIVACY = "الرسائل خاصة بالطرفين داخل التطبيق، ومحمية بـ HTTPS أثناء النقل. مش تشفير من الطرف للطرف (E2EE): مسؤول قاعدة البيانات يقدر تقنيًا يقرأ الرسائل المخزنة. صاحب التطبيق مش بيشوف محادثات غيره من لوحة الإدارة، والاستثناء الوحيد إنه يراجع المحتوى اللي مستخدم بلّغ عنه بالظبط عشان ياخد إجراء.";
-export const CHAT_HEALTH_NOTE = "إرشادات عامة، مش للطوارئ ولا بديل عن الكشف الطبي. مفيش ضمان لرد فوري. صفة دكتور أو مدرب بيحددها صاحب التطبيق، ومش توثيق لشهادة أو ترخيص. متبعتش مستندات طبية أو معلومات شخصية مش ضرورية.";
+export const CHAT_ROLE_LABELS = { user: tx("مستخدم"), coach: tx("مدرب"), doctor: tx("دكتور تغذية") };
+export const CHAT_PRIVACY = tx("الرسائل خاصة بالطرفين داخل التطبيق، ومحمية بـ HTTPS أثناء النقل. مش تشفير من الطرف للطرف (E2EE): مسؤول قاعدة البيانات يقدر تقنيًا يقرأ الرسائل المخزنة. صاحب التطبيق مش بيشوف محادثات غيره من لوحة الإدارة، والاستثناء الوحيد إنه يراجع المحتوى اللي مستخدم بلّغ عنه بالظبط عشان ياخد إجراء.");
+export const CHAT_HEALTH_NOTE = tx("إرشادات عامة، مش للطوارئ ولا بديل عن الكشف الطبي. مفيش ضمان لرد فوري. صفة دكتور أو مدرب بيحددها صاحب التطبيق، ومش توثيق لشهادة أو ترخيص. متبعتش مستندات طبية أو معلومات شخصية مش ضرورية.");
 
 export function newChatNonce(cryptoApi = globalThis.crypto) {
   if (cryptoApi.randomUUID) return cryptoApi.randomUUID();
@@ -16,8 +17,8 @@ export function newChatNonce(cryptoApi = globalThis.crypto) {
 }
 export function validateChatMessage(value) {
   const body = String(value ?? "").trim();
-  if (!body) return { ok: false, error: "اكتب رسالة الأول." };
-  if (Array.from(body).length > CHAT_MAX_LENGTH) return { ok: false, error: "الرسالة طويلة. الحد الأقصى 2000 حرف." };
+  if (!body) return { ok: false, error: tx("اكتب رسالة الأول.") };
+  if (Array.from(body).length > CHAT_MAX_LENGTH) return { ok: false, error: tx("الرسالة طويلة. الحد الأقصى 2000 حرف.") };
   return { ok: true, body };
 }
 
@@ -50,17 +51,17 @@ export function splitChatLinks(body) {
 
 export function chatError(error) {
   const s = String(error?.message || error || "");
-  if (/chat_rate_limited/.test(s)) return "بعتّ رسايل كتير. استنى شوية وجرب تاني.";
-  if (/chat_blocked/.test(s)) return "المحادثة متوقفة بسبب حظر بين الطرفين.";
-  if (/chat_read_only/.test(s)) return "المحادثة للقراءة بس، لأن المتابعة أو الصفة اتغيّرت.";
-  if (/consent_required|terms_version_mismatch/.test(s)) return "راجع تنبيه الخصوصية ووافق عليه الأول.";
-  if (/owner_only/.test(s)) return "تعديل الأدوار متاح لحساب المالك بس.";
-  if (/coach_email_required/.test(s)) return "الحساب ده ملوش بريد مسجل. دور المدرب محتاج بريد، لكن ممكن تعيينه دكتور أو مستخدم.";
-  if (/account_not_found/.test(s)) return "مفيش حساب بالإيميل ده. لازم يسجل في التطبيق الأول.";
-  if (/idempotency_conflict/.test(s)) return "الرسالة لسه قيد المراجعة. حدّث المحادثة قبل ما تحاول تاني.";
-  if (/chat_not_allowed|not_authenticated|not_allowed/.test(s) || error?.code === "42501") return "المحادثة دي مش متاحة لحسابك. راجع تسجيل الدخول والمتابعة.";
-  if (/PGRST202|PGRST205|42883|42P01/.test(`${error?.code} ${s}`) || /Could not find.*(?:chat_|function)/i.test(s)) return "الرسائل لسه مش مفعلة على السيرفر. جرّب بعد التفعيل.";
-  return "معرفناش نكمل الطلب. راجع النت وجرب تاني. الرسائل غير المرسلة مش محفوظة بعد قفل الصفحة.";
+  if (/chat_rate_limited/.test(s)) return tx("بعتّ رسايل كتير. استنى شوية وجرب تاني.");
+  if (/chat_blocked/.test(s)) return tx("المحادثة متوقفة بسبب حظر بين الطرفين.");
+  if (/chat_read_only/.test(s)) return tx("المحادثة للقراءة بس، لأن المتابعة أو الصفة اتغيّرت.");
+  if (/consent_required|terms_version_mismatch/.test(s)) return tx("راجع تنبيه الخصوصية ووافق عليه الأول.");
+  if (/owner_only/.test(s)) return tx("تعديل الأدوار متاح لحساب المالك بس.");
+  if (/coach_email_required/.test(s)) return tx("الحساب ده ملوش بريد مسجل. دور المدرب محتاج بريد، لكن ممكن تعيينه دكتور أو مستخدم.");
+  if (/account_not_found/.test(s)) return tx("مفيش حساب بالإيميل ده. لازم يسجل في التطبيق الأول.");
+  if (/idempotency_conflict/.test(s)) return tx("الرسالة لسه قيد المراجعة. حدّث المحادثة قبل ما تحاول تاني.");
+  if (/chat_not_allowed|not_authenticated|not_allowed/.test(s) || error?.code === "42501") return tx("المحادثة دي مش متاحة لحسابك. راجع تسجيل الدخول والمتابعة.");
+  if (/PGRST202|PGRST205|42883|42P01/.test(`${error?.code} ${s}`) || /Could not find.*(?:chat_|function)/i.test(s)) return tx("الرسائل لسه مش مفعلة على السيرفر. جرّب بعد التفعيل.");
+  return tx("معرفناش نكمل الطلب. راجع النت وجرب تاني. الرسائل غير المرسلة مش محفوظة بعد قفل الصفحة.");
 }
 function clientOrThrow(client) {
   if (!client) throw new Error("chat_not_configured");

@@ -1,38 +1,39 @@
 import { supabase } from "./supabaseClient";
 import { withTimeout } from "./authLogic";
+import { tx } from "./i18n/tx";
 
 // Must match the version enforced in supabase/migrations/0027_ugc_terms_moderation.sql.
 export const TERMS_VERSION = "2026-11-23-tou-v1";
 export const TERMS_URL = "/terms.html";
 
 export const REPORT_REASONS = [
-  ["abuse", "تحرّش أو إساءة"],
-  ["sexual", "محتوى جنسي أو غير لائق"],
-  ["scam", "احتيال أو سبام"],
-  ["impersonation", "انتحال شخصية"],
-  ["other", "سبب تاني"],
+  ["abuse", tx("تحرّش أو إساءة")],
+  ["sexual", tx("محتوى جنسي أو غير لائق")],
+  ["scam", tx("احتيال أو سبام")],
+  ["impersonation", tx("انتحال شخصية")],
+  ["other", tx("سبب تاني")],
 ];
-export const REPORT_TYPE_LABELS = { chat_message: "رسالة محادثة", chat_user: "مستخدم", support_reply: "رد دعم" };
-export const REPORT_STATUS_LABELS = { open: "جديد", reviewed: "اتراجع", actioned: "اتخذ إجراء", dismissed: "مرفوض" };
+export const REPORT_TYPE_LABELS = { chat_message: tx("رسالة محادثة"), chat_user: tx("مستخدم"), support_reply: tx("رد دعم") };
+export const REPORT_STATUS_LABELS = { open: tx("جديد"), reviewed: tx("اتراجع"), actioned: tx("اتخذ إجراء"), dismissed: tx("مرفوض") };
 
 export function validateReportDetails(value) {
   const details = String(value ?? "").trim();
-  if (Array.from(details).length > 1000) return { ok: false, error: "التفاصيل طويلة. الحد الأقصى 1000 حرف." };
+  if (Array.from(details).length > 1000) return { ok: false, error: tx("التفاصيل طويلة. الحد الأقصى 1000 حرف.") };
   return { ok: true, details: details || null };
 }
 
 export function moderationError(error) {
   const s = String(error?.message || error || "");
-  if (/report_rate_limited/.test(s)) return "بعتّ بلاغات كتير في وقت قصير. استنى شوية وجرب تاني.";
-  if (/report_duplicate/.test(s)) return "البلاغ ده اتبعت قبل كده.";
-  if (/report_self/.test(s)) return "مينفعش تبلّغ عن نفسك.";
-  if (/invalid_reason|invalid_details|invalid_target_type/.test(s)) return "البيانات المطلوبة للبلاغ ناقصة. جرّب تاني.";
-  if (/owner_only/.test(s)) return "مراجعة البلاغات متاحة لحساب المالك بس.";
-  if (/invalid_block|account_not_found/.test(s)) return "الحساب ده مش متاح للحظر.";
-  if (/consent_required|terms_version_mismatch/.test(s)) return "راجع شروط الاستخدام ووافق عليها الأول.";
-  if (/report_not_allowed|not_authenticated/.test(s) || error?.code === "42501") return "البلاغ ده مش متاح لحسابك.";
-  if (/PGRST202|PGRST205|42883|42P01/.test(`${error?.code} ${s}`) || /Could not find.*(?:moderation|chat_block|terms_)/i.test(s)) return "الإبلاغ والحظر لسه مش مفعلين على السيرفر. جرّب بعد التفعيل.";
-  return "معرفناش نكمل الطلب. راجع النت وجرب تاني.";
+  if (/report_rate_limited/.test(s)) return tx("بعتّ بلاغات كتير في وقت قصير. استنى شوية وجرب تاني.");
+  if (/report_duplicate/.test(s)) return tx("البلاغ ده اتبعت قبل كده.");
+  if (/report_self/.test(s)) return tx("مينفعش تبلّغ عن نفسك.");
+  if (/invalid_reason|invalid_details|invalid_target_type/.test(s)) return tx("البيانات المطلوبة للبلاغ ناقصة. جرّب تاني.");
+  if (/owner_only/.test(s)) return tx("مراجعة البلاغات متاحة لحساب المالك بس.");
+  if (/invalid_block|account_not_found/.test(s)) return tx("الحساب ده مش متاح للحظر.");
+  if (/consent_required|terms_version_mismatch/.test(s)) return tx("راجع شروط الاستخدام ووافق عليها الأول.");
+  if (/report_not_allowed|not_authenticated/.test(s) || error?.code === "42501") return tx("البلاغ ده مش متاح لحسابك.");
+  if (/PGRST202|PGRST205|42883|42P01/.test(`${error?.code} ${s}`) || /Could not find.*(?:moderation|chat_block|terms_)/i.test(s)) return tx("الإبلاغ والحظر لسه مش مفعلين على السيرفر. جرّب بعد التفعيل.");
+  return tx("معرفناش نكمل الطلب. راجع النت وجرب تاني.");
 }
 
 function clientOrThrow(client) {

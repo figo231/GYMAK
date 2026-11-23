@@ -1,4 +1,5 @@
 import { createElement, useId } from "react";
+import { txf } from "./i18n/tx";
 
 /* Semi-realistic anatomy-style body figure, our own original SVG artwork
    (no external assets, nothing traced). Layered gradients, muscle fiber
@@ -351,7 +352,7 @@ export default function MuscleFigure({ view = "front", highlight = "chest", widt
   return createElement("span", {
     className: "muscle-figure",
     role: "img",
-    "aria-label": label || `شكل الجسم — ${view} — ${highlight}`,
+    "aria-label": label || txf(`شكل الجسم — {0} — {1}`, [view, highlight]),
     style: { display: "inline-block", width, lineHeight: 0 },
     dangerouslySetInnerHTML: { __html: muscleFigureSvg(view, highlight, { ratios, prefix }) },
   });

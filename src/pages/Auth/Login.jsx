@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { translateAuthError, isUnconfirmed } from "../../lib/authErrors";
 import { normalizeEmail, validEmail } from "../../lib/authLogic";
 import { AuthField, AuthError, AuthNotice, Spinner, useCooldown } from "./AuthShell";
+import { tx, txf } from "../../lib/i18n/tx";
 
 export default function Login() {
   const { signIn, resendConfirmation, isConfigured, user, isPasswordRecovery } = useAuth();
@@ -26,8 +27,8 @@ export default function Login() {
     e.preventDefault();
     setError(""); setInfo(""); setUnconfirmed(false);
     const mail = normalizeEmail(email);
-    if (!mail || !password) { setError("املا الإيميل والباسورد."); return; }
-    if (!validEmail(mail)) { setError("صيغة الإيميل مش صحيحة."); return; }
+    if (!mail || !password) { setError(tx("املا الإيميل والباسورد.")); return; }
+    if (!validEmail(mail)) { setError(tx("صيغة الإيميل مش صحيحة.")); return; }
     setBusy(true);
     let res;
     try { res = await signIn(mail, password); } catch (err) { res = { error: err }; }
@@ -48,39 +49,39 @@ export default function Login() {
     startWait(60);
     if (res.error) { setError(translateAuthError(res.error)); return; }
     setUnconfirmed(false);
-    setInfo("بعتنالك رابط التأكيد تاني. شوف الوارد والسبام.");
+    setInfo(tx("بعتنالك رابط التأكيد تاني. شوف الوارد والسبام."));
   }
 
   return (
     <>
-      <h1 className="auth-title">تسجيل الدخول</h1>
-      <p className="auth-sub">سجّل دخولك عشان بياناتك تتزامن على كل أجهزتك.</p>
+      <h1 className="auth-title">{tx("تسجيل الدخول")}</h1>
+      <p className="auth-sub">{tx("سجّل دخولك عشان بياناتك تتزامن على كل أجهزتك.")}</p>
 
       {!isConfigured && <AuthError message="الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي." />}
       <AuthNotice message={info} />
 
       <form onSubmit={handleSubmit} noValidate>
-        <AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-        <AuthField label="الباسورد" icon="lock" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+        <AuthField label={tx("الإيميل")} icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        <AuthField label={tx("الباسورد")} icon="lock" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
         <div className="auth-row-end">
-          <Link to="/auth/forgot-password" className="auth-link-sm">نسيت الباسورد؟</Link>
+          <Link to="/auth/forgot-password" className="auth-link-sm">{tx("نسيت الباسورد؟")}</Link>
         </div>
         <AuthError message={error}>
           {unconfirmed && (
             <button type="button" className="auth-inline-btn" onClick={handleResend} disabled={wait > 0}>
-              {wait > 0 ? `ابعت التأكيد تاني (${wait})` : "ابعت التأكيد تاني"}
+              {wait > 0 ? txf(`ابعت التأكيد تاني ({0})`, [wait]) : tx("ابعت التأكيد تاني")}
             </button>
           )}
         </AuthError>
         <button type="submit" className="btn btn-primary auth-submit" disabled={busy || !isConfigured}>
-          {busy ? <><Spinner />جاري الدخول...</> : "دخول"}
+          {busy ? <><Spinner />{tx("جاري الدخول...")}</> : tx("دخول")}
         </button>
       </form>
 
       <p className="auth-footer">
-        لسه معملتش حساب؟ <Link to="/auth/register">سجّل دلوقتي</Link>
+        {tx("لسه معملتش حساب؟")} <Link to="/auth/register">{tx("سجّل دلوقتي")}</Link>
       </p>
-      <Link to="/" className="auth-skip">متابعة بدون تسجيل دخول</Link>
+      <Link to="/" className="auth-skip">{tx("متابعة بدون تسجيل دخول")}</Link>
     </>
   );
 }

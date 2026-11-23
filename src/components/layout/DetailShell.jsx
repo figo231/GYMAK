@@ -1,4 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
+import { tx } from "../../lib/i18n/tx";
 
 /* Chat pages (AI Coach) need a full-height flex layout without the .app
    max-width/padding box the other detail pages use, since their content
@@ -18,7 +19,7 @@ export function DetailTopBar({ title, backTo, right }) {
     <div className="top-bar">
       <button
         className="back-btn"
-        aria-label="رجوع"
+        aria-label={tx("رجوع")}
         onClick={() => (backTo ? navigate(backTo) : navigate(-1))}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
