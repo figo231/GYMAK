@@ -1,3 +1,4 @@
+import { APK23_WOMEN_FLOOR_HIP_GUIDES } from "./exerciseGuidesApk23WomenFloorHip";
 import { APK23_PULL_KICK_SKILL_GUIDES } from "./exerciseGuidesApk23PullKickSkill";
 import { APK23_CABLE_SHOULDER_GUIDES } from "./exerciseGuidesApk23CableShoulder";
 import { APK23_CROSS_DIP_TBAR_GUIDES } from "./exerciseGuidesApk23CrossDipTbar";
@@ -44,6 +45,7 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_WOMEN_FLOOR_HIP_GUIDES,
   ...APK23_PULL_KICK_SKILL_GUIDES,
   ...APK23_CABLE_SHOULDER_GUIDES,
   ...APK23_CROSS_DIP_TBAR_GUIDES,
