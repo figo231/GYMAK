@@ -136,7 +136,7 @@ function ExerciseDetail({ id }) {
 
   function toggleFav() { Store.toggleFavorite(exerciseId); buzz(8); }
 
-  const fmtSet = (l) => txf(`{0} · {1}×{2}{3}`, [l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? "وزن الجسم" : "بدون وزن"), l.sets, l.reps, secUnit ? " ث" : ""]);
+  const fmtSet = (l) => txf(`{0} · {1}×{2}{3}`, [l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? tx("وزن الجسم") : tx("بدون وزن")), l.sets, l.reps, secUnit ? tx(" ث") : ""]);
 
   async function handleDelete() {
     if (!exercise) return;
@@ -220,7 +220,7 @@ function ExerciseDetail({ id }) {
         {!prevSession && allLogs.length === 0 && <div className="log-prev"><span>{tx("أول مرة تسجل التمرين ده. ابدأ بوزن خفيف.")}</span></div>}
         <div className="log-grid3">
             <div className="log-field">
-              <label className="log-label" htmlFor="log-weight">{"الوزن (" + unit + ")"}</label>
+              <label className="log-label" htmlFor="log-weight">{tx("الوزن (") + unit + ")"}</label>
               <div className="stepper">
                 <button type="button" className="step-btn" aria-label={tx("أقل الوزن")} onClick={() => bump("weight", -1)}>−</button>
                 <input id="log-weight" ref={weightRef} type="number" inputMode="decimal" dir="ltr" value={weight} min="0"

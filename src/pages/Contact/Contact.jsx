@@ -65,7 +65,7 @@ export default function Contact() {
       )}
       {report && <ReportDialog
         title={tx("إبلاغ عن رد الدعم")}
-        hint="نص الرد هيتبعت مع البلاغ لصاحب التطبيق للمراجعة."
+        hint={tx("نص الرد هيتبعت مع البلاغ لصاحب التطبيق للمراجعة.")}
         onClose={() => setReport(null)}
         submit={async (reason, details) => { await reportContent({ targetType: "support_reply", reason, feedbackId: report.id, details }); setReported(tx("وصل البلاغ. شكرًا ليك.")); }} />}
     </div>

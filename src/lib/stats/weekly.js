@@ -31,8 +31,8 @@ export function buildWeekly(store, waterDays = []) {
 
 export function headline(w) {
   if (w.empty) return tx("الأسبوع ده لسه فاضي. تمرينة واحدة بتبدأ السلسلة 💪");
-  if (w.prs > 0) return txf(`أسبوع قوي: {0} {1} 🏆`, [w.prs, w.prs === 1 ? "رقم قياسي جديد" : "أرقام قياسية جديدة"]);
-  if (w.daysDelta > 0) return txf(`زودت {0} {1} تمرين عن الأسبوع اللي فات 🔥`, [w.daysDelta, w.daysDelta === 1 ? "يوم" : "أيام"]);
+  if (w.prs > 0) return txf(`أسبوع قوي: {0} {1} 🏆`, [w.prs, w.prs === 1 ? tx("رقم قياسي جديد") : tx("أرقام قياسية جديدة")]);
+  if (w.daysDelta > 0) return txf(`زودت {0} {1} تمرين عن الأسبوع اللي فات 🔥`, [w.daysDelta, w.daysDelta === 1 ? tx("يوم") : tx("أيام")]);
   if (w.days >= 4) return tx("التزام ممتاز الأسبوع ده 🔥");
   if (w.daysDelta < 0) return tx("الأسبوع ده أقل شوية. رجّع الإيقاع بتمرينة بكرة.");
   return tx("ثبات حلو. كمّل على نفس الإيقاع.");
@@ -45,6 +45,6 @@ export function weeklyCardData(w, tonLabel = tx("كجم"), conv = (x) => x) {
     title: tx("أسبوعي مع GYMAK"),
     big: `${w.days}`,
     unit: w.days === 1 ? tx("يوم تمرين") : tx("أيام تمرين"),
-    sub: txf(`{0} مجموعة · أعلى وزن: {1}{2}`, [w.sets, fmtLoggedWeight(w.peakWeight == null ? null : conv(w.peakWeight), tonLabel), w.prs ? ` · ${w.prs} رقم قياسي` : ""]),
+    sub: txf(`{0} مجموعة · أعلى وزن: {1}{2}`, [w.sets, fmtLoggedWeight(w.peakWeight == null ? null : conv(w.peakWeight), tonLabel), w.prs ? txf(` · {0} رقم قياسي`, [w.prs]) : ""]),
   };
 }

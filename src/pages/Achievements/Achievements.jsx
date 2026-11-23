@@ -52,7 +52,7 @@ export default function Achievements() {
           })}
         </div>
         <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 8 }}>
-          {month.next ? txf(`تمرنت {0} يوم الشهر ده — فاضل {1} على {2}`, [month.days, month.toNext, month.next.label === "برونز" ? "🥉 برونز" : month.next.label === "فضة" ? "🥈 فضة" : "🥇 ذهب"]) : txf(`أخدت كل أوسمة الشهر 👑 ({0} يوم)`, [month.days])}
+          {month.next ? txf(`تمرنت {0} يوم الشهر ده — فاضل {1} على {2}`, [month.days, month.toNext, month.next.label === "برونز" ? tx("🥉 برونز") : month.next.label === "فضة" ? tx("🥈 فضة") : tx("🥇 ذهب")]) : txf(`أخدت كل أوسمة الشهر 👑 ({0} يوم)`, [month.days])}
         </div>
       </div>
 

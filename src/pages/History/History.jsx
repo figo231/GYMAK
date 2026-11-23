@@ -44,7 +44,7 @@ export default function History() {
   }
 
   async function removeWorkout(w) {
-    const ok = await confirm({ title: tx("مسح المجموعة؟"), label: txf(`{0} · {1} · {2}×{3}`, [w.name, w.weight > 0 ? Store.formatWeight(w.weight) : "وزن الجسم", w.sets, w.reps]), confirmLabel: tx("مسح"), danger: true });
+    const ok = await confirm({ title: tx("مسح المجموعة؟"), label: txf(`{0} · {1} · {2}×{3}`, [w.name, w.weight > 0 ? Store.formatWeight(w.weight) : tx("وزن الجسم"), w.sets, w.reps]), confirmLabel: tx("مسح"), danger: true });
     if (ok) withUndo(Store.deleteExerciseLog(w.exerciseId, w.i), tx("تم مسح المجموعة"));
   }
   function editWorkout(w) { setEditing(w); }
@@ -103,7 +103,7 @@ export default function History() {
       </div>
 
       {tab === "workouts" && (days.length === 0 ? (
-        <EmptyState type="dumbbell" title={tx("لسه مسجلتش أي تمرين")} subtitle="أول مجموعة تسجلها هتظهر هنا." ctaLabel="ابدأ من التمارين" onCta={() => { navigate("/exercises"); }} />
+        <EmptyState type="dumbbell" title={tx("لسه مسجلتش أي تمرين")} subtitle={tx("أول مجموعة تسجلها هتظهر هنا.")} ctaLabel={tx("ابدأ من التمارين")} onCta={() => { navigate("/exercises"); }} />
       ) : (
         <>
           <div className="th-summary" data-testid="hist-summary">

@@ -57,7 +57,7 @@ export default function Login() {
       <h1 className="auth-title">{tx("تسجيل الدخول")}</h1>
       <p className="auth-sub">{tx("سجّل دخولك عشان بياناتك تتزامن على كل أجهزتك.")}</p>
 
-      {!isConfigured && <AuthError message="الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي." />}
+      {!isConfigured && <AuthError message={tx("الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي.")} />}
       <AuthNotice message={info} />
 
       <form onSubmit={handleSubmit} noValidate>

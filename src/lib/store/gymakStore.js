@@ -892,7 +892,8 @@ const KEY = "gymak_state_v1";
     },
 
     unitLabel() {
-      return load().settings.unit === "lb" ? "رطل" : "كجم";
+      const lb = load().settings.unit === "lb";
+      return isEn() ? (lb ? "lb" : "kg") : (lb ? "رطل" : "كجم");
     },
 
     formatWeight(kg) {

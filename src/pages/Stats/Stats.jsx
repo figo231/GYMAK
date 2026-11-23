@@ -135,7 +135,7 @@ export default function Stats() {
 
           <WeeklyCard />
 
-          <SectionTitle title={tx("أيام التمرين")} sub="آخر 28 يوم" />
+          <SectionTitle title={tx("أيام التمرين")} sub={tx("آخر 28 يوم")} />
           <div className="glass" style={{ padding: 14 }}>
             <div className="heat-grid" role="img" aria-label={txf(`تمرنت {0} يوم من آخر 28 يوم`, [heat.filter((h) => h.on).length])}>
               {heat.map((h) => (
@@ -182,7 +182,7 @@ export default function Stats() {
                     <button type="button" key={k} className={"m-chip" + (k === activeField ? " on" : "")} aria-pressed={k === activeField} onClick={() => setMField(k)}>{l}</button>
                   ))}
                 </div>
-                <TrendChart points={measurePts} unit="سم" label={FIELDS.find(([k]) => k === activeField)?.[1]} />
+                <TrendChart points={measurePts} unit={tx("سم")} label={FIELDS.find(([k]) => k === activeField)?.[1]} />
               </div>
             </>
           )}
@@ -198,7 +198,7 @@ export default function Stats() {
 
           </>)}
           {view === "strength" && (<>
-          <SectionTitle title={tx("تطور القوة")} sub="أفضل وزن: أول مرة مقابل دلوقتي" />
+          <SectionTitle title={tx("تطور القوة")} sub={tx("أفضل وزن: أول مرة مقابل دلوقتي")} />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!strengthRows.length ? (
               <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "6px 0", lineHeight: 1.7 }}>
@@ -254,7 +254,7 @@ export default function Stats() {
             <MuscleHeatmap sets={muscleKeys} />
           </div>
 
-          <SectionTitle title={tx("توزيع المجموعات على العضلات")} sub="مقارنة بالفترة اللي قبلها" />
+          <SectionTitle title={tx("توزيع المجموعات على العضلات")} sub={tx("مقارنة بالفترة اللي قبلها")} />
           <div className="glass chart-card" style={{ padding: "16px 14px" }}>
             {!muscles.length ? (
               <p style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center", margin: "6px 0" }}>{tx("مفيش تمارين متسجلة في الفترة دي.")}</p>

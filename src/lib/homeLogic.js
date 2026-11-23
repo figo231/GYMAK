@@ -2,6 +2,7 @@
 import { localISO, shiftISO } from "./dateKey";
 import { weightTone } from "./stats/format";
 import { tx, txf } from "./i18n/tx";
+import { isEn } from "./i18n/lang";
 
 export const WEIGHT_RANGE_KG = [20, 400];
 export const BODYFAT_RANGE = [2, 70];
@@ -45,7 +46,7 @@ export function weightChangeView(info, { goal, toDisplay, unit, window = 7 }) {
   const diff = +d.toFixed(1);
   const base = window === 7 ? tx("هذا الأسبوع") : tx("الشهر");
   const within = info.span <= window + 1;
-  const label = within ? base : txf(`من {0} {1}`, [info.span, info.span <= 10 ? "أيام" : "يوم"]);
+  const label = within ? base : txf(`من {0} {1}`, [info.span, isEn() ? (info.span === 1 ? "day" : "days") : info.span <= 10 ? "أيام" : "يوم"]);
   const tone = diff === 0 ? "neutral" : weightTone(info.diff, info.from, goal);
   return { diff, abs: Math.abs(diff), dir: diff > 0 ? "up" : diff < 0 ? "down" : "flat", tone, label, unit, text: diff === 0 ? txf(`ثابت {0}`, [label]) : `${Math.abs(diff).toFixed(1)} ${unit} ${label}` };
 }

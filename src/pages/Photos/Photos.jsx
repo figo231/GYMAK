@@ -83,7 +83,7 @@ export default function Photos() {
           </div>
           <div className="ph-cmp-grid">
             {[[tx("قبل"), cmp.before], [tx("بعد"), cmp.after]].map(([lab, p]) => (
-              <div key={p.id} className={txf(`ph-cmp-img {0}`, [lab === "بعد" ? "after" : ""])}>
+              <div key={p.id} className={txf(`ph-cmp-img {0}`, [lab === tx("قبل") ? "" : "after"])}>
                 <img src={urls[p.id]} alt={lab} />
                 <span className="ph-tag">{lab}</span>
                 <span className="ph-date" dir="ltr">{p.date}</span>

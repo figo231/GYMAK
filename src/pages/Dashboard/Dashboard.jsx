@@ -18,6 +18,7 @@ import WeeklyReportCard from "./WeeklyReportCard";
 import { pickExerciseOfTheDay, unitLabel } from "../../lib/exerciseMeta";
 import { pickQuickWorkout, quickWorkoutMinutes } from "../../lib/quickWorkout";
 import { tx, txf } from "../../lib/i18n/tx";
+import { dayTitleEn } from "../../lib/i18n/programsEn";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
 const DAY_LETTERS = [tx("ح"), tx("ن"), tx("ث"), tx("ر"), tx("خ"), tx("ج"), tx("س")]; // Sun..Sat
@@ -140,7 +141,7 @@ export default function Dashboard() {
         <div className="hero-eyebrow">{hero.kind === "done" ? tx("تمرين النهارده") : hero.kind === "plan" ? tx("خطة النهارده") : hero.kind === "suggest" ? tx("مقترح النهارده") : tx("ابدأ")}</div>
         {hero.kind === "done" && (<>
           <div className="hero-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>{tx("خلصت النهارده")}</div>
-          <div className="hero-sub">{streak > 0 ? txf(`سلسلتك {0} {1}. ارتاح وارجع بكرة.`, [streak, streak === 1 ? "يوم" : streak === 2 ? "يومين" : streak <= 10 ? "أيام" : "يوم"]) : tx("ارتاح وارجع بكرة.")}</div>
+          <div className="hero-sub">{streak > 0 ? txf(`سلسلتك {0} {1}. ارتاح وارجع بكرة.`, [streak, streak === 1 ? tx("يوم") : streak === 2 ? tx("يومين") : streak <= 10 ? tx("أيام") : tx("يوم")]) : tx("ارتاح وارجع بكرة.")}</div>
           <Link to="/exercises" className="btn btn-secondary hero-cta">{tx("سجّل تمرين تاني")}</Link>
         </>)}
         {hero.kind === "plan" && (<>
@@ -150,7 +151,7 @@ export default function Dashboard() {
           <Link to={`/exercise/${encodeURIComponent(hero.next.id)}`} className="btn btn-primary hero-cta">{hero.done ? tx("كمّل") : tx("ابدأ")}</Link>
         </>)}
         {hero.kind === "suggest" && (<>
-          <div className="hero-title">{hero.title}</div>
+          <div className="hero-title">{dayTitleEn(hero.title)}</div>
           <div className="hero-sub">{hero.exercises.length} {exercisesWord(hero.exercises.length)} {tx("مقترحة. الأول:")} {hero.exercises[0].name}</div>
           <button type="button" className="btn btn-primary hero-cta" onClick={startSuggested}>{tx("ابدأ")}</button>
         </>)}
@@ -222,7 +223,7 @@ export default function Dashboard() {
             {week.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
               const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? "اتمرنت" : "لا"])}>{DAY_LETTERS[dow]}</div>;
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("اتمرنت") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>
           {atRisk && <div className="streak-warn">{tx("سجّل تمرين النهارده عشان سلسلة الـ")}{streak} {streak === 1 ? tx("يوم") : streak === 2 ? tx("يومين") : streak <= 10 ? tx("أيام") : tx("يوم")} {tx("متتقطعش")}</div>}
@@ -244,7 +245,7 @@ export default function Dashboard() {
             {nutritionWeek.map((d) => {
               const dow = new Date(d.date + "T00:00:00").getDay();
               const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? "ملتزم" : "لا"])}>{DAY_LETTERS[dow]}</div>;
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("ملتزم") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
             })}
           </div>
         </div>

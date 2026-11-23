@@ -1,6 +1,7 @@
 // Pure helpers for the Profile / Account pages.
 import { localISO, shiftISO } from "./dateKey";
 import { tx, txf } from "./i18n/tx";
+import { isEn } from "./i18n/lang";
 
 export const HEIGHT_RANGE = [100, 250];
 export const GOAL_RANGE_KG = [30, 300];
@@ -85,7 +86,7 @@ export function applyBackup(payload, storage = localStorage) {
   if (payload.water) storage.setItem("gymak_water_v1", JSON.stringify(payload.water));
 }
 
-export function exercisesWord(n) { return n === 1 ? tx("تمرين") : n === 2 ? tx("تمرينين") : n >= 3 && n <= 10 ? tx("تمارين") : tx("تمرين"); }
+export function exercisesWord(n) { if (isEn()) return n === 1 ? "exercise" : "exercises"; return n === 1 ? "تمرين" : n === 2 ? "تمرينين" : n >= 3 && n <= 10 ? "تمارين" : "تمرين"; }
 
 // CSV (opens in Excel). UTF-8 BOM so Arabic shows correctly. Sections: weight, food, exercises.
 const csvCell = (v) => {

@@ -25,7 +25,7 @@ export function prCardData(pr, unit = tx("كجم"), conv = (x) => x) {
     title: tx("رقم قياسي جديد 🏆"),
     big: `${w}`,
     unit,
-    sub: txf(`{0}{1}`, [pr.exerciseName, p > 0 ? ` (كان ${p})` : ""]),
+    sub: txf(`{0}{1}`, [pr.exerciseName, p > 0 ? txf(` (كان {0})`, [p]) : ""]),
   };
 }
 

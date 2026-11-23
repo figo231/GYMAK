@@ -10,7 +10,7 @@ export function arDate(iso) {
 
 export function fmtVolume(value, unit = tx("كجم")) {
   const n = Math.round(value || 0);
-  if (unit === "كجم" && n >= 10000) return txf(`{0} طن`, [(n / 1000).toFixed(1)]);
+  if ((unit === "كجم" || unit === "kg") && n >= 10000) return txf(`{0} طن`, [(n / 1000).toFixed(1)]);
   return `${n.toLocaleString("en-US")} ${unit}`;
 }
 

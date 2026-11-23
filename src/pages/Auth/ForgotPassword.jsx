@@ -56,7 +56,7 @@ export default function ForgotPassword() {
       <h1 className="auth-title">{tx("نسيت الباسورد؟")}</h1>
       <p className="auth-sub">{tx("اكتب إيميلك وهنبعتلك رابط تقدر تظبط بيه باسورد جديد.")}</p>
 
-      {!isConfigured && <AuthError message="الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي." />}
+      {!isConfigured && <AuthError message={tx("الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي.")} />}
       <form onSubmit={handleSubmit} noValidate>
         <AuthField label={tx("الإيميل")} icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         <AuthError message={error} />

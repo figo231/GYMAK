@@ -181,6 +181,7 @@ export function dayNumber(dateISO) { return Math.floor(new Date(dateISO + "T00:0
 
 const GROUP_ROTATION = ["chest", "back", "legs", "shoulders", "arms", "core"];
 const GROUP_TITLE = { chest: "صدر", back: "ظهر", legs: "أرجل", shoulders: "أكتاف", arms: "ذراعين", core: "بطن" };
+const GROUP_TITLE_EN = { chest: "Chest", back: "Back", legs: "Legs", shoulders: "Shoulders", arms: "Arms", core: "Core" };
 
 /** Deterministic pick for a date: the program's day (rotating) or a muscle-group session. */
 export function pickExerciseOfTheDay({ dateISO, programDays, exercises }) {
@@ -197,5 +198,5 @@ export function pickExerciseOfTheDay({ dateISO, programDays, exercises }) {
   const picks = [];
   for (let i = 0; i < pool.length && picks.length < 4; i++) picks.push(pool[(n + i * 3) % pool.length]);
   const uniq = [...new Map(picks.map((e) => [e.id, e])).values()];
-  return { title: `تمرين ${GROUP_TITLE[group]}`, source: "rotation", exercises: uniq };
+  return { title: isEn() ? `${GROUP_TITLE_EN[group]} workout` : `تمرين ${GROUP_TITLE[group]}`, source: "rotation", exercises: uniq };
 }

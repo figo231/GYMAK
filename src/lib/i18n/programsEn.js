@@ -31,3 +31,21 @@ export function programDisplay(p) {
   const en = PROGRAMS_EN[p.id];
   return en ? { ...p, ...en } : p;
 }
+
+// Arabic program-day/chip title -> English (applied to stored active-program
+// day titles at display time).
+const DAY_TITLE_EN = {};
+for (const en of Object.values(PROGRAMS_EN)) for (const chip of en.dayChips) DAY_TITLE_EN[chip] = chip;
+const DAY_TITLE_AR = {
+  "صدر وظهر": "Chest & back", "أكتاف وذراعين": "Shoulders & arms", "أرجل": "Legs", "×2 تكرار": "x2 repeat",
+  "دفع (صدر/أكتاف/ترايسبس)": "Push (chest/shoulders/triceps)", "سحب (ظهر/بايسبس)": "Pull (back/biceps)",
+  "علوي 1": "Upper 1", "سفلي 1": "Lower 1", "علوي 2": "Upper 2", "سفلي 2": "Lower 2",
+  "أرداف وأرجل": "Glutes & legs", "علوي وكور": "Upper & core", "أرداف وسمانة": "Glutes & calves",
+  "جسم كامل A": "Full body A", "جسم كامل B": "Full body B", "جسم كامل C": "Full body C",
+  "قوة A": "Strength A", "قوة B": "Strength B", "قوة C": "Strength C",
+  "جسم كامل 1": "Full body 1", "جسم كامل 2": "Full body 2", "جسم كامل 3": "Full body 3", "كور وتحمل": "Core & conditioning",
+};
+export function dayTitleEn(title) {
+  if (!isEn() || !title) return title;
+  return DAY_TITLE_AR[title] || title;
+}

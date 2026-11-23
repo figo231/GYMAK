@@ -14,7 +14,7 @@ export default function Strength() {
   const unit = Store.unitLabel();
   const kg = Store.fromDisplayWeight(w);
   const one = estimate1RM(kg, r);
-  const step = unit === "رطل" ? 5 : 2.5;
+  const step = unit === "رطل" || unit === "lb" ? 5 : 2.5;
   const rows = one ? workingWeights(one, Store.fromDisplayWeight(step)) : [];
   const fmt = (v) => Store.toDisplayWeight(v).toLocaleString("en-US", { maximumFractionDigits: 1 });
   const useRecord = (p) => { setW(String(Store.toDisplayWeight(p.weight))); setR(String(p.reps)); setTab("calc"); };

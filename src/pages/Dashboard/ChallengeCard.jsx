@@ -18,7 +18,7 @@ export default function ChallengeCard({ version }) {
         <span className="chal-count" dir="ltr">{w.done}/{w.target}</span>
       </div>
       <div className="chal-sub">
-        {w.complete ? tx("خلّصت التحدي. كمّل بنفس الحماس 🔥") : txf(`{0} أيام تمرين قبل الجمعة. فاضل {1} {2}.`, [w.target, w.left, w.left === 1 ? "يوم" : "أيام"])}
+        {w.complete ? tx("خلّصت التحدي. كمّل بنفس الحماس 🔥") : txf(`{0} أيام تمرين قبل الجمعة. فاضل {1} {2}.`, [w.target, w.left, w.left === 1 ? tx("يوم") : tx("أيام")])}
       </div>
       <div className="chal-bar" role="progressbar" aria-valuenow={w.pct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: w.pct + "%" }} /></div>
       <div className="chal-badges">

@@ -31,7 +31,7 @@ function Detail({ trainee, onClose }) {
   useEffect(() => { sentAssignments(trainee.trainee_id).then(setSent); }, [trainee.trainee_id]);
   async function send() {
     try { await assignProgram(trainee.trainee_id, prog); toast(tx("اتبعت البرنامج للمتدرب ✅")); setSent(await sentAssignments(trainee.trainee_id)); }
-    catch (e) { toast("فشل الإرسال: " + e.message); }
+    catch (e) { toast(tx("فشل الإرسال: ") + e.message); }
   }
   useEffect(() => { traineeReport(trainee.trainee_id).then(setR).catch(() => setR({ errors: true })); }, [trainee.trainee_id]);
   const Row = ({ k, v }) => (<div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-soft)", fontSize: 13 }}><span style={{ opacity: 0.7 }}>{k}</span><b>{v}</b></div>);
@@ -45,13 +45,13 @@ function Detail({ trainee, onClose }) {
             <div style={{ display: "flex", gap: 2, margin: "4px 0 8px" }} aria-label={tx("نشاط آخر 30 يوم")}>
               {activityStrip(r.dayList, 30).map((d) => <span key={d.date} title={d.date} style={{ flex: 1, height: 14, borderRadius: 3, background: d.trained ? "var(--accent-text)" : "rgba(128,128,128,.25)" }} />)}
             </div>
-            <Row k="آخر تمرين" v={r.lastWorkout || tx("لسه")} />
-            <Row k="أيام التمرين آخر 7 أيام" v={txf(`{0} من 7`, [r.last7])} />
-            <Row k="أيام متتالية" v={r.streak} />
-            <Row k="أيام التمرين آخر 30 يوم" v={r.days30} />
-            <Row k="الوزن" v={r.weightLast ? txf(`{0} كجم{1}`, [r.weightLast.weight, r.weightFirst && r.weightFirst.date !== r.weightLast.date ? ` (من ${r.weightFirst.weight})` : ""]) : tx("مفيش")} />
-            <Row k="متوسط السعرات" v={r.avgKcal != null ? txf(`{0} سعر`, [r.avgKcal]) : tx("مفيش")} />
-            <Row k="متوسط البروتين" v={r.avgProtein != null ? txf(`{0} جم`, [r.avgProtein]) : tx("مفيش")} />
+            <Row k={tx("آخر تمرين")} v={r.lastWorkout || tx("لسه")} />
+            <Row k={tx("أيام التمرين آخر 7 أيام")} v={txf(`{0} من 7`, [r.last7])} />
+            <Row k={tx("أيام متتالية")} v={r.streak} />
+            <Row k={tx("أيام التمرين آخر 30 يوم")} v={r.days30} />
+            <Row k={tx("الوزن")} v={r.weightLast ? txf(`{0} كجم{1}`, [r.weightLast.weight, r.weightFirst && r.weightFirst.date !== r.weightLast.date ? txf(` (من {0})`, [r.weightFirst.weight]) : ""]) : tx("مفيش")} />
+            <Row k={tx("متوسط السعرات")} v={r.avgKcal != null ? txf(`{0} سعر`, [r.avgKcal]) : tx("مفيش")} />
+            <Row k={tx("متوسط البروتين")} v={r.avgProtein != null ? txf(`{0} جم`, [r.avgProtein]) : tx("مفيش")} />
             <Spark trend={weightTrend(r.weights)} />
             {r.prs.length > 0 && <div style={{ marginTop: 10, fontWeight: 800, fontSize: 13 }}>{tx("آخر الأرقام القياسية")}</div>}
             {r.prs.map((p, i) => (<Row key={i} k={p.exercise_name} v={txf(`{0} كجم`, [p.weight])} />))}
@@ -98,16 +98,16 @@ export default function Coach() {
         setTrainees(t);
         t.filter((x) => x.status === "active" && x.trainee_id).forEach((x) => traineeReport(x.trainee_id).then((r) => setReports((p) => ({ ...p, [x.id]: r }))).catch(() => {}));
       }
-    } catch (e) { toast("فشل التحميل: " + e.message); }
+    } catch (e) { toast(tx("فشل التحميل: ") + e.message); }
   }
   useEffect(() => { load(); }, []);
 
   const sum = summarize(trainees, reports);
   const list = sortTrainees(filterTrainees(trainees, reports, q), reports);
 
-  async function answer(id, ok) { try { await respondInvite(id, ok); load(); toast(ok ? tx("اتفعّل المدرب ✅") : tx("اتلغى")); } catch (e) { toast("فشل: " + e.message); } }
+  async function answer(id, ok) { try { await respondInvite(id, ok); load(); toast(ok ? tx("اتفعّل المدرب ✅") : tx("اتلغى")); } catch (e) { toast(tx("فشل: ") + e.message); } }
   async function invite() { try { await inviteTrainee(email); setEmail(""); load(); toast(tx("اتبعتت الدعوة ✅")); } catch (e) { toast(e.message); } }
-  async function revoke(id) { try { await revokeLink(id); load(); } catch (e) { toast("فشل: " + e.message); } }
+  async function revoke(id) { try { await revokeLink(id); load(); } catch (e) { toast(tx("فشل: ") + e.message); } }
 
   return (
     <>
@@ -168,7 +168,7 @@ export default function Coach() {
                 <span style={dot(level)} />
                 <div style={{ flex: 1, minWidth: 0 }} onClick={() => t.status === "active" && t.trainee_id && setOpen(t)}>
                   <div dir="ltr" style={{ fontSize: 13, fontWeight: 700 }}>{r?.name || t.trainee_email}</div>
-                  <div style={{ fontSize: 11.5, opacity: 0.7 }}>{t.status === "pending" ? tx("في انتظار القبول") : r ? txf(`{0} · {1}/7 أيام، آخر تمرين {2}`, [LEVEL[level][1], r.last7, r.lastWorkout || "لسه"]) : "..."}</div>
+                  <div style={{ fontSize: 11.5, opacity: 0.7 }}>{t.status === "pending" ? tx("في انتظار القبول") : r ? txf(`{0} · {1}/7 أيام، آخر تمرين {2}`, [LEVEL[level][1], r.last7, r.lastWorkout || tx("لسه")]) : "..."}</div>
                 </div>
                 <button type="button" style={ghost} onClick={() => revoke(t.id)}>{t.status === "pending" ? tx("إلغاء") : tx("إزالة")}</button>
               </div>

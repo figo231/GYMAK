@@ -20,7 +20,7 @@ export default function WeightChart({ history, goal = null, goalTo = null, perio
           <span className="chart-now">{last} <small style={{ fontSize: 12, color: "var(--text-dim)" }}>{unit}</small></span>
         </div>
         <div style={{ padding: "24px 0", textAlign: "center", color: "var(--text-dim)", fontSize: 12 }}>
-          {history.length ? txf(`محتاج قياسين على الأقل في {0} عشان يظهر الرسم.`, [periodLabel || "الفترة دي"]) : tx("سجّل وزنك مرتين على الأقل عشان يظهر الرسم البياني.")}
+          {history.length ? txf(`محتاج قياسين على الأقل في {0} عشان يظهر الرسم.`, [periodLabel || tx("الفترة دي")]) : tx("سجّل وزنك مرتين على الأقل عشان يظهر الرسم البياني.")}
         </div>
       </div>
     );
