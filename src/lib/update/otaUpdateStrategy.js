@@ -1,3 +1,5 @@
+import {verifyOtaEnvelope} from './otaManifest';
+import {OTA_MANIFEST_PUBLIC_KEY} from './otaTrust';
 import {Capacitor} from '@capacitor/core';
 import {App} from '@capacitor/app';
 import {stageOta,activateStagedOta} from './otaPolicy';
@@ -28,7 +30,7 @@ export async function initializeOta(){
  setTimeout(async()=>{
   try{
    const res=await fetch(MANIFEST,{cache:'no-store',signal:AbortSignal.timeout(8000)});
-   if(!res.ok)return;const manifest=await res.json();
+   if(!res.ok)return;const manifest=await verifyOtaEnvelope(await res.json(),OTA_MANIFEST_PUBLIC_KEY);
    await stageOta({plugin,manifest,identity:{nativeBuild:Number(info.build),channel},storage:localStorage});
   }catch{/* Offline, invalid, timeout or invalid signature: bundled app stays usable. */}
  },4000);
