@@ -1,3 +1,4 @@
+vi.mock('../src/lib/reviewBuild',()=>({REVIEW_BACKEND_GATED:false}));
 import {beforeEach,it,expect,vi} from 'vitest';
 const m=vi.hoisted(()=>({invoke:vi.fn(),single:vi.fn()}));
 vi.mock('../src/lib/supabaseClient',()=>({supabase:{from:()=>({insert:()=>({select:()=>({single:m.single})})}),functions:{invoke:m.invoke}}}));

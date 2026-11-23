@@ -1,3 +1,4 @@
+import {REVIEW_BACKEND_GATED} from "./reviewBuild";
 import {supabase} from './supabaseClient';
 export const normalizeUsername=s=>(s||'').trim().toLowerCase();
 export function validateIdentity({name,gender,username}){
@@ -12,5 +13,5 @@ export const identityText={
 };
 export async function getIdentity(){if(!supabase)return null;const {data,error}=await supabase.rpc('my_account_identity');if(error)throw error;return data;}
 async function requireOwner(id){if(!supabase)throw Error("offline");const {data,error}=await supabase.auth.getUser();if(error)throw error;if(!id||data?.user?.id!==id)throw Error("session_changed");}
-export async function saveIdentity(id,value){await requireOwner(id);const errorKey=validateIdentity(value);if(errorKey)throw Error(errorKey);const {error}=await supabase.rpc('complete_account_identity',{p_name:value.name.trim(),p_gender:value.gender,p_username:normalizeUsername(value.username),p_expected_user:id});if(error)throw error;}
+export async function saveIdentity(id,value){if(REVIEW_BACKEND_GATED)throw Error("review_backend_disabled");await requireOwner(id);const errorKey=validateIdentity(value);if(errorKey)throw Error(errorKey);const {error}=await supabase.rpc('complete_account_identity',{p_name:value.name.trim(),p_gender:value.gender,p_username:normalizeUsername(value.username),p_expected_user:id});if(error)throw error;}
 export async function skipIdentity(id){await requireOwner(id);const {error}=await supabase.rpc('skip_account_identity',{p_expected_user:id});if(error)throw error;}

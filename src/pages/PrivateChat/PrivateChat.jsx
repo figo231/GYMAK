@@ -1,3 +1,4 @@
+import {REVIEW_BACKEND_GATED,reviewBackendMessage} from "../../lib/reviewBuild";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
@@ -230,6 +231,7 @@ function ChatSession({ userId }) {
 }
 export default function PrivateChat() {
   const { user } = useAuth();
+  if(REVIEW_BACKEND_GATED)return <p role="status" style={{padding:20}}>{reviewBackendMessage(document.documentElement.lang)}</p>;
   // Account changes remount all state: no old drafts/messages can flash for another user.
   return user ? <ChatSession key={user.id} userId={user.id} /> : null;
 }

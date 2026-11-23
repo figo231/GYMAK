@@ -1,3 +1,4 @@
+vi.mock('../src/lib/reviewBuild',()=>({REVIEW_BACKEND_GATED:false}));
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
 import {act,createElement} from 'react';import {createRoot} from 'react-dom/client';
 const m=vi.hoisted(()=>({user:{id:'a'},get:vi.fn(),save:vi.fn(),skip:vi.fn(),merge:vi.fn()}));
