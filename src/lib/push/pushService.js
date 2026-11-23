@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "../supabaseClient";
+import { createPushListenerRegistrar } from "./registerListeners";
 import pkg from "../../../package.json";
 
 /**
@@ -148,7 +149,18 @@ function getDeviceId() {
   return id;
 }
 
-let listenersRegistered = false;
+const registerListeners = createPushListenerRegistrar();
+function ensurePushListeners(plugin) {
+  const receive = event => {
+    const n = event?.notification || {};
+    addInbox({ id: n.id, title: n.title, body: n.body });
+  };
+  return registerListeners(plugin, {
+    tokenReceived: event => { saveToken(event.token); },
+    notificationReceived: receive,
+    notificationActionPerformed: receive,
+  });
+}
 let currentUserId = null;
 
 async function saveToken(token) {
@@ -227,18 +239,7 @@ export async function initBroadcastPush() {
   broadcastStarted = true;
   try {
     const { FM: FirebaseMessaging } = await getMessaging();
-    if (!listenersRegistered) {
-      listenersRegistered = true;
-      FirebaseMessaging.addListener("tokenReceived", (event) => { saveToken(event.token); });
-      FirebaseMessaging.addListener("notificationReceived", (event) => {
-        const n = event.notification || {};
-        addInbox({ id: n.id, title: n.title, body: n.body });
-      });
-      FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
-        const n = (event && event.notification) || {};
-        addInbox({ id: n.id, title: n.title, body: n.body });
-      });
-    }
+    await ensurePushListeners(FirebaseMessaging);
     await FirebaseMessaging.subscribeToTopic({ topic: BROADCAST_TOPIC });
     importDelivered();
   } catch (err) {
@@ -276,14 +277,7 @@ export async function registerForPush(userId) {
     }
     if (!granted) return; // user declined — nothing else to do this session
 
-    if (!listenersRegistered) {
-      listenersRegistered = true;
-      // Fires when FCM rotates the token. Keep the saved row fresh.
-      FirebaseMessaging.addListener("tokenReceived", (event) => {
-        saveToken(event.token);
-      });
-    }
-
+    await ensurePushListeners(FirebaseMessaging);
     const { token } = await FirebaseMessaging.getToken();
     await saveToken(token);
 
