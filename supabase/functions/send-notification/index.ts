@@ -6,7 +6,7 @@ import { sendToTopic } from "../_shared/fcmClient.ts";
 
 const BATCH_INSERT_SIZE = 500;
 
-Deno.serve(async (req: Request) => {
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
   }
@@ -149,4 +149,18 @@ Deno.serve(async (req: Request) => {
     await admin.serviceClient.from("notifications").update({ status: "failed" }).eq("id", notification.id);
     return new Response(JSON.stringify({ error: e.message ?? "Send failed" }), { status: 500 });
   }
+}
+// Bearer-token auth remains enforced by handleRequest. Browsers do not send
+// Authorization on CORS preflight, so OPTIONS must be answered first.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
+  const response = await handleRequest(req);
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders)) headers.set(key, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 });
