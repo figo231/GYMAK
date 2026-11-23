@@ -1,4 +1,6 @@
-import { lazy } from "react";
+import { lazy as reactLazy,createElement } from "react";
+import OtaRouteReady from "./components/OtaRouteReady";
+const lazy=(load)=>reactLazy(async()=>{const m=await load();return {...m,default:(props)=>createElement(OtaRouteReady,null,createElement(m.default,props))};});
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import TabShell from "./components/layout/TabShell";
 import DetailShell, { ChatShell } from "./components/layout/DetailShell";

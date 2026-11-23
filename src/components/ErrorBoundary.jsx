@@ -19,6 +19,7 @@ export default class ErrorBoundary extends Component {
   componentDidCatch(error, info) {
     // eslint-disable-next-line no-console
     console.error("[gymak] render error caught by ErrorBoundary:", error, info);
+    try { window.__gymakRenderFailed=true; } catch {}
     reportError(error, { source: "ErrorBoundary", componentStack: info?.componentStack });
   }
 

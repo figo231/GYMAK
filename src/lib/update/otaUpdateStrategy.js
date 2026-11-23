@@ -18,7 +18,15 @@ export async function initializeOta(){
  if(started||!Capacitor.isNativePlatform()||!Capacitor.isPluginAvailable('CapacitorUpdater'))return;
  started=true;
  const {CapacitorUpdater:plugin}=await import('@capgo/capacitor-updater');
- // Invoke only from mounted app effect, not before React has rendered.
+ // A mounted App can still contain only Suspense or ErrorBoundary fallback.
+ // Confirm a real route is visible before blessing an OTA bundle as healthy.
+ const deadline=Date.now()+10000;
+ while(Date.now()<deadline){
+  if(window.__gymakRenderFailed)return;
+  if(document.querySelector('[data-gymak-route-ready]')&&!document.querySelector('.splash-screen'))break;
+  await new Promise(resolve=>setTimeout(resolve,100));
+ }
+ if(window.__gymakRenderFailed||!document.querySelector('[data-gymak-route-ready]'))return;
  await plugin.notifyAppReady();
  // Download is additionally gated at build time until key/rollback QA is complete.
  if(import.meta.env.VITE_OTA_ENABLED!=='true')return;
