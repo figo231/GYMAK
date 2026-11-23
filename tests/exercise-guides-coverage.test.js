@@ -1,3 +1,4 @@
+import { APK23_HACK_CALF_GUIDES } from "../src/lib/exerciseGuidesApk23HackCalf";
 import { APK23_LUNGE_GUIDES } from "../src/lib/exerciseGuidesApk23Lunges";
 import { describe,it,expect } from 'vitest';
 import Store from '../src/lib/store/gymakStore';
@@ -24,11 +25,11 @@ describe('detailed guide coverage',()=>{
   localStorage.clear();
   const ids=new Set([...Store.getExercises().filter(e=>!e.custom),...WOMEN_EXERCISES].map(e=>e.id));
   expect(ids.size).toBe(148);
-  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(81);
+  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(84);
   for(const id of Object.keys(EXERCISE_GUIDES))expect(ids.has(id),id).toBe(true);
  });
  it('keeps apk23 batches unique and source-linked',()=>{
-  const groups=[APK23_LUNGE_GUIDES,APK23_PULL_GUIDES,APK23_LEG_GUIDES,APK23_CORE_GUIDES,APK23_UPPER_GUIDES,APK23_CURL_GUIDES,APK23_SUPPORTED_GUIDES,APK23_TRICEPS_GUIDES,APK23_LOWER_GUIDES,APK23_STABILITY_GUIDES,APK23_PUSHUP_GUIDES,APK23_SQUAT_BRIDGE_GUIDES,APK23_MACHINE_PULL_GUIDES,APK23_CURL_REVERSE_GUIDES,APK23_CABLE_TRICEPS_GUIDES,APK23_CURL_VARIATION_GUIDES,APK23_SHOULDER_SUPPORT_GUIDES];
+  const groups=[APK23_HACK_CALF_GUIDES,APK23_LUNGE_GUIDES,APK23_PULL_GUIDES,APK23_LEG_GUIDES,APK23_CORE_GUIDES,APK23_UPPER_GUIDES,APK23_CURL_GUIDES,APK23_SUPPORTED_GUIDES,APK23_TRICEPS_GUIDES,APK23_LOWER_GUIDES,APK23_STABILITY_GUIDES,APK23_PUSHUP_GUIDES,APK23_SQUAT_BRIDGE_GUIDES,APK23_MACHINE_PULL_GUIDES,APK23_CURL_REVERSE_GUIDES,APK23_CABLE_TRICEPS_GUIDES,APK23_CURL_VARIATION_GUIDES,APK23_SHOULDER_SUPPORT_GUIDES];
   const keys=groups.flatMap(g=>Object.keys(g));
   expect(new Set(keys).size).toBe(keys.length);
   for(const group of groups)for(const [id,guide] of Object.entries(group)){
