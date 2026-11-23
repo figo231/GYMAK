@@ -1,3 +1,4 @@
+import { APK23_HANG_CRUNCH_WRIST_GUIDES } from "./exerciseGuidesApk23HangCrunchWrist";
 import { APK23_UPRIGHT_PUSH_GUIDES } from "./exerciseGuidesApk23UprightPush";
 import { APK23_CRUNCH_VARIANT_GUIDES } from "./exerciseGuidesApk23CrunchVariants";
 import { APK23_MACHINE_CABLE_CURL_GUIDES } from "./exerciseGuidesApk23MachineCableCurl";
@@ -40,6 +41,7 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_HANG_CRUNCH_WRIST_GUIDES,
   ...APK23_UPRIGHT_PUSH_GUIDES,
   ...APK23_CRUNCH_VARIANT_GUIDES,
   ...APK23_MACHINE_CABLE_CURL_GUIDES,
