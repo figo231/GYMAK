@@ -14,8 +14,9 @@ it('rehearses full ordered install with legacy auth trigger and preserves baseli
  insert into admin_users values('00000000-0000-4000-8000-000000000001','super_admin');`);
  await db.exec(readFileSync('supabase/migrations/0024_private_chat.sql','utf8'));
  const before=(await db.query('select * from profiles')).rows;
- for(const f of ['0027_ugc_terms_moderation.sql','0028_encouragement.sql','0029_signup_identity.sql','0030_owner_notification_delivery.sql'])await db.exec(readFileSync('supabase/migrations/'+f,'utf8'));
+ for(const f of ['0027_ugc_terms_moderation.sql','0028_encouragement.sql','0029_signup_identity.sql','0030_owner_notification_delivery.sql','0031_runtime_capabilities.sql'])await db.exec(readFileSync('supabase/migrations/'+f,'utf8'));
  expect((await db.query('select * from profiles')).rows).toEqual(before);
+ expect((await db.query('select apk18_capabilities() as c')).rows[0].c).toEqual({identity_signup:false,chat_writes:false});
  expect((await db.query('select enabled from owner_push_control')).rows[0].enabled).toBe(false);
  expect((await db.query('select enabled from encouragement_config')).rows[0].enabled).toBe(false);
  await db.exec('update apk18_rollout_control set identity_signup=true');
