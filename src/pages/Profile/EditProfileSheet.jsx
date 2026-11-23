@@ -52,7 +52,7 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
           <label htmlFor="editUsername">الاسم المختصر</label>
           <div className="username-input-wrap">
             <span>@</span>
-            <input id="editUsername" maxLength={30} placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input id="editUsername" maxLength={24} autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
         </div>
         <div className="edit-field">

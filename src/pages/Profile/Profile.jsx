@@ -41,6 +41,7 @@ export default function Profile({ panel = null }) {
   const toast = useToast();
   const { lang: currentLang, setLang } = useI18n();
   const { user } = useAuth();
+  const identityOwnerRef=useRef(user?.id);identityOwnerRef.current=user?.id;
   const { theme: activeTheme } = useTheme();
 
   const [showEdit, setShowEdit] = useState(false);
@@ -167,7 +168,9 @@ export default function Profile({ panel = null }) {
   }
 
   async function handleEditSave({ name, username, bio, gender }) {
-    if(user){await saveIdentity(user.id,{name,username,gender});}
+    const owner=user?.id;
+    if(owner){await saveIdentity(owner,{name,username,gender});}
+    if(identityOwnerRef.current!==owner)throw Error("session_changed");
     Store.setProfileName(name);
     Store.setUsername(username);
     Store.setBio(bio);
