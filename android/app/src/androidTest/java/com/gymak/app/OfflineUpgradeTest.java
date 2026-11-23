@@ -41,14 +41,14 @@ public class OfflineUpgradeTest {
         try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
             waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
             js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed)).catch(e=>window.__coldProbe=String(e))");
-            waitFor(a,"window.__coldProbe !== 'pending'");
+            waitFor(a,"window.__coldProbe === 'true' || window.__coldProbe === 'false'");
             assertEquals("true",js(a,"window.__coldProbe"));
             js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed))");
-            waitFor(a,"window.__coldProbe !== 'pending'");assertEquals("false",js(a,"window.__coldProbe"));
-            js(a,"location.reload()");
-            waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
+            waitFor(a,"window.__coldProbe === 'true' || window.__coldProbe === 'false'");assertEquals("false",js(a,"window.__coldProbe"));
+            js(a,"window.__beforeOtaReload=true;location.reload()");
+            waitFor(a,"!window.__beforeOtaReload && document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
             js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed))");
-            waitFor(a,"window.__coldProbe !== 'pending'");assertEquals("false",js(a,"window.__coldProbe"));
+            waitFor(a,"window.__coldProbe === 'true' || window.__coldProbe === 'false'");assertEquals("false",js(a,"window.__coldProbe"));
         }
     }
     @Test public void seedLegacyData() throws Exception {
