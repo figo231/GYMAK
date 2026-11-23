@@ -1,3 +1,4 @@
+import { APK23_MACHINE_CABLE_CURL_GUIDES } from "./exerciseGuidesApk23MachineCableCurl";
 import { APK23_DIP_GUIDES } from "./exerciseGuidesApk23Dips";
 import { APK23_CABLE_FLY_GUIDES } from "./exerciseGuidesApk23CableFly";
 import { APK23_DEADLIFT_VARIANT_GUIDES } from "./exerciseGuidesApk23DeadliftVariants";
@@ -37,6 +38,7 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_MACHINE_CABLE_CURL_GUIDES,
   ...APK23_DIP_GUIDES,
   ...APK23_CABLE_FLY_GUIDES,
   ...APK23_DEADLIFT_VARIANT_GUIDES,
