@@ -24,13 +24,22 @@ public class GymakMessagingService extends MessagingService {
    boolean allowed=Build.VERSION.SDK_INT<33||checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED;
    if(allowed&&NotificationManagerCompat.from(this).areNotificationsEnabled()){
     String id=message.getData().get("notification_id");if(id==null)id=message.getMessageId();if(id==null)id=String.valueOf(System.currentTimeMillis());
-    Intent open=new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    open.putExtra("notification_id",id);
+    Intent open=createTapIntent(message,id);
     PendingIntent action=PendingIntent.getActivity(this,id.hashCode(),open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     NotificationCompat.Builder b=new NotificationCompat.Builder(this,CHANNEL).setSmallIcon(com.gymak.app.R.drawable.ic_stat_gymak).setContentTitle(n.getTitle()).setContentText(n.getBody()).setStyle(new NotificationCompat.BigTextStyle().bigText(n.getBody())).setAutoCancel(true).setOnlyAlertOnce(true).setContentIntent(action);
     manager.notify(id,id.hashCode(),b.build());
    }
   }
   super.onMessageReceived(message);
+ }
+ Intent createTapIntent(RemoteMessage message,String id){
+  RemoteMessage.Notification n=message.getNotification();
+  Intent open=new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+  for(java.util.Map.Entry<String,String> entry:message.getData().entrySet())open.putExtra(entry.getKey(),entry.getValue());
+  // Match the messaging plugin tap contract and retain the same inbox ID.
+  open.putExtra("google.message_id",message.getMessageId()!=null?message.getMessageId():id);
+  open.putExtra("gcm.n.title",n.getTitle());open.putExtra("gcm.n.body",n.getBody());
+  open.putExtra("notification_id",id);
+  return open;
  }
 }

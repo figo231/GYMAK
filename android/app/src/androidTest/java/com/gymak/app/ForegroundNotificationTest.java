@@ -15,6 +15,11 @@ import com.google.firebase.messaging.RemoteMessage;import org.junit.Test;import 
   // Android Service with a real application base context for callback testing.
   GymakMessagingService service=new GymakMessagingService();
   java.lang.reflect.Method attach=android.content.ContextWrapper.class.getDeclaredMethod("attachBaseContext",Context.class);attach.setAccessible(true);attach.invoke(service,ctx);
+  android.content.Intent tap=service.createTapIntent(message,"fixture-campaign");
+  assertEquals("fixture-foreground",tap.getStringExtra("google.message_id"));
+  assertEquals("fixture-campaign",tap.getStringExtra("notification_id"));
+  assertEquals("GYMAK fixture",tap.getStringExtra("gcm.n.title"));
+  assertEquals("fixture-foreground",io.capawesome.capacitorjs.plugins.firebase.messaging.FirebaseMessagingHelper.createNotificationResult(tap.getExtras()).getString("id"));
   try{service.onMessageReceived(message);service.onMessageReceived(message);
    Thread.sleep(500);assertEquals(1,manager.getActiveNotifications().length);assertEquals(GymakMessagingService.CHANNEL,manager.getActiveNotifications()[0].getNotification().getChannelId());
   }finally{manager.cancelAll();}

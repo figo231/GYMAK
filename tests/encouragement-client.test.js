@@ -1,4 +1,5 @@
 import {beforeEach,it,expect,vi} from 'vitest';
+vi.mock('../src/lib/reviewBuild',()=>({REVIEW_BACKEND_GATED:false}));
 const m=vi.hoisted(()=>({id:'a',rpc:vi.fn()}));
 vi.mock('../src/lib/supabaseClient',()=>({supabase:{auth:{getUser:async()=>({data:{user:{id:m.id}}})},rpc:m.rpc}}));
 import {changeEncouragement,flushEncouragementStop,stopPending} from '../src/lib/encouragement';
