@@ -1,3 +1,4 @@
+import { APK23_SQUAT_BRIDGE_GUIDES } from "./exerciseGuidesApk23SquatBridge";
 import { APK23_PUSHUP_GUIDES } from "./exerciseGuidesApk23Pushups";
 import { APK23_STABILITY_GUIDES } from "./exerciseGuidesApk23Stability";
 import { APK23_LOWER_GUIDES } from "./exerciseGuidesApk23Lower";
@@ -18,6 +19,7 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_SQUAT_BRIDGE_GUIDES,
   ...APK23_PUSHUP_GUIDES,
   ...APK23_STABILITY_GUIDES,
   ...APK23_LOWER_GUIDES,
