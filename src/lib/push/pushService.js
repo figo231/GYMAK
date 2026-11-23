@@ -163,8 +163,12 @@ function ensurePushListeners(plugin) {
 let currentUserId = null;
 let ownerReceiptWakeInstalled=false;
 
+let pendingToken = null;
+let wasRegistered = false;
 async function saveToken(token) {
-  if (!supabase || !currentUserId) return;
+  if (!token) return;
+  if (!supabase || !currentUserId) { pendingToken = token; return; } // flushed after auth
+  pendingToken = null;
   const { error } = await supabase.from("push_tokens").upsert(
     {
       user_id: currentUserId,
@@ -182,7 +186,20 @@ async function saveToken(token) {
   if (error) {
     // eslint-disable-next-line no-console
     console.error("[gymak push] failed to save token", error);
-  }
+    pendingToken = token; // retried on next foreground/online
+  } else { wasRegistered = true; }
+}
+
+/** Re-read the FCM token and upsert it. Cheap; called on foreground and reconnect. */
+export async function refreshPushToken() {
+  if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase || !currentUserId) return;
+  try {
+    const { FM } = await getMessaging();
+    let status = await FM.checkPermissions();
+    if (status.receive !== "granted") return;
+    const { token } = await FM.getToken();
+    await saveToken(token);
+  } catch (err) { logPushErr("refresh", err); }
 }
 
 /**
@@ -267,7 +284,7 @@ export async function registerForPush(userId) {
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
   currentUserId = userId;
   collectNativeOwnerTaps().then(()=>flushOwnerReceipts(userId,getDeviceId())).catch(()=>{});
-  if(!ownerReceiptWakeInstalled){ownerReceiptWakeInstalled=true;const resume=()=>{if(currentUserId)collectNativeOwnerTaps().then(()=>flushOwnerReceipts(currentUserId,getDeviceId())).catch(()=>{});};window.addEventListener('online',resume);document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});}
+  if(!ownerReceiptWakeInstalled){ownerReceiptWakeInstalled=true;const resume=()=>{if(currentUserId)refreshPushToken();if(currentUserId)collectNativeOwnerTaps().then(()=>flushOwnerReceipts(currentUserId,getDeviceId())).catch(()=>{});};window.addEventListener('online',resume);document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});}
 
   try {
     const { FM: FirebaseMessaging } = await getMessaging();
@@ -277,11 +294,16 @@ export async function registerForPush(userId) {
       const req = await FirebaseMessaging.requestPermissions();
       granted = req.receive === "granted";
     }
-    if (!granted) return; // user declined — nothing else to do this session
+    if (!granted) {
+      logPushErr("register", "notification permission not granted");
+      try { window.dispatchEvent(new CustomEvent("gymak-push-permission-missing")); } catch { /* ignore */ }
+      return;
+    }
 
     await ensurePushListeners(FirebaseMessaging);
     const { token } = await FirebaseMessaging.getToken();
     await saveToken(token);
+    if (pendingToken) await saveToken(pendingToken);
 
     // Broadcast topic: lets the admin send to every user (Firebase Console or the
     // send-notification function, which targets this same topic name).
@@ -298,6 +320,10 @@ export async function registerForPush(userId) {
 export async function removePushToken() {
   currentUserId = null;
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
+  // Cold start reports "no session" before auth restores; deleting then raced with
+  // the fresh registration. Only delete after this process actually registered.
+  if (!wasRegistered) return;
+  wasRegistered = false;
   try {
     // Only the per-account token row is removed. The device stays on the
     // broadcast topic (announcements are not account-specific).
