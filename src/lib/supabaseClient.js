@@ -1,3 +1,4 @@
+import {trainingFetch} from './trainingReset';
 import { createClient } from "@supabase/supabase-js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
@@ -7,7 +8,7 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
    instead of wiring this up from scratch. Not called anywhere yet —
    the app runs entirely on the local GymakStore until Phase 3 adds
    the login/register/forgot-password screens and the sync layer. */
-export const supabase = url && anonKey ? createClient(url, anonKey) : null;
+export const supabase = url && anonKey ? createClient(url, anonKey,{global:{fetch:trainingFetch}}) : null;
 
 if (!supabase && import.meta.env.DEV) {
   // eslint-disable-next-line no-console

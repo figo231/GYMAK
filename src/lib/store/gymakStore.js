@@ -1845,6 +1845,15 @@ const KEY = "gymak_state_v1";
       return true;
     },
 
+    // Account-preserving training reset. One durable write preserves identity and library even if storage is full.
+    resetTrainingData() {
+      const old=load(), fresh=defaultState();
+      fresh.profile={...old.profile,level:1,xp:0,xpNext:500};delete fresh.profile.xpDay;
+      for(const key of ['exercises','favorites','savedMeals','settings','deletedExerciseIds'])if(old[key]!==undefined)fresh[key]=old[key];
+      if(!save(fresh))throw Error('local_cleanup_failed');
+      return fresh;
+    },
+
     // ===== Danger zone =====
     resetAllData() {
       const fresh = defaultState();

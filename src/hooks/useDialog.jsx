@@ -1,3 +1,4 @@
+import {createPortal} from 'react-dom';
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { tx } from "../lib/i18n/tx";
 
@@ -38,9 +39,9 @@ export function DialogProvider({ children }) {
   return (
     <DialogContext.Provider value={{ promptAsync, confirmAsync }}>
       {children}
-      {dialog && (
+      {dialog && createPortal(
         <div className="sheet-overlay" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) close(dialog.kind === "prompt" ? null : false); }}>
-          <div className="glass sheet-panel">
+          <div className="glass sheet-panel" style={{background:"var(--bg-deep)",maxHeight:"90dvh",overflowY:"auto"}}>
             <div className="sheet-grip" />
             {dialog.title && <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px" }}>{dialog.title}</h3>}
             {dialog.label && <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: "0 0 14px" }}>{dialog.label}</p>}
@@ -72,7 +73,7 @@ export function DialogProvider({ children }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </DialogContext.Provider>
   );

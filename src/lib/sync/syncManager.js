@@ -1,3 +1,4 @@
+import {setTrainingUser,reconcileTrainingGeneration,resumePendingReset} from '../trainingReset';
 import { supabase } from "../supabaseClient";
 import Store from "../store/gymakStore";
 import { pushAll, pullAll } from "./domains";
@@ -124,7 +125,7 @@ class SyncManager {
   start(userId) {
     if (!supabase) { this._setStatus("disabled"); return; }
     if (this._unsubStore) this._unsubStore(); // guard against start() being called twice without an intervening stop()
-    this.userId = userId;
+    this.userId = userId;setTrainingUser(userId);
     this.pendingChangeCount = 0;
     this._unsubStore = Store.onChange(() => {
       // Pull merges call Store.save() internally, which fires this same
@@ -144,7 +145,7 @@ class SyncManager {
 
   /** Called on sign-out — stop pushing/pulling for the now-anonymous session. */
   stop() {
-    this.userId = null;
+    this.userId = null;setTrainingUser(null);
     if (this._unsubStore) this._unsubStore();
     clearTimeout(this._debounceTimer);
     clearTimeout(this._retryTimer);
@@ -153,6 +154,8 @@ class SyncManager {
     this._rerunRequested = false;
     this._setStatus("idle");
   }
+
+  async pauseForReset(){this.stop();const started=Date.now();while(this._running){if(Date.now()-started>20000)throw Error('sync_busy');await new Promise(r=>setTimeout(r,50));}}
 
   /** Manual "sync now" entry point for the Account page button. */
   manualSync() {
@@ -197,18 +200,27 @@ class SyncManager {
       this._rerunRequested = true;
       return;
     }
+    const cycleUser=this.userId;
     this._running = true;
     this._setStatus("syncing");
     try {
-      await this._migrateIfNeeded(this.userId);
+      const resumedReset=await resumePendingReset(cycleUser,supabase);
+      if(this.userId!==cycleUser)return;
+      const resetElsewhere=await reconcileTrainingGeneration(cycleUser,supabase);
+      if(this.userId!==cycleUser)return;
+      if(resetElsewhere||resumedReset){this._applyingRemote=true;try{await pullAll(cycleUser);}finally{this._applyingRemote=false;}}
+      if(this.userId!==cycleUser)return;
+      await this._migrateIfNeeded(cycleUser);
+      if(this.userId!==cycleUser)return;
 
       this._setStatus("syncing");
-      const pushDropped = await pushAll(this.userId);
+      const pushDropped = await pushAll(cycleUser);
+      if(this.userId!==cycleUser)return;
 
       this._applyingRemote = true;
       let pullDropped = 0;
       try {
-        pullDropped = await pullAll(this.userId);
+        pullDropped = await pullAll(cycleUser);
       } finally {
         this._applyingRemote = false;
       }

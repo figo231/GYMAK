@@ -1,3 +1,6 @@
+import {performTrainingReset,clearTrainingLocally} from '../../lib/trainingReset';
+import {supabase} from '../../lib/supabaseClient';
+import {syncManager} from '../../lib/sync/syncManager';
 import {saveIdentity} from "../../lib/accountIdentity";
 import ActivityPreference from './ActivityPreference';
 import { shareText, APP_URL } from "../../lib/shareLink";
@@ -29,7 +32,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useSyncStatus } from "../../hooks/useSyncStatus";
 import AppLockSheet from "./AppLockSheet";
 import { isLockEnabled } from "../../lib/appLock";
-import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, clearLocalData, xpToNext, timeAgoAr, exercisesWord } from "../../lib/profileLogic";
+import { HEIGHT_RANGE, GOAL_RANGE_KG, validHeight, validGoalKg, bmiCategory, arDateFull, coachLine, xpToNext, timeAgoAr, exercisesWord } from "../../lib/profileLogic";
 import { tx, txf } from "../../lib/i18n/tx";
 
 // Keyboard + screen-reader support for clickable rows that are not <button>s.
@@ -249,19 +252,21 @@ export default function Profile({ panel = null }) {
   }
 
   // ===== Reset data =====
+  const resetBusy=useRef(false);
   async function handleReset() {
-    const ok = await confirmAsync({
-      title: user
-        ? tx("هيمسح كل بياناتك من الجهاز (الوزن، التمارين، القياسات، الصور، المية). بياناتك على حسابك هترجع مع أول مزامنة. متأكد؟")
-        : tx("هيمسح كل بياناتك من الجهاز (الوزن، التمارين، القياسات، الصور، المية) نهائيًا ومفيش رجوع. متأكد؟"),
-      danger: true, confirmLabel: tx("مسح كل شيء"), cancelLabel: tx("إلغاء"),
-    });
-    if (!ok) return;
-    await clearLocalData();
-    Store.resetAllData();
-    refresh();
-    toast(tx("اتمسحت بيانات الجهاز."));
-    setTimeout(() => window.location.assign("/profile"), 600);
+    if(resetBusy.current)return;
+    const en=currentLang==='en', uid=user?.id;
+    const ok=await confirmAsync({title:en?'Reset training history permanently?':'تصفير سجل التدريب نهائيًا؟',label:en?'Clears synced workouts, weight, food, records and XP, plus measurements, water and progress photos on this device. Keeps your account, identity, chats, exercises, favorites and saved meals. Local photos on other devices cannot be erased remotely.':'هيمسح التمارين والأوزان والأكل والأرقام القياسية والنقاط من الحساب، والقياسات والمية وصور التقدم من الجهاز ده. حسابك وهويتك والشات والتمارين والمفضلة والوجبات المحفوظة هيفضلوا. صور الأجهزة التانية المحلية مش بتتمسح عن بعد.',danger:true,confirmLabel:en?'Continue':'متابعة',cancelLabel:en?'Cancel':'إلغاء'});
+    if(!ok)return;
+    const answer=await promptAsync({title:en?'Final confirmation':'التأكيد النهائي',label:en?'Type RESET TRAINING to permanently reset':'اكتب: تصفير التدريب',placeholder:en?'RESET TRAINING':'تصفير التدريب',defaultValue:'',danger:true,confirmLabel:en?'Reset permanently':'تصفير نهائي',cancelLabel:en?'Cancel':'إلغاء'});
+    if(answer!==(en?'RESET TRAINING':'تصفير التدريب'))return;
+    if(identityOwnerRef.current!==uid){toast(en?'Account changed. Try again.':'الحساب اتغير. حاول تاني.');return;}
+    resetBusy.current=true;
+    try{
+      if(uid)await performTrainingReset(uid,supabase,syncManager);else await clearTrainingLocally();
+      refresh();toast(en?'Training reset. Your account is unchanged.':'اتصفّر التدريب. حسابك زي ما هو.');setTimeout(()=>window.location.assign('/profile'),600);
+    }catch{toast(en?'Reset could not finish. Check your connection and try again. If the server finished, local cleanup will resume before sync.':'التصفير مكملش. اتأكد من الاتصال وحاول تاني. لو الخادم خلص، تنظيف الجهاز هيكمل قبل المزامنة.');}
+    finally{resetBusy.current=false;}
   }
 
   const coverStyle = profile.cover
@@ -310,7 +315,7 @@ export default function Profile({ panel = null }) {
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </Link><Link to="/backups" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("النسخ الاحتياطي ←")}</Link><div className="settings-row" style={{ cursor: "pointer" }} {...press(handleReset)}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg></div>
-          <span className="settings-name" style={{ color: "var(--danger)" }}>{tx("إعادة تعيين كل البيانات")}</span>
+          <span className="settings-name" style={{ color: "var(--danger)" }}>{currentLang==='en'?'Reset training data':'تصفير بيانات التدريب'}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
         </div></div></details><details className="ux-group" ><summary>{tx("التفضيلات والخصوصية")}</summary><div className="ux-group-body"><ActivityPreference /><div className="settings-row" style={{ cursor: "pointer" }} {...press(() => setShowLang(true))}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18" /></svg></div>
