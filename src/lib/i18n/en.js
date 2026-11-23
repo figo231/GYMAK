@@ -1083,7 +1083,7 @@ export const EN = {
 "تطبيق": "Application",
 "تطبيق أندرويد": "Android app",
 "تطبيق البرنامج": "Apply program",
-"تطبيقك لتمارينك وأكلك وتقدمك. كل حاجة بالعربي، من غير إعلانات، وبياناتك على جهازك. جولة سريعة تعرّفك على كل شاشة.": "Your app for training, food & progress. Everything in Arabic, ad-free, with your data on your device. A quick tour of every screen.",
+"تطبيقك لتمارينك وأكلك وتقدمك. كل حاجة بالعربي، من غير إعلانات، وبياناتك على جهازك. جولة سريعة تعرّفك على كل شاشة.": "Your app for training, food & progress. In Arabic and English, ad-free, with your data on your device. A quick tour of every screen.",
 "تطور القوة": "Strength progress",
 "تطور الوزن": "Weight progress",
 "تعديل": "Edit",

@@ -35,7 +35,7 @@ export default function MealPlan() {
       </div>
       {tab === "plan" ? plan.map((d, i) => (
         <div key={i} className="glass mp-day">
-          <div className="mp-day-top"><b>{DAYS[i]}</b><span dir="ltr">{d.kcal} kcal · {d.protein}g</span></div>
+          <div className="mp-day-top"><b>{DAYS[i]}</b><bdi className="mp-macros">{d.kcal} kcal · {d.protein}g</bdi></div>
           {d.meals.map((m) => (
             <div key={m.slot} className="mp-meal">
               <span className="mp-slot">{m.label}</span>
