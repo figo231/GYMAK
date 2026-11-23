@@ -1,3 +1,4 @@
+vi.mock('../src/hooks/useI18n',()=>({useI18n:()=>({lang:'ar'})}));
 import {describe,it,expect,vi,afterEach} from 'vitest';
 import {createElement,act} from 'react';
 import {createRoot} from 'react-dom/client';
