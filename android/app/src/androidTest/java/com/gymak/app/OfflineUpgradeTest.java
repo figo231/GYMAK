@@ -37,6 +37,20 @@ public class OfflineUpgradeTest {
         } catch(Exception ignored) {}
         fail("Condition did not become true: " + condition + "; page: " + js(a, "document.body.innerText.slice(0,400)"));
     }
+    @Test public void otaActivationOnlyOncePerProcess() throws Exception {
+        try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
+            waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
+            js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed)).catch(e=>window.__coldProbe=String(e))");
+            waitFor(a,"window.__coldProbe !== 'pending'");
+            assertEquals("true",js(a,"window.__coldProbe"));
+            js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed))");
+            waitFor(a,"window.__coldProbe !== 'pending'");assertEquals("false",js(a,"window.__coldProbe"));
+            js(a,"location.reload()");
+            waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
+            js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed))");
+            waitFor(a,"window.__coldProbe !== 'pending'");assertEquals("false",js(a,"window.__coldProbe"));
+        }
+    }
     @Test public void seedLegacyData() throws Exception {
         try (ActivityScenario<MainActivity> a = ActivityScenario.launch(MainActivity.class)) {
             waitFor(a, "location.origin === 'https://gymak-eight.vercel.app' && localStorage.getItem('gymak_state_v1')");
