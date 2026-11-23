@@ -1,9 +1,13 @@
+import {useI18n} from "../../hooks/useI18n";
+import {identityText} from "../../lib/accountIdentity";
 import { useRef, useState } from "react";
 import { GRADIENTS } from "./badgeData";
 
 const press = (fn) => ({ role: "button", tabIndex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } } });
 
 export default function EditProfileSheet({ profile, onClose, onSave, onPickAvatar, onPickCover, onPickGradient }) {
+  const {lang}=useI18n();const it=identityText[lang==='en'?'en':'ar'];
+  const [busy,setBusy]=useState(false),[error,setError]=useState('');
   const [name, setName] = useState(profile.name || "");
   const [username, setUsername] = useState(profile.username || "");
   const [bio, setBio] = useState(profile.bio || "");
@@ -11,9 +15,7 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
   const avatarInput = useRef(null);
   const coverInput = useRef(null);
 
-  function handleSave() {
-    onSave({ name, username, bio, gender });
-  }
+  async function handleSave() {setBusy(true);setError('');try{await onSave({ name, username, bio, gender });}catch(e){setError(it[Object.keys(it).find(k=>(e.message||'').includes(k))]||it.error);}finally{setBusy(false);}}
 
   return (
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -66,9 +68,10 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
           </div>
         </div>
 
+        {error&&<p role="alert">{error}</p>}
         <div className="edit-sheet-actions">
           <button type="button" onClick={onClose}>إلغاء</button>
-          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }} onClick={handleSave}>حفظ</button>
+          <button type="button" style={{ background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))", color: "#fff" }} disabled={busy} onClick={handleSave}>حفظ</button>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import {saveIdentity} from "../../lib/accountIdentity";
 import ActivityPreference from './ActivityPreference';
 import { shareText, APP_URL } from "../../lib/shareLink";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -165,7 +166,8 @@ export default function Profile({ panel = null }) {
     refresh();
   }
 
-  function handleEditSave({ name, username, bio, gender }) {
+  async function handleEditSave({ name, username, bio, gender }) {
+    if(user){await saveIdentity(user.id,{name,username,gender});}
     Store.setProfileName(name);
     Store.setUsername(username);
     Store.setBio(bio);
