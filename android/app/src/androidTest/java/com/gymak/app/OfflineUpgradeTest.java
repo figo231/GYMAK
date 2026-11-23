@@ -31,6 +31,10 @@ public class OfflineUpgradeTest {
             if ("true".equals(js(a, "Boolean(" + condition + ")"))) return;
             Thread.sleep(300);
         }
+        try {
+            InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(InstrumentationRegistry.getInstrumentation().getTargetContext().getExternalFilesDir(null),"condition-failure.png")));
+            System.out.println("CONDITION_FAILURE_DOM="+js(a,"JSON.stringify({href:location.href,ready:document.readyState,text:document.body.innerText.slice(0,1800),tabs:document.querySelectorAll('.bottom-nav .nav-item').length,renderFailed:window.__gymakRenderFailed})"));
+        } catch(Exception ignored) {}
         fail("Condition did not become true: " + condition + "; page: " + js(a, "document.body.innerText.slice(0,400)"));
     }
     @Test public void seedLegacyData() throws Exception {
