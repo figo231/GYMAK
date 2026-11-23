@@ -92,6 +92,9 @@ adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-a
 run_test seedLegacyData
 cp verification/seedLegacyData.txt verification/apk17-seed.txt
 adb shell am force-stop com.gymak.app
+run_test confirmsSeedAfterLegacyProcessDeath
+cp verification/confirmsSeedAfterLegacyProcessDeath.txt verification/apk17-legacy-process-restart.txt
+adb shell am force-stop com.gymak.app
 adb shell svc wifi disable
 adb shell svc data disable
 adb shell cmd connectivity airplane-mode enable

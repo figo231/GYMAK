@@ -66,6 +66,14 @@ public class OfflineUpgradeTest {
             Thread.sleep(1500);
         }
     }
+    @Test public void confirmsSeedAfterLegacyProcessDeath() throws Exception {
+        try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
+            waitFor(a,"location.origin === 'https://gymak-eight.vercel.app' && localStorage.getItem('gymak_state_v1')");
+            assertEquals("kept",js(a,"localStorage.getItem('gymak_upgrade_probe')"));
+            assertEquals("Offline upgrade test",js(a,"JSON.parse(localStorage.getItem('gymak_state_v1')).profile.name"));
+            System.out.println("LEGACY_PROCESS_RESTART_SEED="+js(a,"JSON.stringify({origin:location.origin,probe:localStorage.getItem('gymak_upgrade_probe'),keys:Object.keys(localStorage).length})"));
+        }
+    }
     @Test public void keepsDataAndRunsOffline() throws Exception {
         try (ActivityScenario<MainActivity> a = ActivityScenario.launch(MainActivity.class)) {
             waitFor(a, "document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
