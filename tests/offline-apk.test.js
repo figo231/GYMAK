@@ -32,7 +32,7 @@ describe("offline APK and data continuity", () => {
     expect(notify).toHaveBeenCalledWith({ type: "apk-available" });
     expect(strategy.hasPending()).toBe(true);
     await strategy.applyUpdate();
-    expect(native.open).toHaveBeenCalledWith({ url: "https://github.com/figo231/GYMAK/releases/latest/download/GYMAK.apk" });
+    expect(native.open).toHaveBeenCalledWith({ url: "https://gymak-eight.vercel.app/download/GYMAK.apk" });
   });
   it("never treats an equal or older build as an update", async () => {
     for (const tag of ["apk-9", "apk-8"]) {
