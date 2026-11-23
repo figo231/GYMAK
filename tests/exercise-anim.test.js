@@ -17,6 +17,11 @@ describe("exercise animated demos", () => {
     expect(getExerciseEnglish("glute-bridge")).toBe("Barbell Glute Bridge");
   });
 
+  it("hides mismatched lengthwise pullover art while retaining search terms", () => {
+    expect(getExerciseFrames("db-pullover")).toBeNull();
+    expect(getExerciseEnglish("db-pullover")).toContain("Pullover");
+  });
+
   it("returns null for an unknown exercise id", () => {
     expect(getExerciseFrames("not-a-real-exercise")).toBeNull();
   });
