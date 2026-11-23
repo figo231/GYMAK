@@ -157,7 +157,11 @@ function ensurePushListeners(plugin) {
   };
   return registerListeners(plugin, {
     tokenReceived: event => { saveToken(event.token); },
-    notificationReceived: receive,
+    notificationReceived: event => {
+      receive(event);
+      const n=event?.notification || {};
+      window.dispatchEvent(new CustomEvent("gymak-foreground-push",{detail:{title:n.title,body:n.body}}));
+    },
     notificationActionPerformed: receive,
   });
 }

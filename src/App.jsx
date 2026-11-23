@@ -1,3 +1,4 @@
+import ForegroundPushBanner from "./components/ForegroundPushBanner";
 import Store from "./lib/store/gymakStore";
 import { isNative, syncMissedReminder } from "./lib/push/nativeReminder";
 import { autoSnapshotIfDue } from "./lib/backup";
@@ -94,6 +95,7 @@ export default function App() {
                   <RouterProvider router={router} />
                 </Suspense>
                 {!showSplash && !locked && onboarded && <EncouragementNotice key={"encouragement"} />}
+                {!showSplash && !locked && onboarded && <ForegroundPushBanner />}
                 <RestTimer />
                 <Celebration />
                 {showSplash && <SplashScreen />}
