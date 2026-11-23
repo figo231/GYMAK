@@ -1,3 +1,4 @@
+import { APK23_HIP_CALF_GUIDES } from "./exerciseGuidesApk23HipCalf";
 import { APK23_HACK_CALF_GUIDES } from "./exerciseGuidesApk23HackCalf";
 import { APK23_LUNGE_GUIDES } from "./exerciseGuidesApk23Lunges";
 import { APK23_SHOULDER_SUPPORT_GUIDES } from "./exerciseGuidesApk23ShoulderSupport";
@@ -26,6 +27,7 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_HIP_CALF_GUIDES,
   ...APK23_HACK_CALF_GUIDES,
   ...APK23_LUNGE_GUIDES,
   ...APK23_SHOULDER_SUPPORT_GUIDES,
