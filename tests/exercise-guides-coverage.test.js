@@ -10,16 +10,17 @@ import { APK23_CURL_GUIDES } from '../src/lib/exerciseGuidesApk23Curls';
 import { APK23_SUPPORTED_GUIDES } from '../src/lib/exerciseGuidesApk23Supported';
 import { APK23_TRICEPS_GUIDES } from '../src/lib/exerciseGuidesApk23Triceps';
 import { APK23_LOWER_GUIDES } from '../src/lib/exerciseGuidesApk23Lower';
+import { APK23_STABILITY_GUIDES } from '../src/lib/exerciseGuidesApk23Stability';
 describe('detailed guide coverage',()=>{
  it('maps every guide to a real built-in exercise',()=>{
   localStorage.clear();
   const ids=new Set([...Store.getExercises().filter(e=>!e.custom),...WOMEN_EXERCISES].map(e=>e.id));
   expect(ids.size).toBe(148);
-  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(52);
+  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(55);
   for(const id of Object.keys(EXERCISE_GUIDES))expect(ids.has(id),id).toBe(true);
  });
  it('keeps apk23 batches unique and source-linked',()=>{
-  const groups=[APK23_PULL_GUIDES,APK23_LEG_GUIDES,APK23_CORE_GUIDES,APK23_UPPER_GUIDES,APK23_CURL_GUIDES,APK23_SUPPORTED_GUIDES,APK23_TRICEPS_GUIDES,APK23_LOWER_GUIDES];
+  const groups=[APK23_PULL_GUIDES,APK23_LEG_GUIDES,APK23_CORE_GUIDES,APK23_UPPER_GUIDES,APK23_CURL_GUIDES,APK23_SUPPORTED_GUIDES,APK23_TRICEPS_GUIDES,APK23_LOWER_GUIDES,APK23_STABILITY_GUIDES];
   const keys=groups.flatMap(g=>Object.keys(g));
   expect(new Set(keys).size).toBe(keys.length);
   for(const group of groups)for(const [id,guide] of Object.entries(group)){
