@@ -1,6 +1,7 @@
 import {verifyOtaEnvelope} from './otaManifest';
 import {OTA_MANIFEST_PUBLIC_KEY} from './otaTrust';
-import {Capacitor} from '@capacitor/core';
+import {Capacitor,registerPlugin} from '@capacitor/core';
+const OtaLifecycle=registerPlugin('OtaLifecycle');
 import {App} from '@capacitor/app';
 import {stageOta,activateStagedOta} from './otaPolicy';
 const MANIFEST='https://gymak-eight.vercel.app/ota/stable.json';
@@ -11,6 +12,8 @@ export async function activateOtaBeforeRender(canCommit=()=>true){
  if(!['sideload','play'].includes(channel))return false;
  if(import.meta.env.VITE_OTA_ENABLED!=='true'||!Capacitor.isNativePlatform()||!Capacitor.isPluginAvailable('CapacitorUpdater'))return false;
  const {CapacitorUpdater:plugin}=await import('@capgo/capacitor-updater');
+ if(!Capacitor.isPluginAvailable('OtaLifecycle'))return false;
+ const cold=await OtaLifecycle.consumeColdStart();if(!cold.allowed)return false;
  const info=await App.getInfo();return activateStagedOta({plugin,storage:localStorage,nativeBuild:Number(info.build),canCommit});
 }
 

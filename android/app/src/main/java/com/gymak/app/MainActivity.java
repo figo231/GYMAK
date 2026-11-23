@@ -8,6 +8,7 @@ import com.getcapacitor.BridgeWebViewClient;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle state) {
+        registerPlugin(OtaLifecyclePlugin.class);
         super.onCreate(state);
         if (getBridge() == null) return;
         // Retain the old HTTPS origin, but let Capacitor serve packaged assets.
