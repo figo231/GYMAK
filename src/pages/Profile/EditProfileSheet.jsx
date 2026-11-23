@@ -1,3 +1,4 @@
+import {REVIEW_BACKEND_GATED,reviewBackendMessage} from "../../lib/reviewBuild";
 import {useI18n} from "../../hooks/useI18n";
 import {identityText} from "../../lib/accountIdentity";
 import { useRef, useState } from "react";
@@ -16,7 +17,7 @@ export default function EditProfileSheet({ profile, onClose, onSave, onPickAvata
   const avatarInput = useRef(null);
   const coverInput = useRef(null);
 
-  async function handleSave() {setBusy(true);setError('');try{await onSave({ name, username, bio, gender });}catch(e){setError(it[Object.keys(it).find(k=>(e.message||'').includes(k))]||it.error);}finally{setBusy(false);}}
+  async function handleSave() {setBusy(true);setError('');try{await onSave({ name, username, bio, gender });}catch(e){if(e.message==='review_backend_disabled'){setError(reviewBackendMessage(lang));return;}setError(it[Object.keys(it).find(k=>(e.message||'').includes(k))]||it.error);}finally{setBusy(false);}}
 
   return (
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
