@@ -10,6 +10,8 @@ import { useToast } from "../../hooks/useToast";
 import { useConfirm, usePrompt } from "../../hooks/useDialog";
 import { remaining, pct, macroSplit } from "../../lib/foodLogic";
 import { tx, txf } from "../../lib/i18n/tx";
+import { isEn } from "../../lib/i18n/lang";
+import { GOAL_MODE_EN } from "../../lib/i18n/maps";
 
 const QUICK = [tx("عيش بلدي"), tx("كشري"), tx("فراخ مشوية"), tx("٢ موز"), tx("لبن"), tx("بيض")];
 
@@ -59,11 +61,11 @@ export default function Food() {
   }
   function logSaved(m) { Store.logSavedMeal(m.id); toast(txf(`اتسجّل: {0}`, [m.name])); }
   async function delSaved(m) {
-    const ok = await confirm({ title: tx("تمسح الوجبة المحفوظة؟"), label: m.name, confirmLabel: tx("مسح"), danger: true });
+    const ok = await confirm({ title: tx("تمسح الوجبة المحفوظة؟"), label: Store.foodDisplayName(m.name), confirmLabel: tx("مسح"), danger: true });
     if (ok) Store.deleteSavedMeal(m.id);
   }
   async function del(i, it) {
-    const ok = await confirm({ title: tx("مسح الأكلة؟"), label: it.name, confirmLabel: tx("مسح"), danger: true });
+    const ok = await confirm({ title: tx("مسح الأكلة؟"), label: Store.foodDisplayName(it.name), confirmLabel: tx("مسح"), danger: true });
     if (!ok) return;
     const snap = Store.deleteFoodItem(day.date, i);
     if (snap) toast(tx("تم المسح"), { duration: 6000, action: { label: tx("تراجع"), onClick: () => Store.restore(snap) } });
@@ -84,11 +86,11 @@ export default function Food() {
       <RamadanCard kind="food" />
       <div className="goal-modes" data-testid="goal-modes" role="group" aria-label={tx("الهدف")}>
         {Object.entries(modes).map(([k, v]) => (
-          <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{v.label}</button>
+          <button key={k} type="button" aria-pressed={mode === k} className={"goal-chip" + (mode === k ? " on" : "")} onClick={() => Store.setGoalMode(mode === k ? null : k)}>{isEn() && GOAL_MODE_EN[k] ? GOAL_MODE_EN[k].label : v.label}</button>
         ))}
       </div>
       <button type="button" className={"cheat-toggle" + (cheat ? " on" : "")} aria-pressed={cheat} onClick={toggleCheat}>{cheat ? tx("النهارده يوم حر ✓ (سلسلتك محمية)") : tx("خلّي النهارده يوم حر")}</button>
-      {mode && <div className="goal-tip">{modes[mode].tip}{proteinTarget ? txf(` هدف البروتين: {0} جم.`, [proteinTarget]) : ""}</div>}
+      {mode && <div className="goal-tip">{isEn() && GOAL_MODE_EN[mode] ? GOAL_MODE_EN[mode].tip : modes[mode].tip}{proteinTarget ? txf(` هدف البروتين: {0} جم.`, [proteinTarget]) : ""}</div>}
 
       <div className="food-hero" data-testid="food-hero">
         <div className="food-hero-top">
@@ -121,7 +123,7 @@ export default function Food() {
           {saved.map((m) => (
             <div key={m.id} className="glass saved-meal">
               <button type="button" className="saved-meal-main" onClick={() => logSaved(m)}>
-                <b>{m.name}</b><small dir="ltr">{m.items.reduce((a, x) => a + x.kcal, 0)} kcal</small>
+                <b>{Store.foodDisplayName(m.name)}</b><small dir="ltr">{m.items.reduce((a, x) => a + x.kcal, 0)} kcal</small>
               </button>
               <button type="button" className="hist-btn danger" aria-label={txf(`مسح {0}`, [m.name])} onClick={() => delSaved(m)}>✕</button>
             </div>
@@ -141,7 +143,7 @@ export default function Food() {
           <div className="food-preview">
             <div className="food-note-dim">{tx("راجع الكميات. تقدر تعدّلها بالجرام بعد التسجيل.")}</div>
             {preview.map((it, i) => (
-              <div className="food-row" key={i}><span>{it.name} <small dir="ltr">{Math.round(it.grams)}g</small></span><b dir="ltr">{it.kcal} kcal</b></div>
+              <div className="food-row" key={i}><span>{Store.foodDisplayName(it.name)} <small dir="ltr">{Math.round(it.grams)}g</small></span><b dir="ltr">{it.kcal} kcal</b></div>
             ))}
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={add}>{tx("سجّل (")}{preview.reduce((a, x) => a + x.kcal, 0)} {tx("سعرة)")}</button>
             <button type="button" className="btn" style={{ width: "100%", marginTop: 8 }} onClick={saveCurrent}>{tx("احفظ كوجبة")}</button>
@@ -154,7 +156,7 @@ export default function Food() {
         <div className="glass food-empty">{tx("لسه مسجلتش أكل النهارده.")}</div>
       ) : day.items.map((it, i) => (
         <div className="glass food-row card" key={i}>
-          <div className="food-row-main"><b>{it.name}</b><small dir="ltr">{Math.round(it.grams)}g · P{it.protein} C{it.carbs} F{it.fat}</small></div>
+          <div className="food-row-main"><b>{Store.foodDisplayName(it.name)}</b><small dir="ltr">{Math.round(it.grams)}g · P{it.protein} C{it.carbs} F{it.fat}</small></div>
           <b dir="ltr">{it.kcal}</b>
           <button type="button" className="hist-btn" aria-label={txf(`تعديل {0}`, [it.name])} onClick={() => edit(i, it)}>✎</button>
           <button type="button" className="hist-btn danger" aria-label={txf(`مسح {0}`, [it.name])} onClick={() => del(i, it)}>✕</button>

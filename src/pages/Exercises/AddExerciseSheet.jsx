@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { mediaKindOf, MAX_VIDEO_MB } from "../../lib/exerciseMedia";
 import { arNorm, clampInt, validMediaUrl, DIFFICULTIES } from "../../lib/exerciseMeta";
 import { tx, txf } from "../../lib/i18n/tx";
+import { isEn } from "../../lib/i18n/lang";
+import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
 
 const MUSCLES = [
   { m: "chest", color: "var(--muscle-chest)", label: tx("صدر") },
@@ -11,7 +13,8 @@ const MUSCLES = [
   { m: "arms", color: "var(--muscle-arms)", label: tx("ذراعين") },
   { m: "core", color: "var(--muscle-core)", label: tx("بطن") },
 ];
-const EQUIPMENT = [tx("وزن الجسم"), tx("دمبل"), tx("بار"), tx("جهاز"), tx("كابل")];
+// Raw Arabic values: stored on the exercise and compared in filters. Display translated at render.
+const EQUIPMENT = ["وزن الجسم", "دمبل", "بار", "جهاز", "كابل"];
 
 const fieldStyle = {
   width: "100%", boxSizing: "border-box", background: "rgba(17,24,39,0.045)",
@@ -98,12 +101,12 @@ export default function AddExerciseSheet({ onClose, onSave, initialName = "", ex
 
         <label style={labelStyle}>{tx("المعدة (اختياري)")}</label>
         <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 14 }}>
-          {EQUIPMENT.map((x) => pill(equipment === x, () => setEquipment(equipment === x ? "" : x), x, x))}
+          {EQUIPMENT.map((x) => pill(equipment === x, () => setEquipment(equipment === x ? "" : x), isEn() ? equipmentEn(x) : x, x))}
         </div>
 
         <label style={labelStyle}>{tx("الصعوبة (اختياري)")}</label>
         <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 14 }}>
-          {DIFFICULTIES.map((x) => pill(difficulty === x, () => setDifficulty(difficulty === x ? "" : x), x, x))}
+          {DIFFICULTIES.map((x) => pill(difficulty === x, () => setDifficulty(difficulty === x ? "" : x), isEn() ? difficultyEn(x) : x, x))}
         </div>
 
         <label style={labelStyle}>{tx("نوع التمرين")}</label>

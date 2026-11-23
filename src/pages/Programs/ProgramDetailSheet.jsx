@@ -3,10 +3,12 @@ import ExerciseAnim from "../../components/ExerciseAnim";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
 import { tx, txf } from "../../lib/i18n/tx";
+import { programDisplay } from "../../lib/i18n/programsEn";
 
 const LEVEL_CLASS = { "مبتدئ": "lvl-beginner", "متوسط": "lvl-inter", "متقدم": "lvl-advanced" };
 
-export default function ProgramDetailSheet({ program, isActive, onClose, onApply, onShare, t }) {
+export default function ProgramDetailSheet({ program: programRaw, isActive, onClose, onApply, onShare, t }) {
+  const program = programDisplay(programRaw);
   const [version, setVersion] = useState(0);
   const confirmAsync = useConfirm();
   const days = Store.getProgramDays(program.id);

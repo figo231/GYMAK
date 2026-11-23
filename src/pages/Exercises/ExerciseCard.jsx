@@ -5,6 +5,8 @@ import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
 import { useI18n } from "../../hooks/useI18n";
 import { unitLabel, setsRepsText, daysAgoLabel } from "../../lib/exerciseMeta";
+import { isEn } from "../../lib/i18n/lang";
+import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
 import { tx, txf } from "../../lib/i18n/tx";
 
 export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onToggleToday, onDeleted }) {
@@ -87,10 +89,10 @@ export default function ExerciseCard({ ex, meta, fav, onToggleFav, inToday, onTo
         <p className="ex-name">{ex.name}</p>
         <div className="ex-tags">
           <span className="badge primary">{ex.muscleLabel}</span>
-          {ex.equipment && <span className="badge secondary">{ex.equipment}</span>}
+          {ex.equipment && <span className="badge secondary">{isEn() ? equipmentEn(ex.equipment) : ex.equipment}</span>}
           {ex.difficulty && (
             <span className={"difficulty-pill diff-" + (ex.difficulty === "مبتدئ" ? "beg" : ex.difficulty === "متقدم" ? "adv" : "mid")} title={ex.difficulty}>
-              <span className="difficulty-dot" />{ex.difficulty}
+              <span className="difficulty-dot" />{isEn() ? difficultyEn(ex.difficulty) : ex.difficulty}
             </span>
           )}
         </div>

@@ -10,6 +10,7 @@ import SectionNav from "../../components/layout/SectionNav";
 import { programLink, programIdFromSearch, shareText } from "../../lib/shareLink";
 import ProgramDetailSheet from "./ProgramDetailSheet";
 import { tx, txf } from "../../lib/i18n/tx";
+import { programDisplay } from "../../lib/i18n/programsEn";
 
 const GOALS = [["all", tx("الكل")], ["bulk", tx("تضخيم")], ["cut", tx("تنشيف")], ["strength", tx("قوة")], ["fitness", tx("لياقة")]];
 const GOAL_LABEL = Object.fromEntries(GOALS);
@@ -36,7 +37,7 @@ export default function Programs() {
   const [goal, setGoal] = useState("all");
 
   const programs = useMemo(() => Store.getPrograms(), [version]);
-  const active = useMemo(() => Store.getActiveProgram(), [version]);
+  const active = useMemo(() => programDisplay(Store.getActiveProgram()), [version]);
   const recommendedId = useMemo(() => Store.getRecommendedProgramId(), [version]);
   const shownRaw = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
   const shown = recommendedId ? [...shownRaw].sort((a, b) => (b.id === recommendedId) - (a.id === recommendedId)) : shownRaw;
@@ -102,7 +103,8 @@ export default function Programs() {
       </div>
 
       {shown.length === 0 && <div className="glass" style={{ padding: 20, textAlign: "center", color: "var(--text-dim)", fontWeight: 700, fontSize: 13 }}>{tx("مفيش برامج بالهدف ده دلوقتي.")}</div>}
-      {shown.map((p) => {
+      {shown.map((pRaw) => {
+        const p = programDisplay(pRaw);
         const isActive = active && active.id === p.id;
         const isRecommended = recommendedId === p.id && !isActive;
         const days = (String(p.daysPerWeek).match(/[0-9٠-٩]+/) || ["•"])[0];

@@ -8,6 +8,8 @@ import ExerciseCard from "./ExerciseCard";
 import AddExerciseSheet from "./AddExerciseSheet";
 import EmptyState from "../../components/ui/EmptyState";
 import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER, isHomeExercise } from "../../lib/exerciseMeta";
+import { isEn } from "../../lib/i18n/lang";
+import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
 import { getFavs, toggleFav } from "../../lib/exerciseFavs";
 import { saveExerciseMedia, deleteExerciseMedia } from "../../lib/exerciseMedia";
 import { tx, txf } from "../../lib/i18n/tx";
@@ -231,14 +233,14 @@ export default function Exercises() {
             <span className="ex-filter-label">{tx("المعدة")}</span>
             <button type="button" className={"chip chip-btn sm" + (!equip ? " active" : "")} onClick={() => setEquip("")}>{tx("الكل")}</button>
             {equipOptions.map((x) => (
-              <button type="button" key={x} className={"chip chip-btn sm" + (equip === x ? " active" : "")} aria-pressed={equip === x} onClick={() => setEquip(equip === x ? "" : x)}>{x}</button>
+              <button type="button" key={x} className={"chip chip-btn sm" + (equip === x ? " active" : "")} aria-pressed={equip === x} onClick={() => setEquip(equip === x ? "" : x)}>{isEn() ? equipmentEn(x) : x}</button>
             ))}
           </div>
           <div className="ex-filter-row">
             <span className="ex-filter-label">{tx("الصعوبة")}</span>
             <button type="button" className={"chip chip-btn sm" + (!diff ? " active" : "")} onClick={() => setDiff("")}>{tx("الكل")}</button>
             {DIFFICULTIES.map((x) => (
-              <button type="button" key={x} className={"chip chip-btn sm" + (diff === x ? " active" : "")} aria-pressed={diff === x} onClick={() => setDiff(diff === x ? "" : x)}>{x}</button>
+              <button type="button" key={x} className={"chip chip-btn sm" + (diff === x ? " active" : "")} aria-pressed={diff === x} onClick={() => setDiff(diff === x ? "" : x)}>{isEn() ? difficultyEn(x) : x}</button>
             ))}
           </div>
           <div className="ex-filter-row">

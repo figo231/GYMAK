@@ -21,7 +21,7 @@ export default function MealPlan() {
   const list = useMemo(() => shoppingList(plan), [plan]);
 
   async function copyList() {
-    const r = await shareText({ title: tx("قائمة التسوق"), text: listText(list), url: APP_URL });
+    const r = await shareText({ title: tx("قائمة التسوق"), text: listText(list, Store.foodDisplayName), url: APP_URL });
     if (r === "copied") toast(tx("اتنسخت القائمة."));
   }
   return (
@@ -39,7 +39,7 @@ export default function MealPlan() {
           {d.meals.map((m) => (
             <div key={m.slot} className="mp-meal">
               <span className="mp-slot">{m.label}</span>
-              <span className="mp-items">{m.items.map((it) => txf(`{0} {1}جم`, [it.name, it.grams])).join(" + ")}</span>
+              <span className="mp-items">{m.items.map((it) => txf(`{0} {1}جم`, [Store.foodDisplayName(it.name), it.grams])).join(" + ")}</span>
               <span className="mp-kcal" dir="ltr">{m.kcal}</span>
             </div>
           ))}
@@ -49,7 +49,7 @@ export default function MealPlan() {
           {list.map((x) => (
             <label key={x.name} className={"mp-row" + (checked[x.name] ? " done" : "")}>
               <input type="checkbox" checked={!!checked[x.name]} onChange={() => setChecked((c) => ({ ...c, [x.name]: !c[x.name] }))} />
-              <span>{x.name}</span><b>{fmtGrams(x.grams)}</b>
+              <span>{Store.foodDisplayName(x.name)}</span><b>{fmtGrams(x.grams)}</b>
             </label>
           ))}
           <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} onClick={copyList}>{tx("شارك / انسخ القائمة")}</button>

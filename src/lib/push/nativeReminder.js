@@ -23,8 +23,8 @@ export async function enableNativeReminder(time, lang = "ar") {
   await LN.schedule({
     notifications: [{
       id: REMINDER_ID,
-      title: lang === "en" ? "GYMAK — workout time 💪" : tx("GYMAK — وقت التمرين 💪"),
-      body: lang === "en" ? "Don't forget to log today's workout." : tx("متنساش تسجل تمرينك النهاردة."),
+      title: lang === "en" ? "GYMAK — workout time 💪" : "GYMAK — وقت التمرين 💪",
+      body: lang === "en" ? "Don't forget to log today's workout." : "متنساش تسجل تمرينك النهاردة.",
       schedule: { on: { hour, minute }, allowWhileIdle: true },
     }],
   });
@@ -39,7 +39,6 @@ export async function disableNativeReminder() {
 }
 
 import { ALL_IDS, buildNotifications, missedNotification } from "./reminders";
-import { tx } from "../i18n/tx";
 
 export async function applyExtraReminders(prefs) {
   const { LN } = await plugin();

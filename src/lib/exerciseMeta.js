@@ -2,6 +2,9 @@
 // labels, clean Arabic names, timed-exercise units, search aliases and filters.
 // Applied on read (Store.getExercises), so stored data is never rewritten.
 import { getExerciseEnglish } from "./exerciseImages";
+import { isEn } from "./i18n/lang";
+import { EXERCISES_EN } from "./i18n/exercisesEn";
+import { muscleEn, equipmentEn, difficultyEn } from "./i18n/maps";
 
 // Variant label -> [canonical primary label, extra secondary muscle or ""].
 const LABELS = {
@@ -77,7 +80,7 @@ export function normalizeExercise(ex) {
   const en = ex.custom ? "" : getExerciseEnglish(ex.id);
   if (en) aliases.push(en);
   const timed = ex.unit === "sec" || TIMED_IDS.has(ex.id);
-  return {
+  const out = {
     ...ex,
     name,
     muscleLabel,
@@ -86,9 +89,22 @@ export function normalizeExercise(ex) {
     aliases,
     unit: timed ? "sec" : "reps",
   };
+  // English display mode: swap presentation fields only. Raw Arabic values
+  // (equipment, difficulty, muscle) stay for logic; Arabic name/labels go
+  // into aliases so Arabic search keeps working.
+  const tr = !ex.custom && EXERCISES_EN[ex.id];
+  if (tr && isEn()) {
+    aliases.push(ex.name, ex.muscleLabel, ex.secondary || "");
+    out.name = tr.n;
+    out.description = tr.d || out.description;
+    out.instructions = tr.i || ex.instructions;
+    out.muscleLabel = muscleEn(muscleLabel);
+    out.secondary = secondary.split("،").map((x) => muscleEn(x.trim())).filter(Boolean).join(", ");
+  }
+  return out;
 }
 
-export function unitLabel(ex) { return ex && ex.unit === "sec" ? "ثانية" : "تكرار"; }
+export function unitLabel(ex) { const sec = ex && ex.unit === "sec"; return isEn() ? (sec ? "sec" : "reps") : (sec ? "ثانية" : "تكرار"); }
 
 // "4×8" kept left-to-right so RTL never flips it into "8×4".
 export function setsRepsText(sets, reps) { return `${sets}×${reps}`; }
