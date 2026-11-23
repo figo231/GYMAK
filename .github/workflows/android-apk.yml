@@ -10,6 +10,10 @@ on:
         description: Encrypt a private installable test APK without release
         type: boolean
         default: false
+      review_backend_gated:
+        description: Keep server capability gates on in a private build
+        type: boolean
+        default: true
       publish:
         description: Publish the verified APK release
         type: boolean
@@ -23,7 +27,7 @@ jobs:
     env:
       VITE_DISTRIBUTION_CHANNEL: sideload
       VITE_OTA_ENABLED: "false"
-      VITE_REVIEW_BACKEND_GATED: ${{ inputs.private_test && 'true' || 'false' }}
+      VITE_REVIEW_BACKEND_GATED: ${{ inputs.private_test && inputs.review_backend_gated && 'true' || 'false' }}
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
