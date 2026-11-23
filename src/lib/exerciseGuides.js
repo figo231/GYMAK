@@ -1,3 +1,4 @@
+import { APK23_LEG_GUIDES } from "./exerciseGuidesApk23Legs";
 import { APK23_PULL_GUIDES } from "./exerciseGuidesApk23Pull";
 import { WOMEN_GYM_GUIDES } from "./exerciseGuidesWomenGym";
 import { WOMEN_GUIDES } from "./exerciseGuidesWomen";
@@ -9,6 +10,7 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_LEG_GUIDES,
   ...APK23_PULL_GUIDES,
   ...BASIC_GUIDES,
   ...SECOND_GUIDES,
