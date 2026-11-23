@@ -1,3 +1,4 @@
+import {queueOwnerReceipt,flushOwnerReceipts,collectNativeOwnerTaps} from './ownerReceipts';
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "../supabaseClient";
 import { createPushListenerRegistrar } from "./registerListeners";
@@ -20,13 +21,6 @@ import pkg from "../../../package.json";
  * from `FirebaseMessaging.getToken()` having been called successfully.
  * Phase 3's "receiving" work is about *customizing* that behavior
  * (foreground in-app presentation, tap → deep link), not enabling it.
- *
- * Architectural boundary (hard rule, not just a style preference): this
- * app NEVER sends a notification and NEVER will. Sending is the exclusive
- * responsibility of a future, completely separate Admin Dashboard web app,
- * which reads push_tokens via a service_role key and calls FCM directly.
- * If a future change to this file ever needs to call FCM's send API, that
- * is a sign the change belongs in the Admin Dashboard instead.
  *
  * Firebase-configured guard (critical — do not remove): calling
  * FirebaseMessaging.getToken() when Firebase hasn't actually been set up
@@ -159,13 +153,15 @@ function ensurePushListeners(plugin) {
     tokenReceived: event => { saveToken(event.token); },
     notificationReceived: event => {
       receive(event);
+      queueOwnerReceipt(event?.notification,'received');if(currentUserId)flushOwnerReceipts(currentUserId,getDeviceId()).catch(()=>{});
       const n=event?.notification || {};
       window.dispatchEvent(new CustomEvent("gymak-foreground-push",{detail:{title:n.title,body:n.body}}));
     },
-    notificationActionPerformed: receive,
+    notificationActionPerformed: event=>{receive(event);queueOwnerReceipt(event?.notification,'opened');if(currentUserId)flushOwnerReceipts(currentUserId,getDeviceId()).catch(()=>{});},
   });
 }
 let currentUserId = null;
+let ownerReceiptWakeInstalled=false;
 
 async function saveToken(token) {
   if (!supabase || !currentUserId) return;
@@ -270,6 +266,8 @@ export async function getPushPermission() {
 export async function registerForPush(userId) {
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
   currentUserId = userId;
+  collectNativeOwnerTaps().then(()=>flushOwnerReceipts(userId,getDeviceId())).catch(()=>{});
+  if(!ownerReceiptWakeInstalled){ownerReceiptWakeInstalled=true;const resume=()=>{if(currentUserId)collectNativeOwnerTaps().then(()=>flushOwnerReceipts(currentUserId,getDeviceId())).catch(()=>{});};window.addEventListener('online',resume);document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});}
 
   try {
     const { FM: FirebaseMessaging } = await getMessaging();

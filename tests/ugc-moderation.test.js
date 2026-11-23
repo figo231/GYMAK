@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 const chat = readFileSync("supabase/migrations/0024_private_chat.sql", "utf8");
 const moderation = readFileSync("supabase/migrations/0027_ugc_terms_moderation.sql", "utf8");
 const V1 = "2026-11-22-v1", V2 = "2026-11-23-tou-v1";
-let db;
+let db,installed=false;
 const ids = Object.fromEntries(["owner","sender","client","doctor","coach","stranger","missing","phone"].map((n,i)=>[n,`00000000-0000-0000-0000-${String(i+1).padStart(12,"0")}`]));
 const baseline = `
 create schema public; create schema auth;
@@ -33,7 +33,8 @@ async function actor(id, fn, role="authenticated") {
 }
 const query = async (sql,args=[]) => (await db.query(sql,args)).rows;
 const rpc = async (user,name,args=[]) => actor(ids[user],async()=> {
- const call=`public.${name}(${args.map((_,i)=>'$'+(i+1)).join(',')})`;
+ const mapped=['chat_has_consent','chat_accept_terms','chat_bootstrap','chat_link_active','chat_contacts','chat_start','chat_send','chat_inbox'].includes(name)&&installed?name+'_v2':name;
+ const call=`public.${mapped}(${args.map((_,i)=>'$'+(i+1)).join(',')})`;
  const setof=["chat_inbox","chat_contacts","chat_legacy_coaches","chat_blocks_mine","moderation_reports_list"];
  const sql=setof.includes(name)?`select coalesce(jsonb_agg(x),'[]') result from ${call} x`:name==="chat_send"?`select to_jsonb(x) result from ${call} x`:`select ${call} result`;
  return (await query(sql,args))[0]?.result;
@@ -42,7 +43,7 @@ async function conversation(kind="doctor") { return rpc("client","chat_start",[i
 async function consentAll() { for(const name of ["client","doctor","coach","owner","sender","stranger"])await rpc(name,"chat_accept_terms",[V2]); }
 beforeAll(async()=>{db=new PGlite();await db.exec("create role authenticated; create role anon; create role service_role bypassrls;");});
 afterAll(async()=>{await db?.close();});
-beforeEach(async()=>{
+beforeEach(async()=>{installed=false;
  await db.exec("drop schema if exists public cascade; drop schema if exists auth cascade;"+baseline);
  for(const [name,id] of Object.entries(ids)) await db.query("insert into auth.users(id,email) values($1,$2)",[id,name==='phone'?null:name+"@test.invalid"]);
  for(const [name,id] of Object.entries(ids).filter(([n])=>n!=="missing")) await db.query("insert into public.profiles(id,name,username) values($1,$2,$3)",[id,name,"u_"+name]);
@@ -53,14 +54,33 @@ beforeEach(async()=>{
  await rpc("owner","chat_set_user_role",[ids.doctor,"doctor"]);
  // Everyone accepts the original privacy-notice-only version, then 0027 lands.
  for(const name of ["client","doctor","coach","owner","sender","stranger"])await rpc(name,"chat_accept_terms",[V1]);
- await db.exec(moderation);
+ await db.exec(moderation);installed=true;
 });
 describe("UGC terms, report and block SQL against an actual embedded PostgreSQL engine",()=>{
+ it("keeps every pre-existing function, constraint and policy definition unchanged",async()=>{
+  // Capture the baseline independently, since beforeEach already applied v2.
+  const old=new PGlite();try{await old.exec("create role authenticated;create role anon;create role service_role bypassrls;drop schema public cascade;"+baseline+chat);
+   const q="select p.proname,pg_get_function_identity_arguments(p.oid) args,pg_get_functiondef(p.oid) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' order by 1,2";
+   for(const f of (await old.query(q)).rows){const now=(await db.query("select pg_get_functiondef(p.oid) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=$1 and pg_get_function_identity_arguments(p.oid)=$2",[f.proname,f.args])).rows;expect(now[0]?.definition).toBe(f.definition);}
+   expect((await query("select pg_get_constraintdef(oid) def from pg_constraint where conrelid='chat_consents'::regclass and contype='c'"))[0].def).toContain('2026-11-22-v1');
+   const policies="select tablename,policyname,qual,with_check from pg_policies where schemaname='public' order by 1,2";
+   for(const p of(await old.query(policies)).rows)expect((await db.query("select tablename,policyname,qual,with_check from pg_policies where schemaname='public' and tablename=$1 and policyname=$2",[p.tablename,p.policyname])).rows[0]).toEqual(p);
+  }finally{await old.close();}
+ });
+ it("enforces blocks and new consent through legacy send RPCs without deleting history",async()=>{
+  await expect(actor(ids.client,()=>query("select public.chat_start($1,'doctor')",[ids.doctor]))).rejects.toThrow(/consent_required/);
+  await consentAll();const id=await conversation();
+  await actor(ids.client,()=>query("select public.chat_send($1,'legacy-safe',gen_random_uuid())",[id]));
+  await rpc('client','chat_block',[ids.doctor]);
+  await expect(actor(ids.doctor,()=>query("select public.chat_send($1,'bypass',gen_random_uuid())",[id]))).rejects.toThrow(/chat_blocked/);
+  expect((await actor(ids.client,()=>query('select body from chat_messages where conversation_id=$1',[id])))[0].body).toBe('legacy-safe');
+ });
+
  it("reapplies without losing reports, blocks or consents",async()=>{
   await consentAll(); const id=await conversation();
   await rpc("client","chat_block",[ids.doctor]);
   const rid=await rpc("client","moderation_report",["chat_user","abuse",ids.doctor,null,null,null,"details"]);
-  await db.exec(moderation);
+  await expect(db.exec(moderation)).rejects.toThrow(); await db.exec("rollback");
   expect((await rpc("client","chat_blocks_mine")).length).toBe(1);
   const list=await rpc("owner","moderation_reports_list",["all",null,null]);
   expect(list[0].id).toBe(rid); expect(list[0].details).toBe("details");

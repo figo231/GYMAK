@@ -2,7 +2,7 @@
 -- Google Play UGC requirements: versioned Terms-of-Use consent, in-app report and
 -- block for the private chat, support-reply reporting, and an owner moderation queue
 -- that exposes ONLY content a user reported. Requires 0022/0023 (feedback) and 0024 (chat).
--- REVIEW ONLY: do not apply to production without approval. Safe to re-run.
+-- Additive candidate, one-time transactional migration. Do not apply without approval.
 begin;
 
 -- 1) Terms of Use acceptance, versioned independently so a future ToU change forces re-consent.
@@ -13,14 +13,8 @@ create table if not exists public.terms_acceptances (
   primary key (user_id, version)
 );
 alter table public.terms_acceptances enable row level security;
-drop policy if exists "terms acceptances: own" on public.terms_acceptances;
 create policy "terms acceptances: own" on public.terms_acceptances for select to authenticated
   using (user_id = auth.uid());
-
--- The chat privacy notice now ships together with the Terms of Use under one version.
-alter table public.chat_consents drop constraint if exists chat_consents_version_check;
-alter table public.chat_consents add constraint chat_consents_version_check
-  check (version in ('2026-11-22-v1', '2026-11-23-tou-v1'));
 
 -- 2) User-controlled blocks. Either participant can block the other; history is kept.
 create table if not exists public.chat_blocks (
@@ -31,7 +25,6 @@ create table if not exists public.chat_blocks (
   check (blocker_id <> blocked_id)
 );
 alter table public.chat_blocks enable row level security;
-drop policy if exists "chat blocks: participants read" on public.chat_blocks;
 create policy "chat blocks: participants read" on public.chat_blocks for select to authenticated
   using (auth.uid() in (blocker_id, blocked_id));
 
@@ -58,7 +51,6 @@ create unique index if not exists moderation_reports_dedup on public.moderation_
   (reporter_id, target_type, coalesce(message_id, feedback_id, target_user_id, '00000000-0000-0000-0000-000000000000'::uuid));
 
 alter table public.moderation_reports enable row level security;
-drop policy if exists "moderation reports: reporter or owner" on public.moderation_reports;
 create policy "moderation reports: reporter or owner" on public.moderation_reports for select to authenticated
   using (reporter_id = auth.uid() or public.chat_is_owner());
 
@@ -67,12 +59,12 @@ grant select on public.terms_acceptances, public.chat_blocks, public.moderation_
 grant all on public.terms_acceptances, public.chat_blocks, public.moderation_reports to service_role;
 
 -- Consent now means the ToU-bearing version; older consents stay as history only.
-create or replace function public.chat_has_consent() returns boolean
+create function public.chat_has_consent_v2() returns boolean
 language sql stable security definer set search_path = '' as $$
-  select exists(select 1 from public.chat_consents where user_id = auth.uid() and version = '2026-11-23-tou-v1');
+  select exists(select 1 from public.terms_acceptances where user_id = auth.uid() and version = '2026-11-23-tou-v1');
 $$;
 
-create or replace function public.terms_status() returns jsonb
+create function public.terms_status() returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
@@ -80,7 +72,7 @@ begin
     'accepted', exists(select 1 from public.terms_acceptances where user_id = auth.uid() and version = '2026-11-23-tou-v1'));
 end $$;
 
-create or replace function public.terms_accept(p_version text) returns void
+create function public.terms_accept(p_version text) returns void
 language plpgsql security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
@@ -89,39 +81,39 @@ begin
 end $$;
 
 -- One tap accepts the chat privacy notice and the Terms of Use together.
-create or replace function public.chat_accept_terms(p_version text) returns void
+create function public.chat_accept_terms_v2(p_version text) returns void
 language plpgsql security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
   if p_version is distinct from '2026-11-23-tou-v1' then raise exception 'terms_version_mismatch'; end if;
-  insert into public.chat_consents(user_id, version) values(auth.uid(), p_version) on conflict do nothing;
+  insert into public.chat_consents(user_id, version) values(auth.uid(), '2026-11-22-v1') on conflict do nothing;
   insert into public.terms_acceptances(user_id, version) values(auth.uid(), p_version) on conflict do nothing;
 end $$;
 
-create or replace function public.chat_bootstrap() returns jsonb
+create function public.chat_bootstrap_v2() returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  return jsonb_build_object('consent', public.chat_has_consent(), 'role', public.chat_role_for(auth.uid()),
+  return jsonb_build_object('consent', public.chat_has_consent_v2(), 'role', public.chat_role_for(auth.uid()),
     'owner', public.chat_is_owner(), 'version', '2026-11-23-tou-v1');
 end $$;
 
 -- Professionals must hold the new consent too.
-create or replace function public.chat_link_active(p_client uuid, p_professional uuid, p_kind text) returns boolean
+create function public.chat_link_active_v2(p_client uuid, p_professional uuid, p_kind text) returns boolean
 language sql stable security definer set search_path = '' as $$
-  select exists(select 1 from public.chat_consents where user_id = p_professional and version = '2026-11-23-tou-v1')
+  select exists(select 1 from public.terms_acceptances where user_id = p_professional and version = '2026-11-23-tou-v1')
     and case when p_kind = 'doctor' then public.chat_role_for(p_professional) = 'doctor'
     when p_kind = 'coach' then public.chat_role_for(p_professional) = 'coach' and exists(
       select 1 from public.coach_links where coach_id = p_professional and trainee_id = p_client and status = 'active'
     ) else false end;
 $$;
 
-create or replace function public.chat_contacts(p_after_kind text default null, p_after_id uuid default null)
+create function public.chat_contacts_v2(p_after_kind text default null, p_after_id uuid default null)
 returns table(user_id uuid, label text, kind text)
 language plpgsql stable security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  if not public.chat_has_consent() then raise exception 'consent_required' using errcode = '42501'; end if;
+  if not public.chat_has_consent_v2() then raise exception 'consent_required' using errcode = '42501'; end if;
   if (p_after_kind is null) <> (p_after_id is null) then raise exception 'invalid_cursor'; end if;
   return query
     select q.uid, coalesce(nullif(btrim(p.name), ''), nullif(btrim(p.username), ''), 'مستخدم')::text, q.k
@@ -131,35 +123,35 @@ begin
       select l.coach_id uid, 'coach'::text k from public.coach_links l
         where l.trainee_id = auth.uid() and l.status = 'active' and public.chat_role_for(l.coach_id) = 'coach'
     ) q left join public.profiles p on p.id = q.uid
-    where q.uid <> auth.uid() and exists(select 1 from public.chat_consents cs where cs.user_id = q.uid and cs.version = '2026-11-23-tou-v1') and (p_after_kind is null or (q.k,q.uid) > (p_after_kind,p_after_id)) order by q.k, q.uid limit 50;
+    where q.uid <> auth.uid() and exists(select 1 from public.terms_acceptances cs where cs.user_id = q.uid and cs.version = '2026-11-23-tou-v1') and (p_after_kind is null or (q.k,q.uid) > (p_after_kind,p_after_id)) order by q.k, q.uid limit 50;
 end $$;
 
 -- Block helpers. Not granted to authenticated: used only inside the audited RPCs.
-create or replace function public.chat_blocked_between(p_a uuid, p_b uuid) returns boolean
+create function public.chat_blocked_between(p_a uuid, p_b uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists(select 1 from public.chat_blocks
     where (blocker_id = p_a and blocked_id = p_b) or (blocker_id = p_b and blocked_id = p_a));
 $$;
 
-create or replace function public.chat_block(p_user_id uuid) returns void
+create function public.chat_block(p_user_id uuid) returns void
 language plpgsql security definer set search_path = '' as $$
 declare v_me uuid := auth.uid();
 begin
   if v_me is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  if not public.chat_has_consent() then raise exception 'consent_required' using errcode = '42501'; end if;
+  if not public.chat_has_consent_v2() then raise exception 'consent_required' using errcode = '42501'; end if;
   if p_user_id is null or p_user_id = v_me then raise exception 'invalid_block'; end if;
   if not exists(select 1 from auth.users where id = p_user_id) then raise exception 'account_not_found'; end if;
   insert into public.chat_blocks(blocker_id, blocked_id) values(v_me, p_user_id) on conflict do nothing;
 end $$;
 
-create or replace function public.chat_unblock(p_user_id uuid) returns void
+create function public.chat_unblock(p_user_id uuid) returns void
 language plpgsql security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
   delete from public.chat_blocks where blocker_id = auth.uid() and blocked_id = p_user_id;
 end $$;
 
-create or replace function public.chat_blocks_mine()
+create function public.chat_blocks_mine()
 returns table(blocked_id uuid, created_at timestamptz)
 language plpgsql stable security definer set search_path = '' as $$
 begin
@@ -168,13 +160,13 @@ begin
 end $$;
 
 -- Blocking stops new conversations and new sends in both directions; history stays readable.
-create or replace function public.chat_start(p_professional_id uuid, p_kind text) returns uuid
+create function public.chat_start_v2(p_professional_id uuid, p_kind text) returns uuid
 language plpgsql security definer set search_path = '' as $$
 declare v_id uuid; v_me uuid := auth.uid();
 begin
   if v_me is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  if not public.chat_has_consent() then raise exception 'consent_required' using errcode = '42501'; end if;
-  if v_me = p_professional_id or not public.chat_link_active(v_me, p_professional_id, p_kind) then
+  if not public.chat_has_consent_v2() then raise exception 'consent_required' using errcode = '42501'; end if;
+  if v_me = p_professional_id or not public.chat_link_active_v2(v_me, p_professional_id, p_kind) then
     raise exception 'chat_not_allowed' using errcode = '42501';
   end if;
   if public.chat_blocked_between(v_me, p_professional_id) then
@@ -196,12 +188,12 @@ begin
   return v_id;
 end $$;
 
-create or replace function public.chat_send(p_conversation_id uuid, p_body text, p_client_id uuid)
+create function public.chat_send_v2(p_conversation_id uuid, p_body text, p_client_id uuid)
 returns setof public.chat_messages language plpgsql security definer set search_path = '' as $$
 declare v_me uuid := auth.uid(); v_c public.chat_conversations; v_m public.chat_messages; v_body text := btrim(p_body);
 begin
   if v_me is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  if not public.chat_has_consent() then raise exception 'consent_required' using errcode = '42501'; end if;
+  if not public.chat_has_consent_v2() then raise exception 'consent_required' using errcode = '42501'; end if;
   select * into v_c from public.chat_conversations where id = p_conversation_id and v_me in (client_id, professional_id);
   if not found then raise exception 'chat_not_allowed' using errcode = '42501'; end if;
   if public.chat_blocked_between(v_c.client_id, v_c.professional_id) then
@@ -214,7 +206,7 @@ begin
     if v_m.conversation_id <> p_conversation_id or v_m.body <> v_body then raise exception 'idempotency_conflict'; end if;
     return next v_m; return;
   end if;
-  if not public.chat_link_active(v_c.client_id, v_c.professional_id, v_c.kind) then
+  if not public.chat_link_active_v2(v_c.client_id, v_c.professional_id, v_c.kind) then
     raise exception 'chat_read_only' using errcode = '42501';
   end if;
   if (select count(*) from public.chat_messages where author_id = v_me and created_at > now() - interval '1 minute') >= 20
@@ -227,21 +219,20 @@ begin
   return next v_m;
 end $$;
 
--- The blocked flag lets the client render a stopped thread; the return type change needs a drop.
-drop function if exists public.chat_inbox(uuid, timestamptz, uuid);
-create function public.chat_inbox(p_only uuid default null, p_before_at timestamptz default null, p_before_id uuid default null)
+-- Versioned inbox leaves the old return type unchanged.
+create function public.chat_inbox_v2(p_only uuid default null, p_before_at timestamptz default null, p_before_id uuid default null)
 returns table(id uuid, kind text, peer_id uuid, peer_label text, last_message_at timestamptz, unread bigint, writable boolean, blocked boolean)
 language plpgsql stable security definer set search_path = '' as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  if not public.chat_has_consent() then raise exception 'consent_required' using errcode = '42501'; end if;
+  if not public.chat_has_consent_v2() then raise exception 'consent_required' using errcode = '42501'; end if;
   return query select c.id, c.kind,
     case when c.client_id = auth.uid() then c.professional_id else c.client_id end,
     case when c.client_id = auth.uid() then c.professional_label else c.client_label end,
     coalesce(c.last_message_at, c.created_at),
     (select count(*) from public.chat_messages m where m.conversation_id = c.id and m.author_id <> auth.uid()
       and m.seq > case when c.client_id = auth.uid() then c.client_read_seq else c.professional_read_seq end),
-    public.chat_link_active(c.client_id, c.professional_id, c.kind) and not public.chat_blocked_between(c.client_id, c.professional_id),
+    public.chat_link_active_v2(c.client_id, c.professional_id, c.kind) and not public.chat_blocked_between(c.client_id, c.professional_id),
     public.chat_blocked_between(c.client_id, c.professional_id)
     from public.chat_conversations c where auth.uid() in (c.client_id, c.professional_id)
       and (p_only is null or c.id = p_only)
@@ -250,7 +241,7 @@ begin
 end $$;
 
 -- 4) Reporting. Snapshots exactly the reported content so the owner never needs wider read access.
-create or replace function public.moderation_report(
+create function public.moderation_report(
   p_target_type text, p_reason text,
   p_target_user_id uuid default null, p_conversation_id uuid default null,
   p_message_id uuid default null, p_feedback_id uuid default null,
@@ -263,7 +254,7 @@ declare
   v_details text := nullif(btrim(coalesce(p_details, '')), '');
 begin
   if v_me is null then raise exception 'not_authenticated' using errcode = '42501'; end if;
-  if not public.chat_has_consent() then raise exception 'consent_required' using errcode = '42501'; end if;
+  if not public.chat_has_consent_v2() then raise exception 'consent_required' using errcode = '42501'; end if;
   if p_reason is null or p_reason not in ('abuse', 'sexual', 'scam', 'impersonation', 'other') then raise exception 'invalid_reason'; end if;
   if char_length(coalesce(v_details, '')) > 1000 then raise exception 'invalid_details'; end if;
   if (select count(*) from public.moderation_reports where reporter_id = v_me and created_at > now() - interval '1 hour') >= 10 then
@@ -297,7 +288,7 @@ begin
 exception when unique_violation then raise exception 'report_duplicate';
 end $$;
 
-create or replace function public.moderation_reports_list(p_status text default 'open',
+create function public.moderation_reports_list(p_status text default 'open',
   p_before_at timestamptz default null, p_before_id uuid default null)
 returns table(id uuid, target_type text, reporter_label text, target_label text, content_snapshot text,
   reason text, details text, status text, conversation_id uuid, target_user_id uuid, created_at timestamptz)
@@ -320,7 +311,7 @@ begin
     order by r.created_at desc, r.id desc limit 50;
 end $$;
 
-create or replace function public.moderation_report_update(p_id uuid, p_status text) returns void
+create function public.moderation_report_update(p_id uuid, p_status text) returns void
 language plpgsql security definer set search_path = '' as $$
 begin
   if not public.chat_is_owner() then raise exception 'owner_only' using errcode = '42501'; end if;
@@ -329,23 +320,23 @@ begin
   if not found then raise exception 'report_not_found'; end if;
 end $$;
 
-revoke all on function public.chat_is_owner(), public.chat_has_consent(), public.chat_role_for(uuid),
-  public.chat_link_active(uuid,uuid,text), public.chat_bootstrap(), public.chat_accept_terms(text),
-  public.chat_contacts(text,uuid), public.chat_start(uuid,text), public.chat_inbox(uuid,timestamptz,uuid), public.chat_send(uuid,text,uuid),
-  public.chat_mark_read(uuid,bigint), public.chat_set_role(text,text), public.chat_users(text,text,timestamptz,uuid), public.chat_owner_stats(),
-  public.chat_legacy_coaches(text), public.chat_set_user_role(uuid,text), public.chat_blocked_between(uuid,uuid),
-  public.chat_block(uuid), public.chat_unblock(uuid), public.chat_blocks_mine(),
-  public.terms_status(), public.terms_accept(text),
-  public.moderation_report(text,text,uuid,uuid,uuid,uuid,text),
-  public.moderation_reports_list(text,timestamptz,uuid), public.moderation_report_update(uuid,text) from public, anon, authenticated;
-grant execute on function public.chat_is_owner(), public.chat_has_consent(), public.chat_bootstrap(),
-  public.chat_accept_terms(text), public.chat_contacts(text,uuid), public.chat_start(uuid,text), public.chat_inbox(uuid,timestamptz,uuid),
-  public.chat_send(uuid,text,uuid), public.chat_mark_read(uuid,bigint), public.chat_set_role(text,text),
-  public.chat_users(text,text,timestamptz,uuid), public.chat_owner_stats(), public.chat_legacy_coaches(text), public.chat_set_user_role(uuid,text),
-  public.chat_block(uuid), public.chat_unblock(uuid), public.chat_blocks_mine(),
-  public.terms_status(), public.terms_accept(text),
-  public.moderation_report(text,text,uuid,uuid,uuid,uuid,text),
-  public.moderation_reports_list(text,timestamptz,uuid), public.moderation_report_update(uuid,text) to authenticated;
+revoke all on function public.chat_has_consent_v2(),public.chat_link_active_v2(uuid,uuid,text),public.chat_bootstrap_v2(),public.chat_accept_terms_v2(text),public.chat_contacts_v2(text,uuid),public.chat_start_v2(uuid,text),public.chat_inbox_v2(uuid,timestamptz,uuid),public.chat_send_v2(uuid,text,uuid),public.chat_blocked_between(uuid,uuid),public.chat_block(uuid),public.chat_unblock(uuid),public.chat_blocks_mine(),public.terms_status(),public.terms_accept(text),public.moderation_report(text,text,uuid,uuid,uuid,uuid,text),public.moderation_reports_list(text,timestamptz,uuid),public.moderation_report_update(uuid,text) from public,anon,authenticated;
+grant execute on function public.chat_has_consent_v2(),public.chat_bootstrap_v2(),public.chat_accept_terms_v2(text),public.chat_contacts_v2(text,uuid),public.chat_start_v2(uuid,text),public.chat_inbox_v2(uuid,timestamptz,uuid),public.chat_send_v2(uuid,text,uuid),public.chat_block(uuid),public.chat_unblock(uuid),public.chat_blocks_mine(),public.terms_status(),public.terms_accept(text),public.moderation_report(text,text,uuid,uuid,uuid,uuid,text),public.moderation_reports_list(text,timestamptz,uuid),public.moderation_report_update(uuid,text) to authenticated;
 
+-- New restrictive writes apply to old RPCs as well. No existing definition is changed.
+create function public.enforce_chat_safety_v2() returns trigger language plpgsql security definer set search_path='' as $$
+declare a uuid; b uuid;
+begin
+ if TG_TABLE_NAME='chat_messages' then
+  select client_id,professional_id into a,b from public.chat_conversations where id=new.conversation_id;
+ else a:=new.client_id;b:=new.professional_id;end if;
+ if public.chat_blocked_between(a,b) then raise exception 'chat_blocked';end if;
+ if not exists(select 1 from public.terms_acceptances where user_id=a and version='2026-11-23-tou-v1')
+ or not exists(select 1 from public.terms_acceptances where user_id=b and version='2026-11-23-tou-v1') then raise exception 'consent_required';end if;
+ return new;
+end $$;
+revoke all on function public.enforce_chat_safety_v2() from public,anon,authenticated;
+create trigger enforce_chat_message_safety_v2 before insert on public.chat_messages for each row execute function public.enforce_chat_safety_v2();
+create trigger enforce_chat_thread_safety_v2 before insert on public.chat_conversations for each row execute function public.enforce_chat_safety_v2();
 notify pgrst, 'reload schema';
 commit;

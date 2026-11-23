@@ -1,3 +1,4 @@
+begin;
 -- Default-on only after APK18 first-run notice/device enrollment. Global off until approved.
 -- No topic sends. No cron is created by this migration.
 create table public.encouragement_preferences (
@@ -123,3 +124,6 @@ end $$;
 revoke all on function public.encouragement_text_hash(),public.claim_encouragement(),public.encouragement_send_payload(uuid),public.set_encouragement_draft_time(time) from public,anon,authenticated;
 grant execute on function public.set_encouragement_draft_time(time) to authenticated;
 grant execute on function public.encouragement_text_hash(),public.claim_encouragement(),public.encouragement_send_payload(uuid) to service_role;
+
+notify pgrst,'reload schema';
+commit;

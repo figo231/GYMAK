@@ -1,3 +1,4 @@
+begin;
 -- Preserve legacy username claims without renaming or assigning duplicates.
 -- Ambiguous legacy handles stay reserved with no owner until manually resolved.
 create table public.account_username_reservations (
@@ -91,3 +92,6 @@ begin
 end $$;
 create trigger protect_account_identity before insert or update on public.profiles for each row execute function public.protect_account_identity();
 revoke all on function public.protect_account_identity() from public,anon,authenticated;
+
+notify pgrst,'reload schema';
+commit;

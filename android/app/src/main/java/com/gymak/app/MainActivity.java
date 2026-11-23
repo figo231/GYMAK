@@ -6,10 +6,13 @@ import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
 
 public class MainActivity extends BridgeActivity {
+    @Override protected void onNewIntent(android.content.Intent intent){super.onNewIntent(intent);OwnerPushTapPlugin.record(this,intent);}
     @Override
     public void onCreate(Bundle state) {
         registerPlugin(OtaLifecyclePlugin.class);
+        registerPlugin(OwnerPushTapPlugin.class);
         super.onCreate(state);
+        OwnerPushTapPlugin.record(this,getIntent());
         if (getBridge() == null) return;
         // Retain the old HTTPS origin, but let Capacitor serve packaged assets.
         // A legacy PWA worker must not pin this native build to an old web bundle.

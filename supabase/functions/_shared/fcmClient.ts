@@ -97,6 +97,7 @@ export interface FcmMessagePayload {
   priority?: "normal" | "high";
   ttlSeconds?: number;
   collapseKey?: string;
+  ownerUserId?: string;
 }
 
 export type FcmResult =
@@ -114,6 +115,7 @@ function buildMessageBody(target: { token: string } | { topic: string }, payload
       },
       data: {
         notification_id: payload.notificationId,
+        ...(payload.ownerUserId?{owner_delivery_id:payload.notificationId,owner_user_id:payload.ownerUserId}:{}),
         ...(payload.deepLink ? { deep_link: payload.deepLink } : {}),
       },
       android: {

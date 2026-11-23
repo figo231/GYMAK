@@ -72,12 +72,12 @@ async function rpc(name, args, client = supabase) {
   if (error) throw error;
   return data;
 }
-export const chatBootstrap = (client) => rpc("chat_bootstrap", undefined, client);
-export const acceptChatTerms = (client) => rpc("chat_accept_terms", { p_version: CHAT_TERMS_VERSION }, client);
-export const fetchChatContacts = (cursor = null, client) => rpc("chat_contacts", cursor ? { p_after_kind: cursor.kind, p_after_id: cursor.user_id } : {}, client);
-export const fetchChatInbox = (cursor = null, client) => rpc("chat_inbox", cursor ? { p_before_at: cursor.last_message_at, p_before_id: cursor.id } : {}, client);
-export const fetchChatThread = async (id, client) => (await rpc("chat_inbox", { p_only: id }, client))?.[0] || null;
-export const startChat = (professionalId, kind, client) => rpc("chat_start", { p_professional_id: professionalId, p_kind: kind }, client);
+export const chatBootstrap = (client) => rpc("chat_bootstrap_v2", undefined, client);
+export const acceptChatTerms = (client) => rpc("chat_accept_terms_v2", { p_version: CHAT_TERMS_VERSION }, client);
+export const fetchChatContacts = (cursor = null, client) => rpc("chat_contacts_v2", cursor ? { p_after_kind: cursor.kind, p_after_id: cursor.user_id } : {}, client);
+export const fetchChatInbox = (cursor = null, client) => rpc("chat_inbox_v2", cursor ? { p_before_at: cursor.last_message_at, p_before_id: cursor.id } : {}, client);
+export const fetchChatThread = async (id, client) => (await rpc("chat_inbox_v2", { p_only: id }, client))?.[0] || null;
+export const startChat = (professionalId, kind, client) => rpc("chat_start_v2", { p_professional_id: professionalId, p_kind: kind }, client);
 export const markChatRead = (id, seq, client) => rpc("chat_mark_read", { p_conversation_id: id, p_through_seq: seq }, client);
 export const fetchOwnerStats = (client) => rpc("chat_owner_stats", {}, client);
 export const fetchOwnerUsers = (search = "", role = "all", cursor = null, client) => rpc("chat_users", { p_search: search, p_role: role, ...(cursor ? { p_before_at: cursor.created_at, p_before_id: cursor.user_id } : {}) }, client);
@@ -87,7 +87,7 @@ export const setChatRole = (email, role, client) => rpc("chat_set_role", { p_ema
 export async function sendChatMessage(id, body, clientId, client) {
   const v = validateChatMessage(body);
   if (!v.ok) throw new Error(v.error);
-  const rows = await rpc("chat_send", { p_conversation_id: id, p_body: v.body, p_client_id: clientId }, client);
+  const rows = await rpc("chat_send_v2", { p_conversation_id: id, p_body: v.body, p_client_id: clientId }, client);
   if (!rows?.[0]) throw new Error("missing_message");
   return rows[0];
 }

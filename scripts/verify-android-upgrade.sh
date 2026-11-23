@@ -118,3 +118,5 @@ adb pull /sdcard/Android/data/com.gymak.app/files/ota-rollback.png verification/
 # Local synthetic callback proves Android foreground display, no remote push.
 adb shell am instrument -w -e class com.gymak.app.ForegroundNotificationTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/foreground-notification.txt
 grep -q 'OK (1 test)' verification/foreground-notification.txt
+adb shell am instrument -w -e class com.gymak.app.OwnerPushTapTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/owner-tap.txt
+grep -q 'OK (1 test)' verification/owner-tap.txt
