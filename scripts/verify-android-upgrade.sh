@@ -158,3 +158,10 @@ adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
 run_test keepsDataAndRunsOffline
 cp verification/keepsDataAndRunsOffline.txt verification/apk24-upgrade.txt
 adb pull /sdcard/Android/data/com.gymak.app/files/offline-upgrade.png verification/apk24-offline-upgrade.png
+
+# APK25 reports its real native build and opens the external download landing.
+if [ "${GYMAK_VERSION_CODE:-}" = "25" ]; then
+  adb shell cmd connectivity airplane-mode disable
+  adb shell svc wifi enable
+  run_test native25VersionAndWelcomeUpdate
+fi

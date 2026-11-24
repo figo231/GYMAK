@@ -1,13 +1,13 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type, x-chat-thread, x-photo-nonce, x-photo-id, x-photo-action, x-report-id'};
 const answer=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
-Deno.serve(async(req:Request)=>{
+export function createPhotoHandler(createClient:any,env:{get:(key:string)=>string|undefined}){return async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});
  if(req.method!=='POST')return answer({error:'method_not_allowed'},405);
  const jwt=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'');
- const url=Deno.env.get('SUPABASE_URL')!,anon=Deno.env.get('SUPABASE_ANON_KEY')!,key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+ const url=env.get('SUPABASE_URL')!,anon=env.get('SUPABASE_ANON_KEY')!,key=env.get('SUPABASE_SERVICE_ROLE_KEY')!;
  const service=createClient(url,key,{auth:{persistSession:false}});
- const action=req.headers.get('x-photo-action, x-report-id');
+ const action=req.headers.get('x-photo-action');
  // Dedicated scheduled cleanup uses the service JWT, never a client-authorized task.
  if(action==='cleanup'){
   if(jwt!==key)return answer({error:'not_allowed'},403);
@@ -63,4 +63,5 @@ Deno.serve(async(req:Request)=>{
   }
   return answer({error:'invalid_action'},400);
  }catch(e){return answer({error:String((e as Error)?.message||'photo_failed').slice(0,160)},400);}
-});
+};}
+if(import.meta.main)Deno.serve(createPhotoHandler(createClient,Deno.env));

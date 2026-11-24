@@ -37,6 +37,22 @@ public class OfflineUpgradeTest {
         } catch(Exception ignored) {}
         fail("Condition did not become true: " + condition + "; page: " + js(a, "document.body.innerText.slice(0,400)"));
     }
+    @Test public void native25VersionAndWelcomeUpdate() throws Exception {
+        android.content.Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+        assertEquals(25,context.getPackageManager().getPackageInfo(context.getPackageName(),0).getLongVersionCode());
+        try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
+            waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
+            js(a,"window.__nativeVersion='pending';window.Capacitor.nativePromise('App','getInfo',{}).then(x=>window.__nativeVersion=String(x.build)).catch(e=>window.__nativeVersion=String(e))");
+            waitFor(a,"window.__nativeVersion!=='pending'");
+            assertEquals("25",js(a,"window.__nativeVersion"));
+            js(a,"window.dispatchEvent(new Event('gymak-open-update-center'))");
+            waitFor(a,"document.querySelector('[role=dialog][aria-label=\"مركز التحديثات\"]')");
+            js(a,"[...document.querySelectorAll('.update-center button')].find(b=>b.textContent.includes('صفحة التحميل')||b.textContent.includes('download page'))?.click()");
+            long deadline=System.currentTimeMillis()+20000;boolean found=false;
+            while(System.currentTimeMillis()<deadline){InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("uiautomator dump /sdcard/window.xml").close();Thread.sleep(500);java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("cat /sdcard/window.xml"));String xml=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);in.close();if(xml.contains("gymak-eight.vercel.app/welcome")){found=true;break;}}
+            assertTrue("Update must open external welcome landing",found);
+        }
+    }
     @Test public void otaActivationOnlyOncePerProcess() throws Exception {
         try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
             waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
