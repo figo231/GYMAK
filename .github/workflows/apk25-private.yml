@@ -28,10 +28,10 @@ jobs:
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = 248ba3404dc2c1a2c41f33280ca29901ae2ec151
           base64 -d /tmp/apk25-final-delta.txt > /tmp/apk25-final.bundle
-          echo '199990d453254737bc7339392774ce9729eb6255fe611eb0fedb0b29e649ea5f  /tmp/apk25-final.bundle' | sha256sum -c -
+          echo '6be693a841aa60779ffd6b0642b9d5a11d62043cd1b14570b2f397e43ae23ca4  /tmp/apk25-final.bundle' | sha256sum -c -
           git fetch /tmp/apk25-final.bundle feat/apk25-polish
           git checkout --detach FETCH_HEAD
-          test "$(git rev-parse HEAD)" = 9cb2ef4c76d236b27f55e9508477bb6ef9c237b1
+          test "$(git rev-parse HEAD)" = 1a66045181ce4040b0a933857de7af8634edfc71
       - uses: actions/setup-node@v4
         with:
           node-version: 22
