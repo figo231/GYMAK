@@ -8,6 +8,7 @@ export function createPhotoHandler(createClient:any,env:{get:(key:string)=>strin
  const url=env.get('SUPABASE_URL')!,anon=env.get('SUPABASE_ANON_KEY')!,key=env.get('SUPABASE_SERVICE_ROLE_KEY')!;
  const service=createClient(url,key,{auth:{persistSession:false}});
  const action=req.headers.get('x-photo-action');
+ const budget=async(bytes:number)=>{const {error}=await service.rpc('chat_storage_budget_check',{p_extra:bytes});if(error)throw error;};
  // Dedicated scheduled cleanup uses the service JWT, never a client-authorized task.
  if(action==='cleanup'){
   if(jwt!==key)return answer({error:'not_allowed'},403);
@@ -31,7 +32,7 @@ export function createPhotoHandler(createClient:any,env:{get:(key:string)=>strin
    const length=Number(req.headers.get('content-length'));if(length>204800)return answer({error:'photo_too_large'},413);
    const reader=req.body?.getReader();if(!reader)return answer({error:'invalid_photo'},400);let total=0;const chunks:Uint8Array[]=[];while(true){const {done,value}=await reader.read();if(done)break;total+=value.length;if(total>204800){await reader.cancel();return answer({error:'photo_too_large'},413);}chunks.push(value);}
    const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}if(total<4||bytes[0]!==255||bytes[1]!==216||bytes[total-2]!==255||bytes[total-1]!==217)return answer({error:'invalid_jpeg'},400);
-   const {error:e}=await service.storage.from('chat-report-evidence').upload(r.path,bytes,{contentType:'image/jpeg',upsert:false,cacheControl:'0'});if(e&&!/Duplicate|already exists/i.test(e.message))throw e;return answer({attached:true});
+   await budget(total);const {error:e}=await service.storage.from('chat-report-evidence').upload(r.path,bytes,{contentType:'image/jpeg',upsert:false,cacheControl:'0'});if(e&&!/Duplicate|already exists/i.test(e.message))throw e;return answer({attached:true});
   }
   if(action==='upload'){
    if(req.headers.get('content-type')!=='image/jpeg')return answer({error:'jpeg_only'},400);
@@ -43,7 +44,7 @@ export function createPhotoHandler(createClient:any,env:{get:(key:string)=>strin
    if(total<4||bytes[0]!==255||bytes[1]!==216||bytes[total-2]!==255||bytes[total-1]!==217)return answer({error:'invalid_jpeg'},400);
    const {data:r,error}=await user.rpc('chat_photo_reserve',{p_thread:req.headers.get('x-chat-thread'),p_nonce:req.headers.get('x-photo-nonce'),p_bytes:total});
    if(error)throw error;
-   if(!r.message_id){const {error:e}=await service.storage.from('chat-delivery').upload(r.path,bytes,{contentType:'image/jpeg',upsert:false,cacheControl:'0'});if(e&&!/already exists|Duplicate/i.test(e.message))throw e;}
+   if(!r.message_id){await budget(total);const {error:e}=await service.storage.from('chat-delivery').upload(r.path,bytes,{contentType:'image/jpeg',upsert:false,cacheControl:'0'});if(e&&!/already exists|Duplicate/i.test(e.message))throw e;}
    const {data:m,error:e}=await user.rpc('chat_photo_publish',{p_photo:r.id});if(e)throw e;return answer({message:m,photoId:r.id});
   }
   const {data:r,error}=await user.rpc('chat_photo_access',{p_photo:req.headers.get('x-photo-id')});if(error)throw error;

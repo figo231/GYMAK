@@ -63,6 +63,7 @@ beforeAll(async()=>{installed=false;
  await db.exec(readFileSync('supabase/migrations/0042_chat_photo_delivery.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0043_chat_photo_reports.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0044_chat_directory_badges.sql','utf8'));await db.exec(readFileSync('supabase/migrations/0045_chat_live_identity.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/0047_chat_photo_free_guard.sql','utf8'));
  await consentAll();
 });
 
@@ -97,4 +98,28 @@ describe('APK25 current chat identity',()=>{
 
 describe('APK25 professional directory badge wrapper',()=>{
  it('preserves publication, filtering and consent independently of badges',async()=>{await rpc('owner','professional_card_save',[ids.doctor,'Listed doctor','Nutrition',true]);await rpc('owner','professional_card_save',[ids.coach,'Hidden coach','Training',false]);await rpc('owner','chat_set_verified',[ids.doctor,true]);let rows=await rpc('client','professional_directory_v2',['all',null]);expect(rows.map(x=>x.user_id)).toEqual([ids.doctor]);expect(rows[0].verified).toBe(true);expect(rows[0]).not.toHaveProperty('email');expect(await rpc('client','professional_directory_v2',['coach',null])).toEqual([]);expect(await rpc('client','professional_directory_v2',['all',ids.doctor])).toEqual([]);await rpc('owner','chat_set_verified',[ids.doctor,false]);rows=await rpc('client','professional_directory_v2',['doctor',null]);expect(rows[0].verified).toBe(false);await expect(rpc('client','professional_directory_v2',['invalid',null])).rejects.toThrow(/invalid_filter/);});
+});
+
+describe('APK25 global free-only storage guard',()=>{
+ it('counts all buckets and fails closed on unknown size without a bucket cap',async()=>{
+  await db.query("insert into storage.buckets(id,name,public) values('unrelated','unrelated',false)");
+  await db.query("insert into storage.objects(bucket_id,name,metadata) values('unrelated','unknown','{}')");
+  const id=await conversation();await expect(rpc('client','chat_photo_reserve',[id,crypto.randomUUID(),100])).rejects.toThrow(/photo_storage_full/);
+  await expect(actor(ids.client,()=>query("insert into storage.objects(bucket_id,name) values('chat-avatars',$1)",[ids.client+'/chat-avatar.jpg']))).rejects.toThrow(/photo_storage_full/);
+  await db.query("delete from storage.objects where bucket_id='unrelated'");
+  await expect(rpc('client','chat_photo_reserve',[id,crypto.randomUUID(),100])).resolves.toHaveProperty('id');
+ });
+});
+
+describe('APK25 photo budget boundaries',()=>{
+ it('blocks before 400 MiB even when the usage comes from another bucket',async()=>{
+  await db.query("insert into storage.objects(bucket_id,name,metadata) values('unrelated','large',$1)",[JSON.stringify({size:419430400-50})]);
+  const id=await conversation();await expect(rpc('client','chat_photo_reserve',[id,crypto.randomUUID(),100])).rejects.toThrow(/photo_storage_full/);
+  await db.query("delete from storage.objects where bucket_id='unrelated'");
+ });
+ it('counts expired but not physically deleted objects toward the global budget',async()=>{
+  await db.query("insert into storage.objects(bucket_id,name,metadata) values('unrelated','leftover',$1)",[JSON.stringify({size:419430400})]);
+  await expect(query('select chat_storage_budget_check(1)')).rejects.toThrow(/photo_storage_full/);
+  await db.query("delete from storage.objects where bucket_id='unrelated'");
+ });
 });

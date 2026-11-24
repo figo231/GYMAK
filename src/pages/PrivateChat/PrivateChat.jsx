@@ -1,7 +1,7 @@
 import {subscribeIdentity} from "../../lib/chatLiveIdentity";
 import PhotoReportDialog from "../../components/PhotoReportDialog";
 import ChatPhoto from "../../components/ChatPhoto";
-import {prepareChatPhoto,sendPhoto} from "../../lib/chatPhotos";
+import {prepareChatPhoto,sendPhoto,photoSendError} from "../../lib/chatPhotos";
 import UsernameSearch from "../../components/UsernameSearch";
 import ChatAvatar from "../../components/ChatAvatar";
 import MessageTicks from "../../components/MessageTicks";
@@ -204,7 +204,7 @@ function Thread({ id, userId }) {
     return () => {document.removeEventListener("visibilitychange", markDisplayed);window.removeEventListener("focus",markDisplayed);};
   }, [id, rows[rows.length - 1]?.seq]);
   async function pickPhoto(e){const file=e.target.files?.[0];e.target.value="";if(!file||photoBusy)return;setPhotoBusy(true);setPhotoError("");try{const blob=await prepareChatPhoto(file);setPhoto({blob,url:URL.createObjectURL(blob),nonce:newChatNonce()});setPhotoAgree(false);}catch{setPhotoError(isEn()?"Choose a JPEG, PNG or WebP photo below 5 MB.":"اختار صورة JPEG أو PNG أو WebP أصغر من 5 ميجا.");}finally{setPhotoBusy(false);}}
-  async function deliverPhoto(){if(!photo||!photoAgree||photoBusy)return;setPhotoBusy(true);setPhotoError("");try{const m=await sendPhoto(userId,id,photo.nonce,photo.blob);setRows(old=>mergeChatMessages(old,[m]));URL.revokeObjectURL(photo.url);setPhoto(null);}catch{setPhotoError(isEn()?"Photo not confirmed. Keep this preview and retry. Device storage and internet are required.":"إرسال الصورة لسه مش مؤكد. احتفظ بالمعاينة وجرب تاني. لازم نت ومساحة على جهازك.");}finally{setPhotoBusy(false);}}
+  async function deliverPhoto(){if(!photo||!photoAgree||photoBusy)return;setPhotoBusy(true);setPhotoError("");try{const m=await sendPhoto(userId,id,photo.nonce,photo.blob);setRows(old=>mergeChatMessages(old,[m]));URL.revokeObjectURL(photo.url);setPhoto(null);}catch(e){setPhotoError(photoSendError(e,isEn()));}finally{setPhotoBusy(false);}}
   async function older() {
     if (olderBusy || !rows.length) return; setOlderBusy(true);
     try { const msgs = await fetchChatMessages(id, rows[0].seq); if (live.current) { setRows((old) => mergeChatMessages(msgs, old)); setMore(msgs.length === 50); } }

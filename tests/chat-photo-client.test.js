@@ -5,7 +5,7 @@ vi.mock('../src/lib/supabaseClient',()=>({supabase:{functions:{invoke},rpc}}));
 vi.mock('../src/lib/imageCompress',()=>({compressImageToBlob:vi.fn(async()=>new Blob(['jpeg'],{type:'image/jpeg'}))}));
 const fakeIdb={open(){const req={};queueMicrotask(()=>{req.result={objectStoreNames:{contains:()=>true},createObjectStore(){},close(){},transaction(name,mode){const tx={};tx.objectStore=()=>({get(id){const r={result:records.get(id)};events.push(['get',id]);queueMicrotask(()=>tx.oncomplete?.());return r;},put(r){records.set(r.id,r);events.push(['put',r.id]);queueMicrotask(()=>tx.oncomplete?.());return {result:r.id};},delete(id){records.delete(id);events.push(['del',id]);queueMicrotask(()=>tx.oncomplete?.());return {};}});return tx;}};req.onsuccess?.();});return req;}};
 Object.defineProperty(globalThis,'indexedDB',{value:fakeIdb,configurable:true});
-import {photoLocalKey,prepareChatPhoto,sendPhoto,fetchPhoto,localPhoto,reportPhoto} from '../src/lib/chatPhotos';
+import {photoLocalKey,prepareChatPhoto,sendPhoto,fetchPhoto,localPhoto,reportPhoto,photoSendError} from '../src/lib/chatPhotos';
 beforeEach(()=>{records.clear();events.length=0;invoke.mockReset();rpc.mockReset();});
 describe('temporary photo client safety',()=>{
  it('keys every local file by authenticated account and photo ID',()=>{expect(photoLocalKey('a','p')).not.toBe(photoLocalKey('b','p'));expect(()=>photoLocalKey('','p')).toThrow();});
@@ -16,3 +16,6 @@ describe('temporary photo client safety',()=>{
  it('metadata-only report never retrieves or uploads the local image',async()=>{rpc.mockResolvedValue({data:'report'});await expect(reportPhoto('recipient','photo','abuse','details',false)).resolves.toBe('report');expect(events).toHaveLength(0);expect(invoke).not.toHaveBeenCalled();expect(rpc.mock.calls[0][1].p_include).toBe(false);});
  it('refuses an evidence attachment if this device has no copy',async()=>{await expect(reportPhoto('recipient','photo','abuse','details',true)).rejects.toThrow(/local_photo_missing/);expect(rpc).not.toHaveBeenCalled();});
 });
+
+it('shows clear free-only capacity and daily-limit messages',()=>{expect(photoSendError(Error('photo_storage_full'))).toContain('المجانية');expect(photoSendError(Error('photo_capacity'))).toContain('مش هيتم دفع');expect(photoSendError(Error('photo_daily_limit'))).toContain('10');});
+it('reads the server photo error response instead of hiding quota denial',async()=>{invoke.mockResolvedValue({error:{context:new Response(JSON.stringify({error:'photo_storage_full'}))}});await expect(sendPhoto('sender','thread','nonce',new Blob(['jpeg'],{type:'image/jpeg'}))).rejects.toThrow('photo_storage_full');});
