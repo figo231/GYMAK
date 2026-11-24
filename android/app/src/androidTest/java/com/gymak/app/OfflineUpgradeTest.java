@@ -79,8 +79,25 @@ public class OfflineUpgradeTest {
                 }
                 clickFirstRunChoice(root);Thread.sleep(600);
             }
-            InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-welcome.png")));
             assertTrue("Update must open external welcome landing",found);
+            // Accessibility may lead the compositor. Require actual painted page
+            // content below Chrome's toolbar, excluding the bottom toast area.
+            android.graphics.Bitmap painted=null;boolean contentPainted=false;
+            long paintDeadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<paintDeadline){
+                painted=InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+                int colorful=0,light=0,total=0;
+                for(int y=130;y<painted.getHeight()-180;y+=6)for(int x=15;x<painted.getWidth()-15;x+=6){
+                    int pixel=painted.getPixel(x,y),red=android.graphics.Color.red(pixel),green=android.graphics.Color.green(pixel),blue=android.graphics.Color.blue(pixel);total++;
+                    if(Math.max(red,Math.max(green,blue))-Math.min(red,Math.min(green,blue))>45)colorful++;
+                    if(red>145&&green>145&&blue>145)light++;
+                }
+                contentPainted=colorful>total/50&&light>total/150;
+                if(contentPainted)break;
+                Thread.sleep(500);
+            }
+            painted.compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-welcome.png")));
+            assertTrue("External welcome must paint visible text and colored page content",contentPainted);
         }
     }
     @Test public void otaActivationOnlyOncePerProcess() throws Exception {
