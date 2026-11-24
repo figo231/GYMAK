@@ -13,10 +13,11 @@ export function createPhotoHandler(createClient:any,env:{get:(key:string)=>strin
   if(jwt!==key)return answer({error:'not_allowed'},403);
   const {data:rows,error}=await service.from('chat_photos').select('id,path').in('status',['reserved','ready']).lt('expires_at',new Date().toISOString()).limit(200);
   if(error)return answer({error:'cleanup_failed'},500);
-  let removed=0;for(const row of rows||[]){const {error:e}=await service.storage.from('chat-delivery').remove([row.path]);if(!e){const {error:r}=await service.rpc('chat_photo_removed',{p_photo:row.id,p_saved:false});if(!r)removed++;}}
-  const {data:evidence}=await service.from('moderation_reports').select('id,photo_evidence_path').not('photo_evidence_path','is',null).lt('photo_evidence_expires_at',new Date().toISOString()).limit(200);
-  for(const row of evidence||[]){const {error:e}=await service.storage.from('chat-report-evidence').remove([row.photo_evidence_path]);if(!e)await service.from('moderation_reports').update({photo_evidence_path:null}).eq('id',row.id);}
-  return answer({removed});
+  let removed=0,failed=0;for(const row of rows||[]){const {error:e}=await service.storage.from('chat-delivery').remove([row.path]);if(!e){const {error:r}=await service.rpc('chat_photo_removed',{p_photo:row.id,p_saved:false});if(!r)removed++;else failed++;}else failed++;}
+  const {data:evidence,error:evidenceError}=await service.from('moderation_reports').select('id,photo_evidence_path').not('photo_evidence_path','is',null).lt('photo_evidence_expires_at',new Date().toISOString()).limit(200);
+  if(evidenceError)failed++;
+  for(const row of evidence||[]){const {error:e}=await service.storage.from('chat-report-evidence').remove([row.photo_evidence_path]);if(!e){const {error:updateError}=await service.from('moderation_reports').update({photo_evidence_path:null}).eq('id',row.id);if(updateError)failed++;}else failed++;}
+  return answer({removed,failed},failed?500:200);
  }
  const {data:auth,error:authError}=await service.auth.getUser(jwt);
  if(authError||!auth?.user)return answer({error:'not_authenticated'},401);
