@@ -1,4 +1,4 @@
-name: Private APK26 verification
+name: Private APK26 verification ready
 on:
   push:
     branches: [stage/apk25-private]
@@ -93,9 +93,3 @@ jobs:
         with:
           name: gymak-offline-verification
           path: verification/
-      - uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: gymak-approved-apk25
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 1
