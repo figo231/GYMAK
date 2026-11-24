@@ -63,7 +63,7 @@ jobs:
         run: |
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_ANON_KEY"
-          npm test
+          VITE_REVIEW_BACKEND_GATED=false npm test
           npm run build
           npx cap sync android
       - name: Build APK and upgrade tests
