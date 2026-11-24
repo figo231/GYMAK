@@ -1,4 +1,4 @@
-name: Archive APK25 active server source only
+name: Private APK26 verification
 on:
   push:
     branches: [stage/apk25-private]
@@ -6,26 +6,96 @@ on:
 permissions:
   contents: write
 jobs:
-  source:
+  apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Import active server source without any deployment
+      - name: Load exact APK26 candidate, no production publication
         run: |
-          base64 -d apk25-candidate-source.txt > /tmp/base.bundle
-          echo 'e7fbc6978914327c9bcef8eb989f817a03cfb5bb2e02b5a57ef3c47831c55e3a  /tmp/base.bundle' | sha256sum -c -
-          git fetch /tmp/base.bundle feat/apk25-polish
-          base64 -d apk25-final-delta.txt > /tmp/closeout.bundle
-          echo '53838fce39e93632346085617fdb8ac7b82c7a1b69eccacb6b6a2e93e5e3b459  /tmp/closeout.bundle' | sha256sum -c -
-          git fetch /tmp/closeout.bundle feat/apk25-polish
-          test "$(git rev-parse FETCH_HEAD)" = 2bd3c439aa7a2d02cbfe71774017d2460cd99300
-          git checkout -B source-closeout FETCH_HEAD
-          git rm -r .github/workflows
-          git checkout origin/stage/apk25-private -- .github/workflows
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/workflows
-          git diff --cached --quiet || git commit -m "Preserve existing automation for server source archive"
-          git push origin HEAD:refs/heads/source/apk25-server-closeout
+          base64 -d 2-apk26-candidate.txt > /tmp/apk26.bundle
+          echo '5dda0fc2cbfb890d9d4388f4f12af85f2e9e59a87b26134713f0e4e4130caa5d  /tmp/apk26.bundle' | sha256sum -c -
+          git fetch --unshallow origin
+          git fetch /tmp/apk26.bundle feat/apk25-polish
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = 0292621874437ee250cdf136666b597adcc97730
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Write Firebase configuration
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "VITE_PUSH_ENABLED=false" >> "$GITHUB_ENV"
+          else
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "VITE_PUSH_ENABLED=true" >> "$GITHUB_ENV"
+          fi
+      - name: Restore existing signing identity
+        env:
+          KS_B64: ${{ secrets.GYMAK_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "Missing signing key" >&2; exit 1; fi
+          printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/gymak.jks"
+          echo "GYMAK_KEYSTORE_PATH=$RUNNER_TEMP/gymak.jks" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=26" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.26" >> "$GITHUB_ENV"
+      - run: npm install --no-audit --no-fund
+      - name: Apply OTA public trust anchor
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: node scripts/ota/write-native-trust.mjs
+      - name: Test and build bundled app
+        run: |
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_ANON_KEY"
+          VITE_REVIEW_BACKEND_GATED=false npm test
+          npm run build
+          npx cap sync android
+      - name: Build APK and upgrade tests
+        working-directory: android
+        env:
+          GYMAK_KEYSTORE_PASSWORD: ${{ secrets.GYMAK_KEYSTORE_PASSWORD }}
+        run: bash ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Release build-daemon memory before emulator
+        working-directory: android
+        run: bash ./gradlew --stop
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify apk-9 upgrade and fresh offline launch
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -dns-server 8.8.8.8,8.8.4.4
+          disable-animations: true
+          script: bash scripts/verify-android-upgrade.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gymak-offline-verification
+          path: verification/
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: gymak-approved-apk25
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 1
