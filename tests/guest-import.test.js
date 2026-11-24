@@ -8,8 +8,18 @@ it('does not remove pending import or mutate local data when identity changes',a
 it('requires a decision for every collision before any write',async()=>{const before=localStorage.getItem('gymak_state_v1');const c={auth:{getUser:async()=>({data:{user:{id:'user'}}})}};await expect(finishGuestImport({userId:'user',conflicts:[{key:'weight:x'}]},{},c)).rejects.toThrow('conflict_choice_required');expect(localStorage.getItem('gymak_state_v1')).toBe(before);});
 it('guest import code never deletes IndexedDB media or clears local storage',()=>{expect(finishGuestImport.toString()).not.toContain('deleteDatabase');expect(finishGuestImport.toString()).not.toContain('localStorage.clear');});
 
-function clientFor(remote,options={}){
- return {auth:{getUser:async()=>({data:{user:{id:options.user||'user'}}})},rpc:async()=>options.failGeneration?{error:Error('network')}:{data:2},from(table){const q={select(){return q;},eq(){return q;},maybeSingle:async()=>({data:remote.profile||null}),then(resolve){resolve({data:remote[{weight_logs:'weights',food_log:'food',exercises:'exercises'}[table]]||[]});}};return q;}};
+function clientFor(input,options={}){
+ const remote={generation:0,weights:[],food:[],exercises:[],profile:null,...input};
+ return {auth:{getUser:async()=>({data:{user:{id:options.user||'user'}}})},rpc:async(name,args)=>{
+  if(name==='guest_import_snapshot')return {data:structuredClone(remote)};
+  if(options.failGeneration)return {error:Error('network')};
+  if(JSON.stringify(args.p_expected)!==JSON.stringify(remote))return {error:Error('guest_remote_changed')};
+  const result=structuredClone(remote);for(const [key,type] of [['weights','weights'],['food','food'],['exercises','exercises']]){
+   const by=new Map(result[key].map(r=>[r.date||r.id,r]));for(const r of args.p_data[type])by.set(r.date||r.id,r);result[key]=[...by.values()];
+  }
+  if(result.profile)Object.assign(result.profile,args.p_data.profile);
+  return {data:result};
+ }};
 }
 it('does not reclassify signed-out account history as guest data',async()=>{
  const {bindDataOwner}=await import('../src/lib/guestImport');bindDataOwner('first');markGuestData();expect(hasGuestImport()).toBe(false);
@@ -39,4 +49,8 @@ it('detects secondary muscle and food total conflicts, not only labels',()=>{
 });
 it('commits the merge atomically and leaves pending work when storage is full',async()=>{
  const {inspectGuestImport}=await import('../src/lib/guestImport');markGuestData();const c=clientFor({weights:[{date:'2026-11-20',weight:80}]});const review=await inspectGuestImport('user',c);const original=localStorage.getItem('gymak_state_v1');const set=Storage.prototype.setItem;const spy=vi.spyOn(Storage.prototype,'setItem').mockImplementation(function(k,v){if(k==='gymak_state_v1')throw Error('quota');return set.call(this,k,v);});try{await expect(finishGuestImport(review,{},c)).rejects.toThrow('quota');}finally{spy.mockRestore();}expect(localStorage.getItem('gymak_state_v1')).toBe(original);expect(hasGuestImport()).toBe(true);await finishGuestImport(review,{},c);expect(Store.getRawStateForSync().weightLogs[0].weight).toBe(80);
+});
+it('keeps the exact server request after an uncertain response and reuses it on retry',async()=>{
+ const {inspectGuestImport}=await import('../src/lib/guestImport');markGuestData();const base=clientFor({});const review=await inspectGuestImport('user',base);const sent=[];let fail=true;const client={...base,rpc:async(name,args)=>{if(name==='guest_import_commit'){sent.push(structuredClone(args));if(fail){fail=false;throw Error('lost_response');}}return base.rpc(name,args);}};
+ await expect(finishGuestImport(review,{},client)).rejects.toThrow('lost_response');expect(hasGuestImport()).toBe(true);expect(localStorage.getItem('gymak_guest_import_request_v1:user')).toBeTruthy();await finishGuestImport(review,{},client);expect(sent[1]).toEqual(sent[0]);expect(hasGuestImport()).toBe(false);
 });
