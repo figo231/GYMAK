@@ -6,14 +6,6 @@ on:
         description: Optional explicit APK version code for a verification retry
         type: string
         default: ""
-      private_test:
-        description: Encrypt a private installable test APK without release
-        type: boolean
-        default: false
-      review_backend_gated:
-        description: Keep server capability gates on in a private build
-        type: boolean
-        default: true
       publish:
         description: Publish the verified APK release
         type: boolean
@@ -25,9 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      VITE_DISTRIBUTION_CHANNEL: sideload
-      VITE_OTA_ENABLED: "true"
-      VITE_REVIEW_BACKEND_GATED: ${{ inputs.private_test && inputs.review_backend_gated && 'true' || 'false' }}
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
@@ -61,10 +50,6 @@ jobs:
           echo "GYMAK_VERSION_CODE=${{ inputs.version_code || github.run_number }}" >> "$GITHUB_ENV"
           echo "GYMAK_VERSION_NAME=1.${{ inputs.version_code || github.run_number }}" >> "$GITHUB_ENV"
       - run: npm install --no-audit --no-fund
-      - name: Apply OTA public trust anchor
-        env:
-          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
-        run: node scripts/ota/write-native-trust.mjs
       - name: Test and build bundled app
         run: |
           test -n "$VITE_SUPABASE_URL"
@@ -101,36 +86,13 @@ jobs:
           name: gymak-offline-verification
           path: verification/
       - uses: actions/upload-artifact@v4
-        if: inputs.publish
         with:
           name: gymak-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-      - name: Encrypt private test APK
-        if: inputs.private_test && !inputs.publish
-        run: node scripts/encrypt-private-apk.mjs android/app/build/outputs/apk/debug/app-debug.apk GYMAK-private-apk.encrypted.json
-      - uses: actions/upload-artifact@v4
-        if: inputs.private_test && !inputs.publish
-        with:
-          name: gymak-private-apk-encrypted
-          path: GYMAK-private-apk.encrypted.json
-          retention-days: 1
       - name: Publish verified release
         if: inputs.publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk GYMAK.apk
-          gh release create "apk-${GYMAK_VERSION_CODE}" GYMAK.apk --target "$GITHUB_SHA" --latest --title "GYMAK ${GYMAK_VERSION_CODE}" --notes "Bundled offline app. Install over the existing app without uninstalling."
-      - name: Publish matching web source after approved APK release
-        if: inputs.publish
-        run: |
-          git restore --worktree --staged .
-          git fetch origin web-production
-          git checkout -B web-release origin/web-production
-          git rm -r --ignore-unmatch . ':!.github/workflows'
-          git checkout "$GITHUB_SHA" -- . ':!.github/workflows'
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # git rm and git checkout above stage only source-controlled changes.
-          git diff --cached --quiet || git commit -m "Publish web source for apk-${GYMAK_VERSION_CODE} ($GITHUB_SHA)"
-          git push origin HEAD:refs/heads/web-production
+          gh release create "apk-${GYMAK_VERSION_CODE}" GYMAK.apk --latest --title "GYMAK ${GYMAK_VERSION_CODE}" --notes "Bundled offline app. Install over the existing app without uninstalling."
