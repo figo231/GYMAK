@@ -21,3 +21,4 @@ html.pro-ui .ux-profile .cover-wrap{height:110px;}
 .profile-legacy-settings .legacy-settings-title{font-size:14px;font-weight:800;margin:0;padding:14px 14px 0;}
 .profile-legacy-settings .settings-name{min-width:0;flex:1;}
 .profile-legacy-settings .settings-hint{max-width:38%;font-size:10px;}
+.rir-field{margin:18px 0}.rir-field>label{display:block;font-weight:700;font-size:13px;line-height:1.9}.rir-field label small{display:block;font-weight:400;font-size:11px;color:var(--text-secondary)}.rir-field select{width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--border-soft);background:rgba(128,128,128,.07);color:inherit;font:inherit;font-size:13px;margin-top:8px}.rir-tag{display:block;font-size:11px;color:var(--accent-text);margin-top:5px}

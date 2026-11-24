@@ -40,6 +40,9 @@ const Contact = lazy(() => import("./pages/Contact/Contact"));
 const MealPlan = lazy(() => import("./pages/Food/MealPlan"));
 const PrivateChat = lazy(() => import("./pages/PrivateChat/PrivateChat"));
 const Professionals = lazy(() => import("./pages/Professionals/Professionals"));
+const Supersets = lazy(() => import("./pages/Programs/Supersets"));
+const FoodSwaps = lazy(() => import("./pages/Food/FoodSwaps"));
+const WeeklyCheckIn = lazy(() => import("./pages/FollowUp/WeeklyCheckIn"));
 const Coach = lazy(() => import("./pages/Coach/Coach"));
 
 export const router = createBrowserRouter([
@@ -64,11 +67,14 @@ export const router = createBrowserRouter([
       { path: "/strength", element: <Strength /> },
       { path: "/supplements", element: <Supplements /> },
       { path: "/warmup", element: <Warmup /> },
+      { path: "/food-swaps", element: <FoodSwaps /> },
       { path: "/meal-plan", element: <MealPlan /> },
+      { path: "/weekly-check-in", element: <WeeklyCheckIn /> },
       { path: "/history", element: <History /> },
       { path: "/measurements", element: <Measurements /> },
       { path: "/achievements", element: <Achievements /> },
       { path: "/photos", element: <Photos /> },
+      { path: "/supersets", element: <Supersets /> },
       { path: "/programs", element: <Programs /> },
     ],
   },
