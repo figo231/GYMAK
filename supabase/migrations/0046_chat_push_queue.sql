@@ -3,6 +3,22 @@
 begin;
 create table public.chat_push_control(id boolean primary key default true check(id),enabled boolean not null default false);
 insert into public.chat_push_control values(true,false);
+-- Account-scoped explicit opt-in. No row means generic notifications.
+create table public.chat_push_preferences(user_id uuid primary key references auth.users(id) on delete cascade,show_preview boolean not null default false,updated_at timestamptz not null default now());
+alter table public.chat_push_preferences enable row level security;
+revoke all on public.chat_push_preferences from public,anon,authenticated;
+grant all on public.chat_push_preferences to service_role;
+create function public.chat_push_preference_v1() returns boolean language plpgsql stable security definer set search_path='' as $$begin
+ if auth.uid() is null then raise exception 'not_authenticated';end if;
+ return coalesce((select show_preview from public.chat_push_preferences where user_id=auth.uid()),false);
+end $$;
+create function public.chat_push_preference_save_v1(p_preview boolean,p_expected_user uuid) returns void language plpgsql security definer set search_path='' as $$begin
+ if auth.uid() is null or auth.uid()<>p_expected_user then raise exception 'session_changed';end if;
+ if p_preview is null then raise exception 'invalid_preference';end if;
+ insert into public.chat_push_preferences(user_id,show_preview)values(auth.uid(),p_preview) on conflict(user_id)do update set show_preview=excluded.show_preview,updated_at=now();
+end $$;
+revoke all on function public.chat_push_preference_v1(),public.chat_push_preference_save_v1(boolean,uuid) from public,anon,authenticated;
+grant execute on function public.chat_push_preference_v1(),public.chat_push_preference_save_v1(boolean,uuid) to authenticated;
 create table public.chat_push_queue(
  id uuid primary key default gen_random_uuid(),
  message_id uuid not null references public.chat_messages(id) on delete cascade,
@@ -36,7 +52,7 @@ end $$;
 -- New trigger, disabled in effect by chat_push_control. No old trigger is edited.
 create trigger chat_push_enqueue_v1 after insert on public.chat_messages for each row execute function public.chat_push_enqueue_v1();
 create function public.chat_push_claim_v1() returns jsonb language plpgsql security definer set search_path='' as $$
-declare q public.chat_push_queue; c public.chat_conversations; m public.chat_messages; t public.push_tokens;
+declare q public.chat_push_queue; c public.chat_conversations; m public.chat_messages; t public.push_tokens; preview text;
 begin
  if not exists(select 1 from public.chat_push_control where id and enabled) then return null;end if;
  select * into q from public.chat_push_queue where state='pending' order by created_at,id for update skip locked limit 1;
@@ -51,8 +67,12 @@ begin
   update public.chat_push_queue set state='skipped',finished_at=now() where id=q.id;return jsonb_build_object('skipped',true);
  end if;
  update public.chat_push_queue set state='outcome_unknown',claimed_at=now() where id=q.id;
- -- Never select message body, author name, role, medical details, or photo URLs.
- return jsonb_build_object('delivery_id',q.id,'token',t.token,'language',t.language);
+ -- Explicit recipient opt-in only for direct member chats. Health/professional
+ -- chats stay generic even if kind is direct or a participant changed role.
+ if c.kind='direct' and coalesce(to_jsonb(m)->>'photo_id','')='' and public.chat_role_for(c.client_id) not in('doctor','coach') and public.chat_role_for(c.professional_id) not in('doctor','coach')
+ and exists(select 1 from public.chat_push_preferences where user_id=q.recipient_id and show_preview)
+ then preview:=left(regexp_replace(m.body,'[[:cntrl:]]',' ','g'),120);end if;
+ return jsonb_strip_nulls(jsonb_build_object('delivery_id',q.id,'token',t.token,'language',t.language,'preview',preview));
 end $$;
 create function public.chat_push_finish_v1(p_delivery uuid,p_state text,p_provider text default null,p_error text default null) returns void language plpgsql security definer set search_path='' as $$
 begin

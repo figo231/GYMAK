@@ -12,7 +12,7 @@ Source: https://supabase.com/dashboard/project/ybkeshztehjeoeonpkih/sql/new . Fu
 
 - `0046_chat_push_queue.sql` adds a paused control, private per-message/per-device queue, service-only claim/finish RPCs, and a new AFTER INSERT enqueue trigger. It does not replace any existing table/function/trigger. Old clients' inserts also qualify once enabled. No old messages are backfilled.
 - `dispatch-chat-push` is a new scheduler-only function with its own server-side secret. It uses existing Firebase configuration without changing it.
-- Every chat, including doctor chat, gets the same generic title/body. No message text, sender name, medical role, conversation identifier, image, or medical detail goes to FCM. Arabic body: عندك رسالة جديدة. افتح GYMAK عشان تشوفها.
+- Default generic for everyone. The recipient can explicitly opt in from Settings > Notifications to a text preview, limited to120characters, for direct member chats only. Doctor/coach conversations and any chat with a current doctor/coach participant stay generic regardless of that setting. Photo messages never preview. The opt-in notice explains lock-screen and Firebase exposure. The preference is account-scoped and saved only after server confirmation. Generic Arabic body: عندك رسالة جديدة. افتح GYMAK عشان تشوفها.
 - Recipient is derived from conversation participants, never caller-selected. Only active Android tokens seen within30days qualify. Block/token ownership/expiry are rechecked at claim time. Unique message/device prevents ordinary duplicates. Unknown provider outcomes remain unknown and are not retried blindly.
 - Service acceptance is not recorded as device receipt. Existing chat read/delivery receipts remain independent.
 
@@ -33,4 +33,6 @@ First set `chat_push_control.enabled=false` to stop new enqueue/claim. Disable t
 
 ## Tests and limits
 
-Seven focused PGlite/runner tests pass: paused default/no history, recipient-only queue, generic payload, blocks at enqueue/claim, token disable/reassignment,15min expiry, service-only access, provider acceptance versus receipt, unknown-outcome no-retry. Actual Deno check passes. Full regression suite still required after integrating these files. Live FCM delivery and an active scheduler are unverified. No production object was changed by this work.
+Nine focused PGlite/runner/UI tests pass, including default-off preference, cross-account save rejection, direct preview opt-in and doctor/coach override: paused default/no history, recipient-only queue, generic payload, blocks at enqueue/claim, token disable/reassignment,15min expiry, service-only access, provider acceptance versus receipt, unknown-outcome no-retry. Actual Deno check passes. Full regression suite still required after integrating these files. Live FCM delivery and an active scheduler are unverified. No production object was changed by this work.
+
+19:20 update: requested settings switch implemented and visually inspected at390px using synthetic account data. Focused9tests and production build pass. Full updated regression and native rerun pending. No server setting or push activated.
