@@ -11,6 +11,11 @@ describe('browser entry stays on web',()=>{
   expect(landing).toContain('href="/download/GYMAK.apk" download="GYMAK.apk"');
   expect(read('vite.config.js')).toContain('/^\\/download\\//');
  });
+ it('opens the welcome landing externally for native update actions',()=>{
+  const s=read('src/lib/update/apkUpdateStrategy.js');
+  expect(s).toContain('APK_UPDATE_PAGE_URL = "https://gymak-eight.vercel.app/welcome"');
+  expect(s).toContain('Browser.open({ url: APK_UPDATE_PAGE_URL })');
+ });
  it('does not select APK updates from a browser referrer',()=>{
   const s=read('src/lib/update/UpdateService.js');
   expect(s).not.toContain('android-app://');

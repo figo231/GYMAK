@@ -2756,4 +2756,5 @@ export const EN = {
 "رسائل خاصة": "Private messages",
 "اكتب رسالة...": "Message...",
 "محادثة خاصة · الرد مش فوري": "Private conversation · Replies may take time",
+"فيه نسخة أحدث من GYMAK جاهزة. زرار تحديث هيفتح صفحة التحميل. اختار تحميل أندرويد، وبعدها افتح الملف واختار تثبيت من غير ما تمسح التطبيق الحالي.": "A newer GYMAK version is ready. Update opens the download page. Choose Android download, then open the file and install without uninstalling the current app.",
 };
