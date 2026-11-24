@@ -36,7 +36,7 @@ export function coachLine(workoutDays, today = localISO()) {
 
 // Local keys wiped by "reset all data" (identity, theme and sync bookkeeping stay).
 export const RESET_KEYS = ["gymak_state_v1", "gymak_measure_v1", "gymak_water_v1", "gymak_rest_v1"];
-export const RESET_DBS = ["gymak_photos_v1", "gymak_exmedia_v1"];
+export const RESET_DBS = ["gymak_photos_v1", "gymak_exmedia_v1", "gymak_chat_photos_v1"];
 export async function clearLocalData(storage = localStorage, idb = typeof indexedDB !== "undefined" ? indexedDB : null) {
   RESET_KEYS.forEach((k) => { try { storage.removeItem(k); } catch { /* ignore */ } });
   if (idb) await Promise.all(RESET_DBS.map((n) => new Promise((res) => { try { const r = idb.deleteDatabase(n); r.onsuccess = r.onerror = r.onblocked = () => res(); } catch { res(); } })));

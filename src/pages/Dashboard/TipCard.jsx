@@ -1,3 +1,4 @@
+import LineIcon from "../../components/LineIcon";
 import { useState } from "react";
 import { localISO } from "../../lib/dateKey";
 import { tipOfTheDay } from "../../lib/content/tips";
@@ -13,7 +14,7 @@ export default function TipCard() {
   if (dismissed) return null;
   return (
     <div className="glass tip-card" data-testid="tip-card" style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px" }}>
-      <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1.4 }}>💡</span>
+      <span className="tip-line-icon"><LineIcon name="bulb" size={20}/></span>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-dim)", marginBottom: 2 }}>{tx("نصيحة اليوم")}</div>
         <div style={{ fontSize: 13, lineHeight: 1.8 }}>{tipOfTheDay(today)}</div>

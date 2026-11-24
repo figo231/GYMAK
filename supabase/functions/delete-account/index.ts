@@ -28,6 +28,18 @@ Deno.serve(async (req: Request) => {
     if (files?.length) await service.storage.from("avatars").remove(files.map((f) => `${data.user.id}/${f.name}`));
   } catch (_) { /* best effort; account deletion proceeds */ }
 
+  // Photo originals and avatars must be physically removed before the row cascade loses their paths.
+  // Fail closed for these private files, so retrying account deletion can finish cleanup.
+  try {
+    const uid=data.user.id;
+    const {data:photos,error:photoError}=await service.from('chat_photos').select('id,path').or(`sender_id.eq.${uid},recipient_id.eq.${uid}`);
+    if(photoError)throw photoError;
+    for(let i=0;i<(photos||[]).length;i+=100){const {error:e}=await service.storage.from('chat-delivery').remove(photos!.slice(i,i+100).map(p=>p.path));if(e)throw e;}
+    const {error:avatarError}=await service.storage.from('chat-avatars').remove([`${uid}/chat-avatar.jpg`]);if(avatarError)throw avatarError;
+    const {data:reports,error:reportError}=await service.from('moderation_reports').select('photo_evidence_path').or(`reporter_id.eq.${uid},target_user_id.eq.${uid}`).not('photo_evidence_path','is',null);if(reportError)throw reportError;
+    for(let i=0;i<(reports||[]).length;i+=100){const {error:e}=await service.storage.from('chat-report-evidence').remove(reports!.slice(i,i+100).map(p=>p.photo_evidence_path));if(e)throw e;}
+  } catch (_) { return new Response(JSON.stringify({error:'Photo cleanup could not finish. Please retry account deletion.'}),{status:503,headers:{...cors,'Content-Type':'application/json'}}); }
+
   // Only ever the caller's own id, taken from the verified token.
   const { error: delError } = await service.auth.admin.deleteUser(data.user.id);
   if (delError) return new Response(JSON.stringify({ error: delError.message }), { status: 500, headers: cors });

@@ -1,3 +1,6 @@
+import HomeSection from "../../components/HomeSection";
+import LineIcon from "../../components/LineIcon";
+import "./dashboard25.css";
 import { useMemo, useState } from "react";
 import { localISO } from "../../lib/dateKey";
 import { Link, useNavigate } from "react-router-dom";
@@ -172,18 +175,17 @@ export default function Dashboard() {
             toast(txf(`جهزت لك تمرين سريع: {0} تمارين، حوالي {1} دقيقة ⚡`, [picked.length, quickWorkoutMinutes(picked)]));
             refresh();
           }}>
-          {tx("⚡ زنقة؟ تمرين سريع 15-20 دقيقة — ضغطة واحدة ويبقى جاهز")}
+          <LineIcon name="bolt" size={17}/>{tx("تمرين سريع · 15–20 دقيقة")}
         </button>
       )}
 
       <div className="today-strip" data-testid="today-strip">
         <Link to="/exercises" className="ts-item"><b>{todayList.length ? `${doneCount}/${todayList.length}` : "—"}</b><span>{tx("تمارين")}</span></Link>
-        <button type="button" className="ts-item" onClick={() => document.querySelector('[data-testid="water-card"]')?.scrollIntoView({ behavior: "smooth", block: "center" })}><b dir="ltr">{waterPct}%</b><span>{tx("مياه")}</span></button>
+        <button type="button" className="ts-item" onClick={() => {const b=document.querySelector('[aria-controls="home-section-daily"]');if(b?.getAttribute('aria-expanded')==='false')b.click();setTimeout(()=>document.querySelector('[data-testid="water-card"]')?.scrollIntoView({behavior:'smooth',block:'center'}),50);}}><b dir="ltr">{waterPct}%</b><span>{tx("مياه")}</span></button>
         <Link to="/food" className="ts-item"><b dir="ltr">{kcalToday}</b><span>{tx("سعرات")}</span></Link>
       </div>
 
-      <TipCard />
-      <WeeklyReportCard />
+
 
       {recent.length === 0 && (
         <div className="glass start-card" data-testid="start-card">
@@ -200,56 +202,6 @@ export default function Dashboard() {
           })}
         </div>
       )}
-
-      <div className={"glass streak-card" + (trainedToday ? " lit" : "")}>
-        <div className="streak-flame">
-          <svg viewBox="0 0 24 24" width="30" height="30">
-            <defs>
-              <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stopColor="#EF4444" />
-                <stop offset="55%" stopColor="#F97316" />
-                <stop offset="100%" stopColor="#FBBF24" />
-              </linearGradient>
-            </defs>
-            <path fill="url(#flameGrad)" d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" />
-          </svg>
-        </div>
-        <div className="streak-body">
-          <div className="streak-num-row">
-            <span className="streak-num">{streak}</span>
-            <span className="streak-label">{streak === 0 ? tx("ابدأ سلسلتك النهارده") : tx("يوم متتالي")}</span>
-          </div>
-          <div className="streak-week">
-            {week.map((d) => {
-              const dow = new Date(d.date + "T00:00:00").getDay();
-              const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("اتمرنت") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
-            })}
-          </div>
-          {atRisk && <div className="streak-warn">{tx("سجّل تمرين النهارده عشان سلسلة الـ")}{streak} {streak === 1 ? tx("يوم") : streak === 2 ? tx("يومين") : streak <= 10 ? tx("أيام") : tx("يوم")} {tx("متتقطعش")}</div>}
-        </div>
-        <div className="streak-record">
-          <span className="rec-num">{best}</span>
-          <span className="rec-txt">{tx("أطول سلسلة")}</span>
-        </div>
-      </div>
-
-      <div className={"glass streak-card food" + (nutritionWeek.at(-1)?.done ? " lit" : "")}>
-        <div className="streak-flame" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🍎</div>
-        <div className="streak-body">
-          <div className="streak-num-row">
-            <span className="streak-num">{nutritionStreak}</span>
-            <span className="streak-label">{nutritionStreak === 0 ? tx("سجّل أكلك النهارده") : tx("يوم التزام بالأكل")}</span>
-          </div>
-          <div className="streak-week">
-            {nutritionWeek.map((d) => {
-              const dow = new Date(d.date + "T00:00:00").getDay();
-              const isToday = d.date === localISO();
-              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("ملتزم") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
-            })}
-          </div>
-        </div>
-      </div>
 
       <div className="top-row">
         <div className="glass weight-card">
@@ -303,9 +255,61 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <ChallengeCard version={version} />
+      <HomeSection id="daily" title={tx("متابعة يومك")} subtitle={tx("المياه، التحديات والسلاسل")}>
       <WaterCard />
+      <ChallengeCard version={version} />
+      <div className={"glass streak-card" + (trainedToday ? " lit" : "")}>
+        <div className="streak-flame">
+          <svg viewBox="0 0 24 24" width="30" height="30">
+            <defs>
+              <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor="#EF4444" />
+                <stop offset="55%" stopColor="#F97316" />
+                <stop offset="100%" stopColor="#FBBF24" />
+              </linearGradient>
+            </defs>
+            <path fill="url(#flameGrad)" d="M12 2c1 3-2 4.2-2 7 0 1.7 1.3 3 3 3s3-1.3 3-3c1.5 1.5 2.5 3.6 2.5 5.8 0 3.6-2.9 6.7-6.5 6.7S5.5 19.4 5.5 15.8c0-2.6 1.2-4.4 2.4-6.1C9.2 7.7 10 5.3 12 2Z" />
+          </svg>
+        </div>
+        <div className="streak-body">
+          <div className="streak-num-row">
+            <span className="streak-num">{streak}</span>
+            <span className="streak-label">{streak === 0 ? tx("ابدأ سلسلتك النهارده") : tx("يوم متتالي")}</span>
+          </div>
+          <div className="streak-week">
+            {week.map((d) => {
+              const dow = new Date(d.date + "T00:00:00").getDay();
+              const isToday = d.date === localISO();
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("اتمرنت") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
+            })}
+          </div>
+          {atRisk && <div className="streak-warn">{tx("سجّل تمرين النهارده عشان سلسلة الـ")}{streak} {streak === 1 ? tx("يوم") : streak === 2 ? tx("يومين") : streak <= 10 ? tx("أيام") : tx("يوم")} {tx("متتقطعش")}</div>}
+        </div>
+        <div className="streak-record">
+          <span className="rec-num">{best}</span>
+          <span className="rec-txt">{tx("أطول سلسلة")}</span>
+        </div>
+      </div>
 
+      <div className={"glass streak-card food" + (nutritionWeek.at(-1)?.done ? " lit" : "")}>
+        <div className="streak-flame" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}><LineIcon name="leaf" size={26}/></div>
+        <div className="streak-body">
+          <div className="streak-num-row">
+            <span className="streak-num">{nutritionStreak}</span>
+            <span className="streak-label">{nutritionStreak === 0 ? tx("سجّل أكلك النهارده") : tx("يوم التزام بالأكل")}</span>
+          </div>
+          <div className="streak-week">
+            {nutritionWeek.map((d) => {
+              const dow = new Date(d.date + "T00:00:00").getDay();
+              const isToday = d.date === localISO();
+              return <div key={d.date} className={"sw-day" + (d.done ? " on" : "") + (isToday ? " today" : "")} aria-label={txf(`{0}{1}: {2}`, [DAY_LETTERS[dow], isToday ? " (النهارده)" : "", d.done ? tx("ملتزم") : tx("لا")])}>{DAY_LETTERS[dow]}</div>;
+            })}
+          </div>
+        </div>
+      </div>
+
+      </HomeSection>
+      <HomeSection id="insights" title={tx("نظرة على تقدمك")} subtitle={tx("تقرير الأسبوع ونصيحة اليوم")}><WeeklyReportCard /><TipCard /></HomeSection>
       <div className="home-body">
       <div className="section-title">
         <h2>{tx("مؤشرات الجسم")}</h2>

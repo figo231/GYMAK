@@ -1,3 +1,5 @@
+import VerifiedBadge from "../../components/VerifiedBadge";
+import ChatAvatar from "../../components/ChatAvatar";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DetailTopBar } from '../../components/layout/DetailShell';
@@ -59,7 +61,7 @@ function Directory({ userId }) {
     {busy && <p role="status">{tx("بنحمّل الاقتراحات...")}</p>}
     {!busy && !err && !rows.length && <div className="pc-empty glass"><h2>{tx("الاقتراحات هتظهر هنا")}</h2><p>{tx("لسه صاحب التطبيق مضفش بطاقات منشورة في القسم ده. جرّب تاني بعدين.")}</p></div>}
     <div className="pc-list">{rows.map(r => <article className="pro-card glass" key={r.user_id}>
-      <div className="pro-card-head"><span className="pc-avatar" aria-hidden="true">{r.name.slice(0,1)}</span><div><small>{CHAT_ROLE_LABELS[r.kind]}</small><h2>{r.name}</h2></div></div><p className="pro-bio">{r.bio || tx('مفيش وصف مضاف لسه.')}</p>
+      <div className="pro-card-head">{userId?<Link to={`/chat-profile/${r.user_id}`} aria-label="الملف الشخصي"><ChatAvatar className="pc-avatar" userId={r.user_id} label={r.name}/></Link>:<span className="pc-avatar" aria-hidden="true">{r.name.slice(0,1)}</span>}<div><small>{CHAT_ROLE_LABELS[r.kind]}</small><h2>{r.name} {r.verified&&<VerifiedBadge/>}</h2></div></div><p className="pro-bio">{r.bio || tx('مفيش وصف مضاف لسه.')}</p>
       {r.request_status && <p className="pc-hint">{tx("طلب التواصل:")} {REQUEST_LABELS[r.request_status]}</p>}
       {!userId ? <Link className="pc-small" to="/auth/login">{tx("سجل الدخول لطلب التواصل")}</Link> : userId === r.user_id ? <p className="pc-hint">{tx("دي بطاقتك الظاهرة للمستخدمين.")}</p> : !r.ready ? <p className="pc-hint">{tx("التواصل لسه مش مفعّل للحساب ده.")}</p> : !r.request_status ? <button className="btn btn-primary" disabled={sending || busy} onClick={() => { setConfirm(r); setDone(''); }}>{tx("طلب تواصل")}</button> : <a className="pc-small" href="#contact-requests">{tx("شوف حالة طلبك ↓")}</a>}
       {confirm?.user_id === r.user_id && <div className="pro-confirm"><h3>{tx("تأكيد الطلب إلى")} {r.name}</h3><p>{tx("هيشوف اسمك الظاهر بس. لا إيميلك ولا بيانات تمرينك. مفيش رسالة أو التزام مدفوع في الطلب. المحادثة تبدأ بعد القبول، ومشاركة بيانات التمرين ليها موافقة منفصلة.")}</p><p>{tx("لازم تكون وافقت على")} <Link to="/messages">{tx("تنبيه خصوصية الرسائل")}</Link> {tx("الأول.")}</p><button className="btn btn-primary" disabled={sending} onClick={send}>{sending ? tx('بيتبعت...') : tx('تأكيد إرسال الطلب')}</button><button className="pc-small" disabled={sending} onClick={() => setConfirm(null)}>{tx("رجوع")}</button></div>}

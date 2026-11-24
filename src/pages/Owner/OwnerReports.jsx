@@ -1,3 +1,4 @@
+import ReportPhotoEvidence from "../../components/ReportPhotoEvidence";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { REPORT_REASONS, REPORT_STATUS_LABELS, REPORT_TYPE_LABELS, fetchModerationReports, moderationError, setModerationReportStatus } from "../../lib/moderation";
 import "../PrivateChat/privateChat.css";
@@ -64,6 +65,7 @@ export default function OwnerReports() {
         <small>{tx("المُبلِغ:")} {r.reporter_label}{r.target_label ? txf(` · المُبلَّغ عنه: {0}`, [r.target_label]) : ""}</small>
         {r.content_snapshot && <small style={{ whiteSpace: "pre-wrap" }}>{tx("المحتوى:")} {r.content_snapshot}</small>}
         {r.details && <small style={{ whiteSpace: "pre-wrap" }}>{tx("تفاصيل المُبلِغ:")} {r.details}</small>}
+        {r.details?.includes("reporter-provided device copy")&&<ReportPhotoEvidence reportId={r.id}/>}
         <small>{stamp(r.created_at)} · {REPORT_STATUS_LABELS[r.status] || r.status}</small>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

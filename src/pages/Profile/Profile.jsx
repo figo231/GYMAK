@@ -1,3 +1,4 @@
+import {getChatProfile,saveChatProfile,uploadChatAvatar} from "../../lib/chatIdentity";
 import {performTrainingReset,clearTrainingLocally} from '../../lib/trainingReset';
 import {supabase} from '../../lib/supabaseClient';
 import {syncManager} from '../../lib/sync/syncManager';
@@ -124,6 +125,7 @@ export default function Profile({ panel = null }) {
       if (myToken !== avatarUploadToken.current) return; // a newer pick already superseded this one
       const res = Store.setAvatar(avatarValue);
       if (!res.ok) toast(tx("مساحة التخزين المحلي ممتلئة. جرّب تمسح بيانات قديمة أو تستخدم صورة أصغر."));
+      if(user?.id){try{const cp=await getChatProfile(user.id);if(cp?.visible){let blob=await compressImageToBlob(file,320,.65);if(blob.size>102400)blob=await compressImageToBlob(file,240,.5);const avatar_path=await uploadChatAvatar(user.id,blob);await saveChatProfile({...cp,avatar_path});}}catch{toast(tx("صورة حسابك اتحفظت، لكن صورة المحادثات متحدثتش. افتح ملفي في المحادثات وحاول تاني."));}}
       refresh();
     } catch {
       if (myToken !== avatarUploadToken.current) return;
@@ -176,6 +178,7 @@ export default function Profile({ panel = null }) {
     const owner=user?.id;
     if(owner){await saveIdentity(owner,{name,username,gender});}
     if(identityOwnerRef.current!==owner)throw Error("session_changed");
+    if(owner){try{const cp=await getChatProfile(owner);if(cp?.visible)await saveChatProfile({...cp,display_name:name,bio});}catch{toast(tx("اسم حسابك اتحفظ، لكن ملف المحادثات متحدثش. افتح ملفي في المحادثات وحاول تاني."));}}
     Store.setProfileName(name);
     Store.setUsername(username);
     Store.setBio(bio);
@@ -342,7 +345,7 @@ export default function Profile({ panel = null }) {
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">{tx("التذكير اليومي")}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("التنبيهات ←")}</Link></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("المساعدة والدعم")}</h3><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("المساعدة وأسئلة شائعة ←")}</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("تواصل معانا ←")}</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("جولة تعريفية بالتطبيق ←")}</Link><a
+        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("التنبيهات ←")}</Link></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("المساعدة والدعم")}</h3><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("المساعدة وأسئلة شائعة ←")}</Link><Link to="/chat-profile" className="glass coach-card" style={{padding:14,display:"block",fontWeight:700,marginBottom:10}}>{tx("ملفي وخصوصيتي في المحادثات ←")}</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("تواصل معانا ←")}</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("جولة تعريفية بالتطبيق ←")}</Link><a
           href={Store.getDeveloperWhatsAppUrl()} target="_blank" rel="noreferrer"
           className="settings-row" style={{ textDecoration: "none", color: "inherit" }}
         >

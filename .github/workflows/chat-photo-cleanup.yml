@@ -1,0 +1,22 @@
+name: Clean expired private chat photos
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Delete expired delivery originals and report evidence
+        env:
+          SUPABASE_URL: https://ybkeshztehjeoeonpkih.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo 'Missing cleanup credential; expiry deletion is not running.'; exit 1; }
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -X POST "$SUPABASE_URL/functions/v1/chat-photo" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H 'Content-Type: application/json' -H 'x-photo-action: cleanup' --data '{}'
