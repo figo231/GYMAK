@@ -6,22 +6,7 @@ on:
 permissions:
   contents: write
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Import exact private candidate source
-        run: |
-          base64 -d apk25-candidate-source.txt > /tmp/apk25-source.bundle
-          echo 'e7fbc6978914327c9bcef8eb989f817a03cfb5bb2e02b5a57ef3c47831c55e3a  /tmp/apk25-source.bundle' | sha256sum -c -
-          git bundle verify /tmp/apk25-source.bundle
-          git fetch /tmp/apk25-source.bundle feat/apk25-polish:refs/heads/apk25-source
-          test "$(git rev-parse apk25-source)" = 248ba3404dc2c1a2c41f33280ca29901ae2ec151
-          git push origin apk25-source:refs/heads/candidate/apk25-private
   apk:
-    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -32,8 +17,15 @@ jobs:
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: 248ba3404dc2c1a2c41f33280ca29901ae2ec151
+      - name: Load exact APK25 source without pushing any branch
+        run: |
+          base64 -d apk25-candidate-source.txt > /tmp/apk25-source.bundle
+          echo 'e7fbc6978914327c9bcef8eb989f817a03cfb5bb2e02b5a57ef3c47831c55e3a  /tmp/apk25-source.bundle' | sha256sum -c -
+          git fetch --unshallow origin
+          git bundle verify /tmp/apk25-source.bundle
+          git fetch /tmp/apk25-source.bundle feat/apk25-polish
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = 248ba3404dc2c1a2c41f33280ca29901ae2ec151
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -88,7 +80,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Verify apk-9 upgrade and fresh offline launch
-        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        uses: reactivecircus/android-emulator-runner@036676857acd4cded700ced33a7b97d814d2d669
         with:
           api-level: 35
           target: google_apis
