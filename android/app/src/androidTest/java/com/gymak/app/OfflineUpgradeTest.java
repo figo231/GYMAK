@@ -61,6 +61,7 @@ public class OfflineUpgradeTest {
             js(a,"window.__nativeVersion='pending';window.Capacitor.nativePromise('App','getInfo',{}).then(x=>window.__nativeVersion=String(x.build)).catch(e=>window.__nativeVersion=String(e))");
             waitFor(a,"window.__nativeVersion!=='pending'");
             assertEquals("25",js(a,"window.__nativeVersion"));
+            waitFor(a,"navigator.onLine === true");
             js(a,"window.dispatchEvent(new Event('gymak-open-update-center'))");
             waitFor(a,"document.querySelector('.update-center[role=dialog]')");
             js(a,"[...document.querySelectorAll('.update-center button')].find(b=>b.textContent.includes('صفحة التحميل')||b.textContent.includes('download page'))?.click()");
