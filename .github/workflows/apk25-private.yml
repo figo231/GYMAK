@@ -1,4 +1,4 @@
-name: Private APK26 verification revision 5
+name: Publish verified APK26
 on:
   push:
     branches: [stage/apk25-private]
@@ -16,6 +16,11 @@ jobs:
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
+      - name: Require successful exact APK26 verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45500751836 --jq .conclusion)" = success
       - uses: actions/checkout@v4
       - name: Load exact APK26 candidate, no production publication
         run: |
@@ -93,3 +98,35 @@ jobs:
         with:
           name: gymak-offline-verification
           path: verification/
+
+      - name: Verify signing and publish APK26
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-25/GYMAK.apk -o /tmp/apk25.apk
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
+          "$SIGNER" verify --print-certs /tmp/apk25.apk > /tmp/old-certificate.txt
+          "$SIGNER" verify --print-certs android/app/build/outputs/apk/debug/app-debug.apk > /tmp/new-certificate.txt
+          diff <(grep 'certificate SHA-256 digest' /tmp/old-certificate.txt) <(grep 'certificate SHA-256 digest' /tmp/new-certificate.txt)
+          "$AAPT" dump badging android/app/build/outputs/apk/debug/app-debug.apk | head -1 | tee /tmp/apk26-version.txt
+          grep -q "versionCode='26'" /tmp/apk26-version.txt
+          cp android/app/build/outputs/apk/debug/app-debug.apk GYMAK.apk
+          sha256sum GYMAK.apk
+          git restore --worktree --staged .
+          git fetch origin stage/apk25-private web-production
+          git checkout -B release-source
+          git rm -r .github/workflows
+          git checkout origin/stage/apk25-private -- .github/workflows
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows
+          git diff --cached --quiet || git commit -m 'Preserve automation with verified APK26 source'
+          git push origin HEAD:refs/heads/release/apk26-candidate
+          RELEASE_TARGET=$(git rev-parse HEAD)
+          gh release create apk-26 GYMAK.apk --target "$RELEASE_TARGET" --latest --title 'GYMAK 26' --notes 'Automatic web-layer updates enabled. Mandatory sign-in preserves existing device history with reviewed import. Install over the existing app without uninstalling.'
+          git checkout -B web-release origin/web-production
+          git rm -r --ignore-unmatch . ':!.github/workflows'
+          git checkout "$RELEASE_TARGET" -- . ':!.github/workflows'
+          git diff --cached --quiet || git commit -m 'Publish verified APK26 web source'
+          git push origin HEAD:refs/heads/web-production
