@@ -9,9 +9,12 @@ export function createPhotoHandler(createClient:any,env:{get:(key:string)=>strin
  const service=createClient(url,key,{auth:{persistSession:false}});
  const action=req.headers.get('x-photo-action');
  const budget=async(bytes:number)=>{const {error}=await service.rpc('chat_storage_budget_check',{p_extra:bytes});if(error)throw error;};
- // Dedicated scheduled cleanup uses the service JWT, never a client-authorized task.
+ // Cleanup accepts a dedicated narrow scheduler secret, never a client token.
  if(action==='cleanup'){
-  if(jwt!==key)return answer({error:'not_allowed'},403);
+  const expected=env.get('CHAT_PHOTO_CLEANUP_SECRET')||'';
+  const supplied=req.headers.get('x-chat-photo-cleanup-secret')||'';
+  let diff=expected.length^supplied.length;for(let i=0;i<expected.length;i++)diff|=expected.charCodeAt(i)^(supplied.charCodeAt(i)||0);
+  if(!expected||diff)return answer({error:'not_allowed'},403);
   const {data:rows,error}=await service.from('chat_photos').select('id,path').in('status',['reserved','ready']).lt('expires_at',new Date().toISOString()).limit(200);
   if(error)return answer({error:'cleanup_failed'},500);
   let removed=0,failed=0;for(const row of rows||[]){const {error:e}=await service.storage.from('chat-delivery').remove([row.path]);if(!e){const {error:r}=await service.rpc('chat_photo_removed',{p_photo:row.id,p_saved:false});if(!r)removed++;else failed++;}else failed++;}

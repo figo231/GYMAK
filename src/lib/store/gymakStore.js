@@ -1308,9 +1308,9 @@ let ownerView = false;
 
     getGoalModes() {
       const g = load().profile.gender;
-      return Object.fromEntries(Object.entries(GOAL_MODES).filter(([, v]) => !v.only || v.only === g));
+      return Object.fromEntries(Object.entries(GOAL_MODES).filter(([, v]) => !v.only || ownerView || v.only === g));
     },
-    getGoalMode() { const p = load().profile; const m = p.goalMode; return m && GOAL_MODES[m] && (!GOAL_MODES[m].only || GOAL_MODES[m].only === p.gender) ? m : null; },
+    getGoalMode() { const p = load().profile; const m = p.goalMode; return m && GOAL_MODES[m] && (!GOAL_MODES[m].only || ownerView || GOAL_MODES[m].only === p.gender) ? m : null; },
     setGoalMode(m) {
       const s = load();
       if (m && !GOAL_MODES[m]) return s.profile.goalMode || null;
@@ -1967,6 +1967,13 @@ let ownerView = false;
     },
 
     /** Raw local state for the sync engine to read — push-shaping happens in sync/domains.js, not here. */
+    clearGuestPendingDeletes() {
+      const s = load();
+      s.pendingDeletes = { weight: [], food: [], exerciseLogs: [], prs: [] };
+      s.deletedExerciseIds = [];
+      save(s);
+    },
+
     getRawStateForSync() {
       return load();
     },

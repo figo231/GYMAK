@@ -8,6 +8,7 @@ import MessageTicks from "../../components/MessageTicks";
 import {acknowledgeChat,receiptStatus} from "../../lib/chatIdentity";
 import "../Profile/chatProfile.css";
 import VerifiedBadge from "../../components/VerifiedBadge";
+import { isDeveloperContentUser } from "../../lib/developerContent";
 import RoleRequestPanel from "../../components/RoleRequestPanel";
 import LineIcon from "../../components/LineIcon";
 import {isEn} from "../../lib/i18n/lang";
@@ -53,6 +54,8 @@ export function Consent({ onAccept }) {
 }
 
 function Inbox() {
+  const { user } = useAuth();
+  const developerSelf = isDeveloperContentUser(user?.id);
   const [identityVersion,setIdentityVersion]=useState(0);
   const [search,setSearch]=useState(""); const [query,setQuery]=useState("");
   useEffect(()=>{const timer=setTimeout(()=>setQuery(search.trim()),250);return()=>clearTimeout(timer);},[search]);
@@ -108,6 +111,7 @@ function Inbox() {
   return <>
     <div className="inbox-masthead"><div><span className="inbox-eyebrow">GYMAK MESSAGES</span><h1>{isEn()?"Your conversations":"رسايلك"}</h1><p>{isEn()?"A little support. A better next step.":"سؤال صغير. خطوة أحسن."}</p></div><Link to="/chat-profile" className="inbox-settings" aria-label={isEn()?"My profile and privacy":"ملفي وخصوصية الرسايل"}><LineIcon name="user" size={23}/></Link></div><div className="inbox-quicklinks"><UsernameSearch/><Link to="/professionals">{isEn()?"Find a coach":"مدربين ودكاترة"}<span>↗</span></Link><button type="button" disabled={busy} onClick={load} aria-label={isEn()?"Refresh":"تحديث"}><LineIcon name="refresh" size={17}/></button></div>
     <label className="inbox-search"><LineIcon name="search" size={19}/><input aria-label={isEn()?"Search conversations by name":"بحث في المحادثات بالاسم"} type="search" maxLength={80} value={search} onChange={e=>setSearch(e.target.value)} placeholder={isEn()?"Search by name":"دور بالاسم"}/></label>
+    {developerSelf && <Link to="/chat-profile" className="developer-contact developer-self-preview"><span className="developer-icon"><img src="/icon-192.png" alt=""/></span><span><strong>{isEn()?"GYMAK developer":"مطور GYMAK"} <VerifiedBadge developer/></strong><small>{isEn()?"Your pinned developer card · edit your profile":"حسابك المثبت للمستخدمين · تعديل ملفك"}</small></span><LineIcon name="user" size={20}/></Link>}
     {contacts.some(c=>c.is_developer)&&<div className="developer-contacts">{contacts.filter(c=>c.is_developer).map(c=><button type="button" className="developer-contact" key={c.user_id} disabled={!!starting} onClick={()=>open(c)}><span className="developer-icon"><img src="/icon-192.png" alt=""/></span><span><strong>{c.label} <VerifiedBadge developer/></strong><small>{isEn()?"GYMAK developer · contact support":"مطور GYMAK · تواصل معايا"}</small></span><LineIcon name="chat" size={20}/></button>)}</div>}
     <ErrorBox text={err} />
     {!busy && !err && rows.length === 0 && <p className="pc-empty glass">{tx("لسه مفيش محادثات. افتح المدربين المقترحين لطلب تواصل، أو اختار جهة مقبولة من تحت.")}</p>}

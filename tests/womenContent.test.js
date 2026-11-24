@@ -96,6 +96,12 @@ describe("owner view", () => {
     expect(S.getPrograms().some((p) => p.id === "w-home-glutes")).toBe(false);
     expect(S.canSeeWomenContent()).toBe(false);
   });
+  it("owner can use every goal while normal male filtering remains unchanged", () => {
+    S.setGender("male"); expect(S.getGoalModes().glutes).toBeUndefined();
+    S.setOwnerView(true); expect(S.getGoalModes().glutes).toBeTruthy();
+    S.setGoalMode("glutes"); expect(S.getGoalMode()).toBe("glutes");
+    S.setOwnerView(false); expect(S.getGoalMode()).toBeNull();
+  });
   it("notifies listeners so open screens refresh", () => {
     let n = 0; S.onChange(() => { n++; });
     S.setOwnerView(true); S.setOwnerView(true); S.setOwnerView(false);

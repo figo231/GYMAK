@@ -32,3 +32,11 @@ it('paginates the full owner directory without silently dropping accounts at500'
  let after=null,seen=[];for(let i=0;i<4;i++){const arg=after?`'${after}'`:'null';const r=(await actor(owner,`select owner_push_users('',${arg}) p`))[0].p;seen.push(...r.users.map(x=>x.user_id));if(!r.has_more)break;after=r.users.at(-1).user_id;}
  expect(seen).toHaveLength(208);expect(new Set(seen).size).toBe(208);
 });
+it('web migration includes recent web tokens in review and claim with the same opt-out rules',async()=>{
+ await db.exec(readFileSync('supabase/migrations/0050_owner_web_push.sql','utf8'));
+ await db.exec(`insert into push_tokens(user_id,device_id,platform,is_active) values('${owner}','owner-web','web',true),('${b}','opted-out-web','web',true)`);
+ const r=(await actor(owner,`select owner_push_review('Web','Body','selected',array['${owner}']::uuid[],'${owner}') p`))[0].p;
+ expect(r.devices).toBe(2);
+ await db.exec('update owner_push_control set enabled=true');await actor(owner,`select owner_push_confirm('${r.campaign_id}','${owner}')`);
+ let count=0;for(let i=0;i<3;i++){const x=(await db.query(`select claim_owner_push('${r.campaign_id}') p`)).rows[0].p;if(x&&!x.skipped)count++;}expect(count).toBe(2);
+});

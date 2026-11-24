@@ -4,9 +4,9 @@ This branch is not released. Owner approval is required before publication.
 
 ## New backend prerequisites
 
-- Apply migrations 0038–0045 in sequence after checking the current live migration head.
+- Apply migrations 0038 through 0047 in sequence only in the approved release window, after checking the current live migration head and the disposable-project evidence.
 - Deploy updated `delete-account` and `chat-photo` Edge Functions using existing project-managed environment secrets. Do not put any key in client code or logs.
-- Configure repository secret `SUPABASE_SERVICE_ROLE_KEY` for the hourly cleanup workflow, then run the workflow once and verify actual object removal. A workflow file alone is not a running cleanup service.
+- Follow APK25-FREE-SERVER-WIRING.md. Prefer free provider-native hourly scheduling with a dedicated cleanup-only secret after implementing that endpoint authentication. Never place a broad service credential in scheduler SQL or add it merely to activate the old workflow. Verify a real scheduled fire physically removes an expired synthetic object. A workflow file alone is not a running cleanup service.
 - Verify private buckets, participant denial, recipient-save deletion and expiry against the real Storage API. Local SQL tests cannot validate object-byte deletion.
 - Check current organization Storage/egress usage, since the 200 MB pending-photo cap is shared with other buckets under the free 1 GB allowance. No paid fallback.
 - Update published privacy/terms copy together with the app. Users get an explicit per-photo preview and opt-in; username discovery is off until enabled.
@@ -71,3 +71,28 @@ Existing200MiB pending-delivery cap remains:1024maximum-size200KiB photos, befor
 Clear Arabic messages distinguish daily cap and safe free-storage stop, without suggesting payment. Screenshot inspected390px;360/390/412no overflow.550tests109files pass, production build and actual Deno check pass.
 
 This guard is prepared locally, NOT applied to production and NOT included in the previous48hosted checks. It needs hosted validation in a new disposable environment. The earlier test project has been deleted. Changing storage.objects with an additive trigger is part of migration0047 and must be reviewed with the release plan, not applied silently. The guard covers this project's bytes, not a future second project's quota, bandwidth/egress, database size, or function invocation quotas. Shared account usage and free plan must be checked again at release. Zero server load cannot be promised: compression runs locally but private delivery/auth/cleanup still use server resources. Free-tier limits can block service; never switch to paid service automatically.
+
+
+## Final hosted guard checkpoint, 24 November 21:00 Cairo
+
+New disposable FREE project aznkcjhtywqjoxhrwexb accepted all prerequisite migrations through0047, including the Storage trigger.22hosted SQL behavior checks repeated successfully and21new quota/guard checks passed. Tests cover exact400MiB boundary, other-bucket usage, missing metadata fail-closed handling, reservations/evidence, expired metadata, per-image/day limits and concurrent writes serializing then rechecking committed usage. These are hosted SQL/Storage metadata tests, not a repeat of the earlier authenticated Edge byte-upload suite. The earlier deleted project's26Edge/Storage checks remain byte-lifecycle integration evidence before0047. No fresh final-guard Edge deployment was performed.
+
+Both disposable projects are deleted. Dashboard visually shows only original GYMAK in the FREE organization. The second vault entry and local secret file are deleted; no deployment token was created for the second project. Production untouched.
+
+Final native run45464001614 on exact app source90f159b passed tests/build and APK compile; emulator verification and final pixel inspection pending at this checkpoint. Source500fb1c only adds the free-server wiring plan. Hourly cleanup and prompt push wake/continuation remain plans, not activated services. Full real-device FCM receipt and two-session UI/cache persistence tests remain unverified.
+
+
+## Approved production activation, 24 November21:43
+
+Owner release go-ahead was followed by approval after gap disclosure. Migrations38-47preflighted within a rollback transaction, then committed atomically.92function rollback definitions were saved and successfully re-applied in a transaction then rolled back before mutation. Existing13profiles,2conversations,4messages retained identical content hashes after excluding new nullable columns. Old/new inbox/contacts calls for all consented users pass.
+
+Server sourcea31f875 adds dedicated cleanup-only authentication and migration48free pg_cron/pg_net wiring. Push enabled. Statement-level after-insert queue wake sends constant empty JSON, never message/token content; a conditional minute sweep handles missed wakes and continuation without retrying unknown outcomes. A real synthetic invalid-token request reached FCM and was rejectedINVALID_ARGUMENT. This proves provider connectivity, NOT a real phone receipt.
+
+Cleanup temporarily scheduled each minute for one observed smoke fire at21:43: valid synthetic JPEG was physically removed and row markedexpired, HTTP200. Restored hourly at minute23. Synthetic accounts/files/function/test secret removed; dedicated operational secrets remain only in provider Vault/runtime. Deployment token revoked with visual confirmation, local secret captures deleted. No paid resources.
+
+Production-enabled appsource90f159b passed550tests/build and all native checks in run45472778034. Update launched exact/welcome and Android/getInfo25but screenshot stillblank; no claim of painted-native landing verification. APK24upgrade pixels inspected. Publication run45474865179consumes exact successful artifact and checks signing certificate/version before release. Final download/web checks pending.
+
+
+## Release complete21:55
+
+APK25published at https://github.com/figo231/GYMAK/releases/tag/apk-25 from exact passed production-enabled artifact. Publication45475143906compared signing certificate to24and package version25. Release appsource90f159b; release commit27e3e77preserves existing workflow files to satisfy repository permissions. Same-domain download/welcome verified,12466763bytes,SHA2563d5c538dd5ef7e6b8a256949c8d211b2df1d2c1899e91fc5da266219d9399339. Browser pixels render correctly. Android blank-content screenshot caveat remains. Server operational sourcepatcha31f875is local and attached to parent for durable follow-up; app/web source stays90f159b.

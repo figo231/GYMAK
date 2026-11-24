@@ -210,6 +210,12 @@ class SyncManager {
       if(this.userId!==cycleUser)return;
       if(resetElsewhere||resumedReset){this._applyingRemote=true;try{await pullAll(cycleUser);}finally{this._applyingRemote=false;}}
       if(this.userId!==cycleUser)return;
+      if(localStorage.getItem('gymak_guest_import_remote_committed_v1')===cycleUser){
+        this._applyingRemote=true;try{await pullAll(cycleUser);}finally{this._applyingRemote=false;}
+        if(this.userId!==cycleUser)return;
+        this._markMigrated(cycleUser);localStorage.removeItem('gymak_guest_import_remote_committed_v1');
+        this.lastSyncAt=Date.now();this._setStatus('synced');return;
+      }
       await this._migrateIfNeeded(cycleUser);
       if(this.userId!==cycleUser)return;
 
