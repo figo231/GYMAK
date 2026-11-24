@@ -1,3 +1,5 @@
+import { GYM_EXPANSION_MORE } from "../content/gymExpansionMore";
+import {GYM_EXPANSION} from "../content/gymExpansion";
 /* =========================================================
    GYMAK — طبقة البيانات (Store)
    كل حاجة بتتخزن في localStorage تحت بادئة gymak_
@@ -426,10 +428,13 @@ let ownerView = false;
     { id: "hanging-leg-raise", name: "رفع أرجل معلق", muscle: "core", muscleLabel: "بطن سفلي", secondary: "", sets: 3, reps: 12, custom: false, equipment: "وزن الجسم", difficulty: "متقدم", description: "يستهدف البطن السفلي بشكل مباشر وفعّال جدًا.", instructions: ["علّق نفسك من البار بذراعين مفرودتين.", "ارفع الأرجل لأعلى دون تأرجح.", "اضغط البطن في القمة.", "أنزل ببطء وتحكم تام."] },
     { id: "cable-crunch", name: "كرانش كابل", muscle: "core", muscleLabel: "بطن علوي", secondary: "", sets: 3, reps: 15, custom: false, equipment: "كابل", difficulty: "متوسط", description: "يسمح بإضافة مقاومة تدريجية على البطن العلوي.", instructions: ["اركع أمام البكرة وامسك الحبل خلف الرقبة.", "انحنِ للأمام بالانقباض على البطن فقط.", "لا تستخدم الذراعين أو الوركين للسحب.", "ارجع ببطء للوضع المستقيم."] },
     ...EXTRA_EXERCISES,
+    ...GYM_EXPANSION,
+    ...GYM_EXPANSION_MORE,
     ...WOMEN_EXERCISES,
   ];
 
   const MUSCLE_META = {
+    cardio: { label: "كارديو", color: "#f59e0b", light: "#fde6b6" },
     chest: { label: "صدر", color: "#E6C877", light: "#F4E6B8" },
     back: { label: "ظهر", color: "#7FB58A", light: "#BFE0C5" },
     shoulders: { label: "أكتاف", color: "#D08B5B", light: "#EBC2A3" },

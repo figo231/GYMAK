@@ -1,3 +1,5 @@
+import { WOMEN_GYM_EXPANSION_MORE, WOMEN_GYM_EXPANSION_MORE_EN } from "./gymExpansionMore";
+import {WOMEN_GYM_EXPANSION,WOMEN_GYM_EXPANSION_EN} from "./gymExpansion";
 // Women-specific built-in content. Everything here carries only: "female" and
 // is hidden from every other user at read time (the store filters on `only`).
 // Stored data is never touched: these are plain built-in seeds, like the rest.
@@ -8,6 +10,8 @@ const ex = (id, name, muscle, muscleLabel, secondary, sets, reps, equipment, dif
 });
 
 export const WOMEN_EXERCISES = [
+  ...WOMEN_GYM_EXPANSION,
+  ...WOMEN_GYM_EXPANSION_MORE,
   {"id": "w-hip-thrust", "name": "هيب ثراست بالبار", "muscle": "legs", "muscleLabel": "مؤخرة", "secondary": "فخذ خلفي", "sets": 3, "reps": 10, "equipment": "بار", "difficulty": "متوسط", "description": "دفع الحوض بالبار لتقوية الأرداف. ابدئي بوزن خفيف مع مدربة لو الحركة جديدة.", "instructions": ["ثبتي أعلى الظهر على بنش ثابت وحطي وسادة تحت البار على الحوض.", "ثبتي القدمين واشدي البطن وخلي الذقن للداخل.", "ارفعي الحوض لحد ما يبقى في خط الجسم من غير تقويس أسفل الظهر.", "انزلي بتحكم، ووقفي لو فيه ألم."], "custom": false, "only": "female", "venue": "gym"},
   {"id": "w-cable-kickback", "name": "ركل خلفي بالكابل", "muscle": "legs", "muscleLabel": "مؤخرة", "secondary": "فخذ خلفي", "sets": 3, "reps": 12, "equipment": "كابل", "difficulty": "مبتدئ", "description": "عزل للأرداف بالكابل، التكرارات لكل رجل.", "instructions": ["ثبتي حزام الكاحل في بكرة منخفضة وامسكي الجهاز للتوازن.", "اثني ركبة الارتكاز شوية واشدي البطن.", "ادفعي الرجل للخلف بمدى مريح من غير تقويس الظهر أو لف الحوض.", "ارجعي ببطء وبدلي الرجل بعد التكرارات."], "custom": false, "only": "female", "venue": "gym"},
   {"id": "w-bulgarian-split-squat", "name": "بلغاريان سبليت سكوات", "muscle": "legs", "muscleLabel": "فخذ أمامي", "secondary": "مؤخرة", "sets": 3, "reps": 8, "equipment": "دمبل", "difficulty": "متوسط", "description": "سكوات أحادي الرجل للتوازن وتقوية الأرداف والفخذ. ابدئي من غير أوزان.", "instructions": ["حطي ظهر القدم الخلفية على بنش منخفض وثابت، والأمامية بعيدة بما يكفي للتوازن.", "انزلي بالحوض لأسفل مع ميل بسيط للجذع وظهر محايد.", "خلي الركبة الأمامية في اتجاه أصابع القدم، وانزلي بمدى مريح.", "ادفعي بالقدم الأمامية واطلعي بتحكم ثم بدلي الرجل."], "custom": false, "only": "female", "venue": "gym"},
@@ -105,6 +109,8 @@ export const WOMEN_PROGRAMS = [
 ];
 
 export const WOMEN_EXERCISES_EN = {
+  ...WOMEN_GYM_EXPANSION_EN,
+  ...WOMEN_GYM_EXPANSION_MORE_EN,
   "w-hip-thrust": {"n": "Barbell Hip Thrust", "d": "Use a comfortable range and controlled movement. Stop if you feel pain.", "i": ["Rest your upper back on a secure bench with a pad between the bar and hips.", "Plant your feet, brace your core and tuck your chin gently.", "Lift until your hips line up with your torso without arching the lower back.", "Lower with control. Start light and stop if you feel pain."]},
   "w-cable-kickback": {"n": "Cable Glute Kickback", "d": "Use a comfortable range and controlled movement. Stop if you feel pain.", "i": ["Attach an ankle strap to the low pulley and hold the machine for balance.", "Soften the standing knee and brace your core.", "Extend the working leg back without arching your back or rotating your hips.", "Return slowly, finish the reps, then switch legs."]},
   "w-bulgarian-split-squat": {"n": "Bulgarian Split Squat", "d": "Use a comfortable range and controlled movement. Stop if you feel pain.", "i": ["Rest the rear foot on a low secure bench; position the front foot for balance.", "Lower your hips with a slight forward torso lean and neutral spine.", "Keep the front knee tracking with the toes and use a comfortable range.", "Push through the front foot to rise. Start without dumbbells and repeat both sides."]},

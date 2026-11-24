@@ -1,3 +1,5 @@
+import { GYM_EXPANSION_MORE_EN } from "../content/gymExpansionMore";
+import {GYM_EXPANSION_EN} from "../content/gymExpansion";
 // English display text for built-in exercises, keyed by stable exercise id.
 // Applied at read time in normalizeExercise when the active language is
 // English; stored data and Arabic source stay untouched. Arabic names are
@@ -5,6 +7,8 @@
 import { WOMEN_EXERCISES_EN } from "../content/womenContent";
 
 export const EXERCISES_EN = {
+...GYM_EXPANSION_EN,
+  ...GYM_EXPANSION_MORE_EN,
 "bench-press-barbell": { n: "Barbell Bench Press", d: "The core chest builder and the best benchmark for your pressing strength.", i: ["Lie on the bench, feet flat on the floor.", "Grip the bar slightly wider than shoulder width.", "Lower the bar slowly to mid-chest.", "Press it up powerfully to full lockout."] },
 "incline-dumbbell-press": { n: "Incline Dumbbell Press", d: "Targets the upper chest at a 30-45 degree incline.", i: ["Set the bench to 30-45 degrees.", "Hold the dumbbells over your upper chest.", "Lower them slowly to chest sides.", "Press up while keeping the chest squeezed."] },
 "cable-crossover": { n: "Cable Crossover", d: "A great isolation move for carving the inner chest line.", i: ["Set the pulleys to the highest point.", "Pull the handles down and in front of your body.", "Squeeze at mid-chest for a second.", "Return slowly to the start."] },

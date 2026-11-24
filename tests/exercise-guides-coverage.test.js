@@ -46,9 +46,9 @@ describe('detailed guide coverage',()=>{
  it('maps every guide to a real built-in exercise',()=>{
   localStorage.clear();
   const ids=new Set([...Store.getExercises().filter(e=>!e.custom),...WOMEN_EXERCISES].map(e=>e.id));
-  expect(ids.size).toBe(148);
+  expect(ids.size).toBe(183);
   for(const id of ids)expect(EXERCISE_GUIDES[id],id).toBeTruthy();
-  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(148);
+  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(183);
   for(const id of Object.keys(EXERCISE_GUIDES))expect(ids.has(id),id).toBe(true);
  });
  it('keeps apk23 batches unique and source-linked',()=>{

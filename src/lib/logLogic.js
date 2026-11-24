@@ -17,7 +17,7 @@ export function initialForm(ex, last, toDisplay) {
 }
 
 // Validates what the user typed. weightKg is converted already. Zero weight is fine (body weight / holds).
-export function parseLogForm({ weight, sets, reps }, fromDisplay) {
+export function parseLogForm({ weight, sets, reps }, fromDisplay, timed = false) {
   const w = parseFloat(weight);
   if (!Number.isFinite(w) || w < 0) return { ok: false, field: "weight", error: tx("اكتب الوزن (0 لو بوزن الجسم).") };
   const kg = fromDisplay(w);
@@ -25,7 +25,7 @@ export function parseLogForm({ weight, sets, reps }, fromDisplay) {
   const s = parseInt(sets, 10);
   if (!(s >= 1) || s > LIMITS.sets) return { ok: false, field: "sets", error: txf(`عدد المجموعات لازم يكون من 1 لـ {0}.`, [LIMITS.sets]) };
   const r = parseInt(reps, 10);
-  if (!(r >= 1) || r > LIMITS.reps) return { ok: false, field: "reps", error: tx("اكتب عدد التكرارات (1 على الأقل).") };
+  if (!(r >= 1) || r > (timed ? 3600 : LIMITS.reps)) return { ok: false, field: "reps", error: timed ? (tx("ثواني") + ": 1-3600") : tx("اكتب عدد التكرارات (1 على الأقل).") };
   return { ok: true, kg, sets: s, reps: r };
 }
 

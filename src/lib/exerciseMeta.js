@@ -58,7 +58,7 @@ const DESC = {
   "farmers-walk": "مشي وانت شايل أوزان تقيلة بيبني القبضة والثبات.",
 };
 
-const EN_MUSCLE = { chest: "chest pecs", back: "back lats", shoulders: "shoulders delts", legs: "legs quads hamstrings glutes", arms: "arms biceps triceps", core: "core abs" };
+const EN_MUSCLE = { cardio: "cardio aerobic endurance", chest: "chest pecs", back: "back lats", shoulders: "shoulders delts", legs: "legs quads hamstrings glutes", arms: "arms biceps triceps", core: "core abs" };
 const EN_EQUIP = { "دمبل": "dumbbell", "بار": "barbell", "جهاز": "machine", "كابل": "cable", "وزن الجسم": "bodyweight", "سميث": "smith", "قرص": "plate", "عجلة": "wheel roller" };
 
 function addSecondary(secondary, extra) {
@@ -93,6 +93,7 @@ export function normalizeExercise(ex) {
   // (equipment, difficulty, muscle) stay for logic; Arabic name/labels go
   // into aliases so Arabic search keeps working.
   const tr = !ex.custom && EXERCISES_EN[ex.id];
+  if (tr) aliases.push(tr.n);
   if (tr && isEn()) {
     aliases.push(ex.name, ex.muscleLabel, ex.secondary || "");
     out.name = tr.n;

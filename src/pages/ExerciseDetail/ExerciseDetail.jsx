@@ -65,7 +65,7 @@ function ExerciseDetail({ id }) {
   const todaySets = logsOnDate(allLogs, today);
   const prevSession = previousSession(allLogs, today);
   const best = bestWeight(allLogs);
-  const orm = best1RM(allLogs);
+  const orm = exercise?.unit === "sec" ? null : best1RM(allLogs);
   const ormDisplay = orm ? Store.toDisplayWeight(orm.value) : 0;
   const ormStep = unit === "lb" ? 5 : 2.5;
   const ormTable = orm ? percentTable(ormDisplay, ormStep) : [];
@@ -109,7 +109,7 @@ function ExerciseDetail({ id }) {
 
   function handleSave() {
     if (!exercise) return;
-    const r = parseLogForm({ weight, sets, reps }, (v) => Store.fromDisplayWeight(v));
+    const r = parseLogForm({ weight: exercise?.muscle === "cardio" ? "0" : weight, sets, reps }, (v) => Store.fromDisplayWeight(v), secUnit);
     if (!r.ok) {
       setError(r.error);
       const el = refs[r.field] && refs[r.field].current;
@@ -122,7 +122,7 @@ function ExerciseDetail({ id }) {
     Store.logSet(exerciseId, r.kg, r.sets, r.reps, rir===""?null:Number(rir));
     const saved = Store.getExerciseLogs(exerciseId).at(-1);
     buzz(15);
-    startRest();
+    if (exercise.muscle !== "cardio") startRest();
     setJustSaved({ index: before, xp: !!(saved && saved.xp) });
   }
 
@@ -142,7 +142,7 @@ function ExerciseDetail({ id }) {
 
   function toggleFav() { Store.toggleFavorite(exerciseId); buzz(8); }
 
-  const fmtSet = (l) => txf(`{0} · {1}×{2}{3}`, [l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? tx("وزن الجسم") : tx("بدون وزن")), l.sets, l.reps, secUnit ? tx(" ث") : ""]);
+  const fmtSet = (l) => exercise?.muscle === "cardio" ? `${l.sets}×${l.reps} ${isEn()?"sec":"ث"}` : txf(`{0} · {1}×{2}{3}`, [l.weight > 0 ? Store.formatWeight(l.weight) : (isBodyweight(exercise) ? tx("وزن الجسم") : tx("بدون وزن")), l.sets, l.reps, secUnit ? tx(" ث") : ""]);
 
   async function handleDelete() {
     if (!exercise) return;
@@ -158,7 +158,7 @@ function ExerciseDetail({ id }) {
 
   return (
     <>
-      <header className="xd-hero" style={exercise ? { "--mc": meta.color } : undefined}>
+      <header className={"xd-hero" + (exercise?.muscle === "cardio" ? " cardio-hero" : "")} style={exercise ? { "--mc": meta.color } : undefined}>
         <div className="xd-bar">
           <button type="button" className="xd-ico" aria-label={tx("رجوع")} onClick={() => navigate(-1)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
@@ -176,7 +176,7 @@ function ExerciseDetail({ id }) {
             )}
           </div>
         </div>
-        {exercise && <div className="xd-art" aria-hidden="true"><MuscleIllustration muscle={exercise.muscle} color={meta.color} size={150} /></div>}
+        {exercise && exercise.muscle !== "cardio" && <div className="xd-art" aria-hidden="true"><MuscleIllustration muscle={exercise.muscle} color={meta.color} size={150} /></div>}
         <div className="xd-meta">
           <span className="xd-kicker">{exercise ? exercise.muscleLabel + (exercise.secondary ? " + " + exercise.secondary : "") : ""}</span>
           <h1 className="xd-title">{exercise ? exercise.name : tx("تمرين غير موجود")}</h1>
@@ -189,7 +189,7 @@ function ExerciseDetail({ id }) {
           )}
         </div>
       </header>
-      {exercise && <section className="glass muscle-figure-panel" aria-label={tx("العضلات المستهدفة")}>
+      {exercise && exercise.muscle !== "cardio" && <section className="glass muscle-figure-panel" aria-label={tx("العضلات المستهدفة")}>
         <h2>{tx("العضلات المستهدفة")}</h2><p>{tx("اللون الذهبي بيوضح مجموعة")} {exercise.muscleLabel}{tx(". الرسم للتوضيح، مش لقياس نشاط العضلة.")}</p>
         <div className="muscle-figure-pair"><div><MuscleFigure view="front" highlight={exercise.muscle} width={110} label={txf(`العضلات من الأمام: {0}`, [exercise.muscleLabel])} /><small>{tx("أمام")}</small></div><div><MuscleFigure view="back" highlight={exercise.muscle} width={110} label={txf(`العضلات من الخلف: {0}`, [exercise.muscleLabel])} /><small>{tx("خلف")}</small></div></div>
       </section>}
@@ -224,16 +224,16 @@ function ExerciseDetail({ id }) {
           </div>
         )}
         {!prevSession && allLogs.length === 0 && <div className="log-prev"><span>{tx("أول مرة تسجل التمرين ده. ابدأ بوزن خفيف.")}</span></div>}
-        <div className="log-grid3">
-            <div className="log-field">
+        <div className="log-grid3" style={exercise?.muscle === "cardio" ? { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" } : undefined}>
+            {exercise?.muscle !== "cardio" && <div className="log-field">
               <label className="log-label" htmlFor="log-weight">{tx("الوزن (") + unit + ")"}</label>
               <div className="stepper">
-                <button type="button" className="step-btn" aria-label={tx("أقل الوزن")} onClick={() => bump("weight", -1)}>−</button>
-                <input id="log-weight" ref={weightRef} type="number" inputMode="decimal" dir="ltr" value={weight} min="0"
+                <button type="button" className="step-btn" aria-label={tx("أقل الوزن")} disabled={exercise?.muscle === "cardio"} onClick={() => bump("weight", -1)}>−</button>
+                <input id="log-weight" ref={weightRef} type="number" inputMode="decimal" dir="ltr" value={weight} min="0" disabled={exercise?.muscle === "cardio"}
                   onChange={(e) => { setError(null); setWeight(e.target.value); }} aria-invalid={error && error.includes("الوزن") ? true : undefined} />
-                <button type="button" className="step-btn" aria-label={tx("أكتر الوزن")} onClick={() => bump("weight", 1)}>+</button>
+                <button type="button" className="step-btn" aria-label={tx("أكتر الوزن")} disabled={exercise?.muscle === "cardio"} onClick={() => bump("weight", 1)}>+</button>
               </div>
-            </div>
+            </div>}
             <div className="log-field">
               <label className="log-label" htmlFor="log-sets">{tx("مجموعات")}</label>
               <div className="stepper">
@@ -253,7 +253,8 @@ function ExerciseDetail({ id }) {
               </div>
             </div>
         </div>
-        {isBodyweight(exercise) && <p className="log-hint">{tx("الوزن 0 معناه وزن الجسم بس.")}</p>}
+        {exercise?.muscle === "cardio" && <p className="log-hint">{isEn()?"Log duration in seconds. Keep weight at 0, machine resistance is not kilograms.":"سجّل المدة بالثواني وسيب الوزن 0. مقاومة الجهاز مش وزن بالكيلو."}</p>}
+        {exercise?.muscle !== "cardio" && isBodyweight(exercise) && <p className="log-hint">{tx("الوزن 0 معناه وزن الجسم بس.")}</p>}
         {!secUnit && <div className="rir-field"><label htmlFor="log-rir">كان فاضلك كام عدة؟ <small>اختياري · لكل مجموعة لوحدها</small></label><select id="log-rir" value={rir} onChange={e=>{setRir(e.target.value);setError(null);}}><option value="">من غير تقييم</option>{[0,1,2,3,4,5].map(n=><option value={n} key={n}>{n===0?"0 · مكنش فاضل عدة بنفس الأداء":n===5?"5+ · كان فاضل5 عدات أو أكتر":`${n} عدات بنفس الأداء`}</option>)}</select><p className="log-hint">تقديرك الشخصي، مش اختبار لازم توصل فيه للفشل. لو في ألم وقف. التقييم محفوظ على الجهاز وداخل النسخة الاحتياطية.</p></div>}
         {error && <p className="log-error" role="alert">{error}</p>}
         <button type="button" className="log-btn" onClick={handleSave}>{tx("تسجيل المجموعة")}</button>
@@ -287,7 +288,7 @@ function ExerciseDetail({ id }) {
         )}
         {todaySets.length > 0 && (
           <div className="log-today">
-            <div className="log-today-head"><span>{tx("النهارده ·")} {todaySets.length} {todaySets.length === 1 ? tx("تسجيلة") : tx("تسجيلات")}</span><span dir="ltr">{Store.formatWeight(volume(todaySets))}</span></div>
+            <div className="log-today-head"><span>{tx("النهارده ·")} {todaySets.length} {todaySets.length === 1 ? tx("تسجيلة") : tx("تسجيلات")}</span>{!secUnit && <span dir="ltr">{Store.formatWeight(volume(todaySets))}</span>}</div>
             {todaySets.map((l) => (
               <div className="log-today-row" key={l.i}>
                 <span>{fmtSet(l)}{l.rir!=null&&<small className="rir-tag">فاضل {l.rir===5?"5+":l.rir} عدة</small>}</span>
@@ -309,7 +310,7 @@ function ExerciseDetail({ id }) {
         </div>
       )}
 
-      <div className="media-frame media-frame-lg anatomy-frame">
+      {exercise?.muscle !== "cardio" && <div className="media-frame media-frame-lg anatomy-frame">
         <span className="media-tag">{tx("خريطة العضلات")}</span>
         <MuscleAnatomy
           muscle={exercise ? exercise.muscle : "chest"}
@@ -317,7 +318,7 @@ function ExerciseDetail({ id }) {
           secondary={exercise ? exercise.secondary : ""}
           color={meta.color}
         />
-      </div>
+      </div>}
 
       {localMedia.url && (
         <div className="media-frame media-frame-lg">
@@ -342,7 +343,7 @@ function ExerciseDetail({ id }) {
         </div>
       )}
 
-      {exercise && (
+      {exercise && exercise.muscle !== "cardio" && (
         <div className="glass muscle-card">
           <div className="muscle-card-row">
             <div className="muscle-illo-frame" style={{ background: `radial-gradient(circle at 40% 30%, ${meta.color}22, transparent 70%)` }}>
@@ -366,7 +367,7 @@ function ExerciseDetail({ id }) {
         <div>
           <p className="section-title">{tx("طريقة الأداء الصحيح")}</p>
           {(guide?.summary || exercise.description) && <p className="ex-description">{guide?.summary || exercise.description}</p>}
-          {guide && <section className="glass exercise-guide-block"><h3>{isEn()?"Before you start":"قبل ما تبدأ"}</h3><p>{guide.setup}</p></section>}
+          {guide && <section className="glass exercise-guide-block"><h3>{isEn()?"Before you start":exercise?.only === "female"?"قبل ما تبدئي":"قبل ما تبدأ"}</h3><p>{guide.setup}</p></section>}
           <div className="glass steps-card">
             {(guide?.steps || exercise.instructions).map((step, i) => (
               <div className="step-row" key={i}>
@@ -376,7 +377,7 @@ function ExerciseDetail({ id }) {
             ))}
           </div>
           {guide && <>
-            <section className="glass exercise-guide-block"><h3>{isEn()?"What to feel":"تحس بإيه؟"}</h3><p>{guide.feel}</p></section>
+            <section className="glass exercise-guide-block"><h3>{isEn()?"What to feel":exercise?.only === "female"?"تحسي بإيه؟":"تحس بإيه؟"}</h3><p>{guide.feel}</p></section>
             <section className="glass exercise-guide-block"><h3>{isEn()?"Common mistakes":"أخطاء شائعة"}</h3><ul>{guide.mistakes.map(m=><li key={m}>{m}</li>)}</ul></section>
           </>}
           <div className="tip-card">

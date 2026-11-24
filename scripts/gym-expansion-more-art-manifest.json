@@ -1,0 +1,147 @@
+{
+  "created": "2026-11-24",
+  "external_stock_used": false,
+  "complete": true,
+  "hidden_pending_review": [
+    "single-arm-cable-chest-press",
+    "barbell-front-squat"
+  ],
+  "records": [
+    {
+      "id": "dumbbell-floor-press",
+      "source": "gym-b2-chest.png",
+      "source_sha256": "d8125a7114a311a79c2fb77b9e7a62a3c72d8a8df5a6280ce4421dd65176bc53",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "machine-assisted-pullup",
+      "source": "gym-b2-back.png",
+      "source_sha256": "4800b9b70510e439b46bcf50c334f576a75f43707221489706485ab724cf2a95",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "dumbbell-scaption",
+      "source": "gym-b2-shoulder.png",
+      "source_sha256": "fe54b2852f62f9c9a4f06c1ad61741caa403e9ee15802161ca69f3053c1c47b7",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "scapular-wall-slide",
+      "source": "gym-b2-shoulder.png",
+      "source_sha256": "fe54b2852f62f9c9a4f06c1ad61741caa403e9ee15802161ca69f3053c1c47b7",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "reverse-lunge-bodyweight",
+      "source": "gym-b2-legs.png",
+      "source_sha256": "21e40975399e8199dedf94b54b0f463d62c43b67e455a5227081a15a63c2e25f",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "cable-pull-through",
+      "source": "gym-b2-legs.png",
+      "source_sha256": "21e40975399e8199dedf94b54b0f463d62c43b67e455a5227081a15a63c2e25f",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "bayesian-cable-curl",
+      "source": "gym-b2-arms.png",
+      "source_sha256": "9cf1d206c3dbfcf937b20b4701db1d2f25053d22f66758211f13c98f320ccb7a",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "single-arm-overhead-cable-extension",
+      "source": "gym-b2-arms.png",
+      "source_sha256": "9cf1d206c3dbfcf937b20b4701db1d2f25053d22f66758211f13c98f320ccb7a",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "suitcase-carry",
+      "source": "gym-b2-core.png",
+      "source_sha256": "dc30d701192028bb487b491023f2b5b2427bf57f49fb005bf3d4e0a634ec7c98",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "supine-heel-tap",
+      "source": "gym-b2-core.png",
+      "source_sha256": "dc30d701192028bb487b491023f2b5b2427bf57f49fb005bf3d4e0a634ec7c98",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "w-dumbbell-floor-press",
+      "source": "gym-b2-women-press-row.png",
+      "source_sha256": "01dde1db5a76f36e654d07127123297dbd6fe9c14fd053c175de164c898c49d1",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "w-chest-supported-db-row",
+      "source": "gym-b2-women-press-row.png",
+      "source_sha256": "01dde1db5a76f36e654d07127123297dbd6fe9c14fd053c175de164c898c49d1",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "w-dumbbell-scaption",
+      "source": "gym-b2-women-scaption-lunge.png",
+      "source_sha256": "bde735f603d148aaad8bbe51db361fa875c65d1bae10ef15e37e9aa594cb5c60",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "w-reverse-lunge",
+      "source": "gym-b2-women-scaption-lunge.png",
+      "source_sha256": "bde735f603d148aaad8bbe51db361fa875c65d1bae10ef15e37e9aa594cb5c60",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "w-bayesian-cable-curl",
+      "source": "gym-b2-women-curl-heeltap.png",
+      "source_sha256": "cff43e37e0603a74c7517d3cbe2cc6ec39c97bb7a8b1bba44e0f8844c7a604b7",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "w-supine-heel-tap",
+      "source": "gym-b2-women-curl-heeltap.png",
+      "source_sha256": "cff43e37e0603a74c7517d3cbe2cc6ec39c97bb7a8b1bba44e0f8844c7a604b7",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed; not trainer certification"
+    },
+    {
+      "id": "chest-supported-db-row",
+      "source": "gym-b2-row-corrected-v2.png",
+      "source_sha256": "e1bec8ec349fe1614d54c2c5d55741cafe15ccb0a16d732fef12916452e63f3e",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both arms now row together; visually reviewed, not trainer certification"
+    }
+  ]
+}
