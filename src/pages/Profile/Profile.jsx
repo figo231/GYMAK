@@ -352,14 +352,14 @@ export default function Profile({ panel = null }) {
         </a></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("عن التطبيق والمشاركة")}</h3><div className="ux-group-body"><button type="button" className="glass coach-card" style={{ marginBottom: 10, padding: 14, display: "block", width: "100%", textAlign: "start", color: "inherit", font: "inherit", fontWeight: 700 }} onClick={async () => { const r = await shareText({ title: "GYMAK", text: tx("بتمرن وبتتابع أكلك؟ جرّب GYMAK، تطبيق جيم وتغذية بالعربي ببلاش."), url: APP_URL }); if (r === "copied") toast(tx("اللينك اتنسخ")); }}>{tx("شارك التطبيق مع صحابك ←")}</button><div
           className="settings-row"
           style={{ cursor: checkingUpdate ? "default" : "pointer", opacity: checkingUpdate ? 0.6 : 1 }}
-          {...press(handleCheckUpdate)}
+          {...press(() => window.dispatchEvent(new Event("gymak-open-update-center")))}
         >
           <div className="settings-ic">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={checkingUpdate ? "spin" : ""}>
               <path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 3v6h-6" />
             </svg>
           </div>
-          <span className="settings-name">{tx("التحقق من التحديثات")}</span>
+          <span className="settings-name">{tx("مركز التحديثات")}</span>
           {checkingUpdate && <span className="settings-hint">{tx("بيدور...")}</span>}
           {!checkingUpdate && UpdateService.hasPendingApk() && <span style={{ width: 9, height: 9, borderRadius: 9, background: "var(--glow-blue)", display: "inline-block", marginInlineStart: 6 }} />}
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>

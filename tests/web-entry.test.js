@@ -22,6 +22,9 @@ describe('browser entry stays on web',()=>{
   expect(s).toContain('return isNativeApp() ? apkUpdateStrategy : pwaUpdateStrategy');
  });
  it('guards the Android prompt outside the native app',()=>{
-  expect(read('src/components/ApkUpdateSheet.jsx')).toContain('UpdateService.platform() !== "apk"');
+  const s=read('src/components/ApkUpdateSheet.jsx');
+  expect(s).toContain("native=UpdateService.platform()==='apk'");
+  expect(s).toContain("e.type==='apk-available'");
+  expect(s).toContain('!native&&');
  });
 });
