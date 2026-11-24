@@ -39,3 +39,15 @@ No existing production table/function/constraint is to be changed before explici
 No backend migration or function has been deployed for APK25. No native APK25 has been built. CI has the native toolchain and upgrade fixtures; the local workspace does not. Upgrade script now additionally covers APK24. It still needs an Android getInfo=25 and actual external Update-to-welcome test added and run. New photo endpoint must be type-checked/tested in its real runtime, including byte deletion and denied accounts. Main profile bridge and remote identity cache invalidation still need two-session end-to-end verification.
 
 The requested full app/server review is queued after this candidate, including all tabs/flows, security, quotas, backup recovery and error handling. It is a review, not authority to add more features before APK25.
+
+## 17:35 checkpoint
+
+Full current local run:536 tests across106 files passed, production build passed, actual Deno type-check passed. New checks cover professional-directory44 against25's published-card baseline, cleanup failures surfacing as job failures, and own-profile form stability while save signals propagate. Latest app checkpoint4df563a.
+
+Private CI run45426193173 builds earlier248ba3404dc2c1a2c41f33280ca29901ae2ec151 directly from a hash-checked bundle, without candidate push, web publication, or APK release. A later native rerun must include subsequent fixes. The unit tests run with the normal ungated test environment; the installable private build retains backend gates.
+
+Isolated live Storage probe apk25-bytecheck was deployed from verified source, invoked once through the provider test panel, denied403 because the panel supplied a new-style secret rather than the legacy service JWT. The authorization denial occurred before any Storage mutation. The probe was deleted and the functions list verified back at its original four entries. No existing function changed, no migration applied, no bucket created. Real object deletion remains UNVERIFIED.
+
+Live read-only baseline: public function-definition fingerprint321a3a44566fcb233004422678699af0. Storage buckets empty. Installed extensions exclude pg_cron, so an expiry job must use an existing external scheduler or have separate authority for extension setup. Do not claim an hourly job exists.
+
+Next safe backend path: a self-cleaning owner-authenticated probe invoked from the owner's existing app session, or a provider-supported test with legacy server authorization. Never show or copy the server credential into chat. Two real signed-in participant sessions and the integrated migrations remain separate release checks.
