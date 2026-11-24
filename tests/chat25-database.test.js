@@ -54,7 +54,7 @@ beforeAll(async()=>{installed=false;
  await rpc("owner","chat_set_user_role",[ids.doctor,"doctor"]);
  // Everyone accepts the original privacy-notice-only version, then 0027 lands.
  for(const name of ["client","doctor","coach","owner","sender","stranger"])await rpc(name,"chat_accept_terms",[V1]);
- await db.exec(moderation);await db.exec('update apk18_rollout_control set chat_writes=true');installed=true;
+ await db.exec(readFileSync('supabase/migrations/0025_suggested_professionals.sql','utf8'));await db.exec(moderation);await db.exec('update apk18_rollout_control set chat_writes=true');installed=true;
  await db.exec(readFileSync('supabase/migrations/0038_chat_identity_requests.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0039_chat_profiles_receipts.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0041_chat_discovery.sql','utf8'));
@@ -62,7 +62,7 @@ beforeAll(async()=>{installed=false;
  await db.exec(readFileSync('supabase/migrations/0040_chat_avatar_storage.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0042_chat_photo_delivery.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0043_chat_photo_reports.sql','utf8'));
- await db.exec(readFileSync('supabase/migrations/0045_chat_live_identity.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/0044_chat_directory_badges.sql','utf8'));await db.exec(readFileSync('supabase/migrations/0045_chat_live_identity.sql','utf8'));
  await consentAll();
 });
 
@@ -93,4 +93,8 @@ describe('APK25 private temporary photo delivery',()=>{
 
 describe('APK25 current chat identity',()=>{
  it('updates existing list/header identity without rewriting old messages',async()=>{const id=await conversation();await rpc('doctor','chat_profile_save',['New doctor name','New bio',null,true,true]);let r=await actor(ids.client,()=>query('select * from chat_inbox_v3(p_only=>$1)',[id]));expect(r[0].peer_label).toBe('New doctor name');expect((await actor(ids.client,()=>query("select * from chat_inbox_v3(p_search=>'New doctor name')"))).some(x=>x.id===id)).toBe(true);await rpc('doctor','chat_profile_save',['Latest doctor name','',null,true,true]);r=await actor(ids.client,()=>query('select * from chat_inbox_v3(p_only=>$1)',[id]));expect(r[0].peer_label).toBe('Latest doctor name');expect((await query('select receipt_updated_at from chat_conversations where id=$1',[id]))[0].receipt_updated_at).not.toBeNull();expect((await query('select body from chat_messages where conversation_id=$1 order by seq limit 1',[id]))[0].body).toBe('private doctor message');});
+});
+
+describe('APK25 professional directory badge wrapper',()=>{
+ it('preserves publication, filtering and consent independently of badges',async()=>{await rpc('owner','professional_card_save',[ids.doctor,'Listed doctor','Nutrition',true]);await rpc('owner','professional_card_save',[ids.coach,'Hidden coach','Training',false]);await rpc('owner','chat_set_verified',[ids.doctor,true]);let rows=await rpc('client','professional_directory_v2',['all',null]);expect(rows.map(x=>x.user_id)).toEqual([ids.doctor]);expect(rows[0].verified).toBe(true);expect(rows[0]).not.toHaveProperty('email');expect(await rpc('client','professional_directory_v2',['coach',null])).toEqual([]);expect(await rpc('client','professional_directory_v2',['all',ids.doctor])).toEqual([]);await rpc('owner','chat_set_verified',[ids.doctor,false]);rows=await rpc('client','professional_directory_v2',['doctor',null]);expect(rows[0].verified).toBe(false);await expect(rpc('client','professional_directory_v2',['invalid',null])).rejects.toThrow(/invalid_filter/);});
 });
