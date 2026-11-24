@@ -2,7 +2,7 @@
 # Only runs on an isolated CI emulator, never on a person's phone.
 set -euo pipefail
 mkdir -p verification
-trap 'adb pull /sdcard/Android/data/com.gymak.app/files/native25-welcome.png verification/native25-welcome.png || true; adb pull /sdcard/Android/data/com.gymak.app/files/condition-failure.png verification/condition-failure.png || true; adb exec-out screencap -p > verification/last-screen.png || true' EXIT
+trap 'adb pull /sdcard/Android/data/com.gymak.app/files/native25-browser-intent.txt verification/native25-browser-intent.txt || true; adb pull /sdcard/Android/data/com.gymak.app/files/native25-welcome.png verification/native25-welcome.png || true; adb pull /sdcard/Android/data/com.gymak.app/files/condition-failure.png verification/condition-failure.png || true; adb exec-out screencap -p > verification/last-screen.png || true' EXIT
 run_test() {
   local method="$1"
   adb shell am instrument -w -e class "com.gymak.app.OfflineUpgradeTest#$method" com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee "verification/$method.txt"
