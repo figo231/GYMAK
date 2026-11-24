@@ -1,3 +1,43 @@
+import { APK23_WOMEN_STEP_WALL_SIDE_GUIDES } from "./exerciseGuidesApk23WomenStepWallSide";
+import { APK23_WOMEN_INNER_PUMP_CURTSY_GUIDES } from "./exerciseGuidesApk23WomenInnerPumpCurtsy";
+import { APK23_WOMEN_LOADED_LEG_GUIDES } from "./exerciseGuidesApk23WomenLoadedLeg";
+import { APK23_WOMEN_FLOOR_HIP_GUIDES } from "./exerciseGuidesApk23WomenFloorHip";
+import { APK23_PULL_KICK_SKILL_GUIDES } from "./exerciseGuidesApk23PullKickSkill";
+import { APK23_CABLE_SHOULDER_GUIDES } from "./exerciseGuidesApk23CableShoulder";
+import { APK23_CROSS_DIP_TBAR_GUIDES } from "./exerciseGuidesApk23CrossDipTbar";
+import { APK23_HANG_CRUNCH_WRIST_GUIDES } from "./exerciseGuidesApk23HangCrunchWrist";
+import { APK23_UPRIGHT_PUSH_GUIDES } from "./exerciseGuidesApk23UprightPush";
+import { APK23_CRUNCH_VARIANT_GUIDES } from "./exerciseGuidesApk23CrunchVariants";
+import { APK23_MACHINE_CABLE_CURL_GUIDES } from "./exerciseGuidesApk23MachineCableCurl";
+import { APK23_DIP_GUIDES } from "./exerciseGuidesApk23Dips";
+import { APK23_CABLE_FLY_GUIDES } from "./exerciseGuidesApk23CableFly";
+import { APK23_DEADLIFT_VARIANT_GUIDES } from "./exerciseGuidesApk23DeadliftVariants";
+import { APK23_POSTERIOR_CONTROL_GUIDES } from "./exerciseGuidesApk23PosteriorControl";
+import { APK23_CARRY_ROLL_CHOP_GUIDES } from "./exerciseGuidesApk23CarryRollChop";
+import { APK23_FLOOR_CORE_GUIDES } from "./exerciseGuidesApk23FloorCore";
+import { APK23_SMITH_WIDE_GUIDES } from "./exerciseGuidesApk23SmithWide";
+import { APK23_PRESS_VARIANT_GUIDES } from "./exerciseGuidesApk23PressVariants";
+import { APK23_ROW_VARIANT_GUIDES } from "./exerciseGuidesApk23RowVariants";
+import { APK23_SEATED_SHRUG_GUIDES } from "./exerciseGuidesApk23SeatedShrug";
+import { APK23_HIP_CALF_GUIDES } from "./exerciseGuidesApk23HipCalf";
+import { APK23_HACK_CALF_GUIDES } from "./exerciseGuidesApk23HackCalf";
+import { APK23_LUNGE_GUIDES } from "./exerciseGuidesApk23Lunges";
+import { APK23_SHOULDER_SUPPORT_GUIDES } from "./exerciseGuidesApk23ShoulderSupport";
+import { APK23_CURL_VARIATION_GUIDES } from "./exerciseGuidesApk23CurlVariations";
+import { APK23_CABLE_TRICEPS_GUIDES } from "./exerciseGuidesApk23CableTriceps";
+import { APK23_CURL_REVERSE_GUIDES } from "./exerciseGuidesApk23CurlReverse";
+import { APK23_MACHINE_PULL_GUIDES } from "./exerciseGuidesApk23MachinePull";
+import { APK23_SQUAT_BRIDGE_GUIDES } from "./exerciseGuidesApk23SquatBridge";
+import { APK23_PUSHUP_GUIDES } from "./exerciseGuidesApk23Pushups";
+import { APK23_STABILITY_GUIDES } from "./exerciseGuidesApk23Stability";
+import { APK23_LOWER_GUIDES } from "./exerciseGuidesApk23Lower";
+import { APK23_TRICEPS_GUIDES } from "./exerciseGuidesApk23Triceps";
+import { APK23_SUPPORTED_GUIDES } from "./exerciseGuidesApk23Supported";
+import { APK23_CURL_GUIDES } from "./exerciseGuidesApk23Curls";
+import { APK23_UPPER_GUIDES } from "./exerciseGuidesApk23Upper";
+import { APK23_CORE_GUIDES } from "./exerciseGuidesApk23Core";
+import { APK23_LEG_GUIDES } from "./exerciseGuidesApk23Legs";
+import { APK23_PULL_GUIDES } from "./exerciseGuidesApk23Pull";
 import { WOMEN_GYM_GUIDES } from "./exerciseGuidesWomenGym";
 import { WOMEN_GUIDES } from "./exerciseGuidesWomen";
 import { PRESS_GUIDES } from "./exerciseGuidesBatch4";
@@ -8,6 +48,46 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+  ...APK23_WOMEN_STEP_WALL_SIDE_GUIDES,
+  ...APK23_WOMEN_INNER_PUMP_CURTSY_GUIDES,
+  ...APK23_WOMEN_LOADED_LEG_GUIDES,
+  ...APK23_WOMEN_FLOOR_HIP_GUIDES,
+  ...APK23_PULL_KICK_SKILL_GUIDES,
+  ...APK23_CABLE_SHOULDER_GUIDES,
+  ...APK23_CROSS_DIP_TBAR_GUIDES,
+  ...APK23_HANG_CRUNCH_WRIST_GUIDES,
+  ...APK23_UPRIGHT_PUSH_GUIDES,
+  ...APK23_CRUNCH_VARIANT_GUIDES,
+  ...APK23_MACHINE_CABLE_CURL_GUIDES,
+  ...APK23_DIP_GUIDES,
+  ...APK23_CABLE_FLY_GUIDES,
+  ...APK23_DEADLIFT_VARIANT_GUIDES,
+  ...APK23_POSTERIOR_CONTROL_GUIDES,
+  ...APK23_CARRY_ROLL_CHOP_GUIDES,
+  ...APK23_FLOOR_CORE_GUIDES,
+  ...APK23_SMITH_WIDE_GUIDES,
+  ...APK23_PRESS_VARIANT_GUIDES,
+  ...APK23_ROW_VARIANT_GUIDES,
+  ...APK23_SEATED_SHRUG_GUIDES,
+  ...APK23_HIP_CALF_GUIDES,
+  ...APK23_HACK_CALF_GUIDES,
+  ...APK23_LUNGE_GUIDES,
+  ...APK23_SHOULDER_SUPPORT_GUIDES,
+  ...APK23_CURL_VARIATION_GUIDES,
+  ...APK23_CABLE_TRICEPS_GUIDES,
+  ...APK23_CURL_REVERSE_GUIDES,
+  ...APK23_MACHINE_PULL_GUIDES,
+  ...APK23_SQUAT_BRIDGE_GUIDES,
+  ...APK23_PUSHUP_GUIDES,
+  ...APK23_STABILITY_GUIDES,
+  ...APK23_LOWER_GUIDES,
+  ...APK23_TRICEPS_GUIDES,
+  ...APK23_SUPPORTED_GUIDES,
+  ...APK23_CURL_GUIDES,
+  ...APK23_UPPER_GUIDES,
+  ...APK23_CORE_GUIDES,
+  ...APK23_LEG_GUIDES,
+  ...APK23_PULL_GUIDES,
   ...BASIC_GUIDES,
   ...SECOND_GUIDES,
   ...THIRD_GUIDES,

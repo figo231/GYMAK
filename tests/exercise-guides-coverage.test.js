@@ -1,0 +1,63 @@
+import { APK23_WOMEN_STEP_WALL_SIDE_GUIDES } from "../src/lib/exerciseGuidesApk23WomenStepWallSide";
+import { APK23_WOMEN_INNER_PUMP_CURTSY_GUIDES } from "../src/lib/exerciseGuidesApk23WomenInnerPumpCurtsy";
+import { APK23_WOMEN_LOADED_LEG_GUIDES } from "../src/lib/exerciseGuidesApk23WomenLoadedLeg";
+import { APK23_WOMEN_FLOOR_HIP_GUIDES } from "../src/lib/exerciseGuidesApk23WomenFloorHip";
+import { APK23_PULL_KICK_SKILL_GUIDES } from "../src/lib/exerciseGuidesApk23PullKickSkill";
+import { APK23_CABLE_SHOULDER_GUIDES } from "../src/lib/exerciseGuidesApk23CableShoulder";
+import { APK23_CROSS_DIP_TBAR_GUIDES } from "../src/lib/exerciseGuidesApk23CrossDipTbar";
+import { APK23_HANG_CRUNCH_WRIST_GUIDES } from "../src/lib/exerciseGuidesApk23HangCrunchWrist";
+import { APK23_UPRIGHT_PUSH_GUIDES } from "../src/lib/exerciseGuidesApk23UprightPush";
+import { APK23_CRUNCH_VARIANT_GUIDES } from "../src/lib/exerciseGuidesApk23CrunchVariants";
+import { APK23_MACHINE_CABLE_CURL_GUIDES } from "../src/lib/exerciseGuidesApk23MachineCableCurl";
+import { APK23_DIP_GUIDES } from "../src/lib/exerciseGuidesApk23Dips";
+import { APK23_CABLE_FLY_GUIDES } from "../src/lib/exerciseGuidesApk23CableFly";
+import { APK23_DEADLIFT_VARIANT_GUIDES } from "../src/lib/exerciseGuidesApk23DeadliftVariants";
+import { APK23_POSTERIOR_CONTROL_GUIDES } from "../src/lib/exerciseGuidesApk23PosteriorControl";
+import { APK23_CARRY_ROLL_CHOP_GUIDES } from "../src/lib/exerciseGuidesApk23CarryRollChop";
+import { APK23_FLOOR_CORE_GUIDES } from "../src/lib/exerciseGuidesApk23FloorCore";
+import { APK23_SMITH_WIDE_GUIDES } from "../src/lib/exerciseGuidesApk23SmithWide";
+import { APK23_PRESS_VARIANT_GUIDES } from "../src/lib/exerciseGuidesApk23PressVariants";
+import { APK23_ROW_VARIANT_GUIDES } from "../src/lib/exerciseGuidesApk23RowVariants";
+import { APK23_SEATED_SHRUG_GUIDES } from "../src/lib/exerciseGuidesApk23SeatedShrug";
+import { APK23_HIP_CALF_GUIDES } from "../src/lib/exerciseGuidesApk23HipCalf";
+import { APK23_HACK_CALF_GUIDES } from "../src/lib/exerciseGuidesApk23HackCalf";
+import { APK23_LUNGE_GUIDES } from "../src/lib/exerciseGuidesApk23Lunges";
+import { describe,it,expect } from 'vitest';
+import Store from '../src/lib/store/gymakStore';
+import { WOMEN_EXERCISES } from '../src/lib/content/womenContent';
+import { EXERCISE_GUIDES } from '../src/lib/exerciseGuides';
+import { APK23_PULL_GUIDES } from '../src/lib/exerciseGuidesApk23Pull';
+import { APK23_LEG_GUIDES } from '../src/lib/exerciseGuidesApk23Legs';
+import { APK23_CORE_GUIDES } from '../src/lib/exerciseGuidesApk23Core';
+import { APK23_UPPER_GUIDES } from '../src/lib/exerciseGuidesApk23Upper';
+import { APK23_CURL_GUIDES } from '../src/lib/exerciseGuidesApk23Curls';
+import { APK23_SUPPORTED_GUIDES } from '../src/lib/exerciseGuidesApk23Supported';
+import { APK23_TRICEPS_GUIDES } from '../src/lib/exerciseGuidesApk23Triceps';
+import { APK23_LOWER_GUIDES } from '../src/lib/exerciseGuidesApk23Lower';
+import { APK23_STABILITY_GUIDES } from '../src/lib/exerciseGuidesApk23Stability';
+import { APK23_PUSHUP_GUIDES } from '../src/lib/exerciseGuidesApk23Pushups';
+import { APK23_SQUAT_BRIDGE_GUIDES } from '../src/lib/exerciseGuidesApk23SquatBridge';
+import { APK23_MACHINE_PULL_GUIDES } from '../src/lib/exerciseGuidesApk23MachinePull';
+import { APK23_CURL_REVERSE_GUIDES } from '../src/lib/exerciseGuidesApk23CurlReverse';
+import { APK23_CABLE_TRICEPS_GUIDES } from '../src/lib/exerciseGuidesApk23CableTriceps';
+import { APK23_CURL_VARIATION_GUIDES } from '../src/lib/exerciseGuidesApk23CurlVariations';
+import { APK23_SHOULDER_SUPPORT_GUIDES } from '../src/lib/exerciseGuidesApk23ShoulderSupport';
+describe('detailed guide coverage',()=>{
+ it('maps every guide to a real built-in exercise',()=>{
+  localStorage.clear();
+  const ids=new Set([...Store.getExercises().filter(e=>!e.custom),...WOMEN_EXERCISES].map(e=>e.id));
+  expect(ids.size).toBe(148);
+  for(const id of ids)expect(EXERCISE_GUIDES[id],id).toBeTruthy();
+  expect(Object.keys(EXERCISE_GUIDES)).toHaveLength(148);
+  for(const id of Object.keys(EXERCISE_GUIDES))expect(ids.has(id),id).toBe(true);
+ });
+ it('keeps apk23 batches unique and source-linked',()=>{
+  const groups=[APK23_WOMEN_STEP_WALL_SIDE_GUIDES,APK23_WOMEN_INNER_PUMP_CURTSY_GUIDES,APK23_WOMEN_LOADED_LEG_GUIDES,APK23_WOMEN_FLOOR_HIP_GUIDES,APK23_PULL_KICK_SKILL_GUIDES,APK23_CABLE_SHOULDER_GUIDES,APK23_CROSS_DIP_TBAR_GUIDES,APK23_HANG_CRUNCH_WRIST_GUIDES,APK23_UPRIGHT_PUSH_GUIDES,APK23_CRUNCH_VARIANT_GUIDES,APK23_MACHINE_CABLE_CURL_GUIDES,APK23_DIP_GUIDES,APK23_CABLE_FLY_GUIDES,APK23_DEADLIFT_VARIANT_GUIDES,APK23_POSTERIOR_CONTROL_GUIDES,APK23_CARRY_ROLL_CHOP_GUIDES,APK23_FLOOR_CORE_GUIDES,APK23_SMITH_WIDE_GUIDES,APK23_PRESS_VARIANT_GUIDES,APK23_ROW_VARIANT_GUIDES,APK23_SEATED_SHRUG_GUIDES,APK23_HIP_CALF_GUIDES,APK23_HACK_CALF_GUIDES,APK23_LUNGE_GUIDES,APK23_PULL_GUIDES,APK23_LEG_GUIDES,APK23_CORE_GUIDES,APK23_UPPER_GUIDES,APK23_CURL_GUIDES,APK23_SUPPORTED_GUIDES,APK23_TRICEPS_GUIDES,APK23_LOWER_GUIDES,APK23_STABILITY_GUIDES,APK23_PUSHUP_GUIDES,APK23_SQUAT_BRIDGE_GUIDES,APK23_MACHINE_PULL_GUIDES,APK23_CURL_REVERSE_GUIDES,APK23_CABLE_TRICEPS_GUIDES,APK23_CURL_VARIATION_GUIDES,APK23_SHOULDER_SUPPORT_GUIDES];
+  const keys=groups.flatMap(g=>Object.keys(g));
+  expect(new Set(keys).size).toBe(keys.length);
+  for(const group of groups)for(const [id,guide] of Object.entries(group)){
+   expect(EXERCISE_GUIDES[id]).toBe(guide);
+   expect(guide.source).toMatch(/^https:\/\//);
+  }
+ });
+});

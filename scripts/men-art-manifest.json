@@ -1044,5 +1044,14 @@
       "review": "Both generated poses visually reviewed; not trainer certification",
       "type": "AI-generated illustration"
     }
+  ],
+  "apk23_visual_corrections": [
+    {
+      "id": "glute-bridge",
+      "action": "hidden_in_bundled_frame_resolver",
+      "reason": "Illustration shows bench-supported hip thrust instead of floor glute bridge.",
+      "date": "2026-11-23",
+      "replacement": "No verified replacement applied; exercise text, diagrams, search alias and user media retained."
+    }
   ]
 }

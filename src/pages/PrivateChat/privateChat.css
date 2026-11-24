@@ -62,3 +62,4 @@
 .pc-role-editor { flex-basis:100%; min-width:0; padding:14px; margin:20px 0; border:1px solid var(--accent,#ff791b); border-radius:14px; }
 .pc-role-editor p { overflow-wrap:anywhere; }
 .pc-role-editor .pc-small { margin-top:8px; width:100%; }
+.pc-thread-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.pc-thread-actions>.pc-small{flex:0 1 auto;font-size:11px;padding:8px 10px;white-space:nowrap;min-height:36px}.pc-thread-actions>.fu-outline{flex:1;min-width:120px}.pc-page .fu-card .btn{font-size:13px;min-height:44px}.pc-page .fu-card .fu-delete{font-size:11px}.pc-page .fu-card .fu-outline{font-size:12px}
