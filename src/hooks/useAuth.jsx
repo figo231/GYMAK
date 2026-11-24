@@ -1,3 +1,4 @@
+import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport} from "../lib/guestImport";
 import { flushEncouragementStop } from "../lib/encouragement";
 import { recordAppActivity,resetActivitySession } from '../lib/appActivity';
 import { createContext, useContext, useEffect, useState } from "react";
@@ -29,6 +30,7 @@ const NO_CLIENT_ERROR = { message: "لسه معملناش ربط مع Supabase (
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [guestImport,setGuestImport]=useState({status:"checking"});
   const [isPasswordRecovery, setIsPasswordRecoveryRaw] = useState(() => typeof sessionStorage !== "undefined" && recoveryActive(sessionStorage));
   const [linkError] = useState(BOOT.error || "");
   const setIsPasswordRecovery = (on) => { if (typeof sessionStorage !== "undefined") setRecovery(sessionStorage, on); setIsPasswordRecoveryRaw(on); };
@@ -40,6 +42,7 @@ export function AuthProvider({ children }) {
     }
 
     supabase.auth.getSession().then(({ data }) => {
+      if(!data.session)markGuestData();
       setSession(data.session);
       setLoading(false);
     });
@@ -52,7 +55,7 @@ export function AuthProvider({ children }) {
       // apart from "here to set a new password", since both look like
       // a truthy `session` otherwise.
       if (event === "PASSWORD_RECOVERY") setIsPasswordRecovery(true);
-      if (event === "SIGNED_OUT") setIsPasswordRecovery(false);
+      if (event === "SIGNED_OUT") { setIsPasswordRecovery(false); markGuestData(); }
       setSession(newSession);
     });
 
@@ -76,14 +79,29 @@ export function AuthProvider({ children }) {
     return () => { cancelled = true; Store.setOwnerView(false); };
   }, [session?.user?.id, isPasswordRecovery]);
 
+  useEffect(()=>{
+    const id=session?.user?.id;let active=true;
+    if(loading)return;
+    if(!id||isPasswordRecovery){setGuestImport({status:"ready"});return;}
+    if(!hasGuestImport()){setGuestImport({status:"ready",userId:id});return;}
+    setGuestImport({status:"checking",userId:id});
+    inspectGuestImport(id,supabase).then(review=>{if(active)setGuestImport({status:"review",userId:id,review});}).catch(error=>{if(active)setGuestImport({status:"error",userId:id,error});});
+    return()=>{active=false;};
+  },[session?.user?.id,isPasswordRecovery,loading]);
+  async function completeGuestImport(choices){
+    const id=session?.user?.id;if(!id||guestImport.userId!==id)throw Error("session_changed");
+    await finishGuestImport(guestImport.review,choices,supabase);
+    setGuestImport({status:"ready",userId:id});
+  }
+
   useEffect(() => {
     const userId = session?.user?.id;
-    if (userId && !isPasswordRecovery) {
+    if (userId && !isPasswordRecovery && guestImport.status==="ready" && guestImport.userId===userId) {
       syncManager.start(userId);
     } else {
       syncManager.stop();
     }
-  }, [session?.user?.id, isPasswordRecovery]);
+  }, [session?.user?.id, isPasswordRecovery,guestImport.status,guestImport.userId]);
 
   // Push notification token lifecycle, driven off the same session state —
   // kept as its own effect (not merged into the one above) so this and the
@@ -134,6 +152,7 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     if (!supabase) return { error: NO_CLIENT_ERROR };
+    if (!window.Capacitor?.isNativePlatform?.()) { const {stopWebPush}=await import("../lib/push/webPush"); await stopWebPush(); }
     const { error } = await supabase.auth.signOut();
     return { error };
   }
@@ -161,6 +180,7 @@ export function AuthProvider({ children }) {
 
   const value = {
     session,
+    guestImport,completeGuestImport,
     user: session?.user ?? null,
     loading,
     isPasswordRecovery,

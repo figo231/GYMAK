@@ -1,3 +1,4 @@
+import AnnouncementNotice from "./components/AnnouncementNotice";
 import ForegroundPushBanner from "./components/ForegroundPushBanner";
 import Store from "./lib/store/gymakStore";
 import { isNative, syncMissedReminder } from "./lib/push/nativeReminder";
@@ -77,7 +78,7 @@ export default function App() {
     localStorage.setItem(ONBOARD_KEY, "1");
     setOnboarded(true);
     // Brand-new installs land on the login/register flow after onboarding;
-    // existing local (guest) users are completely unaffected by this screen.
+    // existing guest data is preserved behind the mandatory account/import gate.
     if (isNewInstall) {
       router.navigate("/auth/login");
     }
@@ -98,6 +99,7 @@ export default function App() {
                 {!showSplash && !locked && onboarded && <EncouragementNotice key={"encouragement"} />}
                 {!showSplash && !locked && onboarded && <ForegroundPushBanner />}
                 {!showSplash && !locked && onboarded && <CompleteIdentityPrompt key={"identity"} />}
+                {!showSplash && !locked && onboarded && <AnnouncementNotice />}
                 <RestTimer />
                 <Celebration />
                 {showSplash && <SplashScreen />}

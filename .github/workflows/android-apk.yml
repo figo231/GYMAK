@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 25
     env:
       VITE_DISTRIBUTION_CHANNEL: sideload
-      VITE_OTA_ENABLED: "false"
+      VITE_OTA_ENABLED: "true"
       VITE_REVIEW_BACKEND_GATED: ${{ inputs.private_test && inputs.review_backend_gated && 'true' || 'false' }}
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}

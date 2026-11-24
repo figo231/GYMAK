@@ -1,3 +1,4 @@
+import OwnerAnnouncements from "./OwnerAnnouncements";
 import OwnerNotifications from "./OwnerNotifications";
 import {useI18n} from "../../hooks/useI18n";
 import { useEffect, useState } from "react";
@@ -103,7 +104,7 @@ function OwnerPanelSession() {
   useEffect(() => { isOwnerAdmin(user?.id).then(setOk); }, [user?.id]);
   if (ok === null) return <DetailTopBar backTo="/profile" title={tx("لوحة المالك")} />;
   if (!ok) return (<><DetailTopBar backTo="/profile" title={tx("لوحة المالك")} /><p className="notif-note" style={{ padding: 16 }}>{tx("الصفحة دي لحساب المالك بس.")}</p></>);
-  const tabs = [["notifications",lang==='en'?"Notifications":tx("الإشعارات")],["exercises", tx("التمارين")], ["foods", tx("الأكل")], ["coaches", tx("المستخدمون")], ["suggestions", tx("المقترحين")], ["reports", tx("البلاغات")], ["encouragement", tx("التشجيع")]];
+  const tabs = [["announcements",lang==='en'?"In-app notices":"إعلانات التطبيق"],["notifications",lang==='en'?"Notifications":tx("الإشعارات")],["exercises", tx("التمارين")], ["foods", tx("الأكل")], ["coaches", tx("المستخدمون")], ["suggestions", tx("المقترحين")], ["reports", tx("البلاغات")], ["encouragement", tx("التشجيع")]];
   return (
     <>
       <DetailTopBar backTo="/profile" title={tx("لوحة المالك")} />
@@ -112,6 +113,7 @@ function OwnerPanelSession() {
           <button key={k} type="button" onClick={() => setTab(k)} className={"btn" + (tab === k ? " btn-primary" : "")} style={{ flex: "1 0 28%", padding: 10, borderRadius: 12, border: "1px solid var(--border-soft)", cursor: "pointer", fontWeight: 800, background: tab === k ? undefined : "none", color: tab === k ? undefined : "inherit" }}>{l}</button>
         ))}
       </div>
+      {tab === "announcements" && <OwnerAnnouncements />}
       {tab === "notifications" && <OwnerNotifications />}
       {tab === "exercises" && (<><ExerciseForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_exercises" label={tx("تمارين")} /></>)}
       {tab === "foods" && (<><FoodForm onSaved={() => setBump(bump + 1)} /><PublishedList key={bump} table="content_foods" label={tx("أكلات")} /></>)}

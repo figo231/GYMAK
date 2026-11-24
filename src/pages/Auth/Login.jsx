@@ -81,7 +81,6 @@ export default function Login() {
       <p className="auth-footer">
         {tx("لسه معملتش حساب؟")} <Link to="/auth/register">{tx("سجّل دلوقتي")}</Link>
       </p>
-      <Link to="/" className="auth-skip">{tx("متابعة بدون تسجيل دخول")}</Link>
     </>
   );
 }

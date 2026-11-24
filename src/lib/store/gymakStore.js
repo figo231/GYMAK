@@ -1967,6 +1967,13 @@ let ownerView = false;
     },
 
     /** Raw local state for the sync engine to read — push-shaping happens in sync/domains.js, not here. */
+    clearGuestPendingDeletes() {
+      const s = load();
+      s.pendingDeletes = { weight: [], food: [], exerciseLogs: [], prs: [] };
+      s.deletedExerciseIds = [];
+      save(s);
+    },
+
     getRawStateForSync() {
       return load();
     },

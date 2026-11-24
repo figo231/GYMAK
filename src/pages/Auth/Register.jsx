@@ -99,7 +99,6 @@ export default function Register() {
       <p className="auth-footer">
         عندك حساب بالفعل؟ <Link to="/auth/login">سجّل دخولك</Link>
       </p>
-      <Link to="/" className="auth-skip">متابعة بدون تسجيل دخول</Link>
     </>
   );
 }

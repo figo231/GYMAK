@@ -49,7 +49,7 @@ const Coach = lazy(() => import("./pages/Coach/Coach"));
 export const router = createBrowserRouter([
   { path: "/welcome", element: <Navigate to={/^[a-z0-9-]{1,80}$/.test(new URLSearchParams(window.location.search).get("p") || "") ? "/programs?p=" + encodeURIComponent(new URLSearchParams(window.location.search).get("p")) : "/"} replace /> },
   {
-    element: <TabShell />,
+    element: <ProtectedRoute><TabShell /></ProtectedRoute>,
     errorElement: <RouteError />,
     children: [
       { path: "/", element: <Dashboard /> },
@@ -82,7 +82,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <DetailShell />,
+    element: <ProtectedRoute><DetailShell /></ProtectedRoute>,
     errorElement: <RouteError />,
     children: [
       { path: "/exercise/:id", element: <ExerciseDetail /> },
@@ -94,7 +94,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <ChatShell />,
+    element: <ProtectedRoute><ChatShell /></ProtectedRoute>,
     errorElement: <RouteError />,
     children: [
       { path: "/ai-coach", element: <AiCoach /> },

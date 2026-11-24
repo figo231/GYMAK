@@ -121,12 +121,7 @@ export async function importDelivered() {
 
 /** Web/PWA: ask for the browser notification permission once, on first launch. */
 export function requestWebPermissionOnce() {
-  try {
-    if (Capacitor.isNativePlatform() || !("Notification" in window)) return;
-    if (Notification.permission !== "default" || localStorage.getItem("gymak_notif_asked_v1")) return;
-    localStorage.setItem("gymak_notif_asked_v1", "1");
-    setTimeout(() => { Notification.requestPermission().catch(() => {}); }, 2500);
-  } catch { /* ignore */ }
+  // Browser permission must be requested from the explicit settings button.
 }
 
 const DEVICE_ID_KEY = "gymak_device_id_v1";
@@ -281,7 +276,14 @@ export async function getPushPermission() {
  * to local-only behavior" convention rather than throwing.
  */
 export async function registerForPush(userId) {
-  if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
+  if (!PUSH_ENABLED || !supabase) return;
+  if (!Capacitor.isNativePlatform()) {
+    if(localStorage.getItem('gymak_web_push_enabled_v1')==='1') {
+      const {registerWebPush}=await import('./webPush');
+      try { await registerWebPush(userId); } catch { /* settings shows actionable setup errors */ }
+    }
+    return;
+  }
   currentUserId = userId;
   collectNativeOwnerTaps().then(()=>flushOwnerReceipts(userId,getDeviceId())).catch(()=>{});
   if(!ownerReceiptWakeInstalled){ownerReceiptWakeInstalled=true;const resume=()=>{if(currentUserId)refreshPushToken();if(currentUserId)collectNativeOwnerTaps().then(()=>flushOwnerReceipts(currentUserId,getDeviceId())).catch(()=>{});};window.addEventListener('online',resume);document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});}
@@ -318,6 +320,7 @@ export async function registerForPush(userId) {
     this device's row so a signed-out device stops receiving pushes meant
     for the account. */
 export async function removePushToken() {
+  if(!Capacitor.isNativePlatform()) return; // Explicit signOut revokes web subscription before session ends.
   currentUserId = null;
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
   // Cold start reports "no session" before auth restores; deleting then raced with

@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { hasGuestImport } from "../../lib/guestImport";
 import { Outlet } from "react-router-dom";
 import { passwordStrength } from "../../lib/authLogic";
 import { tx } from "../../lib/i18n/tx";
@@ -19,6 +20,7 @@ export default function AuthShell() {
           </div>
         </div>
         <div className="glass auth-card">
+          {hasGuestImport()&&<p className="auth-notice" role="note">{tx("بيانات تمرينك القديمة محفوظة على الجهاز. سجّل دخول أو اعمل حساب عشان ننقلها بأمان. متمسحش التطبيق ولا بيانات المتصفح.")}</p>}
           <Outlet />
         </div>
       </div>

@@ -105,7 +105,7 @@ public class OfflineUpgradeTest {
             waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
             js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed)).catch(e=>window.__coldProbe=String(e))");
             waitFor(a,"window.__coldProbe === 'true' || window.__coldProbe === 'false'");
-            assertEquals("true",js(a,"window.__coldProbe"));
+            assertEquals("false",js(a,"window.__coldProbe")); // OTA bootstrap already consumed the single activation slot.
             js(a,"window.__coldProbe='pending';window.Capacitor.nativePromise('OtaLifecycle','consumeColdStart',{}).then(x=>window.__coldProbe=String(x.allowed))");
             waitFor(a,"window.__coldProbe === 'true' || window.__coldProbe === 'false'");assertEquals("false",js(a,"window.__coldProbe"));
             js(a,"window.__beforeOtaReload=true;location.reload()");
@@ -148,6 +148,12 @@ public class OfflineUpgradeTest {
             assertEquals("true", js(a, "(()=>{const s=JSON.parse(localStorage.getItem('gymak_state_v1'));return s.profile.name==='Offline upgrade test' && s.workoutDays.includes('2026-11-22') && s.exerciseLogs['bench-press-barbell'][0].weight===60 && s.weightLogs[0].weight===81 && JSON.parse(localStorage.getItem('gymak_measure_v1'))[0].waist===84})()"));
             js(a, "window.__photoCheck='pending';(async()=>{for(const [name,store,id] of [['gymak_photos_v1','photos','upgrade-photo'],['gymak_exmedia_v1','media','upgrade-media']]){const row=await new Promise((resolve,reject)=>{const r=indexedDB.open(name,1);r.onsuccess=()=>{const d=r.result,t=d.transaction(store);const q=t.objectStore(store).get(id);q.onsuccess=()=>{const row=q.result;d.close();resolve(row)};q.onerror=reject};r.onerror=reject});if(!row?.blob || row.blob.size!==68 || row.blob.type!=='image/png')throw new Error('blob was not preserved');const bytes=new Uint8Array(await row.blob.arrayBuffer());if(bytes[0]!==137 || bytes[1]!==80)throw new Error('bad photo bytes')}window.__photoCheck='done'})().catch(e=>window.__photoCheck=String(e))");
             waitFor(a, "window.__photoCheck === 'done'");
+            if ("true".equals(js(a,"document.body.innerText.includes('بيانات تمرينك القديمة محفوظة')"))) {
+                assertEquals("true",js(a,"location.pathname === '/auth/login' && !!document.querySelector('input[type=password]')"));
+                assertEquals("false",js(a,"document.body.innerText.includes('متابعة بدون تسجيل')"));
+                InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(InstrumentationRegistry.getInstrumentation().getTargetContext().getExternalFilesDir(null),"offline-upgrade.png")));
+                return; // Guest data/media assertions above remain required; sign-in needs network.
+            }
             assertEquals("true", js(a, "document.body.innerText.includes('Offline upgrade test')"));
             // Lazy route chunks and exercise photos must also work without network.
             js(a, "location.assign('/exercises')");
