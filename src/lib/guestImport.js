@@ -50,13 +50,19 @@ export async function finishGuestImport(review,choices,client){
  const generation=await client.rpc('my_training_generation');if(generation.error)throw generation.error;
  const finalUser=await client.auth.getUser();if(finalUser.error||finalUser.data?.user?.id!==userId)throw Error('session_changed');
  localStorage.setItem('gymak_training_generation_v1:'+userId,String(generation.data??0));
- Store.clearGuestPendingDeletes();
- Store.mergeWeightLogsFromRemote(review.remote.weights.filter(r=>!preserve.has('weight:'+r.date)));
- Store.mergeFoodLogFromRemote(review.remote.food.filter(r=>!preserve.has('food:'+r.date)));
- Store.mergeExercisesFromRemote(review.remote.exercises.filter(r=>!preserve.has('exercise:'+r.id)));
- if(review.remote.profile){const p={...review.remote.profile};if(preserve.has('profile:training')){const values=profileValues(Store.getRawStateForSync());for(const [r,l] of profileFields)p[r]=values[l];}Store.mergeProfileFromRemote(p);}
- // Store merge writes are best-effort elsewhere. Migration completion requires a durable copy.
- const merged=JSON.stringify(Store.getRawStateForSync());localStorage.setItem('gymak_state_v1',merged);if(localStorage.getItem('gymak_state_v1')!==merged)throw Error('import_save_failed');
+ const state=JSON.parse(JSON.stringify(Store.getRawStateForSync()));
+ state.pendingDeletes={weight:[],food:[],exerciseLogs:[],prs:[]};state.deletedExerciseIds=[];
+ const merge=(local,remote,key,shape,type)=>{const rows=new Map(local.map(r=>[r[key],r]));for(const r of remote){if(!preserve.has(type+':'+r[key]))rows.set(r[key],{...rows.get(r[key]),...shape(r)});}return [...rows.values()];};
+ state.weightLogs=merge(state.weightLogs,review.remote.weights,'date',r=>({date:r.date,weight:Number(r.weight),bodyFat:r.body_fat==null?null:Number(r.body_fat)}),'weight').sort((a,b)=>a.date.localeCompare(b.date));
+ state.foodLog=merge(state.foodLog,review.remote.food,'date',r=>({date:r.date,items:r.items||[],totalKcal:Number(r.total_kcal)||0,totalProtein:Number(r.total_protein)||0,totalCarbs:Number(r.total_carbs)||0,totalFat:Number(r.total_fat)||0}),'food').sort((a,b)=>a.date.localeCompare(b.date));
+ state.exercises=merge(state.exercises,review.remote.exercises,'id',r=>({id:r.id,name:r.name,muscle:r.muscle,muscleLabel:Store.getMuscleMeta(r.muscle).label,secondary:r.secondary||'',sets:r.sets,reps:r.reps,custom:true}),'exercise');
+ if(review.remote.profile){const p=review.remote.profile;
+  for(const [r,l] of [['name','name'],['username','username'],['bio','bio'],['avatar','avatar'],['cover','cover'],['cover_gradient','coverGradient'],['level','level'],['xp','xp'],['xp_next','xpNext']])if(p[r]!=null)state.profile[l]=p[r];
+  if(!preserve.has('profile:training'))for(const [r,l] of profileFields)if(p[r]!=null){if(['unit','lang'].includes(l))state.settings[l]=p[r];else if(['goalWeight','activeProgramId'].includes(l))state[l]=p[r];else state.profile[l]=p[r];}
+  state.bestStreak=Math.max(state.bestStreak,p.best_streak||0);
+ }
+ // Commit the complete merge once. A quota error leaves the previous state intact.
+ const merged=JSON.stringify(state);localStorage.setItem('gymak_state_v1',merged);if(localStorage.getItem('gymak_state_v1')!==merged)throw Error('import_save_failed');Store.invalidateCache();
  bindDataOwner(userId);
  localStorage.removeItem(PENDING);
  localStorage.setItem('gymak_guest_import_completed_v1',JSON.stringify({userId,at:Date.now()}));
