@@ -11,3 +11,7 @@ Verification: full tests and production build passed; final rerun logged separat
 Production migration0037adds edited_at/revision and chat_edit_message. It is additive and backward-compatible with the existing client. Migration input was SHA256 matched to the prepared SQL before submission, then verified through the live schema and real RPC. No project-wide email-confirmation setting was changed. Only the isolated Create a new user modal's Auto confirm user checkbox was toggled, and only the two test records were later confirmed.
 
 Release remains gated on Kareem's explicit نزّل. Native release-build/emulator upgrade verification remains part of release preparation.
+
+## Conversation redesign
+
+Following the owner's 24November10:28 feedback, the conversation now uses a full-height canvas with a fixed compact avatar header, alternating small bubbles, grouped messages, a date divider, compact time/edited labels, and a slim multiline input dock. Conversation tools, reporting, block and privacy notes remain behind the header menu. No new server migration is needed. No online/read/delivery indicator is invented. No attachment or voice button is shown because those are unsupported. Existing send/edit/report APIs and privacy gates remain unchanged.

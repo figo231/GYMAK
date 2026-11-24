@@ -124,6 +124,8 @@ function MessageText({ body }) {
   return <><p className="pc-message-text">{splitChatLinks(body).map((part, i) => part.href ? <a key={i} href={part.href} target="_blank" rel="noopener noreferrer nofollow" referrerPolicy="no-referrer" onClick={(event) => open(event, part.href)}>{part.text}<small className="pc-link-host" dir="ltr">{part.host}</small></a> : <span key={i}>{part.text}</span>)}</p>{err && <small role="alert">{err}</small>}</>;
 }
 
+function chatDay(value) { return new Date(value).toLocaleDateString("ar-EG", {day:"numeric",month:"long",year:"numeric"}); }
+function chatTime(value) { return new Date(value).toLocaleTimeString("ar-EG", {hour:"2-digit",minute:"2-digit"}); }
 function Thread({ id, userId }) {
   const location = useLocation(); const nav=useNavigate();
   useEffect(()=>{if(location.state?.proposedDraft)nav(location.pathname,{replace:true,state:null});},[]);
@@ -131,6 +133,7 @@ function Thread({ id, userId }) {
   const [busy, setBusy] = useState(true); const [sending, setSending] = useState(false); const [olderBusy, setOlderBusy] = useState(false);
   const [more, setMore] = useState(false); const [err, setErr] = useState(""); const [sendErr, setSendErr] = useState("");
   const [myBlocks, setMyBlocks] = useState([]); const [blockBusy, setBlockBusy] = useState(false);
+  const [showTools,setShowTools]=useState(false);
   const [showAppointments,setShowAppointments]=useState(false);
   const [showHistory,setShowHistory]=useState(false);
   const [showPlan,setShowPlan]=useState(false);
@@ -186,7 +189,7 @@ function Thread({ id, userId }) {
     try {
       const row = await sendChatMessage(id, v.body, pending.current.id);
       if (!live.current) return;
-      setRows((old) => mergeChatMessages(old, [row])); setDraft(""); pending.current = null; await load();
+      setRows((old) => mergeChatMessages(old, [row])); setDraft(""); const input=document.getElementById("private-chat-draft");if(input)input.style.height="46px"; pending.current = null; await load();
     } catch (e) { if (live.current) { setSendErr(txf(`{0} لو الإرسال مش مؤكد، اضغط إرسال بنفس النص لإعادة المحاولة من غير تكرار.`, [chatError(e)])); if (/chat_read_only|chat_blocked|chat_not_allowed|consent_required/.test(e?.message || "")) load(); } }
     finally { if (live.current) setSending(false); }
   }
@@ -209,8 +212,15 @@ function Thread({ id, userId }) {
     } catch (e) { if (live.current) setErr(chatError(e)); }
     finally { if (live.current) setBlockBusy(false); }
   }
-  return <>
-    <DetailTopBar title={thread?.peer_label || tx("المحادثة")} backTo="/messages" right={<button type="button" className="pc-small" disabled={busy} onClick={load}>{tx("تحديث")}</button>} />
+  return <div className="pc-conversation">
+    <header className="pc-chat-header">
+      <Link to="/messages" className="pc-icon-button pc-chat-back" aria-label={tx("رجوع")}><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></Link>
+      <span className="pc-chat-avatar" aria-hidden="true">{(thread?.peer_label||"G").slice(0,1)}</span>
+      <div className="pc-chat-person"><h1>{thread?.peer_label||tx("المحادثة")}</h1><span>{CHAT_ROLE_LABELS[thread?.kind]||tx("رسائل خاصة")}</span></div>
+      <button className="pc-icon-button" type="button" aria-label={tx("تحديث")} disabled={busy} onClick={load}><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg></button>
+      <button className={`pc-icon-button ${showTools?"active":""}`} type="button" aria-label={tx("أدوات المحادثة")} aria-expanded={showTools} onClick={()=>setShowTools(x=>!x)}><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+    </header>
+    {showTools && <aside className="pc-chat-tools">
     {thread && <div className="pc-thread-actions">
       <button type="button" className="pc-small" onClick={()=>{setShowAppointments(x=>!x);setShowSearch(false);setShowPlan(false);setShowHistory(false);}}>مواعيد المتابعة</button>
       <button type="button" className="pc-small" onClick={()=>{setShowSearch(x=>!x);setShowAppointments(false);setShowPlan(false);setShowHistory(false);}}>بحث والمثبتة</button>
@@ -219,13 +229,15 @@ function Thread({ id, userId }) {
       <button type="button" className="pc-small" onClick={() => setReport({ kind: "user" })}>{tx("إبلاغ")}</button>
       <button type="button" className="pc-small" disabled={blockBusy} onClick={toggleBlock}>{blockBusy ? "..." : blockedByMe ? tx("إلغاء الحظر") : tx("حظر")}</button>
     </div>}
+    <PrivacyNote />
+    </aside>}
+    <div className="pc-chat-scroll">
     {note && <p className="pc-hint" role="status">{note}</p>}
     {thread?.blocked && <p className="pc-blocked-note" role="status">{blockedByMe ? tx("حظرت المستخدم ده. الرسايل الجديدة متوقفة في الاتجاهين، والسجل القديم ظاهر للقراءة بس.") : tx("المحادثة متوقفة بسبب حظر. الرسايل القديمة ظاهرة للقراءة بس.")}</p>}
     {showHistory && thread?.kind === "coach" && <TrainingHistory key={`history-${id}`} threadId={id} writable={thread.writable} onClose={()=>setShowHistory(false)}/>}
     {showAppointments && thread && <AppointmentsPanel key={`appointments-${id}`} threadId={id} writable={thread.writable} onClose={()=>setShowAppointments(false)}/>}
     {showSearch && thread && <ChatSearchPins key={`search-${id}`} threadId={id} onClose={()=>setShowSearch(false)}/>}
     {showPlan && thread?.kind === "doctor" && <CarePlanPanel key={`plan-${id}`} threadId={id} writable={thread.writable} onClose={()=>setShowPlan(false)}/>}
-    <PrivacyNote />
     {thread?.kind === "doctor" && <p className="pc-hint">{tx("إرشادات عامة، مش للطوارئ ولا بديل عن الكشف. صفة الحساب مش توثيق لترخيص طبي.")}</p>}
     {!online && <p className="pc-error" role="status">{tx("أنت غير متصل. الرسايل الجديدة محتاجة نت. النص اللي لسه متبعتش هيضيع لو قفلت الصفحة.")}</p>}
     <ErrorBox text={err} />
@@ -234,24 +246,27 @@ function Thread({ id, userId }) {
       {more && <button type="button" className="pc-small" disabled={olderBusy} onClick={older}>{olderBusy ? tx("بيحمّل...") : tx("رسائل أقدم")}</button>}
       {!busy && thread && !rows.length && <p className="pc-empty">{tx("اكتب أول رسالة. متبعتش معلومات شخصية أو مستندات طبية مش ضرورية.")}</p>}
       <div className="pc-watermark" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M50 15 L19.6 32.5 L19.6 67.5 L50 85 L80.4 67.5 L80.4 50 L53 50"/></svg><span>GYMAK</span></div>
-      {rows.map((m) => <article className={`pc-message ${m.author_id === userId ? "mine" : "theirs"}`} key={m.id}>
-        <span className="pc-author">{m.author_id === userId ? tx("أنت") : thread?.peer_label}</span>
+      {rows.map((m,index) => <div className="pc-message-row" key={m.id}>
+        {(index===0||chatDay(rows[index-1].created_at)!==chatDay(m.created_at)) && <div className="pc-day"><span>{chatDay(m.created_at)}</span></div>}
+        <article aria-label={m.author_id===userId?tx("أنت"):thread?.peer_label} className={`pc-message ${m.author_id === userId ? "mine" : "theirs"} ${index>0&&rows[index-1].author_id===m.author_id&&chatDay(rows[index-1].created_at)===chatDay(m.created_at)?"grouped":""}`}>
+
         <MessageText body={m.body} />
-        <div className="pc-bubble-footer"><time dateTime={m.created_at}>{stamp(m.created_at)}{m.edited_at && <span className="pc-edited" title={stamp(m.edited_at)}> · {tx("معدّلة")}</span>}</time>
-        <details className="pc-bubble-menu"><summary aria-label={tx("خيارات الرسالة")}>•••</summary><div>
+        <div className="pc-bubble-footer"><time dateTime={m.created_at}>{chatTime(m.created_at)}{m.edited_at && <span className="pc-edited" title={stamp(m.edited_at)}> · {tx("معدّلة")}</span>}</time>
+        <details className="pc-bubble-menu" onClick={e=>{if(e.target.closest("button"))e.currentTarget.open=false;}}><summary aria-label={tx("خيارات الرسالة")}>•••</summary><div>
           {m.author_id === userId && thread?.writable && <button type="button" disabled={!online || editBusy} onClick={()=>{setEditing(m);setEditText(m.body);setEditErr("");setNote("");}}>{tx("تعديل الرسالة")}</button>}
           <button type="button" disabled={pinBusy} onClick={async()=>{if(pinBusy)return;setPinBusy(true);try{await chatToolsRpc("care_chat_pin",{p_thread:id,p_message:m.id,p_pin:true});if(live.current)setNote("اتثبتت عندك بس. افتح بحث والمثبتة عشان ترجع لها.");}catch{if(live.current)setNote("التثبيت متعملش. محتاج تفعيل السيرفر، والحد 30 رسالة للمحادثة.");}finally{if(live.current)setPinBusy(false);}}}>{tx("ثبّت عندي")}</button>
           {m.author_id !== userId && <button type="button" onClick={() => setReport({ kind: "message", message: m })}>{tx("إبلاغ")}</button>}
         </div></details></div>
-      </article>)}
+      </article></div>)}
       <div ref={end} />
     </section>
     {thread && !thread.writable && !thread.blocked && <p className="pc-error" role="status">{tx("المحادثة للقراءة بس: المتابعة أو الصفة اتغيّرت. الرسايل القديمة لسه ظاهرة للطرفين.")}</p>}
-    {thread?.writable && <form className="pc-compose glass" onSubmit={send}>
-      <label htmlFor="private-chat-draft">{tx("رسالتك")}</label><textarea id="private-chat-draft" rows={3} maxLength={CHAT_MAX_LENGTH} value={draft} disabled={sending} onChange={(e) => { setDraft(e.target.value); setSendErr(""); }} placeholder={tx("اكتب سؤالك أو ردك...")} />
-      <div className="pc-compose-row"><small>{draft.length} / {CHAT_MAX_LENGTH}</small><button className="btn btn-primary" type="submit" disabled={sending || !online || !draft.trim()}>{sending ? tx("بيتأكد الإرسال...") : pending.current && sendErr ? tx("إعادة المحاولة") : tx("إرسال")}</button></div><ErrorBox text={sendErr} />
-      <small>{tx("الروابط بتفتح بالضغط فقط. مفيش مرفقات أو معاينة تلقائية. الرد مش فوري.")}</small>
-    </form>}
+    </div>
+    {thread?.writable && <div className="pc-composer-dock"><form className="pc-compose" onSubmit={send}>
+      <div className="pc-input-wrap"><label className="pc-visually-hidden" htmlFor="private-chat-draft">{tx("رسالتك")}</label><textarea id="private-chat-draft" rows={1} maxLength={CHAT_MAX_LENGTH} value={draft} disabled={sending} onChange={(e) => { setDraft(e.target.value); setSendErr("");e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,130)+"px"; }} placeholder={tx("اكتب رسالة...")} />
+      {draft.length>1800&&<small className="pc-char-count">{draft.length}/{CHAT_MAX_LENGTH}</small>}</div>
+      <button className="pc-send" type="submit" aria-label={sending?tx("بيتأكد الإرسال..."):pending.current&&sendErr?tx("إعادة المحاولة"):tx("إرسال")} disabled={sending || !online || !draft.trim()}>{sending?<span className="pc-send-wait">···</span>:<svg viewBox="0 0 24 24"><path d="m21 3-7.5 18-3.8-7.7L2 9.5 21 3Z"/><path d="m21 3-11.3 10.3"/></svg>}</button>
+    </form><ErrorBox text={sendErr}/><span className="pc-compose-hint">{tx("محادثة خاصة · الرد مش فوري")}</span></div>}
     {editing && <div className="pc-edit-backdrop"><section className="pc-edit-dialog glass" role="dialog" aria-modal="true" aria-labelledby="pc-edit-title" onKeyDown={e=>{if(e.key==="Escape"&&!editBusy)setEditing(null);if(e.key==="Tab"){const nodes=[...e.currentTarget.querySelectorAll("button:not(:disabled),textarea:not(:disabled)")];const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
       <h2 id="pc-edit-title">{tx("تعديل الرسالة")}</h2><p className="pc-hint">{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p>
       <form onSubmit={saveEdit}><label htmlFor="pc-edit-text">{tx("نص الرسالة")}</label><textarea autoFocus id="pc-edit-text" rows={5} maxLength={CHAT_MAX_LENGTH} value={editText} disabled={editBusy} onChange={e=>{setEditText(e.target.value);setEditErr("");}}/><small>{editText.length} / {CHAT_MAX_LENGTH}</small><ErrorBox text={editErr}/><div className="pc-edit-buttons"><button className="btn btn-primary" disabled={editBusy||!online||!thread?.writable||!editText.trim()} type="submit">{editBusy?tx("بنحفظ..."):tx("حفظ التعديل")}</button><button className="pc-small" disabled={editBusy} type="button" onClick={()=>setEditing(null)}>{tx("إلغاء")}</button></div></form>
@@ -263,8 +278,7 @@ function Thread({ id, userId }) {
       submit={(reason, details) => report.kind === "user"
         ? reportContent({ targetType: "chat_user", reason, targetUserId: thread.peer_id, conversationId: id, details })
         : reportContent({ targetType: "chat_message", reason, messageId: report.message.id, conversationId: id, details })} />}
-  </>;
-}
+  </div>;}
 
 function ChatSession({ userId }) {
   const { threadId } = useParams(); const [boot, setBoot] = useState(null); const [err, setErr] = useState("");
@@ -281,3 +295,5 @@ export default function PrivateChat() {
   // Account changes remount all state: no old drafts/messages can flash for another user.
   return user ? <ChatSession key={user.id} userId={user.id} /> : null;
 }
+
+import "./conversation.css";

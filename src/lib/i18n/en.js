@@ -2752,4 +2752,8 @@ export const EN = {
 "حفظ التعديل": "Save edit",
 "معدّلة": "Edited",
 "التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.": "Both people will see the edit and an Edited label. Earlier reports keep the text as it was when reported.",
+"أدوات المحادثة": "Conversation tools",
+"رسائل خاصة": "Private messages",
+"اكتب رسالة...": "Message...",
+"محادثة خاصة · الرد مش فوري": "Private conversation · Replies may take time",
 };
