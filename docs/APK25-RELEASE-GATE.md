@@ -4,9 +4,9 @@ This branch is not released. Owner approval is required before publication.
 
 ## New backend prerequisites
 
-- Apply migrations 0038–0045 in sequence after checking the current live migration head.
+- Apply migrations 0038 through 0047 in sequence only in the approved release window, after checking the current live migration head and the disposable-project evidence.
 - Deploy updated `delete-account` and `chat-photo` Edge Functions using existing project-managed environment secrets. Do not put any key in client code or logs.
-- Configure repository secret `SUPABASE_SERVICE_ROLE_KEY` for the hourly cleanup workflow, then run the workflow once and verify actual object removal. A workflow file alone is not a running cleanup service.
+- Follow APK25-FREE-SERVER-WIRING.md. Prefer free provider-native hourly scheduling with a dedicated cleanup-only secret after implementing that endpoint authentication. Never place a broad service credential in scheduler SQL or add it merely to activate the old workflow. Verify a real scheduled fire physically removes an expired synthetic object. A workflow file alone is not a running cleanup service.
 - Verify private buckets, participant denial, recipient-save deletion and expiry against the real Storage API. Local SQL tests cannot validate object-byte deletion.
 - Check current organization Storage/egress usage, since the 200 MB pending-photo cap is shared with other buckets under the free 1 GB allowance. No paid fallback.
 - Update published privacy/terms copy together with the app. Users get an explicit per-photo preview and opt-in; username discovery is off until enabled.
@@ -71,3 +71,12 @@ Existing200MiB pending-delivery cap remains:1024maximum-size200KiB photos, befor
 Clear Arabic messages distinguish daily cap and safe free-storage stop, without suggesting payment. Screenshot inspected390px;360/390/412no overflow.550tests109files pass, production build and actual Deno check pass.
 
 This guard is prepared locally, NOT applied to production and NOT included in the previous48hosted checks. It needs hosted validation in a new disposable environment. The earlier test project has been deleted. Changing storage.objects with an additive trigger is part of migration0047 and must be reviewed with the release plan, not applied silently. The guard covers this project's bytes, not a future second project's quota, bandwidth/egress, database size, or function invocation quotas. Shared account usage and free plan must be checked again at release. Zero server load cannot be promised: compression runs locally but private delivery/auth/cleanup still use server resources. Free-tier limits can block service; never switch to paid service automatically.
+
+
+## Final hosted guard checkpoint, 24 November 21:00 Cairo
+
+New disposable FREE project aznkcjhtywqjoxhrwexb accepted all prerequisite migrations through0047, including the Storage trigger.22hosted SQL behavior checks repeated successfully and21new quota/guard checks passed. Tests cover exact400MiB boundary, other-bucket usage, missing metadata fail-closed handling, reservations/evidence, expired metadata, per-image/day limits and concurrent writes serializing then rechecking committed usage. These are hosted SQL/Storage metadata tests, not a repeat of the earlier authenticated Edge byte-upload suite. The earlier deleted project's26Edge/Storage checks remain byte-lifecycle integration evidence before0047. No fresh final-guard Edge deployment was performed.
+
+Both disposable projects are deleted. Dashboard visually shows only original GYMAK in the FREE organization. The second vault entry and local secret file are deleted; no deployment token was created for the second project. Production untouched.
+
+Final native run45464001614 on exact app source90f159b passed tests/build and APK compile; emulator verification and final pixel inspection pending at this checkpoint. Source500fb1c only adds the free-server wiring plan. Hourly cleanup and prompt push wake/continuation remain plans, not activated services. Full real-device FCM receipt and two-session UI/cache persistence tests remain unverified.
