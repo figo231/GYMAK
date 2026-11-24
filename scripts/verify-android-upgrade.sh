@@ -164,4 +164,5 @@ if [ "${GYMAK_VERSION_CODE:-}" = "25" ]; then
   adb shell cmd connectivity airplane-mode disable
   adb shell svc wifi enable
   run_test native25VersionAndWelcomeUpdate
+  adb pull /sdcard/Android/data/com.gymak.app/files/native25-welcome.png verification/native25-welcome.png
 fi
