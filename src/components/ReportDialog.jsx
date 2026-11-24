@@ -4,7 +4,7 @@ import { tx } from "../lib/i18n/tx";
 
 // Shared report sheet: pick a reason, optional details, submit. The parent passes
 // submit(reason, details) and decides what target gets reported.
-export default function ReportDialog({ title, hint, onClose, submit }) {
+export default function ReportDialog({ title, hint, onClose, submit, children }) {
   const [reason, setReason] = useState("abuse");
   const [details, setDetails] = useState("");
   const [busy, setBusy] = useState(false);
@@ -22,6 +22,7 @@ export default function ReportDialog({ title, hint, onClose, submit }) {
       <section className="report-sheet glass" role="dialog" aria-modal="true" aria-label={title}>
         <h3>{title}</h3>
         {hint && <p className="report-sheet-hint">{hint}</p>}
+        {children}
         <div className="report-reasons" role="radiogroup" aria-label={tx("سبب البلاغ")}>
           {REPORT_REASONS.map(([code, label]) => (
             <label key={code} className="report-reason">

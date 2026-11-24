@@ -4,7 +4,7 @@ import { tx } from "./i18n/tx";
 
 export const CHAT_TERMS_VERSION = "2026-11-23-tou-v1";
 export const CHAT_MAX_LENGTH = 2000;
-export const CHAT_ROLE_LABELS = { user: tx("مستخدم"), coach: tx("مدرب"), doctor: tx("دكتور تغذية") };
+export const CHAT_ROLE_LABELS = { support: tx("مطور التطبيق"), user: tx("مستخدم"), coach: tx("مدرب"), doctor: tx("دكتور تغذية") };
 export const CHAT_PRIVACY = tx("الرسائل خاصة بالطرفين داخل التطبيق، ومحمية بـ HTTPS أثناء النقل. مش تشفير من الطرف للطرف (E2EE): مسؤول قاعدة البيانات يقدر تقنيًا يقرأ الرسائل المخزنة. صاحب التطبيق مش بيشوف محادثات غيره من لوحة الإدارة، والاستثناء الوحيد إنه يراجع المحتوى اللي مستخدم بلّغ عنه بالظبط عشان ياخد إجراء.");
 export const CHAT_HEALTH_NOTE = tx("إرشادات عامة، مش للطوارئ ولا بديل عن الكشف الطبي. مفيش ضمان لرد فوري. صفة دكتور أو مدرب بيحددها صاحب التطبيق، ومش توثيق لشهادة أو ترخيص. متبعتش مستندات طبية أو معلومات شخصية مش ضرورية.");
 
@@ -75,9 +75,9 @@ async function rpc(name, args, client = supabase) {
 }
 export const chatBootstrap = (client) => rpc("chat_bootstrap_v2", undefined, client);
 export const acceptChatTerms = (client) => rpc("chat_accept_terms_v2", { p_version: CHAT_TERMS_VERSION }, client);
-export const fetchChatContacts = (cursor = null, client) => rpc("chat_contacts_v2", cursor ? { p_after_kind: cursor.kind, p_after_id: cursor.user_id } : {}, client);
-export const fetchChatInbox = (cursor = null, client) => rpc("chat_inbox_v2", cursor ? { p_before_at: cursor.last_message_at, p_before_id: cursor.id } : {}, client);
-export const fetchChatThread = async (id, client) => (await rpc("chat_inbox_v2", { p_only: id }, client))?.[0] || null;
+export const fetchChatContacts = (cursor = null, client) => rpc("chat_contacts_v3", cursor ? { p_after_kind: cursor.kind, p_after_id: cursor.user_id } : {}, client);
+export const fetchChatInbox = (cursor = null, client, search = "") => rpc("chat_inbox_v3", {p_search:search,...(cursor ? { p_before_at: cursor.last_message_at, p_before_id: cursor.id } : {})}, client);
+export const fetchChatThread = async (id, client) => (await rpc("chat_inbox_v3", { p_only: id }, client))?.[0] || null;
 export const startChat = (professionalId, kind, client) => rpc("chat_start_v2", { p_professional_id: professionalId, p_kind: kind }, client);
 export const markChatRead = (id, seq, client) => rpc("chat_mark_read", { p_conversation_id: id, p_through_seq: seq }, client);
 export const fetchOwnerStats = (client) => rpc("chat_owner_stats", {}, client);
@@ -102,14 +102,14 @@ export async function editChatMessage(id, message, body, client) {
 export async function refreshChatMessages(id, ids, client = supabase) {
   const rows = [];
   for (let offset = 0; offset < ids.length; offset += 50) {
-    const { data, error } = await withTimeout(clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at,edited_at,revision").eq("conversation_id", id).in("id", ids.slice(offset, offset + 50)), 15000);
+    const { data, error } = await withTimeout(clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at,edited_at,revision,photo_id").eq("conversation_id", id).in("id", ids.slice(offset, offset + 50)), 15000);
     if (error) throw error;
     rows.push(...(data || []));
   }
   return rows;
 }
 export async function fetchChatMessages(id, before = null, client = supabase) {
-  let q = clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at,edited_at,revision")
+  let q = clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at,edited_at,revision,photo_id")
     .eq("conversation_id", id).order("seq", { ascending: false }).limit(50);
   if (before != null) q = q.lt("seq", before);
   const { data, error } = await withTimeout(q, 15000);
@@ -128,7 +128,7 @@ export function subscribeChat(id, onChange, client = supabase) {
   if (!client) return () => {};
   // Realtime is a refresh signal only. Fetch again through authenticated RLS.
   let c = client.channel(`private-chat-${id || "inbox"}-${newChatNonce()}`);
-  if (id) c = c.on("postgres_changes", { event: "*", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${id}` }, () => onChange());
+  if (id) c = c.on("postgres_changes", {event:"UPDATE",schema:"public",table:"chat_conversations",filter:`id=eq.${id}`},()=>onChange()).on("postgres_changes", { event: "*", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${id}` }, () => onChange());
   else c = c.on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_conversations" }, () => onChange());
   c.subscribe();
   return () => { client.removeChannel(c); };

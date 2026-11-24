@@ -7,6 +7,7 @@ import DetailShell, { ChatShell } from "./components/layout/DetailShell";
 import RouteError from "./components/RouteError";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+const ChatProfile = lazy(() => import("./pages/Profile/ChatProfile"));
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 
 const Exercises = lazy(() => import("./pages/Exercises/Exercises"));
@@ -57,6 +58,8 @@ export const router = createBrowserRouter([
       { path: "/stats", element: <Stats /> },
       { path: "/profile", element: <Profile /> },
       { path: "/food", element: <Food /> },
+      { path: "/chat-profile", element: <ProtectedRoute><ChatProfile /></ProtectedRoute> },
+      { path: "/chat-profile/:id", element: <ProtectedRoute><ChatProfile /></ProtectedRoute> },
       { path: "/messages", element: <ProtectedRoute><PrivateChat /></ProtectedRoute> },
       { path: "/professionals", element: <Professionals /> },
       { path: "/tour", element: <TourPage /> },

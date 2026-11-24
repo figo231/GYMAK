@@ -1,46 +1,17 @@
-import { useEffect, useState } from "react";
-import UpdateService from "../lib/update/UpdateService";
-import { tx } from "../lib/i18n/tx";
-
+import { useEffect, useState } from 'react';
+import UpdateService from '../lib/update/UpdateService';
+import { isEn } from '../lib/i18n/lang';
+import { APK25_NOTES } from '../lib/update/releaseNotes';
+import './updateCenter.css';
 export default function ApkUpdateSheet() {
-  const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    UpdateService.init();
-    return UpdateService.subscribe((e) => { if (e.type === "apk-available") setOpen(true); });
-  }, []);
-
-  if (!open || UpdateService.platform() !== "apk") return null;
-
-  async function go() {
-    setBusy(true);
-    setError("");
-    try { await UpdateService.applyUpdate(); setOpen(false); }
-    catch { setError(tx("اتصل بالإنترنت وحاول تاني. تقدر تكمل استخدام التطبيق دلوقتي.")); }
-    finally { setBusy(false); }
-  }
-
-  return (
-    <div className="modal-backdrop open" style={{ zIndex: 9999 }} onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
-      <div className="edit-sheet">
-        <div className="edit-sheet-handle" />
-        <div style={{ textAlign: "center", marginBottom: 10 }}>
-          <div style={{ width: 54, height: 54, borderRadius: 18, margin: "0 auto 10px", display: "grid", placeItems: "center", background: "linear-gradient(135deg, var(--glow-blue), var(--glow-purple))", color: "var(--on-acc, #111)" }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12" /><path d="m7 11 5 5 5-5" /><path d="M5 20h14" /></svg>
-          </div>
-          <h3 style={{ margin: "0 0 6px" }}>{tx("تحديث جديد للتطبيق")}</h3>
-          <p style={{ margin: 0, fontSize: 13, opacity: 0.75, lineHeight: 1.7 }}>
-            {tx("فيه نسخة أحدث من GYMAK جاهزة. زرار تحديث هيفتح صفحة التحميل. اختار تحميل أندرويد، وبعدها افتح الملف واختار تثبيت من غير ما تمسح التطبيق الحالي.")}
-          </p>
-        </div>
-        {error && <p role="alert" style={{ fontSize: 13, textAlign: "center" }}>{error}</p>}
-        <div className="edit-sheet-actions">
-          <button type="button" onClick={() => setOpen(false)}>{tx("بعدين")}</button>
-          <button type="button" onClick={go} disabled={busy} style={{ background: "linear-gradient(135deg, var(--glow-blue), var(--glow-purple))", color: "var(--on-acc, #111)" }}>{tx("تحديث")}</button>
-        </div>
-      </div>
-    </div>
-  );
+ const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[info,setInfo]=useState(null),[status,setStatus]=useState(''),[error,setError]=useState('');
+ const en=isEn(), native=UpdateService.platform()==='apk';
+ const text=(ar,english)=>en?english:ar;
+ async function read(){try{setInfo(await UpdateService.details());}catch{setError(text('تعذر قراءة رقم النسخة المثبتة.','Could not read the installed version.'));}}
+ useEffect(()=>{UpdateService.init();const show=()=>{setOpen(true);setError('');setStatus('');read();};window.addEventListener('gymak-open-update-center',show);const off=UpdateService.subscribe(e=>{if(e.type==='apk-available')show();});return()=>{off();window.removeEventListener('gymak-open-update-center',show);};},[]);
+ async function check(){setBusy(true);setError('');setStatus('');try{const found=await UpdateService.checkForUpdate();await read();setStatus(found?text('فيه تحديث جاهز.','An update is ready.'):text('أنت على آخر نسخة متاحة.','You have the latest available version.'));}catch{setError(text('تعذر التحقق. راجع النت وحاول تاني.','Could not check. Check your connection and try again.'));}finally{setBusy(false);}}
+ async function go(){setBusy(true);setError('');try{await UpdateService.applyUpdate();setStatus(text('فتحنا صفحة التحميل. التحميل لوحده مش تثبيت. افتح الملف واختار تحديث أو تثبيت.','Download page opened. Downloading is not installation. Open the file and choose Update or Install.'));}catch{setError(text('تعذر فتح التحديث. راجع النت وحاول تاني.','Could not open the update. Check your connection and try again.'));}finally{setBusy(false);}}
+ useEffect(()=>{if(!open)return;const refresh=()=>{if(document.visibilityState==='visible')read();};document.addEventListener('visibilitychange',refresh);return()=>document.removeEventListener('visibilitychange',refresh);},[open]);
+ if(!open)return null;
+ return <div className="modal-backdrop open update-backdrop" onClick={e=>{if(e.target===e.currentTarget)setOpen(false);}}><section className="update-center" role="dialog" aria-modal="true" aria-labelledby="update-title"><header><span className="update-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg></span><button onClick={()=>setOpen(false)} aria-label={text('قفل','Close')}>×</button></header><p className="update-eyebrow">GYMAK</p><h2 id="update-title">{text('مركز التحديثات','Update center')}</h2><p className="update-caption">{text('نسختك واضحة. وخطوتك الجاية أوضح.','Your version, and your next step.')}</p><div className="update-versions"><div><small>{text('النسخة المثبتة','Installed version')}</small><strong dir="ltr">{native?(info?.installed?`${info.installed.version} · ${info.installed.build}`:'…'):text('نسخة الويب','Web app')}</strong></div><div><small>{text('التحديث المتاح','Available update')}</small><strong dir="ltr">{info?.latest?`APK ${info.latest.build}`:'—'}</strong></div></div><button className="update-check" onClick={check} disabled={busy}>{busy?text('جاري التحقق…','Checking…'):text('التحقق من التحديثات','Check for updates')}</button>{status&&<p className="update-status" role="status">{status}</p>}{error&&<p className="update-error" role="alert">{error}</p>}<details className="update-notes"><summary>{text('المخطط لنسخة APK25','Planned for APK25')}</summary><ul>{APK25_NOTES[en?'en':'ar'].map(t=><li key={t}>{t}</li>)}</ul></details>{native&&<><ol className="update-steps"><li>{text('افتح welcome وحمّل نسخة أندرويد.','Open welcome and download the Android app.')}</li><li>{text('افتح الملف واختار تحديث أو تثبيت، من غير حذف التطبيق.','Open the file and choose Update or Install. Do not uninstall.')}</li><li>{text('ارجع هنا وتأكد إن رقم النسخة اتغير.','Return here and confirm the installed version changed.')}</li></ol><p className="update-caption">{text('بيانات تمرينك تفضل مكانها. متعملش مسح بيانات.','Keep your workout data. Do not clear app data.')}</p>{<button className="update-primary" onClick={go} disabled={busy}>{text('افتح صفحة التحميل','Open download page')}</button>}</>}{!native&&<p className="update-caption">{text('الويب بيتحدث تلقائيًا. ده مش رقم نسخة أندرويد المثبتة.','The web app updates automatically. This is not your installed Android version.')}</p>}</section></div>;
 }

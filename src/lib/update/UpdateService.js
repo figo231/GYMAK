@@ -61,6 +61,8 @@ const UpdateService = {
     return isNativeApp() && !!apkUpdateStrategy.hasPending?.();
   },
 
+  async details() { return isNativeApp() ? apkUpdateStrategy.details() : { installed: null, latest: null }; },
+
   /** Which strategy is active — exposed in case UI ever needs to label things differently per platform. */
   platform() {
     return isNativeApp() ? "apk" : "pwa";

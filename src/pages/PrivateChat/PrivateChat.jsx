@@ -1,3 +1,17 @@
+import {subscribeIdentity} from "../../lib/chatLiveIdentity";
+import PhotoReportDialog from "../../components/PhotoReportDialog";
+import ChatPhoto from "../../components/ChatPhoto";
+import {prepareChatPhoto,sendPhoto,photoSendError} from "../../lib/chatPhotos";
+import UsernameSearch from "../../components/UsernameSearch";
+import ChatAvatar from "../../components/ChatAvatar";
+import MessageTicks from "../../components/MessageTicks";
+import {acknowledgeChat,receiptStatus} from "../../lib/chatIdentity";
+import "../Profile/chatProfile.css";
+import VerifiedBadge from "../../components/VerifiedBadge";
+import RoleRequestPanel from "../../components/RoleRequestPanel";
+import LineIcon from "../../components/LineIcon";
+import {isEn} from "../../lib/i18n/lang";
+import "./inbox25.css";
 import {REVIEW_BACKEND_GATED,reviewBackendMessage} from "../../lib/reviewBuild";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
@@ -18,7 +32,7 @@ function stamp(value) {
   try { return new Date(value).toLocaleString("ar-EG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 function ErrorBox({ text }) { return text ? <p className="pc-error" role="alert">{text}</p> : null; }
-function PrivacyNote() { return <details className="pc-privacy"><summary>{tx("خصوصية الرسائل وحدود الخدمة")}</summary><p>{CHAT_PRIVACY}</p><p>{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p><p>{CHAT_HEALTH_NOTE}</p><p>خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.</p><p>{tx("مفيش مرفقات ولا اتصال فيديو داخل التطبيق. روابط المكالمات بتفتح خارج التطبيق لما تدوس عليها، وشروط خدمة المكالمة منفصلة.")}</p></details>; }
+function PrivacyNote() { return <details className="pc-privacy"><summary>{tx("خصوصية الرسائل وحدود الخدمة")}</summary><p>{CHAT_PRIVACY}</p><p>{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p><p>{CHAT_HEALTH_NOTE}</p><p>خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.</p><p>{tx("الصور بتتبعت بموافقة منفصلة. نسخة السيرفر مؤقتة لحد تأكيد حفظ الطرف التاني على جهازه أو 7 أيام. النسخ المحلية مش بتتنقل تلقائي لجهاز تاني، وممكن تضيع مع مسح البيانات أو إعادة التثبيت. بلاغ الصورة مش بيرفقها إلا باختيارك، والنسخة المرفقة بتفضل للمراجعة لحد 30 يوم. مفيش اتصال فيديو داخل التطبيق.")}</p></details>; }
 
 export function Consent({ onAccept }) {
   const [agree, setAgree] = useState(false); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
@@ -39,6 +53,9 @@ export function Consent({ onAccept }) {
 }
 
 function Inbox() {
+  const [identityVersion,setIdentityVersion]=useState(0);
+  const [search,setSearch]=useState(""); const [query,setQuery]=useState("");
+  useEffect(()=>{const timer=setTimeout(()=>setQuery(search.trim()),250);return()=>clearTimeout(timer);},[search]);
   const nav = useNavigate(); const location = useLocation(); const [rows, setRows] = useState([]); const [contacts, setContacts] = useState([]);
   const [busy, setBusy] = useState(true); const [more, setMore] = useState(false); const [err, setErr] = useState(""); const [starting, setStarting] = useState("");
   const [contactsMore, setContactsMore] = useState(false), [contactsBusy, setContactsBusy] = useState(false);
@@ -47,12 +64,12 @@ function Inbox() {
   const load = useCallback(async () => {
     const n = ++request.current; contactEpoch.current++; setBusy(true);
     try {
-      const [r, c] = await Promise.all([fetchChatInbox(), fetchChatContacts()]);
+      const [r, c] = await Promise.all([fetchChatInbox(null, undefined, query), fetchChatContacts()]);
       if (!live.current || n !== request.current) return;
-      setRows(r || []); setContacts(c || []); setContactsMore(c?.length === 50); setMore(r?.length === 50); setErr("");
+      setRows(r || []); setContacts(c || []);setIdentityVersion(x=>x+1); setContactsMore(c?.length === 50); setMore(r?.length === 50); setErr("");
     } catch (e) { if (live.current && n === request.current) setErr(chatError(e)); }
     finally { if (live.current && n === request.current) setBusy(false); }
-  }, []);
+  }, [query]);
   useEffect(() => {
     live.current = true; load();
     const onFocus = () => { if (!document.hidden) load(); };
@@ -60,11 +77,12 @@ function Inbox() {
     document.addEventListener("visibilitychange", onFocus); window.addEventListener("online", onFocus);
     return () => { live.current = false; request.current++; off(); document.removeEventListener("visibilitychange", onFocus); window.removeEventListener("online", onFocus); };
   }, [load]);
+  useEffect(()=>{const ids=[...new Set([...rows.map(x=>x.peer_id),...contacts.map(x=>x.user_id)])];const offs=ids.map(uid=>subscribeIdentity(uid,load));return()=>offs.forEach(off=>off());},[rows.map(x=>x.peer_id).join(","),contacts.map(x=>x.user_id).join(","),load]);
   async function older() {
     if (busy || !rows.length) return;
     setBusy(true); const n = ++request.current;
     try {
-      const next = await fetchChatInbox(rows[rows.length - 1]);
+      const next = await fetchChatInbox(rows[rows.length - 1], undefined, query);
       if (!live.current || n !== request.current) return;
       setRows((old) => [...old, ...(next || []).filter((r) => !old.some((x) => x.id === r.id))]); setMore(next?.length === 50); setErr("");
     } catch (e) { if (live.current) setErr(chatError(e)); } finally { if (live.current) setBusy(false); }
@@ -88,23 +106,25 @@ function Inbox() {
     finally { if (live.current) setStarting(""); }
   }
   return <>
-    <div className="pc-heading"><h2>{tx("محادثاتك")}</h2><button type="button" className="pc-small" disabled={busy} onClick={load}>{busy ? tx("بيحدّث...") : tx("تحديث")}</button></div>
-    <p className="pc-hint">{tx("التنبيه هنا داخل التطبيق بس، مش إشعار في الخلفية. افتح الرسائل عشان تشوف الجديد. مفيش ضمان لرد فوري.")}</p>
+    <div className="inbox-masthead"><div><span className="inbox-eyebrow">GYMAK MESSAGES</span><h1>{isEn()?"Your conversations":"رسايلك"}</h1><p>{isEn()?"A little support. A better next step.":"سؤال صغير. خطوة أحسن."}</p></div><Link to="/chat-profile" className="inbox-settings" aria-label={isEn()?"My profile and privacy":"ملفي وخصوصية الرسايل"}><LineIcon name="user" size={23}/></Link></div><div className="inbox-quicklinks"><UsernameSearch/><Link to="/professionals">{isEn()?"Find a coach":"مدربين ودكاترة"}<span>↗</span></Link><button type="button" disabled={busy} onClick={load} aria-label={isEn()?"Refresh":"تحديث"}><LineIcon name="refresh" size={17}/></button></div>
+    <label className="inbox-search"><LineIcon name="search" size={19}/><input aria-label={isEn()?"Search conversations by name":"بحث في المحادثات بالاسم"} type="search" maxLength={80} value={search} onChange={e=>setSearch(e.target.value)} placeholder={isEn()?"Search by name":"دور بالاسم"}/></label>
+    {contacts.some(c=>c.is_developer)&&<div className="developer-contacts">{contacts.filter(c=>c.is_developer).map(c=><button type="button" className="developer-contact" key={c.user_id} disabled={!!starting} onClick={()=>open(c)}><span className="developer-icon"><img src="/icon-192.png" alt=""/></span><span><strong>{c.label} <VerifiedBadge developer/></strong><small>{isEn()?"GYMAK developer · contact support":"مطور GYMAK · تواصل معايا"}</small></span><LineIcon name="chat" size={20}/></button>)}</div>}
     <ErrorBox text={err} />
     {!busy && !err && rows.length === 0 && <p className="pc-empty glass">{tx("لسه مفيش محادثات. افتح المدربين المقترحين لطلب تواصل، أو اختار جهة مقبولة من تحت.")}</p>}
-    <div className="pc-list">{rows.map((r) => <Link key={r.id} to={`/messages/${r.id}`} state={location.state} className="pc-thread glass">
-      <span className="pc-avatar" aria-hidden="true">{r.peer_label?.slice(0, 1) || tx("؟")}</span>
-      <span className="pc-thread-main"><strong>{r.peer_label}</strong><small>{r.kind === "doctor" ? tx("محادثة تغذية") : tx("متابعة تدريب")}{!r.writable ? (r.blocked ? tx(" · محظور") : tx(" · للقراءة بس")) : ""}</small><time dateTime={r.last_message_at}>{stamp(r.last_message_at)}</time></span>
-      {Number(r.unread) > 0 && <span className="pc-unread" aria-label={txf(`{0} رسالة غير مقروءة`, [r.unread])}>{r.unread}</span>}
+    <div className="pc-list inbox-list">{rows.map((r) => <Link key={r.id} to={`/messages/${r.id}`} state={location.state} className="pc-thread">
+      <ChatAvatar identityVersion={identityVersion} className="pc-avatar" userId={r.peer_id} label={r.peer_label} developer={r.is_developer}/>
+      <span className="pc-thread-main"><span className="inbox-title"><strong>{r.peer_label} {r.verified&&<VerifiedBadge developer={r.is_developer}/>}</strong><time dateTime={r.last_message_at}>{new Date(r.last_message_at).toLocaleDateString()==new Date().toLocaleDateString()?new Date(r.last_message_at).toLocaleTimeString(isEn()?'en-GB':'ar-EG',{hour:'2-digit',minute:'2-digit'}):new Date(r.last_message_at).toLocaleDateString(isEn()?'en-GB':'ar-EG',{day:'numeric',month:'short'})}</time></span><span className="inbox-preview">{r.preview||(isEn()?"Start your conversation":"ابدأ أول رسالة")}</span><small>{r.kind==='support'?(isEn()?"App developer":"مطور التطبيق"):(r.kind==='direct'?(isEn()?'Member':'عضو'):CHAT_ROLE_LABELS[r.kind])}{!r.writable?tx(" · للقراءة بس"):""}</small></span>
+      {Number(r.unread)>0&&<span className="pc-unread" aria-label={txf(`{0} رسالة غير مقروءة`,[r.unread])}>{r.unread>99?'99+':r.unread}</span>}
     </Link>)}</div>
     {more && <button type="button" className="pc-small" disabled={busy} onClick={older}>{tx("محادثات أقدم")}</button>}
-    <div className="pc-heading"><h2>{tx("ابدأ محادثة")}</h2></div>
+    <details className="inbox-start-fold"><summary>{isEn()?"Other available contacts":"جهات التواصل المتاحة"}</summary>
     <p className="pc-hint">{tx("الأشخاص اللي قبلوا طلب تواصلك، ومدربيك اللي وافقت على متابعتهم. الصفة مش توثيق مهني.")}</p>
-    <div className="pc-list">{contacts.map((c) => <button type="button" className="pc-contact glass" key={`${c.user_id}-${c.kind}`} disabled={!!starting} onClick={() => open(c)}>
-      <span><strong>{c.label}</strong><small>{CHAT_ROLE_LABELS[c.kind]}</small></span><span>{starting === c.user_id ? tx("بيفتح...") : tx("افتح المحادثة ←")}</span>
+    <div className="pc-list">{contacts.filter(c=>!c.is_developer).map((c) => <button type="button" className="pc-contact glass" key={`${c.user_id}-${c.kind}`} disabled={!!starting} onClick={() => open(c)}>
+      <span><strong>{c.label} {c.verified&&<VerifiedBadge/>}</strong><small>{CHAT_ROLE_LABELS[c.kind]}</small></span><span>{starting === c.user_id ? tx("بيفتح...") : tx("افتح المحادثة ←")}</span>
     </button>)}</div>
     {contactsMore && <button type="button" className="pc-small" disabled={busy || contactsBusy} onClick={moreContacts}>{tx("جهات محادثة أكتر")}</button>}
     {!busy && !contacts.length && <p className="pc-empty glass">{tx("مفيش حد متاح تبدأ معاه محادثة دلوقتي. لقبول دعوة مدربك، افتح")} <Link to="/coach">{tx("مدربيني")}</Link>.</p>}
+    </details><details className="role-request-fold"><summary>{isEn()?"Apply as a coach or doctor":"طلب الانضمام كمدرب أو دكتور"}</summary><RoleRequestPanel/></details>
     <PrivacyNote />
   </>;
 }
@@ -127,6 +147,9 @@ function MessageText({ body }) {
 function chatDay(value) { return new Date(value).toLocaleDateString("ar-EG", {day:"numeric",month:"long",year:"numeric"}); }
 function chatTime(value) { return new Date(value).toLocaleTimeString("ar-EG", {hour:"2-digit",minute:"2-digit"}); }
 function Thread({ id, userId }) {
+  const [actionMessage,setActionMessage]=useState(null);
+  const [receipt,setReceipt]=useState(null);const [identityVersion,setIdentityVersion]=useState(0);
+  const [photo,setPhoto]=useState(null),[photoBusy,setPhotoBusy]=useState(false),[photoAgree,setPhotoAgree]=useState(false),[photoError,setPhotoError]=useState("");
   const location = useLocation(); const nav=useNavigate();
   useEffect(()=>{if(location.state?.proposedDraft)nav(location.pathname,{replace:true,state:null});},[]);
   const [thread, setThread] = useState(null); const [rows, setRows] = useState([]); const [draft, setDraft] = useState(() => String(location.state?.draftOwner===userId ? location.state?.proposedDraft || "" : "").slice(0,CHAT_MAX_LENGTH));
@@ -153,7 +176,10 @@ function Thread({ id, userId }) {
       const olderIds = loadedRows.current.filter(m => !messages.some(x => x.id === m.id)).map(m => m.id);
       if (olderIds.length) messages.push(...await refreshChatMessages(id, olderIds));
       if (!live.current || n !== request.current) return;
-      setThread(t); setRows((old) => mergeChatMessages(old, messages)); setErr("");
+      setThread(t); setIdentityVersion(x=>x+1);setRows((old) => mergeChatMessages(old, messages)); setErr("");
+      const through=Math.max(0,...messages.map(m=>Number(m.seq)));
+      acknowledgeChat(id,through,false).catch(()=>{});
+      receiptStatus(id).then(x=>{if(live.current&&n===request.current)setReceipt(x);}).catch(()=>{});
       if (first.current) { setMore(messages.length === 50); first.current = false; }
       fetchMyChatBlocks().then((b) => { if (live.current && n === request.current) setMyBlocks(b || []); }).catch(() => {});
 
@@ -167,15 +193,18 @@ function Thread({ id, userId }) {
     document.addEventListener("visibilitychange", update); window.addEventListener("online", update); window.addEventListener("offline", update);
     return () => { live.current = false; request.current++; off(); document.removeEventListener("visibilitychange", update); window.removeEventListener("online", update); window.removeEventListener("offline", update); };
   }, [id, load]);
+  useEffect(()=>subscribeIdentity(thread?.peer_id,load),[thread?.peer_id,load]);
   useEffect(() => { if (!olderBusy) end.current?.scrollIntoView({ block: "end", behavior: "auto" }); }, [rows[rows.length - 1]?.id, olderBusy]);
   useEffect(() => {
     const markDisplayed = () => {
       const last = rows[rows.length - 1];
-      if (last && !document.hidden) markChatRead(id, last.seq).catch(() => {});
+      if (last && !document.hidden && document.hasFocus()) {markChatRead(id, last.seq).catch(() => {});acknowledgeChat(id,last.seq,true).catch(()=>{});}
     };
-    markDisplayed(); document.addEventListener("visibilitychange", markDisplayed);
-    return () => document.removeEventListener("visibilitychange", markDisplayed);
+    markDisplayed(); document.addEventListener("visibilitychange", markDisplayed);window.addEventListener("focus",markDisplayed);
+    return () => {document.removeEventListener("visibilitychange", markDisplayed);window.removeEventListener("focus",markDisplayed);};
   }, [id, rows[rows.length - 1]?.seq]);
+  async function pickPhoto(e){const file=e.target.files?.[0];e.target.value="";if(!file||photoBusy)return;setPhotoBusy(true);setPhotoError("");try{const blob=await prepareChatPhoto(file);setPhoto({blob,url:URL.createObjectURL(blob),nonce:newChatNonce()});setPhotoAgree(false);}catch{setPhotoError(isEn()?"Choose a JPEG, PNG or WebP photo below 5 MB.":"اختار صورة JPEG أو PNG أو WebP أصغر من 5 ميجا.");}finally{setPhotoBusy(false);}}
+  async function deliverPhoto(){if(!photo||!photoAgree||photoBusy)return;setPhotoBusy(true);setPhotoError("");try{const m=await sendPhoto(userId,id,photo.nonce,photo.blob);setRows(old=>mergeChatMessages(old,[m]));URL.revokeObjectURL(photo.url);setPhoto(null);}catch(e){setPhotoError(photoSendError(e,isEn()));}finally{setPhotoBusy(false);}}
   async function older() {
     if (olderBusy || !rows.length) return; setOlderBusy(true);
     try { const msgs = await fetchChatMessages(id, rows[0].seq); if (live.current) { setRows((old) => mergeChatMessages(msgs, old)); setMore(msgs.length === 50); } }
@@ -215,14 +244,14 @@ function Thread({ id, userId }) {
   return <div className="pc-conversation">
     <header className="pc-chat-header">
       <Link to="/messages" className="pc-icon-button pc-chat-back" aria-label={tx("رجوع")}><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></Link>
-      <span className="pc-chat-avatar" aria-hidden="true">{(thread?.peer_label||"G").slice(0,1)}</span>
-      <div className="pc-chat-person"><h1>{thread?.peer_label||tx("المحادثة")}</h1><span>{CHAT_ROLE_LABELS[thread?.kind]||tx("رسائل خاصة")}</span></div>
+      <Link to={`/chat-profile/${thread?.peer_id}`} aria-label={isEn()?"Open profile":"افتح الملف الشخصي"}><ChatAvatar identityVersion={identityVersion} className="pc-chat-avatar" userId={thread?.peer_id} label={thread?.peer_label} developer={thread?.is_developer}/></Link>
+      <div className="pc-chat-person"><h1>{thread?.peer_label||tx("المحادثة")} {thread?.verified&&<VerifiedBadge developer={thread.is_developer}/>}</h1><span>{CHAT_ROLE_LABELS[thread?.kind]||tx("رسائل خاصة")}</span></div>
       <button className="pc-icon-button" type="button" aria-label={tx("تحديث")} disabled={busy} onClick={load}><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg></button>
       <button className={`pc-icon-button ${showTools?"active":""}`} type="button" aria-label={tx("أدوات المحادثة")} aria-expanded={showTools} onClick={()=>setShowTools(x=>!x)}><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
     </header>
     {showTools && <aside className="pc-chat-tools">
     {thread && <div className="pc-thread-actions">
-      <button type="button" className="pc-small" onClick={()=>{setShowAppointments(x=>!x);setShowSearch(false);setShowPlan(false);setShowHistory(false);}}>مواعيد المتابعة</button>
+      {["coach","doctor"].includes(thread.kind)&&<button type="button" className="pc-small" onClick={()=>{setShowAppointments(x=>!x);setShowSearch(false);setShowPlan(false);setShowHistory(false);}}>مواعيد المتابعة</button>}
       <button type="button" className="pc-small" onClick={()=>{setShowSearch(x=>!x);setShowAppointments(false);setShowPlan(false);setShowHistory(false);}}>بحث والمثبتة</button>
       {thread.kind === "coach" && <button type="button" className="pc-small" onClick={()=>{setShowHistory(x=>!x);setShowAppointments(false);setShowSearch(false);setShowPlan(false);}}>سجل خطة التمرين</button>}
       {thread.kind === "doctor" && <button type="button" className="pc-small" onClick={()=>{setShowPlan(x=>!x);setShowAppointments(false);setShowSearch(false);setShowHistory(false);}}>خطة التغذية</button>}
@@ -238,7 +267,7 @@ function Thread({ id, userId }) {
     {showAppointments && thread && <AppointmentsPanel key={`appointments-${id}`} threadId={id} writable={thread.writable} onClose={()=>setShowAppointments(false)}/>}
     {showSearch && thread && <ChatSearchPins key={`search-${id}`} threadId={id} onClose={()=>setShowSearch(false)}/>}
     {showPlan && thread?.kind === "doctor" && <CarePlanPanel key={`plan-${id}`} threadId={id} writable={thread.writable} onClose={()=>setShowPlan(false)}/>}
-    {thread?.kind === "doctor" && <p className="pc-hint">{tx("إرشادات عامة، مش للطوارئ ولا بديل عن الكشف. صفة الحساب مش توثيق لترخيص طبي.")}</p>}
+    {thread?.kind === "doctor" && <p className="pc-health-notice">{tx("إرشادات عامة، مش للطوارئ ولا بديل عن الكشف. صفة الحساب مش توثيق لترخيص طبي.")}</p>}
     {!online && <p className="pc-error" role="status">{tx("أنت غير متصل. الرسايل الجديدة محتاجة نت. النص اللي لسه متبعتش هيضيع لو قفلت الصفحة.")}</p>}
     <ErrorBox text={err} />
     {busy && <p className="pc-hint" role="status">{tx("بنحمّل المحادثة...")}</p>}
@@ -250,28 +279,31 @@ function Thread({ id, userId }) {
         {(index===0||chatDay(rows[index-1].created_at)!==chatDay(m.created_at)) && <div className="pc-day"><span>{chatDay(m.created_at)}</span></div>}
         <article aria-label={m.author_id===userId?tx("أنت"):thread?.peer_label} className={`pc-message ${m.author_id === userId ? "mine" : "theirs"} ${index>0&&rows[index-1].author_id===m.author_id&&chatDay(rows[index-1].created_at)===chatDay(m.created_at)?"grouped":""}`}>
 
-        <MessageText body={m.body} />
-        <div className="pc-bubble-footer"><time dateTime={m.created_at}>{chatTime(m.created_at)}{m.edited_at && <span className="pc-edited" title={stamp(m.edited_at)}> · {tx("معدّلة")}</span>}</time>
-        <details className="pc-bubble-menu" onClick={e=>{if(e.target.closest("button"))e.currentTarget.open=false;}}><summary aria-label={tx("خيارات الرسالة")}>•••</summary><div>
-          {m.author_id === userId && thread?.writable && <button type="button" disabled={!online || editBusy} onClick={()=>{setEditing(m);setEditText(m.body);setEditErr("");setNote("");}}>{tx("تعديل الرسالة")}</button>}
-          <button type="button" disabled={pinBusy} onClick={async()=>{if(pinBusy)return;setPinBusy(true);try{await chatToolsRpc("care_chat_pin",{p_thread:id,p_message:m.id,p_pin:true});if(live.current)setNote("اتثبتت عندك بس. افتح بحث والمثبتة عشان ترجع لها.");}catch{if(live.current)setNote("التثبيت متعملش. محتاج تفعيل السيرفر، والحد 30 رسالة للمحادثة.");}finally{if(live.current)setPinBusy(false);}}}>{tx("ثبّت عندي")}</button>
-          {m.author_id !== userId && <button type="button" onClick={() => setReport({ kind: "message", message: m })}>{tx("إبلاغ")}</button>}
-        </div></details></div>
+        {m.photo_id?<ChatPhoto photoId={m.photo_id} userId={userId} mine={m.author_id===userId}/>:<MessageText body={m.body} />}
+        <div className="pc-bubble-footer"><time dateTime={m.created_at}>{chatTime(m.created_at)}{m.edited_at && <span className="pc-edited" title={stamp(m.edited_at)}> · {tx("معدّلة")}</span>}{m.author_id===userId&&<MessageTicks seq={m.seq} status={receipt}/>}</time>
+        <button type="button" className="pc-message-options" aria-label={tx("خيارات الرسالة")} onClick={()=>setActionMessage(m)}>•••</button></div>
       </article></div>)}
       <div ref={end} />
     </section>
     {thread && !thread.writable && !thread.blocked && <p className="pc-error" role="status">{tx("المحادثة للقراءة بس: المتابعة أو الصفة اتغيّرت. الرسايل القديمة لسه ظاهرة للطرفين.")}</p>}
     </div>
     {thread?.writable && <div className="pc-composer-dock"><form className="pc-compose" onSubmit={send}>
-      <div className="pc-input-wrap"><label className="pc-visually-hidden" htmlFor="private-chat-draft">{tx("رسالتك")}</label><textarea id="private-chat-draft" rows={1} maxLength={CHAT_MAX_LENGTH} value={draft} disabled={sending} onChange={(e) => { setDraft(e.target.value); setSendErr("");e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,130)+"px"; }} placeholder={tx("اكتب رسالة...")} />
+      <label className="pc-photo-pick" title={isEn()?"Send photo":"إرسال صورة"}><input type="file" accept="image/jpeg,image/png,image/webp" disabled={photoBusy||sending||!online} onChange={pickPhoto}/><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></svg></label><div className="pc-input-wrap"><label className="pc-visually-hidden" htmlFor="private-chat-draft">{tx("رسالتك")}</label><textarea id="private-chat-draft" rows={1} maxLength={CHAT_MAX_LENGTH} value={draft} disabled={sending} onChange={(e) => { setDraft(e.target.value); setSendErr("");e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,130)+"px"; }} placeholder={tx("اكتب رسالة...")} />
       {draft.length>1800&&<small className="pc-char-count">{draft.length}/{CHAT_MAX_LENGTH}</small>}</div>
       <button className="pc-send" type="submit" aria-label={sending?tx("بيتأكد الإرسال..."):pending.current&&sendErr?tx("إعادة المحاولة"):tx("إرسال")} disabled={sending || !online || !draft.trim()}>{sending?<span className="pc-send-wait">···</span>:<svg viewBox="0 0 24 24"><path d="m21 3-7.5 18-3.8-7.7L2 9.5 21 3Z"/><path d="m21 3-11.3 10.3"/></svg>}</button>
-    </form><ErrorBox text={sendErr}/><span className="pc-compose-hint">{tx("محادثة خاصة · الرد مش فوري")}</span></div>}
+    </form><ErrorBox text={sendErr}/><ErrorBox text={photoError}/><span className="pc-compose-hint">{tx("محادثة خاصة · الرد مش فوري")}</span></div>}
+    {photo&&<div className="pc-edit-backdrop"><section className="pc-edit-dialog photo-preview" role="dialog" aria-modal="true" aria-label={isEn()?"Send photo":"إرسال صورة"}><h2>{isEn()?"Send a photo":"إرسال صورة"}</h2><img src={photo.url} alt={isEn()?"Photo preview":"معاينة الصورة"}/><p>{isEn()?"The recipient saves it on one device. The server copy is deleted after that device confirms saving, or expires after 7 days. Clearing app data or reinstalling can lose your copy. This is not E2EE.":"الطرف التاني بيحفظها على جهاز واحد. نسخة السيرفر بتتمسح بعد تأكيد الحفظ أو بتنتهي بعد 7 أيام. مسح بيانات التطبيق أو تثبيته من جديد ممكن يضيّع نسختك. ده مش E2EE."}</p>{thread?.kind==='doctor'&&<p className="pc-error">{isEn()?"Avoid faces, IDs, prescriptions and medical records unless necessary. This is not a medical-record service or emergency care.":"متبعتش وشوش أو بطايق أو وصفات وتقارير طبية إلا لو ضروري. دي مش خدمة حفظ سجلات طبية ولا للطوارئ."}</p>}<label className="pc-check"><input type="checkbox" checked={photoAgree} disabled={photoBusy} onChange={e=>setPhotoAgree(e.target.checked)}/>{isEn()?"I reviewed this photo and agree to share it with this person.":"راجعت الصورة وموافق أشاركها مع الشخص ده."}</label><ErrorBox text={photoError}/><div className="pc-edit-buttons"><button className="btn btn-primary" disabled={photoBusy||!photoAgree||!online} onClick={deliverPhoto}>{photoBusy?'…':isEn()?'Send photo':'إرسال الصورة'}</button><button className="pc-small" disabled={photoBusy} onClick={()=>{URL.revokeObjectURL(photo.url);setPhoto(null);setPhotoError("");}}>{isEn()?'Cancel':'إلغاء'}</button></div></section></div>}
+    {actionMessage&&<div className="pc-actions-backdrop" onClick={e=>{if(e.target===e.currentTarget)setActionMessage(null);}}><section className="pc-actions-sheet" role="dialog" aria-modal="true" aria-label={tx("خيارات الرسالة")} onKeyDown={e=>{if(e.key==='Escape')setActionMessage(null);if(e.key==='Tab'){const ns=[...e.currentTarget.querySelectorAll('button:not(:disabled)')];if(e.shiftKey&&document.activeElement===ns[0]){e.preventDefault();ns.at(-1)?.focus();}else if(!e.shiftKey&&document.activeElement===ns.at(-1)){e.preventDefault();ns[0]?.focus();}}}}><span className="pc-sheet-handle"/><h2>{tx("خيارات الرسالة")}</h2><p className="pc-action-preview">{actionMessage.body}</p>
+          {actionMessage.author_id === userId && !actionMessage.photo_id && thread?.writable && <button type="button" disabled={!online || editBusy} onClick={()=>{setActionMessage(null);setEditing(actionMessage);setEditText(actionMessage.body);setEditErr("");setNote("");}}>{tx("تعديل الرسالة")}</button>}
+          <button type="button" disabled={pinBusy} onClick={async()=>{if(pinBusy)return;setActionMessage(null);setPinBusy(true);try{await chatToolsRpc("care_chat_pin",{p_thread:id,p_message:actionMessage.id,p_pin:true});if(live.current)setNote("اتثبتت عندك بس. افتح بحث والمثبتة عشان ترجع لها.");}catch{if(live.current)setNote("التثبيت متعملش. محتاج تفعيل السيرفر، والحد 30 رسالة للمحادثة.");}finally{if(live.current)setPinBusy(false);}}}>{tx("ثبّت عندي")}</button>
+          {actionMessage.author_id !== userId && <button type="button" onClick={() => {setActionMessage(null);setReport({ kind: "message", message: actionMessage });}}>{tx("إبلاغ")}</button>}
+        <button type="button" autoFocus className="pc-action-cancel" onClick={()=>setActionMessage(null)}>{tx("إلغاء")}</button></section></div>}
     {editing && <div className="pc-edit-backdrop"><section className="pc-edit-dialog glass" role="dialog" aria-modal="true" aria-labelledby="pc-edit-title" onKeyDown={e=>{if(e.key==="Escape"&&!editBusy)setEditing(null);if(e.key==="Tab"){const nodes=[...e.currentTarget.querySelectorAll("button:not(:disabled),textarea:not(:disabled)")];const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
       <h2 id="pc-edit-title">{tx("تعديل الرسالة")}</h2><p className="pc-hint">{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p>
       <form onSubmit={saveEdit}><label htmlFor="pc-edit-text">{tx("نص الرسالة")}</label><textarea autoFocus id="pc-edit-text" rows={5} maxLength={CHAT_MAX_LENGTH} value={editText} disabled={editBusy} onChange={e=>{setEditText(e.target.value);setEditErr("");}}/><small>{editText.length} / {CHAT_MAX_LENGTH}</small><ErrorBox text={editErr}/><div className="pc-edit-buttons"><button className="btn btn-primary" disabled={editBusy||!online||!thread?.writable||!editText.trim()} type="submit">{editBusy?tx("بنحفظ..."):tx("حفظ التعديل")}</button><button className="pc-small" disabled={editBusy} type="button" onClick={()=>setEditing(null)}>{tx("إلغاء")}</button></div></form>
     </section></div>}
-    {report && thread && <ReportDialog
+    {report?.message?.photo_id&&<PhotoReportDialog photoId={report.message.photo_id} userId={userId} onClose={()=>setReport(null)}/>}
+    {report && !report.message?.photo_id && thread && <ReportDialog
       title={report.kind === "user" ? txf(`إبلاغ عن {0}`, [thread.peer_label]) : tx("إبلاغ عن رسالة")}
       hint={report.kind === "user" ? tx("البلاغ بيوصل لصاحب التطبيق. لو عاوز توقف الرسايل فورًا، استخدم زرار الحظر كمان.") : tx("نص الرسالة دي هيتبعت مع البلاغ لصاحب التطبيق للمراجعة.")}
       onClose={() => setReport(null)}
@@ -285,7 +317,7 @@ function ChatSession({ userId }) {
   const [reload, setReload] = useState(0);
   useEffect(() => { let active = true; setBoot(null); setErr(""); chatBootstrap().then((b) => { if (active) setBoot(b); }).catch((e) => { if (active) setErr(chatError(e)); }); return () => { active = false; }; }, [userId, reload]);
   return <div className="pc-page" dir="rtl">
-    {!threadId && <><DetailTopBar title={tx("رسائل الدكتور والمدرب")} backTo="/profile" /><Link to="/professionals" className="pc-contact glass"><span><strong>{tx("المدربين المقترحين")}</strong><small>{tx("مدربين ودكاترة تغذية، وطلبات التواصل")}</small></span><span>{tx("شوف الاقتراحات ←")}</span></Link></>}
+    {!threadId && <><DetailTopBar title={tx("المحادثات")} backTo="/profile" /></>}
     {err ? <><ErrorBox text={err} /><button type="button" className="pc-small" onClick={() => setReload((n) => n + 1)}>{tx("جرّب تاني")}</button><Link to="/profile" className="pc-small">{tx("حسابي")}</Link></> : !boot ? <p role="status" className="pc-hint">{tx("بنجهّز الرسائل...")}</p> : !boot.consent ? <Consent onAccept={() => setReload((n) => n + 1)} /> : threadId ? <Thread key={threadId} id={threadId} userId={userId} /> : <Inbox />}
   </div>;
 }

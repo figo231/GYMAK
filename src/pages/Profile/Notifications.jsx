@@ -4,6 +4,7 @@ import Store from "../../lib/store/gymakStore";
 import { useToast } from "../../hooks/useToast";
 import { isNative, applyExtraReminders, syncMissedReminder } from "../../lib/push/nativeReminder";
 
+import ChatPushPreference from './ChatPushPreference';
 import EncouragementPreference from "./EncouragementPreference";
 import { tx } from "../../lib/i18n/tx";
 
@@ -33,6 +34,7 @@ export default function Notifications() {
     <div className="help-page">
       <div className="section-head"><h1 className="section-title">{tx("التنبيهات")}</h1></div>
       {!native && <p className="notif-note">{tx("التنبيهات الإضافية بتشتغل في تطبيق الأندرويد. على المتصفح بنحفظ اختياراتك بس.")}</p>}
+      <ChatPushPreference />
       <EncouragementPreference />
       {ROWS.map((r) => (
         <div key={r.k} className="glass notif-row">

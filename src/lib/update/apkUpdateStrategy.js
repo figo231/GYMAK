@@ -8,6 +8,7 @@ const PENDING_KEY = "gymak_apk_pending";
 const MIN_CHECK_GAP = 60_000;
 const CHECK_TIMEOUT = 8000;
 let latest = null;
+let installed = null;
 let initialized = false;
 let lastAttempt = 0;
 let inFlight = null;
@@ -46,6 +47,7 @@ async function check() {
   if (inFlight) return inFlight;
   inFlight = (async () => {
     const me = await installedInfo();
+    installed = me;
     // A Play build must only update through Play, not a differently signed APK.
     if (import.meta.env.VITE_DISTRIBUTION_CHANNEL === "play" || /play/i.test(me.version)) { latest = null; localStorage.removeItem(PENDING_KEY); return false; }
     const remote = await fetchLatest();
@@ -98,5 +100,6 @@ export const apkUpdateStrategy = {
     const { Browser } = await import("@capacitor/browser");
     await Browser.open({ url: APK_UPDATE_PAGE_URL });
   },
+  async details() { installed = await installedInfo(); return { installed, latest }; },
   hasPending() { return !!localStorage.getItem(PENDING_KEY); },
 };

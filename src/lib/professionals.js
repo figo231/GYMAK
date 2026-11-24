@@ -7,7 +7,7 @@ async function rpc(name, args, client = supabase) {
   if (error) throw error;
   return data;
 }
-export const listProfessionals = (kind = 'all', after = null, client) => rpc('professional_directory', { p_kind: kind, p_after_id: after }, client);
+export const listProfessionals = (kind = 'all', after = null, client) => rpc('professional_directory_v2', { p_kind: kind, p_after_id: after }, client);
 export const ownerProfessionalCard = (id, client) => rpc('professional_card_owner', { p_user_id: id }, client);
 export const saveProfessionalCard = (id, name, bio, published, client) => rpc('professional_card_save', { p_user_id: id, p_name: name.trim(), p_bio: bio.trim(), p_published: published }, client);
 export const requestProfessional = (id, kind, client) => rpc('professional_request_send', { p_professional_id: id, p_kind: kind }, client);

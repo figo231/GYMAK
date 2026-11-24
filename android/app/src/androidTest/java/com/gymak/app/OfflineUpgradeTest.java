@@ -37,6 +37,52 @@ public class OfflineUpgradeTest {
         } catch(Exception ignored) {}
         fail("Condition did not become true: " + condition + "; page: " + js(a, "document.body.innerText.slice(0,400)"));
     }
+    private String accessibilityText(android.view.accessibility.AccessibilityNodeInfo node) {
+        if(node==null)return "";
+        StringBuilder out=new StringBuilder();out.append(node.getPackageName()).append(' ').append(node.getText()).append(' ').append(node.getContentDescription()).append('\n');
+        for(int i=0;i<node.getChildCount();i++)out.append(accessibilityText(node.getChild(i)));
+        return out.toString();
+    }
+    private boolean clickFirstRunChoice(android.view.accessibility.AccessibilityNodeInfo node) {
+        if(node==null)return false;
+        String text=String.valueOf(node.getText());
+        if(text.equals("Use without an account")||text.equals("No thanks")||text.equals("Got it")||text.equals("Accept & continue")){
+            android.view.accessibility.AccessibilityNodeInfo target=node;
+            for(int i=0;target!=null&&i<4;i++,target=target.getParent())if(target.isClickable()&&target.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))return true;
+        }
+        for(int i=0;i<node.getChildCount();i++)if(clickFirstRunChoice(node.getChild(i)))return true;
+        return false;
+    }
+    @Test public void native25VersionAndWelcomeUpdate() throws Exception {
+        android.content.Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+        assertEquals(25,context.getPackageManager().getPackageInfo(context.getPackageName(),0).getLongVersionCode());
+        try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
+            waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");
+            js(a,"window.__nativeVersion='pending';window.Capacitor.nativePromise('App','getInfo',{}).then(x=>window.__nativeVersion=String(x.build)).catch(e=>window.__nativeVersion=String(e))");
+            waitFor(a,"window.__nativeVersion!=='pending'");
+            assertEquals("25",js(a,"window.__nativeVersion"));
+            waitFor(a,"navigator.onLine === true");
+            js(a,"window.dispatchEvent(new Event('gymak-open-update-center'))");
+            waitFor(a,"document.querySelector('.update-center[role=dialog]')");
+            js(a,"[...document.querySelectorAll('.update-center button')].find(b=>b.textContent.includes('صفحة التحميل')||b.textContent.includes('download page'))?.click()");
+            long deadline=System.currentTimeMillis()+60000;boolean found=false;
+            while(System.currentTimeMillis()<deadline){
+                android.view.accessibility.AccessibilityNodeInfo root=InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow();
+                String tree=accessibilityText(root);System.out.println("EXTERNAL_BROWSER_TREE="+tree);
+                if(tree.contains("gymak-eight.vercel.app")&&tree.contains("GYMAK")){
+                    java.io.InputStream state=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("dumpsys activity activities"));
+                    String activities=new String(state.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);state.close();
+                    try(java.io.FileOutputStream evidence=new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-browser-intent.txt"))){evidence.write(activities.getBytes(java.nio.charset.StandardCharsets.UTF_8));}
+                    // Custom Tabs collapse the visible address to the host. Require the
+                    // exact launched URI from Android plus the rendered landing content.
+                    if(activities.contains("https://gymak-eight.vercel.app/welcome")&&tree.contains("chrome")&&(tree.contains("حمّل آخر نسخة")||tree.contains("جسمك اللي")||tree.contains("Download Android"))){found=true;break;}
+                }
+                clickFirstRunChoice(root);Thread.sleep(600);
+            }
+            InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-welcome.png")));
+            assertTrue("Update must open external welcome landing",found);
+        }
+    }
     @Test public void otaActivationOnlyOncePerProcess() throws Exception {
         try(ActivityScenario<MainActivity> a=ActivityScenario.launch(MainActivity.class)) {
             waitFor(a,"document.querySelector('#root')?.children.length && !document.querySelector('.splash-screen')");

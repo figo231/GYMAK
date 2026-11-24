@@ -1,3 +1,5 @@
+import "../Dashboard/dashboard25.css";
+import LineIcon from "../../components/LineIcon";
 import { getExerciseGuide } from "../../lib/exerciseGuides";
 import { equipmentEn, difficultyEn } from "../../lib/i18n/maps";
 import { isEn } from "../../lib/i18n/lang";
@@ -224,6 +226,7 @@ function ExerciseDetail({ id }) {
           </div>
         )}
         {!prevSession && allLogs.length === 0 && <div className="log-prev"><span>{tx("أول مرة تسجل التمرين ده. ابدأ بوزن خفيف.")}</span></div>}
+        {last && <div className="last-set-row"><div><small>{isEn()?"Last recorded set":"آخر مجموعة مسجلة"}</small><strong dir="ltr">{secUnit?`${last.reps} ${isEn()?"sec":"ث"}`:`${Store.toDisplayWeight(last.weight||0)} ${unit} × ${last.reps}`}</strong></div><button type="button" onClick={()=>{setWeight(String(exercise?.muscle==='cardio'?0:Store.toDisplayWeight(last.weight||0)));setReps(String(last.reps));setSets('1');setRir('');setError(null);toast(isEn()?'Copied into the form. Review, then save.':'اتحطت في الخانات. راجعها وسجّل لما تكون جاهز.');}}><LineIcon name="copy" size={16}/>{isEn()?"Copy one set":"كرر مجموعة واحدة"}</button></div>}
         <div className="log-grid3" style={exercise?.muscle === "cardio" ? { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" } : undefined}>
             {exercise?.muscle !== "cardio" && <div className="log-field">
               <label className="log-label" htmlFor="log-weight">{tx("الوزن (") + unit + ")"}</label>
