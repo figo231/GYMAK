@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { useAuth } from "../../hooks/useAuth";
-import { CHAT_HEALTH_NOTE, CHAT_MAX_LENGTH, CHAT_PRIVACY, CHAT_ROLE_LABELS, acceptChatTerms, chatBootstrap, chatError, fetchChatContacts, fetchChatInbox, fetchChatMessages, fetchChatThread, markChatRead, mergeChatMessages, newChatNonce, safeChatUrl, sendChatMessage, splitChatLinks, startChat, subscribeChat, validateChatMessage } from "../../lib/privateChat";
+import { CHAT_HEALTH_NOTE, CHAT_MAX_LENGTH, CHAT_PRIVACY, CHAT_ROLE_LABELS, acceptChatTerms, chatBootstrap, chatError, fetchChatContacts, fetchChatInbox, fetchChatMessages, fetchChatThread, markChatRead, mergeChatMessages, newChatNonce, safeChatUrl, sendChatMessage, editChatMessage, refreshChatMessages, splitChatLinks, startChat, subscribeChat, validateChatMessage } from "../../lib/privateChat";
 import { TERMS_URL, blockChatUser, fetchMyChatBlocks, reportContent, unblockChatUser } from "../../lib/moderation";
 import ChatSearchPins, { chatToolsRpc } from "./ChatSearchPins";
 import TrainingHistory from "./TrainingHistory";
@@ -18,7 +18,7 @@ function stamp(value) {
   try { return new Date(value).toLocaleString("ar-EG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 function ErrorBox({ text }) { return text ? <p className="pc-error" role="alert">{text}</p> : null; }
-function PrivacyNote() { return <details className="pc-privacy"><summary>{tx("خصوصية الرسائل وحدود الخدمة")}</summary><p>{CHAT_PRIVACY}</p><p>{CHAT_HEALTH_NOTE}</p><p>خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.</p><p>{tx("مفيش مرفقات ولا اتصال فيديو داخل التطبيق. روابط المكالمات بتفتح خارج التطبيق لما تدوس عليها، وشروط خدمة المكالمة منفصلة.")}</p></details>; }
+function PrivacyNote() { return <details className="pc-privacy"><summary>{tx("خصوصية الرسائل وحدود الخدمة")}</summary><p>{CHAT_PRIVACY}</p><p>{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p><p>{CHAT_HEALTH_NOTE}</p><p>خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.</p><p>{tx("مفيش مرفقات ولا اتصال فيديو داخل التطبيق. روابط المكالمات بتفتح خارج التطبيق لما تدوس عليها، وشروط خدمة المكالمة منفصلة.")}</p></details>; }
 
 export function Consent({ onAccept }) {
   const [agree, setAgree] = useState(false); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
@@ -30,7 +30,7 @@ export function Consent({ onAccept }) {
   return <section className="pc-consent glass">
     <h2>{tx("قبل أول محادثة")}</h2>
     <p><b>{tx("شروط الاستخدام (باختصار):")}</b> {tx("ممنوع التحرش أو الإساءة أو المحتوى غير اللائق أو الاحتيال أو انتحال الشخصية أو مشاركة بيانات الغير. الرسائل للإرشادات العامة ومش للطوارئ. تقدر تبلّغ عن أي رسالة أو مستخدم، وتحظر أي طرف من محادثتك معاه، وصاحب التطبيق بيراجع المحتوى المُبلَّغ عنه بس.")} <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">{tx("اقرأ شروط الاستخدام كاملة")}</a>.</p>
-    <p>{CHAT_PRIVACY}</p><p>{CHAT_HEALTH_NOTE}</p><p>خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.</p>
+    <p>{CHAT_PRIVACY}</p><p>{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p><p>{CHAT_HEALTH_NOTE}</p><p>خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.</p>
     <p>{tx("بدء المحادثة بيشارك رسالتك واسمك الظاهر مع الطرف اللي اخترته بس. المتابعة مع مدرب ومشاركة بيانات التمرين ليها موافقة منفصلة.")}</p>
     <p>{tx("الرسايل بتتحفظ على السيرفر، ومش بتدخل في نسخة بيانات التمرين المحلية. حذف الحساب بيحذف محادثاته من الخدمة، لكن مش بيمسح نسخة أو لقطة شاشة احتفظ بيها الطرف التاني.")}</p>
     <label className="pc-check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />{tx("قرأت")} <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">{tx("شروط الاستخدام")}</a> {tx("وموافق عليها، وفاهم إن ده مش E2EE، وموافق على حفظ الرسائل ومشاركتها مع الطرف اللي هختاره.")}</label>
@@ -136,6 +136,8 @@ function Thread({ id, userId }) {
   const [showPlan,setShowPlan]=useState(false);
   const [showSearch,setShowSearch]=useState(false);
   const [pinBusy,setPinBusy]=useState(false);
+  const [editing,setEditing]=useState(null),[editText,setEditText]=useState(""),[editBusy,setEditBusy]=useState(false),[editErr,setEditErr]=useState("");
+  const loadedRows=useRef([]); loadedRows.current=rows;
   const [report, setReport] = useState(null); const [note, setNote] = useState("");
   const [online, setOnline] = useState(navigator.onLine); const live = useRef(true); const request = useRef(0); const pending = useRef(null); const end = useRef(null); const first = useRef(true);
   const load = useCallback(async () => {
@@ -145,6 +147,8 @@ function Thread({ id, userId }) {
       if (!live.current || n !== request.current) return;
       if (!t) { setThread(null); setRows([]); setErr(tx("المحادثة مش موجودة أو مش متاحة لحسابك.")); setBusy(false); return; }
       const messages = await fetchChatMessages(id);
+      const olderIds = loadedRows.current.filter(m => !messages.some(x => x.id === m.id)).map(m => m.id);
+      if (olderIds.length) messages.push(...await refreshChatMessages(id, olderIds));
       if (!live.current || n !== request.current) return;
       setThread(t); setRows((old) => mergeChatMessages(old, messages)); setErr("");
       if (first.current) { setMore(messages.length === 50); first.current = false; }
@@ -186,6 +190,15 @@ function Thread({ id, userId }) {
     } catch (e) { if (live.current) { setSendErr(txf(`{0} لو الإرسال مش مؤكد، اضغط إرسال بنفس النص لإعادة المحاولة من غير تكرار.`, [chatError(e)])); if (/chat_read_only|chat_blocked|chat_not_allowed|consent_required/.test(e?.message || "")) load(); } }
     finally { if (live.current) setSending(false); }
   }
+  async function saveEdit(event) {
+    event.preventDefault(); if (editBusy || !editing || !thread?.writable || !online) return;
+    const valid=validateChatMessage(editText); if(!valid.ok){setEditErr(valid.error);return;}
+    setEditBusy(true); setEditErr("");
+    try { const updated=await editChatMessage(id,editing,valid.body); if(!live.current)return;
+      setRows(old=>mergeChatMessages(old,[updated])); setEditing(null); setNote(tx("اتحفظ التعديل. الطرف التاني هيشوف علامة معدّلة."));
+    } catch(e) { if(live.current){setEditErr(chatError(e));if(/message_edit_conflict/.test(e?.message||""))load();} }
+    finally {if(live.current)setEditBusy(false);}
+  }
   const blockedByMe = !!thread && myBlocks.some((b) => b.blocked_id === thread.peer_id);
   async function toggleBlock() {
     if (blockBusy || !thread) return; setBlockBusy(true); setNote("");
@@ -220,7 +233,17 @@ function Thread({ id, userId }) {
     <section className="pc-messages" aria-label={tx("الرسائل")} aria-live="polite" aria-relevant="additions">
       {more && <button type="button" className="pc-small" disabled={olderBusy} onClick={older}>{olderBusy ? tx("بيحمّل...") : tx("رسائل أقدم")}</button>}
       {!busy && thread && !rows.length && <p className="pc-empty">{tx("اكتب أول رسالة. متبعتش معلومات شخصية أو مستندات طبية مش ضرورية.")}</p>}
-      {rows.map((m) => <article className={`pc-message ${m.author_id === userId ? "mine" : "theirs"}`} key={m.id}><span className="pc-author">{m.author_id === userId ? tx("أنت") : thread?.peer_label}</span><MessageText body={m.body} /><button type="button" className="pc-report-link" disabled={pinBusy} onClick={async()=>{if(pinBusy)return;setPinBusy(true);try{await chatToolsRpc("care_chat_pin",{p_thread:id,p_message:m.id,p_pin:true});if(live.current)setNote("اتثبتت عندك بس. افتح بحث والمثبتة عشان ترجع لها.");}catch{if(live.current)setNote("التثبيت متعملش. محتاج تفعيل السيرفر، والحد 30 رسالة للمحادثة.");}finally{if(live.current)setPinBusy(false);}}}>ثبّت عندي</button><time dateTime={m.created_at}>{stamp(m.created_at)}</time>{m.author_id !== userId && <span className="pc-message-actions"><button type="button" className="pc-report-link" onClick={() => setReport({ kind: "message", message: m })}>{tx("إبلاغ")}</button></span>}</article>)}
+      <div className="pc-watermark" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M50 15 L19.6 32.5 L19.6 67.5 L50 85 L80.4 67.5 L80.4 50 L53 50"/></svg><span>GYMAK</span></div>
+      {rows.map((m) => <article className={`pc-message ${m.author_id === userId ? "mine" : "theirs"}`} key={m.id}>
+        <span className="pc-author">{m.author_id === userId ? tx("أنت") : thread?.peer_label}</span>
+        <MessageText body={m.body} />
+        <div className="pc-bubble-footer"><time dateTime={m.created_at}>{stamp(m.created_at)}{m.edited_at && <span className="pc-edited" title={stamp(m.edited_at)}> · {tx("معدّلة")}</span>}</time>
+        <details className="pc-bubble-menu"><summary aria-label={tx("خيارات الرسالة")}>•••</summary><div>
+          {m.author_id === userId && thread?.writable && <button type="button" disabled={!online || editBusy} onClick={()=>{setEditing(m);setEditText(m.body);setEditErr("");setNote("");}}>{tx("تعديل الرسالة")}</button>}
+          <button type="button" disabled={pinBusy} onClick={async()=>{if(pinBusy)return;setPinBusy(true);try{await chatToolsRpc("care_chat_pin",{p_thread:id,p_message:m.id,p_pin:true});if(live.current)setNote("اتثبتت عندك بس. افتح بحث والمثبتة عشان ترجع لها.");}catch{if(live.current)setNote("التثبيت متعملش. محتاج تفعيل السيرفر، والحد 30 رسالة للمحادثة.");}finally{if(live.current)setPinBusy(false);}}}>{tx("ثبّت عندي")}</button>
+          {m.author_id !== userId && <button type="button" onClick={() => setReport({ kind: "message", message: m })}>{tx("إبلاغ")}</button>}
+        </div></details></div>
+      </article>)}
       <div ref={end} />
     </section>
     {thread && !thread.writable && !thread.blocked && <p className="pc-error" role="status">{tx("المحادثة للقراءة بس: المتابعة أو الصفة اتغيّرت. الرسايل القديمة لسه ظاهرة للطرفين.")}</p>}
@@ -229,6 +252,10 @@ function Thread({ id, userId }) {
       <div className="pc-compose-row"><small>{draft.length} / {CHAT_MAX_LENGTH}</small><button className="btn btn-primary" type="submit" disabled={sending || !online || !draft.trim()}>{sending ? tx("بيتأكد الإرسال...") : pending.current && sendErr ? tx("إعادة المحاولة") : tx("إرسال")}</button></div><ErrorBox text={sendErr} />
       <small>{tx("الروابط بتفتح بالضغط فقط. مفيش مرفقات أو معاينة تلقائية. الرد مش فوري.")}</small>
     </form>}
+    {editing && <div className="pc-edit-backdrop"><section className="pc-edit-dialog glass" role="dialog" aria-modal="true" aria-labelledby="pc-edit-title" onKeyDown={e=>{if(e.key==="Escape"&&!editBusy)setEditing(null);if(e.key==="Tab"){const nodes=[...e.currentTarget.querySelectorAll("button:not(:disabled),textarea:not(:disabled)")];const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
+      <h2 id="pc-edit-title">{tx("تعديل الرسالة")}</h2><p className="pc-hint">{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p>
+      <form onSubmit={saveEdit}><label htmlFor="pc-edit-text">{tx("نص الرسالة")}</label><textarea autoFocus id="pc-edit-text" rows={5} maxLength={CHAT_MAX_LENGTH} value={editText} disabled={editBusy} onChange={e=>{setEditText(e.target.value);setEditErr("");}}/><small>{editText.length} / {CHAT_MAX_LENGTH}</small><ErrorBox text={editErr}/><div className="pc-edit-buttons"><button className="btn btn-primary" disabled={editBusy||!online||!thread?.writable||!editText.trim()} type="submit">{editBusy?tx("بنحفظ..."):tx("حفظ التعديل")}</button><button className="pc-small" disabled={editBusy} type="button" onClick={()=>setEditing(null)}>{tx("إلغاء")}</button></div></form>
+    </section></div>}
     {report && thread && <ReportDialog
       title={report.kind === "user" ? txf(`إبلاغ عن {0}`, [thread.peer_label]) : tx("إبلاغ عن رسالة")}
       hint={report.kind === "user" ? tx("البلاغ بيوصل لصاحب التطبيق. لو عاوز توقف الرسايل فورًا، استخدم زرار الحظر كمان.") : tx("نص الرسالة دي هيتبعت مع البلاغ لصاحب التطبيق للمراجعة.")}

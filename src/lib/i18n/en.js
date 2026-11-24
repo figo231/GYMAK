@@ -2744,4 +2744,12 @@ export const EN = {
 "🥈 فضة (12 يوم)": "🥈 Silver (12 days)",
 "🥉 برونز": "🥉 Bronze",
 "🥉 برونز (8 أيام)": "🥉 Bronze (8 days)",
+"الرسالة اتعدّلت من جهاز تاني. حدّث المحادثة وراجع النص قبل ما تحاول تاني.": "This message was edited on another device. Refresh and review it before trying again.",
+"اتحفظ التعديل. الطرف التاني هيشوف علامة معدّلة.": "Edit saved. The other person will see an edited label.",
+"خيارات الرسالة": "Message options",
+"تعديل الرسالة": "Edit message",
+"نص الرسالة": "Message text",
+"حفظ التعديل": "Save edit",
+"معدّلة": "Edited",
+"التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.": "Both people will see the edit and an Edited label. Earlier reports keep the text as it was when reported.",
 };

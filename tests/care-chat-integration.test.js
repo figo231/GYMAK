@@ -75,3 +75,29 @@ it('new care features integrate with real chat consent, roles, history and block
  await db.query('delete from auth.users where id=$1',[ids.client]);
  for(const table of ['care_plan_versions','care_plan_choices','care_training_versions','care_appointments','chat_personal_pins'])expect((await query('select count(*)::int n from '+table))[0].n).toBe(0);
 });
+
+it('allows only author edits, detects conflicts and preserves reported snapshots',async()=>{
+ await consentAll();
+ for(const m of ['0033_care_plans.sql','0034_chat_search_pins.sql','0037_chat_message_edits.sql'])await db.exec(readFileSync('supabase/migrations/'+m,'utf8'));
+ const id=await conversation();
+ const original=await rpc('doctor','chat_send',[id,'Original coaching advice','20000000-0000-4000-8000-000000000001']);
+ const edit=(who,text,revision=0)=>actor(ids[who],()=>query('select * from public.chat_edit_message($1,$2,$3,$4)',[id,original.id,text,revision]));
+ await expect(edit('client','forged')).rejects.toThrow(/message_not_allowed/);
+ await expect(edit('owner','forged')).rejects.toThrow(/chat_not_allowed/);
+ await expect(edit('stranger','forged')).rejects.toThrow(/chat_not_allowed/);
+ await rpc('client','moderation_report',['chat_message','abuse',null,id,original.id,null,'Test report']);
+ const revised=(await edit('doctor',' Corrected coaching advice '))[0];
+ expect(revised.body).toBe('Corrected coaching advice');expect(revised.revision).toBe(1);expect(revised.edited_at).toBeTruthy();expect(revised.seq).toBe(original.seq);expect(new Date(revised.created_at).toISOString()).toBe(new Date(original.created_at).toISOString());
+ expect((await query('select content_snapshot from public.moderation_reports'))[0].content_snapshot).toBe('Original coaching advice');
+ await expect(edit('doctor','stale text')).rejects.toThrow(/message_edit_conflict/);
+ for(const value of [' ','x'.repeat(2001),null])await expect(edit('doctor',value,1)).rejects.toThrow(/invalid_message/);
+ expect((await edit('doctor','Corrected coaching advice',1))[0].revision).toBe(1);
+ await rpc('client','care_chat_pin',[id,original.id,true]);
+ expect((await actor(ids.client,()=>query('select body,edited_at from public.care_chat_pins($1)',[id])))[0].body).toBe('Corrected coaching advice');
+ expect(await actor(ids.client,()=>query('select * from public.care_chat_search($1,$2)',[id,'Original']))).toHaveLength(0);
+ await rpc('client','chat_block',[ids.doctor]);await expect(edit('doctor','blocked edit',1)).rejects.toThrow(/chat_blocked/);
+ await rpc('client','chat_unblock',[ids.doctor]);
+ await rpc('owner','chat_set_user_role',[ids.doctor,'user']);await expect(edit('doctor','revoked edit',1)).rejects.toThrow(/chat_read_only/);
+ await expect(actor(ids.doctor,()=>query("update public.chat_messages set body='direct write'"))).rejects.toThrow(/permission denied/);
+ await expect(actor(null,()=>query('select * from public.chat_edit_message($1,$2,$3,$4)',[id,original.id,'anonymous',1]),'anon')).rejects.toThrow(/permission denied/);
+});

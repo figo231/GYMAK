@@ -63,3 +63,29 @@
 .pc-role-editor p { overflow-wrap:anywhere; }
 .pc-role-editor .pc-small { margin-top:8px; width:100%; }
 .pc-thread-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.pc-thread-actions>.pc-small{flex:0 1 auto;font-size:11px;padding:8px 10px;white-space:nowrap;min-height:36px}.pc-thread-actions>.fu-outline{flex:1;min-width:120px}.pc-page .fu-card .btn{font-size:13px;min-height:44px}.pc-page .fu-card .fu-delete{font-size:11px}.pc-page .fu-card .fu-outline{font-size:12px}
+
+/* The original hexagon-G mark, kept behind the conversation, never the text. */
+.pc-messages { position:relative; isolation:isolate; padding:22px 10px; min-height:340px; border:1px solid var(--border-soft); border-radius:22px; margin-bottom:14px; background:linear-gradient(160deg,rgba(255,120,30,.025),transparent 70%); }
+.pc-watermark { position:absolute; z-index:-1; top:90px; inset-inline-start:50%; transform:translateX(50%); width:min(58%,240px); pointer-events:none; color:var(--accent,#ff791b); opacity:.065; text-align:center; }
+.pc-watermark svg { display:block; width:100%; fill:none; stroke:currentColor; stroke-width:8; stroke-linejoin:miter; }
+.pc-watermark span { font-size:25px; letter-spacing:8px; font-weight:900; }
+.pc-message { position:relative; max-width:88%; box-shadow:0 4px 18px rgba(0,0,0,.035); }
+.pc-message.mine { background:color-mix(in srgb,var(--bg-deep-2) 88%,#ff781b 12%); border-color:rgba(255,120,30,.24); }
+.pc-message.theirs { background:var(--bg-deep-2); }
+.pc-bubble-footer { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+.pc-message time { opacity:1; color:var(--text-dim); }
+.pc-edited { font-size:10px; }
+.pc-bubble-menu { position:relative; }
+.pc-bubble-menu summary { list-style:none; cursor:pointer; padding:6px 10px; margin:-5px; border-radius:8px; color:var(--text-dim); font-size:13px; letter-spacing:2px; min-width:34px; text-align:center; }
+.pc-bubble-menu summary::-webkit-details-marker { display:none; }
+.pc-bubble-menu[open] { z-index:4; }
+.pc-bubble-menu[open] summary { color:var(--accent-text); background:rgba(255,120,30,.09); }
+.pc-bubble-menu>div { position:absolute; inset-inline-end:0; top:100%; min-width:155px; padding:6px; border-radius:13px; border:1px solid var(--border-soft); background:var(--bg-deep-2); box-shadow:0 12px 32px rgba(0,0,0,.2); }
+.pc-bubble-menu button { display:block; width:100%; min-height:44px; border:0; background:none; color:var(--text-primary); text-align:start; padding:9px 12px; cursor:pointer; border-radius:9px; font-size:12px; }
+.pc-bubble-menu button:hover { background:rgba(255,120,30,.1); }
+.pc-edit-backdrop { position:fixed; inset:0; z-index:3000; display:grid; place-items:center; padding:16px; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); }
+.pc-edit-dialog { width:min(100%,440px); max-height:85dvh; overflow:auto; padding:22px; border-radius:24px; background:var(--bg-deep-2); border:1px solid var(--border-soft); box-shadow:0 24px 80px rgba(0,0,0,.3); }
+.pc-edit-dialog textarea { display:block; width:100%; box-sizing:border-box; resize:vertical; min-height:130px; border-radius:14px; padding:12px; background:rgba(120,120,120,.07); border:1px solid var(--border-soft); color:var(--text-primary); font:inherit; font-size:16px; line-height:1.8; margin:8px 0; }
+.pc-edit-dialog small { color:var(--text-dim); font-size:11px; }
+.pc-edit-buttons { display:flex; gap:10px; margin-top:18px; }
+.pc-edit-buttons .btn { flex:1; min-height:46px; }
