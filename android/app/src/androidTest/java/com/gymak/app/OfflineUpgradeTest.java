@@ -37,6 +37,22 @@ public class OfflineUpgradeTest {
         } catch(Exception ignored) {}
         fail("Condition did not become true: " + condition + "; page: " + js(a, "document.body.innerText.slice(0,400)"));
     }
+    private String accessibilityText(android.view.accessibility.AccessibilityNodeInfo node) {
+        if(node==null)return "";
+        StringBuilder out=new StringBuilder();out.append(node.getPackageName()).append(' ').append(node.getText()).append(' ').append(node.getContentDescription()).append('\n');
+        for(int i=0;i<node.getChildCount();i++)out.append(accessibilityText(node.getChild(i)));
+        return out.toString();
+    }
+    private boolean clickFirstRunChoice(android.view.accessibility.AccessibilityNodeInfo node) {
+        if(node==null)return false;
+        String text=String.valueOf(node.getText());
+        if(text.equals("Use without an account")||text.equals("No thanks")||text.equals("Got it")||text.equals("Accept & continue")){
+            android.view.accessibility.AccessibilityNodeInfo target=node;
+            for(int i=0;target!=null&&i<4;i++,target=target.getParent())if(target.isClickable()&&target.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))return true;
+        }
+        for(int i=0;i<node.getChildCount();i++)if(clickFirstRunChoice(node.getChild(i)))return true;
+        return false;
+    }
     @Test public void native25VersionAndWelcomeUpdate() throws Exception {
         android.content.Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals(25,context.getPackageManager().getPackageInfo(context.getPackageName(),0).getLongVersionCode());
@@ -48,15 +64,12 @@ public class OfflineUpgradeTest {
             js(a,"window.dispatchEvent(new Event('gymak-open-update-center'))");
             waitFor(a,"document.querySelector('.update-center[role=dialog]')");
             js(a,"[...document.querySelectorAll('.update-center button')].find(b=>b.textContent.includes('صفحة التحميل')||b.textContent.includes('download page'))?.click()");
-            long deadline=System.currentTimeMillis()+20000;boolean found=false;
-            while(System.currentTimeMillis()<deadline){java.io.InputStream dump=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("uiautomator dump /sdcard/window.xml"));dump.readAllBytes();dump.close();Thread.sleep(300);java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("cat /sdcard/window.xml"));String xml=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);in.close();if(xml.contains("gymak-eight.vercel.app/welcome")){found=true;break;}
-                // Fresh emulator Chrome has a first-run screen. Complete only its
-                // non-sign-in choices, then continue checking the actual URL.
-                java.util.regex.Matcher buttons=java.util.regex.Pattern.compile("<node[^>]*>").matcher(xml);
-                while(buttons.find()){String node=buttons.group();if(!(node.contains("Use without an account")||node.contains("No thanks")||node.contains("Got it")||node.contains("Accept &amp; continue")))continue;
-                    java.util.regex.Matcher bounds=java.util.regex.Pattern.compile("bounds=\"\\[([0-9]+),([0-9]+)\\]\\[([0-9]+),([0-9]+)\\]\"").matcher(node);
-                    if(bounds.find()){int x=(Integer.parseInt(bounds.group(1))+Integer.parseInt(bounds.group(3)))/2,y=(Integer.parseInt(bounds.group(2))+Integer.parseInt(bounds.group(4)))/2;java.io.InputStream tap=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("input tap "+x+" "+y));tap.readAllBytes();tap.close();break;}
-                }
+            long deadline=System.currentTimeMillis()+60000;boolean found=false;
+            while(System.currentTimeMillis()<deadline){
+                android.view.accessibility.AccessibilityNodeInfo root=InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow();
+                String tree=accessibilityText(root);System.out.println("EXTERNAL_BROWSER_TREE="+tree);
+                if(tree.contains("gymak-eight.vercel.app/welcome")){found=true;break;}
+                clickFirstRunChoice(root);Thread.sleep(600);
             }
             InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-welcome.png")));
             assertTrue("Update must open external welcome landing",found);
