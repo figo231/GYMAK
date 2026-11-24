@@ -1,3 +1,5 @@
+import { GYM_EXPANSION_MORE_GUIDES } from "./exerciseGuidesGymExpansionMore";
+import {GYM_EXPANSION_GUIDES} from "./exerciseGuidesGymExpansion";
 import { APK23_WOMEN_STEP_WALL_SIDE_GUIDES } from "./exerciseGuidesApk23WomenStepWallSide";
 import { APK23_WOMEN_INNER_PUMP_CURTSY_GUIDES } from "./exerciseGuidesApk23WomenInnerPumpCurtsy";
 import { APK23_WOMEN_LOADED_LEG_GUIDES } from "./exerciseGuidesApk23WomenLoadedLeg";
@@ -48,6 +50,8 @@ import { BASIC_GUIDES } from "./exerciseGuidesBatch1";
 // saved custom descriptions and instructions always win in the detail page.
 // Technique reference: https://www.acefitness.org/certifiednewsarticle/3003/what-are-the-top-3-most-effective-chest-exercises/
 export const EXERCISE_GUIDES = {
+...GYM_EXPANSION_GUIDES,
+  ...GYM_EXPANSION_MORE_GUIDES,
   ...APK23_WOMEN_STEP_WALL_SIDE_GUIDES,
   ...APK23_WOMEN_INNER_PUMP_CURTSY_GUIDES,
   ...APK23_WOMEN_LOADED_LEG_GUIDES,

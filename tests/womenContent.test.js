@@ -104,8 +104,8 @@ describe("owner view", () => {
 });
 
 describe("gym content and access guards", () => {
- it("tags every female exercise and includes five gym moves", () => {
-  expect(WOMEN_EXERCISES.filter(e => e.venue === "gym")).toHaveLength(5);
+ it("tags every female exercise and includes twenty-one gym moves", () => {
+  expect(WOMEN_EXERCISES.filter(e => e.venue === "gym")).toHaveLength(21);
   expect(WOMEN_EXERCISES.every(e => ["home","gym"].includes(e.venue))).toBe(true);
  });
  it("rejects hidden programs without changing the current program", () => {
@@ -130,7 +130,7 @@ describe("gym content and access guards", () => {
 });
 
 describe("original female illustrations", () => {
- it("all 18 exercises have original two-frame demos", async () => {
+ it("all 34 exercises have original two-frame demos", async () => {
   const {getExerciseFrames}=await import("../src/lib/exerciseImages");
   const fs=await import("node:fs");
   for (const ex of WOMEN_EXERCISES) {

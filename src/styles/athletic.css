@@ -594,3 +594,7 @@ html.ath.pro-ui .onboarding-desc{line-height:1.85;font-size:15px;}
 .exercise-guide-block ul{margin:0;padding-inline-start:20px;}
 @media(min-height:820px){html.ath.pro-ui .onboarding-screen{justify-content:center;}}
 @media(prefers-reduced-motion:reduce){.onboarding-slide{animation:none;}}
+
+/* Cardio has no single highlighted muscle and needs a readable compact header. */
+.xd-hero.cardio-hero { min-height: 170px; background: var(--bg-deep-2); }
+.cardio-hero .xd-meta { margin-top: 24px; }

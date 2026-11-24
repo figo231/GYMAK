@@ -1,3 +1,4 @@
+import { GYM_EXPANSION_MORE } from "./content/gymExpansionMore";
 import { WOMEN_EXERCISES } from "./content/womenContent";
 const WOMEN_IMAGE_IDS = new Set(WOMEN_EXERCISES.map(e => e.id));
 // Original generated two-pose illustrations bundled locally for offline use.
@@ -138,7 +139,11 @@ const IMAGE_IDS = {
 };
 
 import { remoteExerciseFrames } from "./content/remoteContent";
+const EXPANSION_IMAGE_IDS = new Set([...GYM_EXPANSION_MORE.map(e => e.id),"pallof-press","single-arm-landmine-press","incline-treadmill-walk","upright-stationary-bike","elliptical-cross-trainer","rowing-ergometer"]);
 export function getExerciseFrames(id) {
+  // Rejected/incomplete poses must not be shown as form examples.
+  if (["single-arm-cable-chest-press", "barbell-front-squat"].includes(id)) return null;
+  if (EXPANSION_IMAGE_IDS.has(id)) return [`/exercises/${id}/0.webp`, `/exercises/${id}/1.webp`];
   if (WOMEN_IMAGE_IDS.has(id)) return [`/women-exercises/${id}/0.webp`, `/women-exercises/${id}/1.webp`];
   const rf = remoteExerciseFrames(id);
   if (rf) return rf;

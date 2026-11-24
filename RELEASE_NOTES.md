@@ -1,3 +1,12 @@
+## APK24
+
+- 35 additional gym exercises, total183, with Arabic/English guides. Women's gym subset21, full women-tagged library34.
+- Compact messaging interface, logo watermark, protected editing and Edited marker. Report snapshots and block controls preserved.
+- Native Update opens /welcome for the latest APK download.
+- Cardio logs seconds without strength PRs or tonnage. Existing data retained.
+- Two incorrect new illustrations hidden pending review. Generated illustrations are not trainer-certified footage.
+- Install over the existing app, do not uninstall first.
+
 ## APK 21, combined exercise library update
 
 - 18 women-specific exercises and five programs, with home/gym filters. Women-only content stays hidden from normal male accounts; the owner sees the full catalog.

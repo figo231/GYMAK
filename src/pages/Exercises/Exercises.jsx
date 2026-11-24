@@ -22,6 +22,7 @@ const FILTERS = [
   { m: "legs", color: "var(--muscle-legs)", label: tx("أرجل") },
   { m: "arms", color: "var(--muscle-arms)", label: tx("ذراعين") },
   { m: "core", color: "var(--muscle-core)", label: tx("بطن") },
+  { m: "cardio", color: "#f59e0b", label: isEn() ? "Cardio" : "كارديو" },
 ];
 
 const SORTS = [

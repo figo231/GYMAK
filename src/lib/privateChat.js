@@ -51,6 +51,7 @@ export function splitChatLinks(body) {
 
 export function chatError(error) {
   const s = String(error?.message || error || "");
+  if (/message_edit_conflict/.test(s)) return tx("الرسالة اتعدّلت من جهاز تاني. حدّث المحادثة وراجع النص قبل ما تحاول تاني.");
   if (/chat_rate_limited/.test(s)) return tx("بعتّ رسايل كتير. استنى شوية وجرب تاني.");
   if (/chat_blocked/.test(s)) return tx("المحادثة متوقفة بسبب حظر بين الطرفين.");
   if (/chat_read_only/.test(s)) return tx("المحادثة للقراءة بس، لأن المتابعة أو الصفة اتغيّرت.");
@@ -91,8 +92,24 @@ export async function sendChatMessage(id, body, clientId, client) {
   if (!rows?.[0]) throw new Error("missing_message");
   return rows[0];
 }
+export async function editChatMessage(id, message, body, client) {
+  const v = validateChatMessage(body);
+  if (!v.ok) throw new Error(v.error);
+  const rows = await rpc("chat_edit_message", { p_conversation_id: id, p_message_id: message.id, p_body: v.body, p_expected_revision: message.revision || 0 }, client);
+  if (!rows?.[0]) throw new Error("missing_message");
+  return rows[0];
+}
+export async function refreshChatMessages(id, ids, client = supabase) {
+  const rows = [];
+  for (let offset = 0; offset < ids.length; offset += 50) {
+    const { data, error } = await withTimeout(clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at,edited_at,revision").eq("conversation_id", id).in("id", ids.slice(offset, offset + 50)), 15000);
+    if (error) throw error;
+    rows.push(...(data || []));
+  }
+  return rows;
+}
 export async function fetchChatMessages(id, before = null, client = supabase) {
-  let q = clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at")
+  let q = clientOrThrow(client).from("chat_messages").select("id,seq,conversation_id,author_id,body,created_at,edited_at,revision")
     .eq("conversation_id", id).order("seq", { ascending: false }).limit(50);
   if (before != null) q = q.lt("seq", before);
   const { data, error } = await withTimeout(q, 15000);
@@ -100,14 +117,18 @@ export async function fetchChatMessages(id, before = null, client = supabase) {
   return (data || []).reverse();
 }
 export function mergeChatMessages(a, b) {
-  const byId = new Map([...a, ...b].map((m) => [m.id, m]));
+  const byId = new Map();
+  for (const m of [...a, ...b]) {
+    const previous = byId.get(m.id);
+    if (!previous || (m.revision || 0) >= (previous.revision || 0)) byId.set(m.id, m);
+  }
   return [...byId.values()].sort((x, y) => Number(x.seq) - Number(y.seq));
 }
 export function subscribeChat(id, onChange, client = supabase) {
   if (!client) return () => {};
   // Realtime is a refresh signal only. Fetch again through authenticated RLS.
   let c = client.channel(`private-chat-${id || "inbox"}-${newChatNonce()}`);
-  if (id) c = c.on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${id}` }, () => onChange());
+  if (id) c = c.on("postgres_changes", { event: "*", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${id}` }, () => onChange());
   else c = c.on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_conversations" }, () => onChange());
   c.subscribe();
   return () => { client.removeChannel(c); };

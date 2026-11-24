@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {tx} from '../../lib/i18n/tx';
 import {supabase} from '../../lib/supabaseClient';
 import {withTimeout} from '../../lib/authLogic';
 import '../FollowUp/followUp.css';
@@ -13,6 +14,6 @@ export default function ChatSearchPins({threadId,onClose}){
  return <section className="fu-card glass"><div className="fu-row"><h3>ارجع للمهم</h3><button className="fu-delete" type="button" onClick={onClose}>إغلاق</button></div><p className="fu-muted">الرسائل المثبتة ليك أنت بس. الطرف التاني مش بيشوف تثبيتك.</p><div className="pc-thread-actions"><button className="fu-outline" type="button" disabled={busy} aria-pressed={tab==='pins'} onClick={()=>{setTab('pins');loadPins();}}>المثبتة</button><button className="fu-outline" type="button" disabled={busy} aria-pressed={tab==='search'} onClick={()=>{epoch.current++;setTab('search');setRows([]);submitted.current="";setMore(false);}}>بحث في المحادثة</button></div>
  {tab==='search'&&<form onSubmit={e=>{e.preventDefault();search();}}><label>كلمة أو جملة<input maxLength="100" value={q} onChange={e=>setQ(e.target.value)} placeholder="بتدور على إيه؟"/></label><button className="fu-outline" type="submit" disabled={busy||!q.trim()}>ابحث في كل الرسائل</button></form>}
  {err&&<p role="alert" className="pc-error">{err}</p>}{busy&&<p role="status" className="fu-muted">بنحمّل...</p>}{!rows.length&&!busy&&!err&&<p className="fu-muted">{tab==='pins'?'لسه مفيش رسايل مثبتة.':submitted.current?'مفيش نتائج للكلمة دي. جرب كلمة تانية.':'اكتب اللي بتدور عليه. النتائج بتشمل السجل كله مش الرسائل المفتوحة بس.'}</p>}
- {rows.map(m=><article className="care-meal" key={m.id}><p>{m.body}</p><div className="fu-row"><time className="fu-muted">{new Date(m.created_at).toLocaleString('ar-EG')}</time><button className="fu-delete" type="button" disabled={busy} onClick={()=>pin(m)}>{pins.some(x=>x.id===m.id)?'فك التثبيت':'ثبّت عندي'}</button></div></article>)}
+ {rows.map(m=><article className="care-meal" key={m.id}><p>{m.body}</p>{m.edited_at&&<small className="fu-muted">{tx("معدّلة")}</small>}<div className="fu-row"><time className="fu-muted">{new Date(m.created_at).toLocaleString('ar-EG')}</time><button className="fu-delete" type="button" disabled={busy} onClick={()=>pin(m)}>{pins.some(x=>x.id===m.id)?'فك التثبيت':'ثبّت عندي'}</button></div></article>)}
  {more&&<button type="button" className="fu-outline" disabled={busy} onClick={()=>search(true)}>نتائج أقدم</button>}</section>;
 }

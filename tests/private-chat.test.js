@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CHAT_PRIVACY, CHAT_HEALTH_NOTE, validateChatMessage, safeChatUrl, splitChatLinks, newChatNonce, mergeChatMessages, fetchChatMessages, fetchOwnerUsers, setOwnerUserRole, fetchChatContacts, sendChatMessage, chatError, CHAT_TERMS_VERSION, acceptChatTerms } from "../src/lib/privateChat";
+import { CHAT_PRIVACY, CHAT_HEALTH_NOTE, validateChatMessage, safeChatUrl, splitChatLinks, newChatNonce, mergeChatMessages, fetchChatMessages, fetchOwnerUsers, setOwnerUserRole, fetchChatContacts, sendChatMessage, chatError, CHAT_TERMS_VERSION, acceptChatTerms, editChatMessage } from "../src/lib/privateChat";
 const client=(data,error=null)=>({rpc:vi.fn().mockResolvedValue({data,error})});
 describe("private chat helpers",()=>{
  it("checks trimmed message length and accepts Unicode safely",()=>{expect(validateChatMessage("  ").ok).toBe(false);expect(validateChatMessage(" hi ").body).toBe("hi");expect(validateChatMessage("x".repeat(2001)).ok).toBe(false);expect(validateChatMessage("💪".repeat(2000)).ok).toBe(true);});
@@ -15,3 +15,7 @@ describe("private chat helpers",()=>{
  it("fetches the newest fifty messages before the sequence cursor and displays chronological order",async()=>{const q={select:vi.fn().mockReturnThis(),eq:vi.fn().mockReturnThis(),order:vi.fn().mockReturnThis(),limit:vi.fn().mockReturnThis(),lt:vi.fn().mockReturnThis(),then:(resolve)=>resolve({data:[{id:'new',seq:5},{id:'old',seq:4}],error:null})};const c={from:vi.fn(()=>q)};expect((await fetchChatMessages('thread',6,c)).map(x=>x.seq)).toEqual([4,5]);expect(c.from).toHaveBeenCalledWith('chat_messages');expect(q.eq).toHaveBeenCalledWith('conversation_id','thread');expect(q.order).toHaveBeenCalledWith('seq',{ascending:false});expect(q.limit).toHaveBeenCalledWith(50);expect(q.lt).toHaveBeenCalledWith('seq',6);});
 
 });
+
+it("edits only a selected message with expected revision and validates the text",async()=>{const c=client([{id:"m",revision:3}]);expect(await editChatMessage("t",{id:"m",revision:2}," revised ",c)).toEqual({id:"m",revision:3});expect(c.rpc).toHaveBeenCalledWith("chat_edit_message",{p_conversation_id:"t",p_message_id:"m",p_body:"revised",p_expected_revision:2});await expect(editChatMessage("t",{id:"m"}," ",c)).rejects.toThrow();expect(chatError({message:"message_edit_conflict"})).toContain("جهاز تاني");});
+
+it("never lets a delayed stale refresh overwrite a newer revision",()=>{const current={id:"m",seq:1,body:"new",revision:2};expect(mergeChatMessages([current],[{id:"m",seq:1,body:"old",revision:1}])).toEqual([current]);});

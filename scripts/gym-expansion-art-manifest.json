@@ -1,0 +1,135 @@
+{
+  "created": "2026-11-24",
+  "external_stock_used": false,
+  "complete": true,
+  "records": [
+    {
+      "id": "w-lat-pulldown",
+      "source": "gym-expansion-women-upper-sample.png",
+      "source_sha256": "d4d33fa9923ccff1b20e834666bfee33ad09d7a11eeb5922fad118a97dd38330",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-shoulder-press",
+      "source": "gym-expansion-women-upper-sample.png",
+      "source_sha256": "d4d33fa9923ccff1b20e834666bfee33ad09d7a11eeb5922fad118a97dd38330",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-seated-cable-row",
+      "source": "gym-women-row-chest.png",
+      "source_sha256": "dabbe84e3dca347092b1d507f39d3518e7c232080c88974ae76acfa5211cff81",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-machine-chest-press",
+      "source": "gym-women-row-chest.png",
+      "source_sha256": "dabbe84e3dca347092b1d507f39d3518e7c232080c88974ae76acfa5211cff81",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-lateral-raise",
+      "source": "gym-women-lateral-curl.png",
+      "source_sha256": "b2229c8452679088b2897ec34396560bef50232f587e4b1ab11fb50ee3d056f3",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-dumbbell-curl",
+      "source": "gym-women-lateral-curl.png",
+      "source_sha256": "b2229c8452679088b2897ec34396560bef50232f587e4b1ab11fb50ee3d056f3",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-triceps-pushdown",
+      "source": "gym-women-triceps-pallof.png",
+      "source_sha256": "7a6b399c95f345fe2caac36a9ccf5d0fdfbffd7e987d27e190ebc626a5f60967",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-pallof-press",
+      "source": "gym-women-triceps-pallof.png",
+      "source_sha256": "7a6b399c95f345fe2caac36a9ccf5d0fdfbffd7e987d27e190ebc626a5f60967",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "pallof-press",
+      "source": "gym-shared-pallof-landmine.png",
+      "source_sha256": "12622075cb5c9cf2a3fb97586e06c49d5b75b029cb82865ecf382341242eb641",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "single-arm-landmine-press",
+      "source": "gym-shared-pallof-landmine.png",
+      "source_sha256": "12622075cb5c9cf2a3fb97586e06c49d5b75b029cb82865ecf382341242eb641",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-treadmill-walk",
+      "source": "gym-women-cardio-v2.png",
+      "source_sha256": "a66264e43757215a797393b12010e0ab8e11dc3fdaebf924a4a3bcb3d1ade454",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "w-stationary-bike",
+      "source": "gym-women-cardio-v2.png",
+      "source_sha256": "a66264e43757215a797393b12010e0ab8e11dc3fdaebf924a4a3bcb3d1ade454",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "incline-treadmill-walk",
+      "source": "gym-men-cardio-v2.png",
+      "source_sha256": "c69dd8ca407d93b62a94237d01435c827dc1812858ed90073d434e219ada7b15",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "upright-stationary-bike",
+      "source": "gym-men-cardio-v2.png",
+      "source_sha256": "c69dd8ca407d93b62a94237d01435c827dc1812858ed90073d434e219ada7b15",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "elliptical-cross-trainer",
+      "source": "gym-men-elliptical-rower-v2.png",
+      "source_sha256": "d326e1e457c10f5a516d712502795ffdf886aeb78a964407240675edf819887d",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    },
+    {
+      "id": "rowing-ergometer",
+      "source": "gym-men-elliptical-rower-v2.png",
+      "source_sha256": "d326e1e457c10f5a516d712502795ffdf886aeb78a964407240675edf819887d",
+      "frames": 2,
+      "type": "AI-generated illustration",
+      "review": "Both poses visually reviewed, not trainer certification"
+    }
+  ]
+}

@@ -26,13 +26,13 @@ describe("offline APK and data continuity", () => {
     expect(fallback).not.toMatch(/https?:\/\//);
     expect(readdirSync("public/exercises").length).toBeGreaterThan(20);
   });
-  it("finds a new build and opens only the fixed download URL", async () => {
+  it("finds a new build and opens the fixed welcome landing page", async () => {
     const notify = vi.fn();
     expect(await strategy.checkForUpdate(notify)).toBe(true);
     expect(notify).toHaveBeenCalledWith({ type: "apk-available" });
     expect(strategy.hasPending()).toBe(true);
     await strategy.applyUpdate();
-    expect(native.open).toHaveBeenCalledWith({ url: "https://gymak-eight.vercel.app/download/GYMAK.apk" });
+    expect(native.open).toHaveBeenCalledWith({ url: "https://gymak-eight.vercel.app/welcome" });
   });
   it("never treats an equal or older build as an update", async () => {
     for (const tag of ["apk-9", "apk-8"]) {

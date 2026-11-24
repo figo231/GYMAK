@@ -120,3 +120,22 @@ adb shell am instrument -w -e class com.gymak.app.ForegroundNotificationTest com
 grep -q 'OK (1 test)' verification/foreground-notification.txt
 adb shell am instrument -w -e class com.gymak.app.OwnerPushTapTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/owner-tap.txt
 grep -q 'OK (1 test)' verification/owner-tap.txt
+
+# Verify migration from the current published bundle, APK23.
+adb shell cmd connectivity airplane-mode disable
+adb shell svc wifi enable
+curl --fail --location --retry 2 https://github.com/figo231/GYMAK/releases/download/apk-23/GYMAK.apk -o /tmp/gymak-apk23.apk
+adb uninstall com.gymak.app.test
+adb uninstall com.gymak.app
+adb install -r -g /tmp/gymak-apk23.apk
+adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+run_test seedLegacyData
+cp verification/seedLegacyData.txt verification/apk23-seed.txt
+adb shell am force-stop com.gymak.app
+adb shell svc wifi disable
+adb shell svc data disable
+adb shell cmd connectivity airplane-mode enable
+adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
+run_test keepsDataAndRunsOffline
+cp verification/keepsDataAndRunsOffline.txt verification/apk23-upgrade.txt
+adb pull /sdcard/Android/data/com.gymak.app/files/offline-upgrade.png verification/apk23-offline-upgrade.png

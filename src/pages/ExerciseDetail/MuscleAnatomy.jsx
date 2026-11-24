@@ -16,6 +16,8 @@ const SECONDARY_OPACITY = 0.55;
 
 function getPrimaryRegions(muscle, muscleLabel = "") {
   switch (muscle) {
+    case "cardio":
+      return [];
     case "chest":
       return ["chest"];
     case "back":

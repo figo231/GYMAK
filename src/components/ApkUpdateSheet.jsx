@@ -32,7 +32,7 @@ export default function ApkUpdateSheet() {
           </div>
           <h3 style={{ margin: "0 0 6px" }}>{tx("تحديث جديد للتطبيق")}</h3>
           <p style={{ margin: 0, fontSize: 13, opacity: 0.75, lineHeight: 1.7 }}>
-            {tx("فيه نسخة أحدث من GYMAK جاهزة. دوس تحميل، وبعد ما يخلص افتح الملف واختار تثبيت. بياناتك هتفضل زي ما هي.")}
+            {tx("فيه نسخة أحدث من GYMAK جاهزة. زرار تحديث هيفتح صفحة التحميل. اختار تحميل أندرويد، وبعدها افتح الملف واختار تثبيت من غير ما تمسح التطبيق الحالي.")}
           </p>
         </div>
         {error && <p role="alert" style={{ fontSize: 13, textAlign: "center" }}>{error}</p>}
