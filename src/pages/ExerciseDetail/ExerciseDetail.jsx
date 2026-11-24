@@ -82,6 +82,7 @@ function ExerciseDetail({ id }) {
   const [weight, setWeight] = useState(init.weight);
   const [sets, setSets] = useState(init.sets);
   const [reps, setReps] = useState(init.reps);
+  const [rir,setRir]=useState("");
   const [error, setError] = useState(null);
   const [justSaved, setJustSaved] = useState(null);
   const weightRef = useRef(null);
@@ -115,9 +116,10 @@ function ExerciseDetail({ id }) {
       if (el) el.focus();
       return;
     }
+    if(rir!=="" && r.sets!==1){setError("تقييم المجهود لمجموعة واحدة. خلّي عدد المجموعات1 أو سيب التقييم فاضي.");return;}
     setError(null);
     const before = Store.getExerciseLogs(exerciseId).length;
-    Store.logSet(exerciseId, r.kg, r.sets, r.reps);
+    Store.logSet(exerciseId, r.kg, r.sets, r.reps, rir===""?null:Number(rir));
     const saved = Store.getExerciseLogs(exerciseId).at(-1);
     buzz(15);
     startRest();
@@ -252,6 +254,7 @@ function ExerciseDetail({ id }) {
             </div>
         </div>
         {isBodyweight(exercise) && <p className="log-hint">{tx("الوزن 0 معناه وزن الجسم بس.")}</p>}
+        {!secUnit && <div className="rir-field"><label htmlFor="log-rir">كان فاضلك كام عدة؟ <small>اختياري · لكل مجموعة لوحدها</small></label><select id="log-rir" value={rir} onChange={e=>{setRir(e.target.value);setError(null);}}><option value="">من غير تقييم</option>{[0,1,2,3,4,5].map(n=><option value={n} key={n}>{n===0?"0 · مكنش فاضل عدة بنفس الأداء":n===5?"5+ · كان فاضل5 عدات أو أكتر":`${n} عدات بنفس الأداء`}</option>)}</select><p className="log-hint">تقديرك الشخصي، مش اختبار لازم توصل فيه للفشل. لو في ألم وقف. التقييم محفوظ على الجهاز وداخل النسخة الاحتياطية.</p></div>}
         {error && <p className="log-error" role="alert">{error}</p>}
         <button type="button" className="log-btn" onClick={handleSave}>{tx("تسجيل المجموعة")}</button>
         {justSaved && (
@@ -287,7 +290,7 @@ function ExerciseDetail({ id }) {
             <div className="log-today-head"><span>{tx("النهارده ·")} {todaySets.length} {todaySets.length === 1 ? tx("تسجيلة") : tx("تسجيلات")}</span><span dir="ltr">{Store.formatWeight(volume(todaySets))}</span></div>
             {todaySets.map((l) => (
               <div className="log-today-row" key={l.i}>
-                <span>{fmtSet(l)}</span>
+                <span>{fmtSet(l)}{l.rir!=null&&<small className="rir-tag">فاضل {l.rir===5?"5+":l.rir} عدة</small>}</span>
                 <button type="button" aria-label={tx("مسح المجموعة")} onClick={() => removeSet(l)}>{tx("مسح")}</button>
               </div>
             ))}

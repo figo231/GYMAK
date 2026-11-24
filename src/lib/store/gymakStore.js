@@ -982,7 +982,8 @@ let ownerView = false;
     },
 
     // ===== Exercises =====
-    logSet(exerciseId, weight, sets, reps) {
+    logSet(exerciseId, weight, sets, reps, effort = null) {
+      if(effort !== null && (!Number.isInteger(effort) || effort<0 || effort>5 || Number(sets)!==1))throw Error("تقييم المجهود لمجموعة واحدة، من0 لحد5.");
       const s = load();
       const today = todayISO();
       const levelBefore = s.profile.level;
@@ -993,7 +994,7 @@ let ownerView = false;
       const prevMax = prevLogs.reduce((m, l) => Math.max(m, l.weight), 0);
       if (!s.exerciseLogs[exerciseId]) s.exerciseLogs[exerciseId] = [];
       const awarded = this._awardDailyXP(s, today);
-      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps), at: nextLogStamp(), ...(awarded ? { xp: true } : {}) });
+      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps), at: nextLogStamp(), ...(effort !== null ? {rir:effort} : {}), ...(awarded ? { xp: true } : {}) });
       if (w > prevMax && prevLogs.length > 0) {
         const ex = (s.exercises || []).find((e) => e.id === exerciseId);
         s.prHistory.unshift({
@@ -1822,7 +1823,7 @@ let ownerView = false;
       const old = { ...logs[index] };
       // delete the old row (tombstoned for sync), then write the new values in place
       const oldKey = this._logKey(exerciseId, old);
-      logs[index] = { date: old.date, weight: w, sets: st, reps: r };
+      logs[index] = { ...old, date: old.date, weight: w, sets: st, reps: r, ...(st!==1 ? {rir:undefined} : {}) };
       const stillThere = logs.some((l) => this._logKey(exerciseId, l) === oldKey);
       if (!stillThere) this._tomb(s, "exerciseLogs", oldKey);
       this._untomb(s, "exerciseLogs", this._logKey(exerciseId, logs[index]));
@@ -1892,6 +1893,28 @@ let ownerView = false;
       for(const key of ['exercises','favorites','savedMeals','settings','deletedExerciseIds'])if(old[key]!==undefined)fresh[key]=old[key];
       if(!save(fresh))throw Error('local_cleanup_failed');
       return fresh;
+    },
+
+    getSupersets() {return load().supersets || [];},
+    saveSuperset(row) {
+      if(!row.id || row.first===row.second || ![row.first,row.second].every(id=>this.getExerciseById(id)) || !Number.isInteger(row.rounds)||row.rounds<1||row.rounds>8||!Number.isFinite(row.rest)||row.rest<15||row.rest>300)throw Error("راجع التمارين والجولات والراحة.");
+      const s=load();s.supersets=[row,...(s.supersets||[]).filter(x=>x.id!==row.id)].slice(0,40);if(!save(s))throw Error("الحفظ متعملش.");
+    },
+    deleteSuperset(id){const s=load();s.supersets=(s.supersets||[]).filter(x=>x.id!==id);if(!save(s))throw Error("الحذف متعملش.");},
+    getSwapFoods() {
+      const seen = new Set();
+      return [...activeRemoteFoods(),...FOOD_DB].filter(f=>{const n=f.names?.[0];if(!n||seen.has(n)||!(f.per100?.kcal>0))return false;seen.add(n);return true;}).map(f=>({name:f.names[0],aliases:f.names,per100:f.per100}));
+    },
+    getWeeklyCheckIns() { return [...(load().weeklyCheckIns || [])].sort((a,b) => b.date.localeCompare(a.date)); },
+    saveWeeklyCheckIn(row) {
+      const s = load();
+      s.weeklyCheckIns = [row, ...(s.weeklyCheckIns || []).filter(x => x.week !== row.week)].slice(0,104);
+      if (!save(s)) throw Error("الحفظ متعملش. راجع مساحة الجهاز وجرب تاني.");
+      return row;
+    },
+    deleteWeeklyCheckIn(week) {
+      const s = load(); s.weeklyCheckIns = (s.weeklyCheckIns || []).filter(x => x.week !== week);
+      if (!save(s)) throw Error("الحذف متعملش. جرب تاني.");
     },
 
     // ===== Danger zone =====
