@@ -80,3 +80,14 @@ New disposable FREE project aznkcjhtywqjoxhrwexb accepted all prerequisite migra
 Both disposable projects are deleted. Dashboard visually shows only original GYMAK in the FREE organization. The second vault entry and local secret file are deleted; no deployment token was created for the second project. Production untouched.
 
 Final native run45464001614 on exact app source90f159b passed tests/build and APK compile; emulator verification and final pixel inspection pending at this checkpoint. Source500fb1c only adds the free-server wiring plan. Hourly cleanup and prompt push wake/continuation remain plans, not activated services. Full real-device FCM receipt and two-session UI/cache persistence tests remain unverified.
+
+
+## Approved production activation, 24 November21:43
+
+Owner release go-ahead was followed by approval after gap disclosure. Migrations38-47preflighted within a rollback transaction, then committed atomically.92function rollback definitions were saved and successfully re-applied in a transaction then rolled back before mutation. Existing13profiles,2conversations,4messages retained identical content hashes after excluding new nullable columns. Old/new inbox/contacts calls for all consented users pass.
+
+Server sourcea31f875 adds dedicated cleanup-only authentication and migration48free pg_cron/pg_net wiring. Push enabled. Statement-level after-insert queue wake sends constant empty JSON, never message/token content; a conditional minute sweep handles missed wakes and continuation without retrying unknown outcomes. A real synthetic invalid-token request reached FCM and was rejectedINVALID_ARGUMENT. This proves provider connectivity, NOT a real phone receipt.
+
+Cleanup temporarily scheduled each minute for one observed smoke fire at21:43: valid synthetic JPEG was physically removed and row markedexpired, HTTP200. Restored hourly at minute23. Synthetic accounts/files/function/test secret removed; dedicated operational secrets remain only in provider Vault/runtime. Deployment token revoked with visual confirmation, local secret captures deleted. No paid resources.
+
+Production-enabled appsource90f159b passed550tests/build and all native checks in run45472778034. Update launched exact/welcome and Android/getInfo25but screenshot stillblank; no claim of painted-native landing verification. APK24upgrade pixels inspected. Publication run45474865179consumes exact successful artifact and checks signing certificate/version before release. Final download/web checks pending.
