@@ -93,5 +93,11 @@
       "source": "/((?!assets/|.*\\..*).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "candidate/apk25-private": false,
+      "stage/apk25-private": false
+    }
+  }
 }
