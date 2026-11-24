@@ -1,0 +1,61 @@
+name: Publish owner-approved verified APK25
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/apk25-private.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require successful production-enabled APK25 verification
+        run: |
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45472778034 --jq .conclusion)" = success
+          gh run download 45472778034 -n gymak-approved-apk25 -D approved
+          test -s approved/app-debug.apk
+          base64 -d apk25-candidate-source.txt > /tmp/base.bundle
+          echo 'e7fbc6978914327c9bcef8eb989f817a03cfb5bb2e02b5a57ef3c47831c55e3a  /tmp/base.bundle' | sha256sum -c -
+          git fetch /tmp/base.bundle feat/apk25-polish
+          base64 -d apk25-final-delta.txt > /tmp/delta.bundle
+          echo '9676305389dfb8f9b7b5b5d6b73afd89c40255c239fd49ad6db51c0b56b53d38  /tmp/delta.bundle' | sha256sum -c -
+          git fetch /tmp/delta.bundle apk25-release-source
+          test "$(git rev-parse FETCH_HEAD)" = 90f159b1a4517aaab5ddc30fcbc6ae3afad85900
+          git checkout -B release-source FETCH_HEAD
+          git rm -r .github/workflows
+          git checkout origin/stage/apk25-private -- .github/workflows
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows
+          git diff --cached --quiet || git commit -m "Preserve existing automation while publishing APK25 app source90f159b"
+          git push origin HEAD:refs/heads/release/apk25-candidate
+          RELEASE_TARGET=$(git rev-parse HEAD)
+          echo "RELEASE_TARGET=$RELEASE_TARGET" >> "$GITHUB_ENV"
+          curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-24/GYMAK.apk -o /tmp/apk24.apk
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
+          test -n "$SIGNER"
+          "$SIGNER" verify --print-certs /tmp/apk24.apk > /tmp/old-certificate.txt
+          "$SIGNER" verify --print-certs approved/app-debug.apk > /tmp/new-certificate.txt
+          diff <(grep 'certificate SHA-256 digest' /tmp/old-certificate.txt) <(grep 'certificate SHA-256 digest' /tmp/new-certificate.txt)
+          "$AAPT" dump badging approved/app-debug.apk | head -1 | tee /tmp/apk25-version.txt
+          grep -q "versionCode='25'" /tmp/apk25-version.txt
+          cp approved/app-debug.apk GYMAK.apk
+          sha256sum GYMAK.apk
+          gh release create apk-25 GYMAK.apk --target "$RELEASE_TARGET" --latest --title "GYMAK 25" --notes "Install over your current app without uninstalling. Private compressed chat photos, profile controls and chat notifications. Free-tier limits apply."
+      - name: Publish matching approved web source
+        run: |
+          git fetch origin web-production
+          git checkout -B web-release origin/web-production
+          git rm -r --ignore-unmatch . ':!.github/workflows'
+          git checkout 90f159b1a4517aaab5ddc30fcbc6ae3afad85900 -- . ':!.github/workflows'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git diff --cached --quiet || git commit -m "Publish approved APK25 matching web source"
+          git push origin HEAD:refs/heads/web-production
