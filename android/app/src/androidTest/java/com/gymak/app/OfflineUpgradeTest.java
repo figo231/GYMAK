@@ -75,7 +75,7 @@ public class OfflineUpgradeTest {
                     try(java.io.FileOutputStream evidence=new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-browser-intent.txt"))){evidence.write(activities.getBytes(java.nio.charset.StandardCharsets.UTF_8));}
                     // Custom Tabs collapse the visible address to the host. Require the
                     // exact launched URI from Android plus the rendered landing content.
-                    if(activities.contains("https://gymak-eight.vercel.app/welcome")&&tree.contains("chrome")){found=true;break;}
+                    if(activities.contains("https://gymak-eight.vercel.app/welcome")&&tree.contains("chrome")&&(tree.contains("حمّل آخر نسخة")||tree.contains("جسمك اللي")||tree.contains("Download Android"))){found=true;break;}
                 }
                 clickFirstRunChoice(root);Thread.sleep(600);
             }
