@@ -27,7 +27,16 @@ jobs:
           echo '9676305389dfb8f9b7b5b5d6b73afd89c40255c239fd49ad6db51c0b56b53d38  /tmp/delta.bundle' | sha256sum -c -
           git fetch /tmp/delta.bundle apk25-release-source
           test "$(git rev-parse FETCH_HEAD)" = 90f159b1a4517aaab5ddc30fcbc6ae3afad85900
-          git push origin FETCH_HEAD:refs/heads/release/apk25-candidate
+          git checkout -B release-source FETCH_HEAD
+          git rm -r .github/workflows
+          git checkout origin/stage/apk25-private -- .github/workflows
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows
+          git diff --cached --quiet || git commit -m "Preserve existing automation while publishing APK25 app source90f159b"
+          git push origin HEAD:refs/heads/release/apk25-candidate
+          RELEASE_TARGET=$(git rev-parse HEAD)
+          echo "RELEASE_TARGET=$RELEASE_TARGET" >> "$GITHUB_ENV"
           curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-24/GYMAK.apk -o /tmp/apk24.apk
           SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
@@ -39,7 +48,7 @@ jobs:
           grep -q "versionCode='25'" /tmp/apk25-version.txt
           cp approved/app-debug.apk GYMAK.apk
           sha256sum GYMAK.apk
-          gh release create apk-25 GYMAK.apk --target 90f159b1a4517aaab5ddc30fcbc6ae3afad85900 --latest --title "GYMAK 25" --notes "Install over your current app without uninstalling. Private compressed chat photos, profile controls and chat notifications. Free-tier limits apply."
+          gh release create apk-25 GYMAK.apk --target "$RELEASE_TARGET" --latest --title "GYMAK 25" --notes "Install over your current app without uninstalling. Private compressed chat photos, profile controls and chat notifications. Free-tier limits apply."
       - name: Publish matching approved web source
         run: |
           git fetch origin web-production
