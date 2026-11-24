@@ -51,3 +51,9 @@ Isolated live Storage probe apk25-bytecheck was deployed from verified source, i
 Live read-only baseline: public function-definition fingerprint321a3a44566fcb233004422678699af0. Storage buckets empty. Installed extensions exclude pg_cron, so an expiry job must use an existing external scheduler or have separate authority for extension setup. Do not claim an hourly job exists.
 
 Next safe backend path: a self-cleaning owner-authenticated probe invoked from the owner's existing app session, or a provider-supported test with legacy server authorization. Never show or copy the server credential into chat. Two real signed-in participant sessions and the integrated migrations remain separate release checks.
+
+## 17:42 isolated Storage result
+
+Second probe accepted only project server credentials validated inside its runtime. Real Storage create-private-bucket, four-byte upload, download, remove and failed subsequent download returned200 with deleted=true. This is transport evidence, not a valid-JPEG decoder check, not an actual participant RPC check, and not expiry-job proof. Probe was then deleted. SQL verified zero buckets and public function fingerprint unchanged321a3a44566fcb233004422678699af0. Dashboard verified original four functions. No lasting backend change.
+
+Official current docs describe both legacy server JWT and new server-only secret dictionaries; no key was copied into source or logs, no key changed. Useful factual references: https://supabase.com/docs/guides/functions/secrets and https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys . Later server review should assess the provider's end2026 legacy-key deprecation claim without changing keys now.
