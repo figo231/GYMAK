@@ -72,4 +72,6 @@ it('new care features integrate with real chat consent, roles, history and block
  await rpc('owner','chat_set_user_role',[ids.doctor,'user']);expect((await rpc('doctor','care_plan_list',[id])).can_author).toBe(false);
  await expect(rpc('doctor','care_plan_save',[id,'خطة تانية',JSON.stringify([{name:'فطار',items:'بيض'}]),'','','10000000-0000-4000-8000-000000000003',1])).rejects.toThrow(/chat_read_only/);
  expect((await rpc('client','care_plan_list',[id])).versions).toHaveLength(1);
+ await db.query('delete from auth.users where id=$1',[ids.client]);
+ for(const table of ['care_plan_versions','care_plan_choices','care_training_versions','care_appointments','chat_personal_pins'])expect((await query('select count(*)::int n from '+table))[0].n).toBe(0);
 });
