@@ -71,7 +71,7 @@ public class OfflineUpgradeTest {
                 if(tree.contains("gymak-eight.vercel.app")&&tree.contains("GYMAK")){
                     java.io.InputStream state=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("dumpsys activity activities"));
                     String activities=new String(state.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);state.close();
-                    java.nio.file.Files.writeString(new java.io.File(context.getExternalFilesDir(null),"native25-browser-intent.txt").toPath(),activities);
+                    try(java.io.FileOutputStream evidence=new java.io.FileOutputStream(new java.io.File(context.getExternalFilesDir(null),"native25-browser-intent.txt"))){evidence.write(activities.getBytes(java.nio.charset.StandardCharsets.UTF_8));}
                     // Custom Tabs collapse the visible address to the host. Require the
                     // exact launched URI from Android plus the rendered landing content.
                     if(activities.contains("https://gymak-eight.vercel.app/welcome")&&tree.contains("chrome")){found=true;break;}
