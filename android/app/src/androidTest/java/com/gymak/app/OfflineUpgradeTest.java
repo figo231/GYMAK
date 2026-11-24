@@ -46,10 +46,10 @@ public class OfflineUpgradeTest {
             waitFor(a,"window.__nativeVersion!=='pending'");
             assertEquals("25",js(a,"window.__nativeVersion"));
             js(a,"window.dispatchEvent(new Event('gymak-open-update-center'))");
-            waitFor(a,"document.querySelector('[role=dialog][aria-label=\"مركز التحديثات\"]')");
+            waitFor(a,"document.querySelector('.update-center[role=dialog]')");
             js(a,"[...document.querySelectorAll('.update-center button')].find(b=>b.textContent.includes('صفحة التحميل')||b.textContent.includes('download page'))?.click()");
             long deadline=System.currentTimeMillis()+20000;boolean found=false;
-            while(System.currentTimeMillis()<deadline){InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("uiautomator dump /sdcard/window.xml").close();Thread.sleep(500);java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("cat /sdcard/window.xml"));String xml=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);in.close();if(xml.contains("gymak-eight.vercel.app/welcome")){found=true;break;}}
+            while(System.currentTimeMillis()<deadline){java.io.InputStream dump=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("uiautomator dump /sdcard/window.xml"));dump.readAllBytes();dump.close();Thread.sleep(300);java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand("cat /sdcard/window.xml"));String xml=new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);in.close();if(xml.contains("gymak-eight.vercel.app/welcome")){found=true;break;}}
             assertTrue("Update must open external welcome landing",found);
         }
     }
