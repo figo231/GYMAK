@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import { syncManager } from "../lib/sync/syncManager";
 import { registerForPush, removePushToken } from "../lib/push/pushService";
 import { isOwnerAdmin } from "../lib/push/ownerBroadcast";
+import { isDeveloperContentUser } from "../lib/developerContent";
 import Store from "../lib/store/gymakStore";
 import { parseAuthUrl, isDuplicateSignup, recoveryActive, setRecovery, withTimeout } from "../lib/authLogic";
 
@@ -66,9 +67,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const userId = session?.user?.id;
     if (!userId || isPasswordRecovery) { Store.setOwnerView(false); return undefined; }
-    Store.setOwnerView(false);
+    const developerContent = isDeveloperContentUser(userId);
+    Store.setOwnerView(developerContent);
     let cancelled = false;
-    isOwnerAdmin(userId).then((ok) => { if (!cancelled) Store.setOwnerView(ok); });
+    // The developer's bundled content never depends on a second network request.
+    // Keep server authorization separate from this local display exception.
+    if (!developerContent) isOwnerAdmin(userId).then((ok) => { if (!cancelled) Store.setOwnerView(ok); });
     return () => { cancelled = true; Store.setOwnerView(false); };
   }, [session?.user?.id, isPasswordRecovery]);
 

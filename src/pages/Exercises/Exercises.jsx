@@ -42,7 +42,7 @@ export default function Exercises() {
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [addName, setAddName] = useState("");
-  const [scope, setScope] = useState("program"); // "program" (program + my own) | "all" (full library)
+  const [scope, setScope] = useState(null); // null uses the account default until the user chooses
   const [equip, setEquip] = useState("");
   const [diff, setDiff] = useState("");
   const [favOnly, setFavOnly] = useState(false);
@@ -59,6 +59,7 @@ export default function Exercises() {
   const [favs, setFavs] = useState(() => getFavs());
   const todayIds = useMemo(() => new Set(Store.getTodayPlanIds()), [version]);
 
+  const effectiveScope = scope ?? (Store.isOwnerView() ? "all" : "program");
   const all = useMemo(() => Store.getExercises(), [version]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);
   const programExerciseIds = useMemo(
@@ -69,9 +70,9 @@ export default function Exercises() {
   // With a program active, show only its exercises plus the user's own,
   // unless they ask for the whole library.
   const scopedList = useMemo(() => {
-    if (scope === "all" || !activeProgram || !programExerciseIds) return all;
+    if (effectiveScope === "all" || !activeProgram || !programExerciseIds) return all;
     return all.filter((ex) => ex.custom || programExerciseIds.has(ex.id));
-  }, [all, scope, activeProgram, programExerciseIds]);
+  }, [all, effectiveScope, activeProgram, programExerciseIds]);
 
   const hays = useMemo(() => {
     const m = new Map();
@@ -188,10 +189,10 @@ export default function Exercises() {
 
       {activeProgram && (
         <div className="prog-scope-toggle" role="group" aria-label={tx("نطاق التمارين")}>
-          <button type="button" className={"prog-scope-opt" + (scope === "program" ? " active" : "")} aria-pressed={scope === "program"} onClick={() => setScope("program")}>
+          <button type="button" className={"prog-scope-opt" + (effectiveScope === "program" ? " active" : "")} aria-pressed={effectiveScope === "program"} onClick={() => setScope("program")}>
             {tx("برنامجي + تماريني الخاصة")}
           </button>
-          <button type="button" className={"prog-scope-opt" + (scope === "all" ? " active" : "")} aria-pressed={scope === "all"} onClick={() => setScope("all")}>
+          <button type="button" className={"prog-scope-opt" + (effectiveScope === "all" ? " active" : "")} aria-pressed={effectiveScope === "all"} onClick={() => setScope("all")}>
             {tx("كل المكتبة")}
           </button>
         </div>
