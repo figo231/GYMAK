@@ -91,3 +91,8 @@ Server sourcea31f875 adds dedicated cleanup-only authentication and migration48f
 Cleanup temporarily scheduled each minute for one observed smoke fire at21:43: valid synthetic JPEG was physically removed and row markedexpired, HTTP200. Restored hourly at minute23. Synthetic accounts/files/function/test secret removed; dedicated operational secrets remain only in provider Vault/runtime. Deployment token revoked with visual confirmation, local secret captures deleted. No paid resources.
 
 Production-enabled appsource90f159b passed550tests/build and all native checks in run45472778034. Update launched exact/welcome and Android/getInfo25but screenshot stillblank; no claim of painted-native landing verification. APK24upgrade pixels inspected. Publication run45474865179consumes exact successful artifact and checks signing certificate/version before release. Final download/web checks pending.
+
+
+## Release complete21:55
+
+APK25published at https://github.com/figo231/GYMAK/releases/tag/apk-25 from exact passed production-enabled artifact. Publication45475143906compared signing certificate to24and package version25. Release appsource90f159b; release commit27e3e77preserves existing workflow files to satisfy repository permissions. Same-domain download/welcome verified,12466763bytes,SHA2563d5c538dd5ef7e6b8a256949c8d211b2df1d2c1899e91fc5da266219d9399339. Browser pixels render correctly. Android blank-content screenshot caveat remains. Server operational sourcepatcha31f875is local and attached to parent for durable follow-up; app/web source stays90f159b.
