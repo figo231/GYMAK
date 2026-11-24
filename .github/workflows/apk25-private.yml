@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Load exact APK25 source without pushing any branch
         run: |
+          cp apk25-final-delta.txt /tmp/apk25-final-delta.txt
           base64 -d apk25-candidate-source.txt > /tmp/apk25-source.bundle
           echo 'e7fbc6978914327c9bcef8eb989f817a03cfb5bb2e02b5a57ef3c47831c55e3a  /tmp/apk25-source.bundle' | sha256sum -c -
           git fetch --unshallow origin
@@ -26,6 +27,11 @@ jobs:
           git fetch /tmp/apk25-source.bundle feat/apk25-polish
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = 248ba3404dc2c1a2c41f33280ca29901ae2ec151
+          base64 -d /tmp/apk25-final-delta.txt > /tmp/apk25-final.bundle
+          echo '199990d453254737bc7339392774ce9729eb6255fe611eb0fedb0b29e649ea5f  /tmp/apk25-final.bundle' | sha256sum -c -
+          git fetch /tmp/apk25-final.bundle feat/apk25-polish
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = 9cb2ef4c76d236b27f55e9508477bb6ef9c237b1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
