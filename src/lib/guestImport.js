@@ -1,7 +1,18 @@
 import Store from './store/gymakStore';
+const profileFields=[['height_cm','heightCm'],['gender','gender'],['goal_weight','goalWeight'],['active_program_id','activeProgramId'],['unit','unit'],['lang','lang']];
+function profileValues(s){return {heightCm:s.profile?.heightCm,gender:s.profile?.gender,goalWeight:s.goalWeight,activeProgramId:s.activeProgramId,unit:s.settings?.unit,lang:s.settings?.lang};}
+const OWNER='gymak_local_data_owner_v1';
+export function dataOwner(storage=localStorage){
+ const owner=storage.getItem(OWNER);if(owner)return owner;
+ let ids=[];try{ids=JSON.parse(storage.getItem('gymak_sync_state_v1')||'{}').migratedUserIds||[];}catch{}
+ if(ids.length===1){storage.setItem(OWNER,ids[0]);return ids[0];}
+ if(ids.length>1)return 'ambiguous_legacy_owner';
+ return null;
+}
+export function bindDataOwner(id,storage=localStorage){const owner=dataOwner(storage);if(owner&&owner!==id)throw Error('different_local_account');storage.setItem(OWNER,id);}
 const PENDING='gymak_guest_import_pending_v1',ARCHIVE='gymak_guest_import_archive_v1';
 export function markGuestData(storage=localStorage){
- if(storage.getItem(PENDING))return;
+ if(dataOwner(storage)||storage.getItem(PENDING))return;
  // Keep the full original state intact. Never clear it to enforce login.
  if(storage.getItem('gymak_state_v1'))storage.setItem(PENDING,JSON.stringify({created:Date.now()}));
 }
@@ -15,12 +26,14 @@ export function archiveGuestData(userId,storage=localStorage){
 }
 export function findGuestConflicts(local,remote){
  const conflicts=[];
- for(const r of remote.weights||[]){const l=local.weightLogs?.find(x=>x.date===r.date);if(l&&(Number(l.weight)!==Number(r.weight)||Number(l.bodyFat||0)!==Number(r.body_fat||0)))conflicts.push({key:'weight:'+r.date,type:'weight',label:r.date,local:l,remote:r});}
- for(const r of remote.food||[]){const l=local.foodLog?.find(x=>x.date===r.date);if(l&&JSON.stringify(l.items)!==JSON.stringify(r.items||[]))conflicts.push({key:'food:'+r.date,type:'food',label:r.date,local:l,remote:r});}
- for(const r of remote.exercises||[]){const l=local.exercises?.find(x=>x.custom&&x.id===r.id);if(l&&['name','muscle','sets','reps'].some(k=>l[k]!==r[k]))conflicts.push({key:'exercise:'+r.id,type:'exercise',label:l.name,local:l,remote:r});}
+ for(const r of remote.weights||[]){const l=local.weightLogs?.find(x=>x.date===r.date);if(l&&(Number(l.weight)!==Number(r.weight)||(l.bodyFat??null)!==(r.body_fat==null?null:Number(r.body_fat))))conflicts.push({key:'weight:'+r.date,type:'weight',label:r.date,local:l,remote:r});}
+ for(const r of remote.food||[]){const l=local.foodLog?.find(x=>x.date===r.date);if(l&&(JSON.stringify(l.items)!==JSON.stringify(r.items||[])||[['totalKcal','total_kcal'],['totalProtein','total_protein'],['totalCarbs','total_carbs'],['totalFat','total_fat']].some(([a,b])=>Number(l[a]||0)!==Number(r[b]||0))))conflicts.push({key:'food:'+r.date,type:'food',label:r.date,local:l,remote:r});}
+ for(const r of remote.exercises||[]){const l=local.exercises?.find(x=>x.custom&&x.id===r.id);if(l&&['name','muscle','secondary','sets','reps'].some(k=>l[k]!==r[k]))conflicts.push({key:'exercise:'+r.id,type:'exercise',label:l.name,local:l,remote:r});}
+ if(remote.profile){const values=profileValues(local),account={};for(const [r,l] of profileFields)account[l]=remote.profile[r]??values[l];if(JSON.stringify(values)!==JSON.stringify(account))conflicts.push({key:'profile:training',type:'profile',label:'',local:values,remote:account});}
  return conflicts;
 }
 export async function inspectGuestImport(userId,client){
+ const owner=dataOwner();if(owner&&owner!==userId)throw Error('different_local_account');
  archiveGuestData(userId);
  const verified=await client.auth.getUser();if(verified.error||verified.data?.user?.id!==userId)throw Error('session_changed');
  const remote={};for(const [key,table] of [['weights','weight_logs'],['food','food_log'],['exercises','exercises']]){const r=await client.from(table).select('*').eq('user_id',userId);if(r.error)throw r.error;remote[key]=r.data||[];}
@@ -35,12 +48,16 @@ export async function finishGuestImport(review,choices,client){
  localStorage.setItem(ARCHIVE+':review:'+userId,JSON.stringify(review));
  const preserve=new Set(review.conflicts.filter(c=>choices[c.key]==='local').map(c=>c.key));
  const generation=await client.rpc('my_training_generation');if(generation.error)throw generation.error;
+ const finalUser=await client.auth.getUser();if(finalUser.error||finalUser.data?.user?.id!==userId)throw Error('session_changed');
  localStorage.setItem('gymak_training_generation_v1:'+userId,String(generation.data??0));
  Store.clearGuestPendingDeletes();
  Store.mergeWeightLogsFromRemote(review.remote.weights.filter(r=>!preserve.has('weight:'+r.date)));
  Store.mergeFoodLogFromRemote(review.remote.food.filter(r=>!preserve.has('food:'+r.date)));
  Store.mergeExercisesFromRemote(review.remote.exercises.filter(r=>!preserve.has('exercise:'+r.id)));
- if(review.remote.profile)Store.mergeProfileFromRemote(review.remote.profile);
+ if(review.remote.profile){const p={...review.remote.profile};if(preserve.has('profile:training')){const values=profileValues(Store.getRawStateForSync());for(const [r,l] of profileFields)p[r]=values[l];}Store.mergeProfileFromRemote(p);}
+ // Store merge writes are best-effort elsewhere. Migration completion requires a durable copy.
+ const merged=JSON.stringify(Store.getRawStateForSync());localStorage.setItem('gymak_state_v1',merged);if(localStorage.getItem('gymak_state_v1')!==merged)throw Error('import_save_failed');
+ bindDataOwner(userId);
  localStorage.removeItem(PENDING);
  localStorage.setItem('gymak_guest_import_completed_v1',JSON.stringify({userId,at:Date.now()}));
 }

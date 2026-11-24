@@ -1,4 +1,4 @@
-import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport} from "../lib/guestImport";
+import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport,dataOwner,bindDataOwner} from "../lib/guestImport";
 import { flushEncouragementStop } from "../lib/encouragement";
 import { recordAppActivity,resetActivitySession } from '../lib/appActivity';
 import { createContext, useContext, useEffect, useState } from "react";
@@ -83,7 +83,9 @@ export function AuthProvider({ children }) {
     const id=session?.user?.id;let active=true;
     if(loading)return;
     if(!id||isPasswordRecovery){setGuestImport({status:"ready"});return;}
-    if(!hasGuestImport()){setGuestImport({status:"ready",userId:id});return;}
+    const owner=dataOwner();
+    if(owner&&owner!==id){setGuestImport({status:"accountMismatch",userId:id});return;}
+    if(!hasGuestImport()){bindDataOwner(id);setGuestImport({status:"ready",userId:id});return;}
     setGuestImport({status:"checking",userId:id});
     inspectGuestImport(id,supabase).then(review=>{if(active)setGuestImport({status:"review",userId:id,review});}).catch(error=>{if(active)setGuestImport({status:"error",userId:id,error});});
     return()=>{active=false;};
