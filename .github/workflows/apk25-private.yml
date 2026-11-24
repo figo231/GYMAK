@@ -1,4 +1,4 @@
-name: Private APK26 verification revision 4
+name: Private APK26 verification revision 5
 on:
   push:
     branches: [stage/apk25-private]
@@ -20,11 +20,11 @@ jobs:
       - name: Load exact APK26 candidate, no production publication
         run: |
           base64 -d 2-apk26-candidate.txt > /tmp/apk26.bundle
-          echo '5231c62be7eee826e98847e14638f6cd11a0ab7228d7fb97062211df44cb9ebc  /tmp/apk26.bundle' | sha256sum -c -
+          echo '20033a18b1ba372bef278e1ba257c85c8b2783401029a5fa71d15715cce5505e  /tmp/apk26.bundle' | sha256sum -c -
           git fetch --unshallow origin
           git fetch /tmp/apk26.bundle feat/apk25-polish
           git checkout --detach FETCH_HEAD
-          test "$(git rev-parse HEAD)" = f5de60a6f3d20d101ed1322aa813dbe88ec212bb
+          test "$(git rev-parse HEAD)" = 840bd5a9cb8f2b99504f880688b48aa9a313e0ec
       - uses: actions/setup-node@v4
         with:
           node-version: 22
