@@ -12,7 +12,7 @@ jobs:
     env:
       VITE_DISTRIBUTION_CHANNEL: sideload
       VITE_OTA_ENABLED: "false"
-      VITE_REVIEW_BACKEND_GATED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
@@ -28,10 +28,10 @@ jobs:
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = 248ba3404dc2c1a2c41f33280ca29901ae2ec151
           base64 -d /tmp/apk25-final-delta.txt > /tmp/apk25-final.bundle
-          echo '519ab5710c3094bfe1f4c3764ba5d2f30fb07e515c907d50468526f3c4f3c4fa  /tmp/apk25-final.bundle' | sha256sum -c -
-          git fetch /tmp/apk25-final.bundle feat/apk25-polish
+          echo '9676305389dfb8f9b7b5b5d6b73afd89c40255c239fd49ad6db51c0b56b53d38  /tmp/apk25-final.bundle' | sha256sum -c -
+          git fetch /tmp/apk25-final.bundle apk25-release-source
           git checkout --detach FETCH_HEAD
-          test "$(git rev-parse HEAD)" = a80d039969281878fddd364ccb1e0eb0741719c6
+          test "$(git rev-parse HEAD)" = 90f159b1a4517aaab5ddc30fcbc6ae3afad85900
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -100,12 +100,9 @@ jobs:
         with:
           name: gymak-offline-verification
           path: verification/
-      - name: Encrypt private test APK
-        if: success()
-        run: node scripts/encrypt-private-apk.mjs android/app/build/outputs/apk/debug/app-debug.apk GYMAK-private-apk.encrypted.json
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: gymak-private-apk-encrypted
-          path: GYMAK-private-apk.encrypted.json
+          name: gymak-approved-apk25
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 1
