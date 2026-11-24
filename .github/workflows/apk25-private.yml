@@ -1,0 +1,31 @@
+name: Archive APK25 active server source only
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/apk25-private.yml]
+permissions:
+  contents: write
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Import active server source without any deployment
+        run: |
+          base64 -d apk25-candidate-source.txt > /tmp/base.bundle
+          echo 'e7fbc6978914327c9bcef8eb989f817a03cfb5bb2e02b5a57ef3c47831c55e3a  /tmp/base.bundle' | sha256sum -c -
+          git fetch /tmp/base.bundle feat/apk25-polish
+          base64 -d apk25-final-delta.txt > /tmp/closeout.bundle
+          echo '53838fce39e93632346085617fdb8ac7b82c7a1b69eccacb6b6a2e93e5e3b459  /tmp/closeout.bundle' | sha256sum -c -
+          git fetch /tmp/closeout.bundle feat/apk25-polish
+          test "$(git rev-parse FETCH_HEAD)" = 2bd3c439aa7a2d02cbfe71774017d2460cd99300
+          git checkout -B source-closeout FETCH_HEAD
+          git rm -r .github/workflows
+          git checkout origin/stage/apk25-private -- .github/workflows
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows
+          git diff --cached --quiet || git commit -m "Preserve existing automation for server source archive"
+          git push origin HEAD:refs/heads/source/apk25-server-closeout
