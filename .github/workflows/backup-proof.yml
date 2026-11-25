@@ -1,0 +1,46 @@
+name: One-shot private backup restore proof
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/backup-proof.yml]
+permissions:
+  contents: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      restore:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: restoretest
+        ports: ['5433:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt private verification helper
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_APK27_SOURCE_KEY }}
+        run: |
+          base64 -d canary2-delta.txt > "$RUNNER_TEMP/source.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
+      - name: Strict read-only source backup and isolated restore
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/db-proof"
+          docker run --rm --network host -e DB_URL -e RUNNER_TEMP -v "$RUNNER_TEMP:$RUNNER_TEMP" postgres:17 bash -c 'apt-get update && apt-get install -y python3 && psql postgresql://postgres:restoretest@localhost:5433/postgres -v ON_ERROR_STOP=1 -c "drop schema public cascade;" && python3 "$RUNNER_TEMP/backup-verify.py"' > "$RUNNER_TEMP/db-proof/result.txt" 2>&1
+      - name: Encrypt all private backup evidence
+        if: always()
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_APK27_SOURCE_KEY }}
+        run: |
+          tar -czf "$RUNNER_TEMP/db-proof.tar.gz" -C "$RUNNER_TEMP" db-proof
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/db-proof.tar.gz" -out "$RUNNER_TEMP/db-proof.enc" -pass env:SOURCE_KEY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: encrypted-private-db-proof
+          path: ${{ runner.temp }}/db-proof.enc
+          retention-days: 2
