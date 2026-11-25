@@ -26,13 +26,14 @@ jobs:
           test "$(git rev-parse origin/web-production)" = 1575e3b8848257151ade9a904e738b78460c090b
           git checkout -B avatar37-publish origin/web-production
           cp public/ota/stable.json "$RUNNER_TEMP/native-stable-before.json"
-          sha256sum public/download/GYMAK.apk > "$RUNNER_TEMP/apk-before.sha"
+          git ls-tree -r HEAD -- public/ota public/download > "$RUNNER_TEMP/native-tree-before.txt"
           rm -rf served27
           mkdir -p served27
           unzip -q "$RUNNER_TEMP/avatar37/avatar37-compiled.zip" -d served27
           rm -rf served27/landing served27/landing.html served27/ota served27/download
           cmp public/ota/stable.json "$RUNNER_TEMP/native-stable-before.json"
-          sha256sum -c "$RUNNER_TEMP/apk-before.sha"
+          git ls-tree -r HEAD -- public/ota public/download > "$RUNNER_TEMP/native-tree-after.txt"
+          cmp "$RUNNER_TEMP/native-tree-before.txt" "$RUNNER_TEMP/native-tree-after.txt"
           git config user.name figo231
           git config user.email 89879739+figo231@users.noreply.github.com
           git add served27
