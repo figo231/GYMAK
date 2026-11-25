@@ -1,0 +1,93 @@
+name: Publish exact verified APK27 and compiled web34
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/publish34-final.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: gymak-release34
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require final build, native proof and selected transaction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45570268266 --jq .conclusion)" = success
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45568792826 --jq .conclusion)" = success
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45570834360 --jq .conclusion)" = success
+      - name: Recover exact tested release bytes without rebuilding
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRANSPORT: ${{ secrets.GYMAK_CANDIDATE32_TRANSPORT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/final34"
+          gh run download 45570268266 -R figo231/GYMAK -n apk27-encrypted-verification -D "$RUNNER_TEMP/final34"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/final34/apk27-evidence.enc" -out "$RUNNER_TEMP/final34/evidence.tar.gz" -pass env:TRANSPORT
+          tar -xzf "$RUNNER_TEMP/final34/evidence.tar.gz" -C "$RUNNER_TEMP/final34"
+          cd "$RUNNER_TEMP/final34/verification/final"
+          for f in exact.zip bundle.zip stable.json GYMAK.apk; do test -s "$f"; done
+          echo '1d4679046fdaf9e95a4f8f6b7801a6aa3e0e455e8eb3687f9e16409eac530bd6  GYMAK.apk' | sha256sum -c -
+          echo '1560d4e20e26a825789f9e322901ce1a17418e4d802496fabd0c365a2db6c8cc  exact.zip' | sha256sum -c -
+          echo '7719c4993f255b0fc9a62205f23118cffb3137765b354249dad70c5bdcb30bc3  bundle.zip' | sha256sum -c -
+          cp stable.json "$RUNNER_TEMP/final34/stable.json"
+          curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-26/GYMAK.apk -o "$RUNNER_TEMP/old.apk"
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
+          "$SIGNER" verify --print-certs "$RUNNER_TEMP/old.apk" > "$RUNNER_TEMP/old-cert.txt"
+          "$SIGNER" verify --print-certs GYMAK.apk > "$RUNNER_TEMP/new-cert.txt"
+          diff <(grep 'certificate SHA-256 digest' "$RUNNER_TEMP/old-cert.txt") <(grep 'certificate SHA-256 digest' "$RUNNER_TEMP/new-cert.txt")
+          "$AAPT" dump badging GYMAK.apk > "$RUNNER_TEMP/apk-version.txt"
+          head -1 "$RUNNER_TEMP/apk-version.txt" | grep "versionCode='27'" | grep "versionName='1.27'"
+      - name: Publish same-signer APK and encrypted signed native27 bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/final34/verification/final"
+          gh release create web-270034 bundle.zip stable.json --target "$GITHUB_SHA" --latest=false --title 'GYMAK web 270034 for native 27' --notes 'Signed web-layer update for Android build 27.'
+          gh release create apk-27 GYMAK.apk --target "$GITHUB_SHA" --latest --title 'GYMAK 27' --notes 'Install over the existing app without uninstalling. Keeps existing data. Improves startup updates, nutrition planning, chat search, profiles and verified professional suggestions.'
+          gh release download web-270034 -R figo231/GYMAK -D "$RUNNER_TEMP/published34"
+          gh release download apk-27 -R figo231/GYMAK -D "$RUNNER_TEMP/published34"
+          cmp bundle.zip "$RUNNER_TEMP/published34/bundle.zip"
+          cmp stable.json "$RUNNER_TEMP/published34/stable.json"
+          cmp GYMAK.apk "$RUNNER_TEMP/published34/GYMAK.apk"
+          test "$(gh api repos/figo231/GYMAK/releases/latest --jq .tag_name)" = apk-27
+      - name: Publish exact compiled web without readable application source
+        run: |
+          git fetch origin web-production
+          git checkout -B publish34 origin/web-production
+          rm -rf served27
+          mkdir -p served27
+          unzip -q "$RUNNER_TEMP/final34/verification/final/exact.zip" -d served27
+          rm -rf served27/landing served27/landing.html served27/ota served27/download
+          cp "$RUNNER_TEMP/final34/stable.json" public/ota/stable.json
+          git config user.name 'figo231'
+          git config user.email '89879739+figo231@users.noreply.github.com'
+          git add served27 public/ota/stable.json
+          git commit -m 'Publish exact verified compiled web34 and APK27 manifest'
+          git push origin HEAD:web-production
+          echo "Release web commit $(git rev-parse HEAD)"
+      - name: Verify live deployed entry, config, signed manifest and APK
+        run: |
+          unzip -p "$RUNNER_TEMP/final34/verification/final/exact.zip" index.html > "$RUNNER_TEMP/expected-index.html"
+          for n in $(seq 1 32); do
+            curl -fsSL https://gymak-eight.vercel.app/ -o "$RUNNER_TEMP/live-index.html"
+            if cmp -s "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/expected-index.html"; then break; fi
+            sleep 15
+          done
+          cmp "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/expected-index.html"
+          curl -fsSL https://gymak-eight.vercel.app/ota/stable.json -o "$RUNNER_TEMP/live-stable.json"
+          cmp "$RUNNER_TEMP/live-stable.json" "$RUNNER_TEMP/final34/stable.json"
+          curl -fsSL https://gymak-eight.vercel.app/download/GYMAK.apk -o "$RUNNER_TEMP/live.apk"
+          cmp "$RUNNER_TEMP/live.apk" "$RUNNER_TEMP/final34/verification/final/GYMAK.apk"
+          curl -fsSL https://gymak-eight.vercel.app/push-config.json -o "$RUNNER_TEMP/live-push.json"
+          unzip -p "$RUNNER_TEMP/final34/verification/final/exact.zip" push-config.json > "$RUNNER_TEMP/expected-push.json"
+          cmp "$RUNNER_TEMP/live-push.json" "$RUNNER_TEMP/expected-push.json"
+          curl -fsSL https://gymak-eight.vercel.app/download/version.json | grep -q 'apk-27'
+          echo 'LIVE exact web, public push config, signed native27 manifest and same-signer APK27 verified.'
