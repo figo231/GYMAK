@@ -1,0 +1,78 @@
+name: Publish exact tested compiled web27 only
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/publish-web27.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require committed and independently verified production migrations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45555062470 --jq .conclusion)" = success
+          test "$(gh api repos/figo231/GYMAK/actions/runs/45555368425 --jq .conclusion)" = success
+      - name: Require live verified OTA publication first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api repos/figo231/GYMAK/actions/runs/45555692450 --jq .conclusion)" = success
+      - name: Recover exact tested bytes without rebuilding or signing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRANSPORT: ${{ secrets.GYMAK_APPLY27_TRANSPORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pub27"
+          base64 -d publish27-cipher.txt > "$RUNNER_TEMP/pub27.enc"
+          echo '0a3dd117b1eeb3a7358bb5ee6655d1aa9248e6e0e949a6408d8e5e3b2bbcbac6  '"$RUNNER_TEMP/pub27.enc" | sha256sum -c -
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/pub27.enc" -out "$RUNNER_TEMP/pub27.tar.gz" -pass env:TRANSPORT
+          tar -xzf "$RUNNER_TEMP/pub27.tar.gz" -C "$RUNNER_TEMP/pub27"
+          gh run download 45549648262 -R figo231/GYMAK -n apk27-encrypted-verification -D "$RUNNER_TEMP/pub27"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/pub27/apk27-evidence.enc" -out "$RUNNER_TEMP/evidence.tar.gz" -pass file:"$RUNNER_TEMP/pub27/evidence.key"
+          tar -xzf "$RUNNER_TEMP/evidence.tar.gz" -C "$RUNNER_TEMP/pub27"
+          cd "$RUNNER_TEMP/pub27/verification"
+          echo '983e20cd362c5f60592ec2138dc09a5ed98b2a94adecd434f01e19adb9825e13  exact.zip' | sha256sum -c -
+          echo '5c7668c13d893574fab2d4b96c31ef72bd2869e289dbb5b743d0d05becbef9f5  exact/bundle.zip' | sha256sum -c -
+      - name: Publish exact compiled web bytes without application source
+        run: |
+          set -euo pipefail
+          git fetch origin web-production
+          git checkout -B web27 origin/web-production
+          mkdir -p served27
+          unzip -q "$RUNNER_TEMP/pub27/verification/exact.zip" -d served27
+          rm -rf served27/landing served27/landing.html served27/ota served27/download
+          cp "$RUNNER_TEMP/pub27/verification/exact/stable.json" public/ota/stable.json
+          cat > scripts/use-verified27.mjs <<'JS'
+          import{cp,mkdir}from'node:fs/promises';await mkdir('dist',{recursive:true});await cp('public','dist',{recursive:true});await cp('served27','dist',{recursive:true});console.log('Copied exact tested compiled27 bytes; APK/OTA/welcome preserved from public');
+          JS
+          node -e "const f=require('fs');const p=JSON.parse(f.readFileSync('package.json'));p.scripts.build='node scripts/use-verified27.mjs';f.writeFileSync('package.json',JSON.stringify(p,null,2));"
+          git config user.name 'figo231'
+          git config user.email '89879739+figo231@users.noreply.github.com'
+          git add served27 scripts/use-verified27.mjs package.json public/ota/stable.json
+          git commit -m 'Deploy exact tested compiled web27 preserving APK26 and welcome'
+          git push origin HEAD:web-production
+          echo "WEB27 commit $(git rev-parse HEAD)"
+      - name: Verify live exact web entry, manifest and unchanged download
+        run: |
+          set -euo pipefail
+          unzip -p "$RUNNER_TEMP/pub27/verification/exact.zip" index.html > "$RUNNER_TEMP/expected-index.html"
+          for n in $(seq 1 40); do
+            curl -fsSL https://gymak-eight.vercel.app/ -o "$RUNNER_TEMP/live-index.html"
+            if cmp -s "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/expected-index.html"; then break; fi
+            sleep 15
+          done
+          cmp "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/expected-index.html"
+          curl -fsSL https://gymak-eight.vercel.app/ota/stable.json -o "$RUNNER_TEMP/live-stable.json"
+          cmp "$RUNNER_TEMP/live-stable.json" "$RUNNER_TEMP/pub27/verification/exact/stable.json"
+          curl -fsSL https://gymak-eight.vercel.app/download/GYMAK.apk -o "$RUNNER_TEMP/current.apk"
+          echo 'af9dc51aaf1534b857991e39569136ee0b6dd6022dfece6e157ce667bcc1cb53  '"$RUNNER_TEMP/current.apk" | sha256sum -c -
+          echo 'LIVE exact web27 entry, OTA manifest and retained APK26 verified.'
+      - name: Clear runner plaintext
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/pub27" "$RUNNER_TEMP/pub27.enc" "$RUNNER_TEMP/pub27.tar.gz" "$RUNNER_TEMP/evidence.tar.gz" "$RUNNER_TEMP/current.apk"
