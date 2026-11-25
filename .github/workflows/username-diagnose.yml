@@ -41,10 +41,13 @@ jobs:
            'known_target_terms':"select exists(select 1 from public.terms_acceptances where user_id='"+target+"' and version='2026-11-23-tou-v1')",
            'known_target_chatconsent':"select exists(select 1 from public.chat_consents where user_id='"+target+"')"
           }.items():print(label,sql(q))
+          handle=sql("select username from public.profiles where id='"+target+"'")
+          print('actual_handle_shape',json.dumps({'length':len(handle or ''),'has_at':bool(handle and handle.startswith('@')),'has_spaces':bool(handle and handle!=handle.strip())}))
+          literal="'"+(handle or '').replace("'","''")+"'"
           prefix="begin;set local role authenticated;select set_config('request.jwt.claim.sub','"+actor+"',true);"
-          result=sql(prefix+"select jsonb_build_object('found',public.chat_username_lookup((select username from public.profiles where id='"+target+"')) is not null);rollback;")
+          result=sql(prefix+"select jsonb_build_object('found',public.chat_username_lookup("+literal+") is not null);rollback;")
           print('ACTUAL_USERNAME_LOOKUP',result.splitlines()[-2:] if result else None)
-          result=sql(prefix+"select jsonb_build_object('inbox_found',exists(select 1 from public.chat_inbox_v3(p_search=>(select username from public.profiles where id='"+target+"')) where peer_id='"+target+"'));rollback;")
+          result=sql(prefix+"select jsonb_build_object('inbox_found',exists(select 1 from public.chat_inbox_v3(p_search=>"+literal+") where peer_id='"+target+"'));rollback;")
           print('ACTUAL_USERNAME_INBOX',result.splitlines()[-2:] if result else None)
           print('No committed writes or messages.')
           PY
