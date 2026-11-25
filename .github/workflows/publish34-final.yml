@@ -50,8 +50,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd "$RUNNER_TEMP/final34/verification/final"
-          gh release create web-270034 bundle.zip stable.json --target "$GITHUB_SHA" --latest=false --title 'GYMAK web 270034 for native 27' --notes 'Signed web-layer update for Android build 27.'
-          gh release create apk-27 GYMAK.apk --target "$GITHUB_SHA" --latest --title 'GYMAK 27' --notes 'Install over the existing app without uninstalling. Keeps existing data. Improves startup updates, nutrition planning, chat search, profiles and verified professional suggestions.'
+          gh release create web-270034 -R figo231/GYMAK bundle.zip stable.json --target "$GITHUB_SHA" --latest=false --title 'GYMAK web 270034 for native 27' --notes 'Signed web-layer update for Android build 27.'
+          gh release create apk-27 -R figo231/GYMAK GYMAK.apk --target "$GITHUB_SHA" --latest --title 'GYMAK 27' --notes 'Install over the existing app without uninstalling. Keeps existing data. Improves startup updates, nutrition planning, chat search, profiles and verified professional suggestions.'
           gh release download web-270034 -R figo231/GYMAK -D "$RUNNER_TEMP/published34"
           gh release download apk-27 -R figo231/GYMAK -D "$RUNNER_TEMP/published34"
           cmp bundle.zip "$RUNNER_TEMP/published34/bundle.zip"
