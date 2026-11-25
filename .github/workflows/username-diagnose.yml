@@ -33,11 +33,18 @@ jobs:
            'lookup_not_optin':"select position('cp.discoverable' in pg_get_functiondef('public.chat_username_lookup(text)'::regprocedure))=0",
            'inbox_username_installed':"select position('p.username' in pg_get_functiondef('public.chat_inbox_v3(uuid,timestamptz,uuid,text)'::regprocedure))>0"
           }.items():print(label,sql(q))
-          for handle in ['coach_jabal','@coach_jabal','COACH_JABAL']:
-           print('HANDLE',handle)
-           prefix="begin;set local role authenticated;select set_config('request.jwt.claim.sub','"+actor+"',true);"
-           q=prefix+"select jsonb_build_object('found',public.chat_username_lookup('"+handle+"') is not null);rollback;"
-           result=sql(q)
-           print('LOOKUP',result.splitlines()[-2:] if result else None)
+          target="acea264a-dc53-493a-aaa9-6a233f9e5ce7"
+          for label,q in {
+           'known_target_profile':"select exists(select 1 from public.profiles where id='"+target+"')",
+           'known_target_username_set':"select coalesce(length(btrim(username))>=3,false) from public.profiles where id='"+target+"'",
+           'known_target_is_requested_handle':"select lower(username)='coach_jabal' from public.profiles where id='"+target+"'",
+           'known_target_terms':"select exists(select 1 from public.terms_acceptances where user_id='"+target+"' and version='2026-11-23-tou-v1')",
+           'known_target_chatconsent':"select exists(select 1 from public.chat_consents where user_id='"+target+"')"
+          }.items():print(label,sql(q))
+          prefix="begin;set local role authenticated;select set_config('request.jwt.claim.sub','"+actor+"',true);"
+          result=sql(prefix+"select jsonb_build_object('found',public.chat_username_lookup((select username from public.profiles where id='"+target+"')) is not null);rollback;")
+          print('ACTUAL_USERNAME_LOOKUP',result.splitlines()[-2:] if result else None)
+          result=sql(prefix+"select jsonb_build_object('inbox_found',exists(select 1 from public.chat_inbox_v3(p_search=>(select username from public.profiles where id='"+target+"')) where peer_id='"+target+"'));rollback;")
+          print('ACTUAL_USERNAME_INBOX',result.splitlines()[-2:] if result else None)
           print('No committed writes or messages.')
           PY
