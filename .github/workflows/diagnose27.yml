@@ -1,0 +1,40 @@
+name: Read-only additive27 failure diagnosis
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/diagnose27.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect encrypted failure and confirm production unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BACKUP_KEY: ${{ secrets.BACKUP_PASSPHRASE }}
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/diagnose"
+          gh run download 45554687787 -R figo231/GYMAK -n gymak-private-additive27-evidence -D "$RUNNER_TEMP/diagnose"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/diagnose/apply27-proof.enc" -out "$RUNNER_TEMP/diagnose/proof.tar.gz" -pass env:BACKUP_KEY
+          tar -xzf "$RUNNER_TEMP/diagnose/proof.tar.gz" -C "$RUNNER_TEMP/diagnose"
+          docker run --rm -i -e DB_URL -v "$RUNNER_TEMP/diagnose:/proof" postgres:17 bash -c 'apt-get update -qq >/proof/install.log 2>&1 && apt-get install -y -qq python3 >>/proof/install.log 2>&1 && python3 -' <<'PY'
+          import os,pathlib,subprocess as sp
+          from urllib.parse import quote
+          raw=os.environ['DB_URL'];authority=raw.split('://',1)[1];credentials,hostpart=authority.rsplit('@',1);username,password=credentials.split(':',1)
+          env=os.environ.copy();env['PGPASSWORD']=password;url=raw.split('://',1)[0]+'://'+quote(username,safe='')+'@'+hostpart
+          err=pathlib.Path('/proof/apply27/result.txt').read_text()
+          malformed=any(w in err.lower() for w in ['invalid percent','invalid uri','invalid connection option','could not translate host name'])
+          print('Prior failure is connection parsing/lookup:',malformed)
+          assert malformed,'Unexpected private failure category, stop'
+          q="select to_regclass('public.private_draft_revisions') is null and to_regprocedure('public.sync_mutable_row_v1(text,text,jsonb,jsonb,boolean)') is null and to_regclass('public.friend_preferences') is null and to_regclass('public.private_account_age') is null and not exists(select 1 from information_schema.columns where table_schema='public' and table_name='exercise_logs' and column_name in ('rir','client_logged_at'))"
+          r=sp.run(['psql',url,'-X','-v','ON_ERROR_STOP=1','-tAc',q],env=env,text=True,stdout=sp.PIPE,stderr=sp.PIPE)
+          assert r.returncode==0,'Read-only normalized connection failed'
+          assert r.stdout.strip()=='t','Production release objects present, stop'
+          print('Read-only PASS: normalized connection works; every release object/column absent. No transaction changes committed.')
+          PY
+          rm -rf "$RUNNER_TEMP/diagnose"
