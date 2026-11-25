@@ -1,0 +1,121 @@
+name: Verify and publish UI bugfix36
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/fix36-publish.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: gymak-production-fix36-publish
+  cancel-in-progress: false
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_PUSH_ENABLED: "true"
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load private source and verify exact payload
+        env:
+          TRANSPORT: ${{ secrets.GYMAK_FIX36_TRANSPORT }}
+        run: |
+          cat f36-transport.txt | tr -d '\n' | base64 -d > "$RUNNER_TEMP/source.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:TRANSPORT
+          echo 'c021268b3d1b4d6ca16f62825de74bd6a6a382d3720e97269a9cd5ebb152ee58  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
+          git fetch origin tag apk-26
+          git checkout --detach apk-26
+          git apply "$RUNNER_TEMP/candidate.patch"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --no-audit --no-fund > "$RUNNER_TEMP/install.log" 2>&1
+      - name: Set public verification key and test full app
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: |
+          node scripts/ota/write-native-trust.mjs
+          npx vitest run --maxWorkers=2 --minWorkers=2 > "$RUNNER_TEMP/tests.log" 2>&1
+          npm run build > "$RUNNER_TEMP/build.log" 2>&1
+      - name: Require successful native bugfix36 verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/figo231/GYMAK/actions/runs/45620065655 --jq '.conclusion' | grep -qx success
+      - name: Sign tested native27 web fix
+        env:
+          GYMAK_OTA_PRIVATE_KEY: ${{ secrets.GYMAK_OTA_PRIVATE_KEY }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/release36"
+          (cd dist && zip -qr "$RUNNER_TEMP/release36/exact.zip" .)
+          node scripts/ota/sign-bundle.mjs "$RUNNER_TEMP/release36/exact.zip" "$RUNNER_TEMP/release36" web-270036 27 sideload https://github.com/figo231/GYMAK/releases/download/web-270036/bundle.zip
+      - name: Publish signed OTA and compiled web only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create web-270036 -R figo231/GYMAK "$RUNNER_TEMP/release36/bundle.zip" "$RUNNER_TEMP/release36/stable.json" --target "$GITHUB_SHA" --latest=false --title 'GYMAK UI bug fixes' --notes 'Readable light-theme forms, separate male and female training catalogs with owner access, contained chat avatars, clear import previews and safer confirmation signup.'
+          git restore --worktree --staged .
+          git fetch origin web-production
+          git checkout -B fix36-publish origin/web-production
+          rm -rf served27
+          mkdir -p served27
+          unzip -q "$RUNNER_TEMP/release36/exact.zip" -d served27
+          rm -rf served27/landing served27/landing.html served27/ota served27/download
+          cp "$RUNNER_TEMP/release36/stable.json" public/ota/stable.json
+          git config user.name 'figo231'
+          git config user.email '89879739+figo231@users.noreply.github.com'
+          git add served27 public/ota/stable.json
+          git commit -m 'Fix form contrast, gender catalogs, avatars and signup feedback'
+          git push origin HEAD:web-production
+      - name: Verify deployed exact entry and OTA manifest, unchanged APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          unzip -p "$RUNNER_TEMP/release36/exact.zip" index.html > "$RUNNER_TEMP/expected-index.html"
+          for n in $(seq 1 28); do
+            curl -fsSL https://gymak-eight.vercel.app/ -o "$RUNNER_TEMP/live-index.html"
+            if cmp -s "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/expected-index.html"; then break; fi
+            sleep 15
+          done
+          cmp "$RUNNER_TEMP/live-index.html" "$RUNNER_TEMP/expected-index.html"
+          curl -fsSL https://gymak-eight.vercel.app/ota/stable.json -o "$RUNNER_TEMP/live-stable.json"
+          cmp "$RUNNER_TEMP/live-stable.json" "$RUNNER_TEMP/release36/stable.json"
+          curl -fsSL https://gymak-eight.vercel.app/download/GYMAK.apk -o "$RUNNER_TEMP/live.apk"
+          echo '1d4679046fdaf9e95a4f8f6b7801a6aa3e0e455e8eb3687f9e16409eac530bd6  '"$RUNNER_TEMP/live.apk" | sha256sum -c -
+          gh release download web-270036 -R figo231/GYMAK -D "$RUNNER_TEMP/published36"
+          cmp "$RUNNER_TEMP/published36/bundle.zip" "$RUNNER_TEMP/release36/bundle.zip"
+          echo 'LIVE UI bug fixes web and native27 signed bundle verified; APK unchanged.'
+      - name: Encrypt private rollback and sweep evidence
+        if: always()
+        env:
+          TRANSPORT: ${{ secrets.GYMAK_FIX36_TRANSPORT }}
+          BACKUP_KEY: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/evidence36"
+          cp -r "$RUNNER_TEMP/db-proof" "$RUNNER_TEMP/sweep" "$RUNNER_TEMP/release36" "$RUNNER_TEMP/evidence36/" 2>/dev/null || true
+          cp "$RUNNER_TEMP/"*.log "$RUNNER_TEMP/sweep-run.txt" "$RUNNER_TEMP/evidence36/" 2>/dev/null || true
+          tar -czf "$RUNNER_TEMP/evidence36.tar.gz" -C "$RUNNER_TEMP" evidence36
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/evidence36.tar.gz" -out "$RUNNER_TEMP/evidence36.enc" -pass env:TRANSPORT
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/evidence36.tar.gz" -out "$RUNNER_TEMP/rollback36.enc" -pass env:BACKUP_KEY
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/rollback36.enc" -out "$RUNNER_TEMP/verified36.tar.gz" -pass env:BACKUP_KEY
+          cmp "$RUNNER_TEMP/verified36.tar.gz" "$RUNNER_TEMP/evidence36.tar.gz"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fix36-publish-private-evidence
+          path: ${{ runner.temp }}/evidence36.enc
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fix36-publish-private-rollback
+          path: ${{ runner.temp }}/rollback36.enc
+          retention-days: 30
