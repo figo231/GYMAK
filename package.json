@@ -1,12 +1,12 @@
 {
   "name": "gymak",
-  "description": "GYMAK \u2014 gym workout, weight, and nutrition tracker",
+  "description": "GYMAK — gym workout, weight, and nutrition tracker",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/use-verified27.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "prebuild": "node scripts/prepare-web-apk.mjs"

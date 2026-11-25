@@ -1,0 +1,1 @@
+import{cp,mkdir}from'node:fs/promises';await mkdir('dist',{recursive:true});await cp('public','dist',{recursive:true});await cp('served27','dist',{recursive:true});console.log('Copied exact tested compiled27 bytes; APK/OTA/welcome preserved from public');
