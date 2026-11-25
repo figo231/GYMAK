@@ -1,0 +1,18 @@
+name: Clean completed storage38 publish workflows
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/storage38-clean.yml]
+permissions:
+  contents: write
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name figo231
+          git config user.email 89879739+figo231@users.noreply.github.com
+          git rm .github/workflows/storage38-publish.yml .github/workflows/storage38-clean.yml
+          git commit -m 'Remove completed one-shot storage38 publication workflows'
+          git push origin HEAD:stage/apk25-private
