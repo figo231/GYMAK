@@ -1,0 +1,176 @@
+name: GYMAK bugnative28 native verification
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/native28b-verify.yml, native28b-transport.txt]
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_SUPABASE_URL: https://fixture.invalid
+      VITE_SUPABASE_ANON_KEY: fixture-key
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt private preparation source
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_NATIVE28_VERIFY_TRANSPORT }}
+        run: |
+          cat native28b-transport.txt | tr -d '\n' | base64 -d > "$RUNNER_TEMP/source.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
+          echo '013bcba0bc53cc9d5e072a4fc03b27f0406f331feea60e9c5c1eec6047325c7a  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
+          git fetch origin tag apk-26
+          git checkout --detach apk-26
+          git apply "$RUNNER_TEMP/release36.patch"
+          git apply "$RUNNER_TEMP/avatar37.patch"
+          git apply "$RUNNER_TEMP/storage38.patch"
+          cp "$RUNNER_TEMP/FinalCandidateTest.java" android/app/src/androidTest/java/com/gymak/app/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Write Firebase configuration
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "VITE_PUSH_ENABLED=false" >> "$GITHUB_ENV"
+          else
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "VITE_PUSH_ENABLED=true" >> "$GITHUB_ENV"
+          fi
+      - name: Restore existing signing identity
+        env:
+          KS_B64: ${{ secrets.GYMAK_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "Missing signing key" >&2; exit 1; fi
+          printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/gymak.jks"
+          echo "GYMAK_KEYSTORE_PATH=$RUNNER_TEMP/gymak.jks" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=28" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.28" >> "$GITHUB_ENV"
+      - run: npm install --no-audit --no-fund > "$RUNNER_TEMP/install.log" 2>&1
+      - name: Apply OTA public trust anchor
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: node scripts/ota/write-native-trust.mjs > "$RUNNER_TEMP/trust.log" 2>&1
+      - name: Test and build bundled app
+        env:
+          PRODUCTION_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          PRODUCTION_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$PRODUCTION_SUPABASE_URL"
+          test -n "$PRODUCTION_SUPABASE_ANON_KEY"
+          VITE_REVIEW_BACKEND_GATED=false npx vitest run --maxWorkers=2 --minWorkers=2 > "$RUNNER_TEMP/tests.log" 2>&1
+          VITE_SUPABASE_URL="$PRODUCTION_SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$PRODUCTION_SUPABASE_ANON_KEY" npm run build > "$RUNNER_TEMP/build.log" 2>&1
+          npx cap sync android > "$RUNNER_TEMP/cap.log" 2>&1
+          mkdir -p "$RUNNER_TEMP/exact28"
+          cp -r dist "$RUNNER_TEMP/exact28/"
+          # Test-only entry imports actual production components, never included in delivered APK.
+          cp "$RUNNER_TEMP/native-avatar-fixture.jsx" native-avatar-fixture.jsx
+          cp "$RUNNER_TEMP/AvatarFullPhotoTest.java" android/app/src/androidTest/java/com/gymak/app/
+          printf '\nimport "../native-avatar-fixture.jsx";\n' >> src/main.jsx
+          npm run build > "$RUNNER_TEMP/fixture-build.log" 2>&1
+          npx cap sync android >> "$RUNNER_TEMP/cap.log" 2>&1
+      - name: Build APK and upgrade tests
+        working-directory: android
+        env:
+          GYMAK_KEYSTORE_PASSWORD: ${{ secrets.GYMAK_KEYSTORE_PASSWORD }}
+        run: bash ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest > "$RUNNER_TEMP/gradle-build.log" 2>&1
+      - name: Release build-daemon memory before emulator
+        working-directory: android
+        run: bash ./gradlew --stop
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify current APK27 upgrade and native reminders
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        env:
+          GYMAK_KEYSTORE_PASSWORD: ${{ secrets.GYMAK_KEYSTORE_PASSWORD }}
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -memory 2048 -cores 2 -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -dns-server 8.8.8.8,8.8.4.4
+          disable-animations: true
+          script: |
+            mkdir -p verification
+            adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
+            adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell cmd connectivity airplane-mode enable
+            adb shell svc wifi disable
+            adb shell svc data disable
+            adb shell pm grant com.gymak.app android.permission.POST_NOTIFICATIONS
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#freshOfflineInstall,com.gymak.app.FinalCandidateTest,com.gymak.app.Apk27ReminderTest,com.gymak.app.OtaCryptoTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/final-native.txt 2>&1
+            cat verification/final-native.txt
+            grep -q 'OK (' verification/final-native.txt
+            adb shell am instrument -w -e class com.gymak.app.AvatarFullPhotoTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/avatar-storage.txt
+            cat verification/avatar-storage.txt
+            grep -q 'OK (2 tests)' verification/avatar-storage.txt
+            adb pull /sdcard/Android/data/com.gymak.app/files/ verification/screens
+            adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest#encryptedDownloadUnzipRejectsCorruptionAndPreservesData com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/ota-transport.txt
+            grep -q 'OK (1 test)' verification/ota-transport.txt
+            adb shell am force-stop com.gymak.app
+            adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest#activatesPipelineOnNextColdStart com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/ota-activation.txt
+            grep -q 'OK (1 test)' verification/ota-activation.txt
+            adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest#switchesGoodBundleAndRollsBackUnreadyBundleWithoutDataLoss com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/ota-rollback.txt
+            grep -q 'OK (1 test)' verification/ota-rollback.txt
+            cp android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fixture-only.apk"
+            rm -rf dist
+            cp -r "$RUNNER_TEMP/exact28/dist" dist
+            npx cap sync android >> "$RUNNER_TEMP/cap.log" 2>&1
+            (cd android && bash ./gradlew :app:assembleDebug > "$RUNNER_TEMP/exact-gradle.log" 2>&1)
+            curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-27/GYMAK.apk -o /tmp/apk27.apk
+            adb uninstall com.gymak.app.test
+            adb uninstall com.gymak.app
+            echo '1d4679046fdaf9e95a4f8f6b7801a6aa3e0e455e8eb3687f9e16409eac530bd6  /tmp/apk27.apk' | sha256sum -c -
+            adb install -r -g /tmp/apk27.apk
+            adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest#encryptedDownloadUnzipRejectsCorruptionAndPreservesData com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/apk26-ota-transport.txt
+            grep -q 'OK (1 test)' verification/apk26-ota-transport.txt
+            adb shell am force-stop com.gymak.app
+            adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest#activatesPipelineOnNextColdStart com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/apk26-ota-activation.txt
+            grep -q 'OK (1 test)' verification/apk26-ota-activation.txt
+            adb shell pm clear com.gymak.app # isolated emulator fixture only
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#seedLegacyData com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/seed26.txt
+            grep -q 'OK (1 test)' verification/seed26.txt
+            adb shell am force-stop com.gymak.app
+            adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#keepsDataAndRunsOffline com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/upgrade26.txt
+            grep -q 'OK (1 test)' verification/upgrade26.txt
+            adb pull /sdcard/Android/data/com.gymak.app/files/ verification/upgrade-screens
+            unzip -p android/app/build/outputs/apk/debug/app-debug.apk assets/public/index.html > verification/exact-index.html
+            cmp dist/index.html verification/exact-index.html
+            ! unzip -p android/app/build/outputs/apk/debug/app-debug.apk 'assets/public/assets/*.js' | grep -q __avatarVerificationReady
+            adb shell dumpsys package com.gymak.app | grep versionCode > verification/version.txt
+            grep 'versionCode=28' verification/version.txt
+            cp android/app/build/outputs/apk/debug/app-debug.apk verification/GYMAK-28-verification.apk
+            sha256sum verification/GYMAK-28-verification.apk > verification/apk.sha256
+      - name: Encrypt verification evidence
+        if: always()
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_NATIVE28_VERIFY_TRANSPORT }}
+        run: |
+          mkdir -p verification
+          cp "$RUNNER_TEMP/"*.log verification/ 2>/dev/null || true
+          tar -czf "$RUNNER_TEMP/evidence.tar.gz" verification
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/evidence.tar.gz" -out "$RUNNER_TEMP/native28-evidence.enc" -pass env:SOURCE_KEY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native28-encrypted-verification
+          path: ${{ runner.temp }}/native28-evidence.enc
+          retention-days: 2
