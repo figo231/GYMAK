@@ -1,0 +1,186 @@
+name: Encrypted APK27 verification only
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/exact-canary.yml, canary-delta.txt]
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt private preparation source
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_APK27_SOURCE_KEY }}
+        run: |
+          base64 -d canary-delta.txt > "$RUNNER_TEMP/source.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
+          echo 'd593e17e0c2048bfec77c88a012928a00ef96fb1d13096c91f4a5b582970c895  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
+          git fetch origin tag apk-26
+          git checkout --detach apk-26
+          git apply "$RUNNER_TEMP/candidate.patch"
+          cp "$RUNNER_TEMP/"*Test.java android/app/src/androidTest/java/com/gymak/app/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Write Firebase configuration
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "VITE_PUSH_ENABLED=false" >> "$GITHUB_ENV"
+          else
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "VITE_PUSH_ENABLED=true" >> "$GITHUB_ENV"
+          fi
+      - name: Restore existing signing identity
+        env:
+          KS_B64: ${{ secrets.GYMAK_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "Missing signing key" >&2; exit 1; fi
+          printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/gymak.jks"
+          echo "GYMAK_KEYSTORE_PATH=$RUNNER_TEMP/gymak.jks" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=27" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.27-verification" >> "$GITHUB_ENV"
+      - run: npm install --no-audit --no-fund > "$RUNNER_TEMP/install.log" 2>&1
+      - name: Apply OTA public trust anchor
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: node scripts/ota/write-native-trust.mjs > "$RUNNER_TEMP/trust.log" 2>&1
+      - name: Test and build bundled app
+        run: |
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_ANON_KEY"
+          VITE_REVIEW_BACKEND_GATED=false npm test > "$RUNNER_TEMP/tests.log" 2>&1
+          npm run build > "$RUNNER_TEMP/build.log" 2>&1
+          npx cap sync android > "$RUNNER_TEMP/cap.log" 2>&1
+      - name: Sign exact candidate privately for native26
+        env:
+          GYMAK_OTA_PRIVATE_KEY: ${{ secrets.GYMAK_OTA_PRIVATE_KEY }}
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/exact" android/app/src/androidTest/assets
+          (cd dist && zip -qr "$RUNNER_TEMP/exact.zip" .)
+          sha256sum "$RUNNER_TEMP/exact.zip" > "$RUNNER_TEMP/exact/hash.txt"
+          node scripts/ota/sign-bundle.mjs "$RUNNER_TEMP/exact.zip" "$RUNNER_TEMP/exact" web-270001 26 sideload https://github.com/figo231/GYMAK/releases/download/web-270001/bundle.zip
+          cp "$RUNNER_TEMP/exact/bundle.zip" android/app/src/androidTest/assets/exact-bundle.zip
+          cp "$RUNNER_TEMP/exact/stable.json" android/app/src/androidTest/assets/exact-stable.json
+          node --input-type=module -e 'import {OTA_MANIFEST_PUBLIC_KEY as k} from "./src/lib/update/otaTrust.js";import fs from "node:fs";fs.writeFileSync("android/app/src/androidTest/assets/exact-public.pem",k);' 
+          node -e 'const f=require("fs"),s=f.readFileSync("dist/index.html","utf8");f.writeFileSync("android/app/src/androidTest/assets/exact-entry.txt",s.match(/src="([^"]+\.js)"/)[1]);'
+      - name: Build APK and upgrade tests
+        working-directory: android
+        env:
+          GYMAK_KEYSTORE_PASSWORD: ${{ secrets.GYMAK_KEYSTORE_PASSWORD }}
+        run: bash ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest > "$RUNNER_TEMP/gradle-build.log" 2>&1
+      - name: Release build-daemon memory before emulator
+        working-directory: android
+        run: bash ./gradlew --stop
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify current APK26 upgrade and native reminders
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: Nexus One
+          emulator-options: -no-window -memory 2048 -cores 2 -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -dns-server 8.8.8.8,8.8.4.4
+          disable-animations: true
+          script: |
+            mkdir -p verification
+            curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-26/GYMAK.apk -o /tmp/apk26.apk
+            adb install -r -g /tmp/apk26.apk
+            adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell cmd connectivity airplane-mode enable
+            adb shell svc wifi disable
+            adb shell svc data disable
+            adb shell am instrument -w -e class com.gymak.app.ExactOtaCanaryTest#stageExactSignedBundleOnUnmodified26 com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/exact-stage.txt 2>&1
+            adb logcat -d > verification/stage-logcat.txt
+            grep -q 'OK (1 test)' verification/exact-stage.txt
+            adb shell am force-stop com.gymak.app
+            adb shell am instrument -w -e class com.gymak.app.ExactOtaCanaryTest#exactCandidateActivatedAndDataRetained com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/exact-activate.txt 2>&1
+            adb logcat -d > verification/activate-logcat.txt
+            grep -q 'OK (1 test)' verification/exact-activate.txt
+            adb shell am instrument -w -e class com.gymak.app.OtaRollbackTest#switchesGoodBundleAndRollsBackUnreadyBundleWithoutDataLoss com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/exact-rollback.txt 2>&1
+            grep -q 'OK (1 test)' verification/exact-rollback.txt
+            adb shell pm clear com.gymak.app
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#seedLegacyData com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/seed26.txt
+            grep -q 'OK (1 test)' verification/seed26.txt
+            adb shell am force-stop com.gymak.app
+            adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#keepsDataAndRunsOffline com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/upgrade26.txt
+            grep -q 'OK (1 test)' verification/upgrade26.txt
+            adb pull /sdcard/Android/data/com.gymak.app/files/ verification/upgrade-screens
+      - name: Encrypt verification evidence
+        if: always()
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_APK27_SOURCE_KEY }}
+        run: |
+          mkdir -p verification
+          cp "$RUNNER_TEMP/"*.log verification/ 2>/dev/null || true
+          cp "$RUNNER_TEMP/exact.zip" verification/ 2>/dev/null || true
+          cp -r "$RUNNER_TEMP/exact" verification/ 2>/dev/null || true
+          tar -czf "$RUNNER_TEMP/evidence.tar.gz" verification
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/evidence.tar.gz" -out "$RUNNER_TEMP/apk27-evidence.enc" -pass env:SOURCE_KEY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apk27-encrypted-verification
+          path: ${{ runner.temp }}/apk27-evidence.enc
+          retention-days: 2
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      restore:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: restoretest
+        ports: ['5433:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt private verification helper
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_APK27_SOURCE_KEY }}
+        run: |
+          base64 -d canary-delta.txt > "$RUNNER_TEMP/source.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
+      - name: Strict read-only source backup and isolated restore
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/db-proof"
+          docker run --rm --network host -e DB_URL -e RUNNER_TEMP -v "$RUNNER_TEMP:$RUNNER_TEMP" postgres:17 bash -c 'apt-get update && apt-get install -y python3 && python3 "$RUNNER_TEMP/backup-verify.py"' > "$RUNNER_TEMP/db-proof/result.txt" 2>&1
+      - name: Encrypt all private backup evidence
+        if: always()
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_APK27_SOURCE_KEY }}
+        run: |
+          tar -czf "$RUNNER_TEMP/db-proof.tar.gz" -C "$RUNNER_TEMP" db-proof
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/db-proof.tar.gz" -out "$RUNNER_TEMP/db-proof.enc" -pass env:SOURCE_KEY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: encrypted-private-db-proof
+          path: ${{ runner.temp }}/db-proof.enc
+          retention-days: 2
