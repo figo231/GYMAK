@@ -1,0 +1,19 @@
+name: Clean temporary fix35 transport
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/cleanup35.yml]
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove one-shot encrypted transport from staging HEAD
+        run: |
+          git rm --ignore-unmatch f35-0.txt f35-1.txt f35-2.txt f35-3.txt f35-4.txt .github/workflows/fix35.yml .github/workflows/username-diagnose.yml .github/workflows/cleanup35.yml
+          git config user.name 'figo231'
+          git config user.email '89879739+figo231@users.noreply.github.com'
+          git diff --cached --quiet || git commit -m 'Remove one-shot fix35 source transport'
+          git push origin HEAD:stage/apk25-private
