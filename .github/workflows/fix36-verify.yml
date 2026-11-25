@@ -23,7 +23,7 @@ jobs:
         run: |
           base64 -d f36-transport.txt > "$RUNNER_TEMP/source.enc"
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
-          echo '313bf5107d2d47a28ca92b3c2f0fd3abe27086c543d265ff5d625dd50d138282  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
+          echo 'c021268b3d1b4d6ca16f62825de74bd6a6a382d3720e97269a9cd5ebb152ee58  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
           git fetch origin tag apk-26
           git checkout --detach apk-26
