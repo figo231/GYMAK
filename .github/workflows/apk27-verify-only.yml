@@ -24,9 +24,14 @@ jobs:
           cat apk27-source-00.txt apk27-source-01.txt apk27-source-02.txt apk27-source-03.txt apk27-source-04.txt apk27-source-05.txt apk27-source-06.txt apk27-source-07.txt | base64 -d > "$RUNNER_TEMP/source.enc"
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
           echo '1f58964e71ae22ab25a2a74f49e96a5921b2fdf3df1f71c232352c60c17665b6  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
+          cat apk27-fix-00.txt apk27-fix-01.txt | base64 -d > "$RUNNER_TEMP/patch.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/patch.enc" -out "$RUNNER_TEMP/patch.tar.gz" -pass env:SOURCE_KEY
+          echo '26ddef437a253960c86960a66da861a85e62a740eabfc832498c2ac765f8b51c  '"$RUNNER_TEMP/patch.tar.gz" | sha256sum -c -
           git fetch origin release/apk26-candidate
           git checkout --detach eeb8dcf9d190546fca95c49a2a3e0a33f3b64f09
           tar -xzf "$RUNNER_TEMP/source.tar.gz"
+          tar -xzf "$RUNNER_TEMP/patch.tar.gz"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
