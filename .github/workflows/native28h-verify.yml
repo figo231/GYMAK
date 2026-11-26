@@ -1,0 +1,109 @@
+name: GYMAK isolated OTA storage diagnosis only
+on:
+  push:
+    branches: [stage/apk25-private]
+    paths: [.github/workflows/native28h-verify.yml, native28h-transport.txt]
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_SUPABASE_URL: https://fixture.invalid
+      VITE_SUPABASE_ANON_KEY: fixture-key
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt private preparation source
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_NATIVE28H_VERIFY_TRANSPORT }}
+        run: |
+          cat native28h-transport.txt | tr -d '\n' | base64 -d > "$RUNNER_TEMP/source.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.gz" -pass env:SOURCE_KEY
+          echo 'f7b2db2deabb34c8cc7b56a722edf8bd843d0f911b921c82d95bbd6b5276166d  '"$RUNNER_TEMP/source.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP"
+          git fetch origin tag apk-26
+          git checkout --detach apk-26
+          git apply "$RUNNER_TEMP/release36.patch"
+          git apply "$RUNNER_TEMP/avatar37.patch"
+          git apply "$RUNNER_TEMP/storage38.patch"
+          git apply "$RUNNER_TEMP/food-readiness-fix.patch"
+          git apply "$RUNNER_TEMP/applock-test-only.patch"
+          cp "$RUNNER_TEMP/ota-food-readiness.test.js" tests/
+          chmod +x "$RUNNER_TEMP/"*.sh
+          cp "$RUNNER_TEMP/OtaStorageDiagnosticTest.java" android/app/src/androidTest/java/com/gymak/app/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Isolated diagnostic settings only
+        run: |
+          echo "VITE_PUSH_ENABLED=false" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=28" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.28" >> "$GITHUB_ENV"
+      - run: npm install --no-audit --no-fund > "$RUNNER_TEMP/install.log" 2>&1
+      - name: Apply OTA public trust anchor
+        env:
+          GYMAK_OTA_PUBLIC_KEY: ${{ vars.GYMAK_OTA_PUBLIC_KEY }}
+        run: node scripts/ota/write-native-trust.mjs > "$RUNNER_TEMP/trust.log" 2>&1
+      - name: Test806and build isolated fixture
+        run: |
+          npx vitest run --maxWorkers=2 --minWorkers=2 > "$RUNNER_TEMP/tests.log" 2>&1
+          npm run build > "$RUNNER_TEMP/build.log" 2>&1
+          npx cap sync android > "$RUNNER_TEMP/cap.log" 2>&1
+      - name: Build diagnostic APK and tests
+        working-directory: android
+        run: bash ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest > "$RUNNER_TEMP/gradle-build.log" 2>&1
+      - name: Release build-daemon memory before emulator
+        working-directory: android
+        run: bash ./gradlew --stop
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Diagnose normal lifecycle close
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -memory 2048 -cores 2 -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -dns-server 8.8.8.8,8.8.4.4
+          disable-animations: true
+          script: bash "$RUNNER_TEMP/diagnostic-storage.sh" normal
+      - name: Diagnose real foregroundSIGKILL isolated
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        with:
+          force-avd-creation: true
+          avd-name: isolated-abrupt-diagnostic
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -wipe-data -no-window -memory 2048 -cores 2 -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -dns-server 8.8.8.8,8.8.4.4
+          disable-animations: true
+          script: bash "$RUNNER_TEMP/diagnostic-storage.sh" abrupt
+      - name: Encrypt verification evidence
+        if: always()
+        env:
+          SOURCE_KEY: ${{ secrets.GYMAK_NATIVE28H_VERIFY_TRANSPORT }}
+        run: |
+          mkdir -p verification
+          cp "$RUNNER_TEMP/"*.log verification/ 2>/dev/null || true
+          tar -czf "$RUNNER_TEMP/evidence.tar.gz" verification
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/evidence.tar.gz" -out "$RUNNER_TEMP/native28-evidence.enc" -pass env:SOURCE_KEY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native28-encrypted-verification
+          path: ${{ runner.temp }}/native28-evidence.enc
+          retention-days: 2
