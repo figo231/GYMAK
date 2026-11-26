@@ -97,6 +97,7 @@
   "git": {
     "deploymentEnabled": {
       "candidate/apk25-private": false,
+      "release/apk28-candidate-ci": false,
       "stage/apk25-private": false
     }
   }
