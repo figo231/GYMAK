@@ -1,3 +1,4 @@
+import {validSavedState} from "./savedStateShape";
 import { tx } from "./i18n/tx";
 // Local automatic backups of the app data. Snapshots live in IndexedDB (own database, separate from photos).
 // Pure helpers are exported for tests; the IndexedDB parts are small and guarded.
@@ -23,7 +24,7 @@ export function validateBackup(text) {
   let s;
   try { s = JSON.parse(text); } catch { return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") }; }
   if (!s || typeof s !== "object" || Array.isArray(s)) return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") };
-  if (!s.profile || typeof s.profile !== "object" || !Array.isArray(s.weightLogs) || typeof s.exerciseLogs !== "object" || !Array.isArray(s.workoutDays)) return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") };
+  if (!validSavedState(s,{requireCore:true})) return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") };
   return { ok: true, summary: summarize(text) };
 }
 export function shouldSnapshot(lastTs, now = Date.now()) { return !lastTs || now - lastTs >= MIN_GAP_MS; }
@@ -32,6 +33,8 @@ export function prune(list, keep = KEEP) {
   const auto = list.filter((x) => x.kind === "auto").sort((a, b) => b.ts - a.ts).slice(0, keep);
   return [...manual.sort((a, b) => b.ts - a.ts).slice(0, keep), ...auto].sort((a, b) => b.ts - a.ts);
 }
+
+const committed=tx=>new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error("backup_write_failed"));tx.onabort=()=>reject(tx.error||Error("backup_write_aborted"));});
 
 function open() {
   return new Promise((res, rej) => {
@@ -59,12 +62,12 @@ export async function createSnapshot(kind = "auto") {
   try {
     const db = await open();
     const snap = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, ts: Date.now(), kind, text, summary: sum };
-    await wrap(db.transaction(STORE, "readwrite").objectStore(STORE).put(snap));
+    const write=db.transaction(STORE,"readwrite"),done=committed(write);write.objectStore(STORE).put(snap);await done;
     const all = await wrap(db.transaction(STORE).objectStore(STORE).getAll());
     const keepIds = new Set(prune(all).map((x) => x.id));
     const tx = db.transaction(STORE, "readwrite");
     all.filter((x) => !keepIds.has(x.id)).forEach((x) => tx.objectStore(STORE).delete(x.id));
-    await new Promise((r) => { tx.oncomplete = r; tx.onerror = r; });
+    await committed(tx);
     db.close();
     return snap;
   } catch { return null; }
@@ -79,8 +82,10 @@ export async function autoSnapshotIfDue() {
 export async function restoreText(text) {
   const v = validateBackup(text);
   if (!v.ok) return v;
-  await createSnapshot("manual");
-  localStorage.setItem(STATE_KEY, text);
+  const current=localStorage.getItem(STATE_KEY);
+  if(current&&isMeaningful(summarize(current))&&!await createSnapshot("manual"))return {ok:false,error:tx("معرفناش نحفظ نسخة من بياناتك الحالية. الاسترجاع اتوقف من غير تغيير.")};
+  try { localStorage.setItem(STATE_KEY, text); }
+  catch {return {ok:false,error:tx("الاسترجاع متحفظش. النسخة الحالية متغيرتش.")};}
   return { ok: true };
 }
 export function downloadCurrent() {

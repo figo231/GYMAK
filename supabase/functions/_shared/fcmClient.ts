@@ -1,3 +1,5 @@
+import {getServiceClient} from "./verifyAdmin.ts";
+import {pushAllowed,queuedBroadcastAllowed} from "./pushEligibility.ts";
 // supabase/functions/_shared/fcmClient.ts
 // FCM HTTP v1 client. Service account JSON lives ONLY in the
 // FIREBASE_SERVICE_ACCOUNT secret (set via `supabase secrets set`), read
@@ -74,6 +76,7 @@ async function getAccessToken(): Promise<string> {
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    signal:AbortSignal.timeout(10000),
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
       assertion,
@@ -98,6 +101,8 @@ export interface FcmMessagePayload {
   ttlSeconds?: number;
   collapseKey?: string;
   ownerUserId?: string;
+  category?: string;
+  queuedBroadcast?: boolean;
 }
 
 export type FcmResult =
@@ -132,12 +137,16 @@ async function send(target: { token: string } | { topic: string }, payload: FcmM
   const accessToken = await getAccessToken();
   const url = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`;
 
+  if ('token' in target && !await pushAllowed(getServiceClient(),target.token,payload.category||"announcement"))return {ok:false,errorCode:"PREFERENCE_DISABLED",retryable:false};
+  if(payload.queuedBroadcast && !await queuedBroadcastAllowed(getServiceClient(),payload.notificationId))return {ok:false,errorCode:"NOTIFICATION_CANCELED",retryable:false};
+
   const res = await fetch(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json; charset=UTF-8",
     },
+    signal:AbortSignal.timeout(10000),
     body: JSON.stringify(buildMessageBody(target, payload)),
   });
 
@@ -155,10 +164,28 @@ async function send(target: { token: string } | { topic: string }, payload: FcmM
   return { ok: false, errorCode, retryable };
 }
 
-export function sendToDeviceToken(token: string, payload: FcmMessagePayload): Promise<FcmResult> {
+export async function sendToDeviceToken(token: string, payload: FcmMessagePayload): Promise<FcmResult> {
+  if(!await pushAllowed(getServiceClient(),token,payload.category||"announcement"))return {ok:false,errorCode:"PREFERENCE_DISABLED",retryable:false};
   return send({ token }, payload);
 }
 
 export function sendToTopic(topic: string, payload: FcmMessagePayload): Promise<FcmResult> {
-  return send({ topic }, payload);
+  // Topics cannot enforce per-account opt-outs. Route the built-in broadcast
+  // through active owned tokens and recheck preferences at each provider call.
+  // Custom topic membership has no authenticated per-account source yet.
+  if(topic!=="all_users")return Promise.resolve({ok:false,errorCode:"TOPIC_PREFERENCES_UNSUPPORTED",retryable:false});
+  return broadcastToAccounts(payload);
+}
+
+async function broadcastToAccounts(payload:FcmMessagePayload):Promise<FcmResult>{
+ const db=getServiceClient();let cursor:string|null=null,accepted=0;
+ while(true){
+  let query=db.from('push_tokens').select('id,token').eq('is_active',true).order('id').limit(500);
+  if(cursor)query=query.gt('id',cursor);
+  const {data,error}=await query;if(error)throw Error('broadcast_device_read_failed');
+  for(const row of data||[]){const result=await sendToDeviceToken(row.token,{...payload,category:payload.category||'announcement'});if(result.ok)accepted++;else if(result.errorCode!=='PREFERENCE_DISABLED')throw Error('broadcast_partially_accepted_do_not_retry');}
+  if(!data||data.length<500)break;
+  cursor=data.at(-1)!.id;
+ }
+ return {ok:true,messageId:`accepted:${accepted}`};
 }

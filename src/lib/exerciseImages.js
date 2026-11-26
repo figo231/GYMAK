@@ -140,7 +140,7 @@ const IMAGE_IDS = {
 
 import { remoteExerciseFrames } from "./content/remoteContent";
 const EXPANSION_IMAGE_IDS = new Set([...GYM_EXPANSION_MORE.map(e => e.id),"pallof-press","single-arm-landmine-press","incline-treadmill-walk","upright-stationary-bike","elliptical-cross-trainer","rowing-ergometer"]);
-export function getExerciseFrames(id) {
+function resolveExerciseFrames(id) {
   // Rejected/incomplete poses must not be shown as form examples.
   if (["single-arm-cable-chest-press", "barbell-front-squat"].includes(id)) return null;
   if (EXPANSION_IMAGE_IDS.has(id)) return [`/exercises/${id}/0.webp`, `/exercises/${id}/1.webp`];
@@ -160,3 +160,6 @@ export function getExerciseEnglish(id) {
   const k = IMAGE_IDS[id];
   return k ? k.replace(/_/g, " ").replace(/-/g, " ") : "";
 }
+
+// Revisioned local URLs cannot reuse historical same-path gym photos.
+export function getExerciseFrames(id){return resolveExerciseFrames(id)?.map(url=>url.startsWith('/')?url+'?art=studio-v2':url)||null;}

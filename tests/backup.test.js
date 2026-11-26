@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { summarize, isMeaningful, validateBackup, shouldSnapshot, prune, MIN_GAP_MS } from "../src/lib/backup";
-const good = JSON.stringify({ profile: {}, weightLogs: [{}, {}], exerciseLogs: {}, workoutDays: ["2026-11-01"], foodLog: [{}] });
+const good = JSON.stringify({ profile: {}, weightLogs: [{}, {}], exerciseLogs: {}, workoutDays: ["2026-11-01"], foodLog: [{items: []}] });
 describe("backup", () => {
   it("summarizes and flags empty state", () => {
     expect(summarize(good)).toEqual({ workoutDays: 1, weights: 2, foodDays: 1 });

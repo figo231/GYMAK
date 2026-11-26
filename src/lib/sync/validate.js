@@ -13,8 +13,8 @@ function isPositiveInt(n) {
 }
 function isValidDate(d) {
   if (typeof d !== "string" || !DATE_RE.test(d)) return false;
-  const t = new Date(d + "T00:00:00").getTime();
-  return Number.isFinite(t);
+  const parsed=new Date(d + "T00:00:00Z");
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0,10)===d;
 }
 function isShortText(s, max = MAX_TEXT) {
   return typeof s === "string" && s.length <= max;
@@ -28,17 +28,19 @@ function isShortText(s, max = MAX_TEXT) {
  * logged-and-forgotten (see syncManager.js's `droppedInvalidCount`).
  */
 export function validateWeightLog(row) {
+  const bodyFat=row?.bodyFat ?? row?.body_fat;
   return isValidDate(row?.date) && isPositiveNumber(row?.weight) && row.weight < 1000 &&
-    (row.bodyFat == null || (isFiniteNumber(row.bodyFat) && row.bodyFat >= 0 && row.bodyFat <= 100));
+    (bodyFat == null || (isFiniteNumber(bodyFat) && bodyFat >= 0 && bodyFat <= 100));
 }
 
 export function validateFoodLog(row) {
+  const kcal=row?.totalKcal ?? row?.total_kcal,protein=row?.totalProtein ?? row?.total_protein,carbs=row?.totalCarbs ?? row?.total_carbs,fat=row?.totalFat ?? row?.total_fat;
   return isValidDate(row?.date) &&
     Array.isArray(row?.items) && row.items.length <= 200 &&
-    isFiniteNumber(row.totalKcal) && row.totalKcal >= 0 && row.totalKcal < 100000 &&
-    isFiniteNumber(row.totalProtein) && row.totalProtein >= 0 &&
-    isFiniteNumber(row.totalCarbs) && row.totalCarbs >= 0 &&
-    isFiniteNumber(row.totalFat) && row.totalFat >= 0;
+    isFiniteNumber(kcal) && kcal >= 0 && kcal < 100000 &&
+    isFiniteNumber(protein) && protein >= 0 &&
+    isFiniteNumber(carbs) && carbs >= 0 &&
+    isFiniteNumber(fat) && fat >= 0;
 }
 
 export function validateExercise(row) {
@@ -53,7 +55,7 @@ export function validateExercise(row) {
 export function validateExerciseLog(row) {
   return isShortText(row?.exerciseId ?? row?.exercise_id, 200) &&
     isValidDate(row?.date) &&
-    isPositiveNumber(row?.weight) && row.weight < 2000 &&
+    isFiniteNumber(row?.weight) && row.weight >= 0 && row.weight < 2000 &&
     isPositiveInt(row?.sets) && row.sets <= 50 &&
     isPositiveInt(row?.reps) && row.reps <= 500;
 }

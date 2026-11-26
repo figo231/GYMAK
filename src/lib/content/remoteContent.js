@@ -8,8 +8,8 @@ const KEY = "gymak_remote_content_v1";
 function read() {
   try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; }
 }
-export function remoteExercises() { return read().exercises || []; }
-export function remoteFoods() { return read().foods || []; }
+export function remoteExercises() { const rows=read()?.exercises;return Array.isArray(rows)?rows.filter(r=>r&&typeof r.id==="string"&&r.data&&typeof r.data==="object"):[]; }
+export function remoteFoods() { const rows=read()?.foods;return Array.isArray(rows)?rows.filter(r=>r&&typeof r.id==="string"&&r.data&&typeof r.data==="object"):[]; }
 
 export async function refreshRemoteContent() {
   if (!supabase) return false;

@@ -1,0 +1,11 @@
+import {it,expect,beforeEach} from 'vitest';
+import {upgradeMealMonth,toggleMealDay} from '../src/lib/mealMonth';
+import {createMealPlanner,saveMealPlanner,loadMealPlanner} from '../src/lib/mealPlannerDraft';
+import {buildPlan} from '../src/lib/mealPlan';
+import {capturePrivateDrafts} from '../src/lib/sync/privateDraftSync';
+import {readDraftQueue} from '../src/lib/offlineDrafts';
+import Store from '../src/lib/store/gymakStore';
+const days=()=>buildPlan(2200,()=>({kcal:100,protein:5}));
+beforeEach(()=>{localStorage.clear();Store.invalidateCache();Store.resetAllData();localStorage.setItem('gymak_local_data_owner_v1','a');});
+it('extends explicitly to30days preserving first7edited days and archives original',()=>{const x=createMealPlanner(days(),2200);x.days[0].meals[0].items[0].grams=123;saveMealPlanner('a',x);const n=upgradeMealMonth('a',[...days(),...days(),...days(),...days()]);expect(n.days).toHaveLength(30);expect(n.id).toBe(x.id);expect(n.days.slice(0,7)).toEqual(x.days);expect(Object.keys(localStorage).filter(k=>k.startsWith('gymak_meal_before_month'))).toHaveLength(1);expect(loadMealPlanner('a')).toEqual(n);});
+it('toggles each day offline, persists reload, and captures all marks into private sync revision',()=>{saveMealPlanner('a',createMealPlanner(days(),2200));let x=upgradeMealMonth('a',[...days(),...days(),...days(),...days()]);for(let i=0;i<30;i++)x=toggleMealDay(x,i);saveMealPlanner('a',x);expect(Object.keys(loadMealPlanner('a').completedDays)).toHaveLength(30);capturePrivateDrafts('a');const row=readDraftQueue('a').find(r=>r.kind==='meal_plan');expect(row.payload.completedDays).toEqual(x.completedDays);x=toggleMealDay(x,29);expect(x.completedDays[29]).toBeUndefined();expect(()=>toggleMealDay(x,30)).toThrow();});

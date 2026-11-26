@@ -2,7 +2,6 @@
 import { verifyAdmin } from "../_shared/verifyAdmin.ts";
 import { writeAuditLog } from "../_shared/auditLog.ts";
 import { checkAndIncrementRateLimit } from "../_shared/rateLimit.ts";
-import { sendToTopic } from "../_shared/fcmClient.ts";
 
 const BATCH_INSERT_SIZE = 500;
 
@@ -46,6 +45,10 @@ async function handleRequest(req: Request): Promise<Response> {
     return new Response(JSON.stringify({ error: `Notification already ${notification.status}` }), { status: 409 });
   }
 
+  // Claim before any provider call. Two owner taps cannot send one draft twice.
+  const {data:claim,error:claimError}=await admin.serviceClient.from('notifications').update({status:'sending'}).eq('id',notification.id).in('status',['draft','scheduled']).select('id');
+  if(claimError)return Response.json({error:'claim_failed'},{status:500});
+  if(!claim?.length)return Response.json({error:'already_claimed'},{status:409});
   try {
     if (notification.audience_type === "everyone" || notification.audience_type === "topic") {
       const topicName =
@@ -54,22 +57,13 @@ async function handleRequest(req: Request): Promise<Response> {
           : (notification.audience_ref?.topic as string);
 
       if (!topicName) {
-        return new Response(JSON.stringify({ error: "Missing topic name in audience_ref" }), { status: 400 });
+        throw new Error("Missing topic name in audience_ref");
       }
 
-      const result = await sendToTopic(topicName, {
-        title: notification.title,
-        body: notification.body,
-        imageUrl: notification.image_url,
-        deepLink: notification.deep_link,
-        notificationId: notification.id,
-        priority: notification.priority,
-      });
-
-      await admin.serviceClient
-        .from("notifications")
-        .update({ status: result.ok ? "sent" : "failed", sent_at: new Date().toISOString() })
-        .eq("id", notification.id);
+      if(topicName!=='all_users')throw Error('TOPIC_PREFERENCES_UNSUPPORTED');
+      const {data:targeted,error:queueError}=await admin.serviceClient.rpc('enqueue_broadcast_devices_v1',{p_notification:notification.id});
+      if(queueError)throw queueError;
+      const result={ok:true,queued:targeted,receipt:'not_confirmed'};
 
       await writeAuditLog(admin.serviceClient, {
         adminId: admin.userId,
@@ -93,7 +87,7 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (userIds.length === 0) {
-      return new Response(JSON.stringify({ error: "No target users resolved from audience_ref" }), { status: 400 });
+      throw new Error("No target users resolved from audience_ref");
     }
 
     const { data: preferenceRows } = await admin.serviceClient

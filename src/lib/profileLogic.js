@@ -1,3 +1,4 @@
+import {validSavedState} from "./savedStateShape";
 // Pure helpers for the Profile / Account pages.
 import { localISO, shiftISO } from "./dateKey";
 import { tx, txf } from "./i18n/tx";
@@ -73,17 +74,22 @@ export function parseBackup(text) {
   let p;
   try { p = JSON.parse(text); } catch { return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") }; }
   const st = p && p.state;
-  const good = p && p.app === "GYMAK" && st && typeof st === "object" && Array.isArray(st.weightLogs)
-    && st.exerciseLogs && typeof st.exerciseLogs === "object" && !Array.isArray(st.exerciseLogs)
-    && Array.isArray(st.workoutDays) && st.profile && typeof st.profile === "object";
+  const good = p?.app==='GYMAK'&&validSavedState(st,{requireCore:true});
   if (!good) return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") };
   if (p.measurements != null && !Array.isArray(p.measurements)) return { ok: false, error: tx("قياسات الجسم في الملف تالفة.") };
   return { ok: true, payload: p };
 }
 export function applyBackup(payload, storage = localStorage) {
-  storage.setItem("gymak_state_v1", JSON.stringify(payload.state));
-  if (payload.measurements) storage.setItem("gymak_measure_v1", JSON.stringify(payload.measurements));
-  if (payload.water) storage.setItem("gymak_water_v1", JSON.stringify(payload.water));
+  if(!validSavedState(payload?.state,{requireCore:true}))throw Error('invalid_backup');
+  const next={gymak_state_v1:JSON.stringify(payload.state)};
+  if(payload.measurements)next.gymak_measure_v1=JSON.stringify(payload.measurements);
+  if(payload.water)next.gymak_water_v1=JSON.stringify(payload.water);
+  const previous=Object.fromEntries(Object.keys(next).map(k=>[k,storage.getItem(k)]));
+  // Keep an original recovery copy before the first multi-key change.
+  storage.setItem('gymak_before_import_v1',JSON.stringify({at:Date.now(),data:previous}));
+  try {for(const [key,value] of Object.entries(next))storage.setItem(key,value);}
+  catch(error){for(const [key,value] of Object.entries(previous)){try{if(value===null)storage.removeItem(key);else storage.setItem(key,value);}catch{/* original recovery snapshot remains */}}throw error;}
+
 }
 
 export function exercisesWord(n) { if (isEn()) return n === 1 ? "exercise" : "exercises"; return n === 1 ? "تمرين" : n === 2 ? "تمرينين" : n >= 3 && n <= 10 ? "تمارين" : "تمرين"; }

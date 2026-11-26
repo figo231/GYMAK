@@ -39,10 +39,10 @@ export async function sendBroadcast({ title, body }) {
 
 export function broadcastFeedback(lang = "ar") {
   return lang === "en" ? {
-    accepted: "Accepted for delivery to subscribed devices. This does not confirm receipt on every device.",
+    accepted: "Queued for subscribed devices. Provider acceptance and receipt are not yet confirmed.",
     failed: "Could not confirm delivery acceptance. Do not retry automatically; check the send status first.",
   } : {
-    accepted: "خدمة الإشعارات قبلت الرسالة للأجهزة المشتركة. ده مش تأكيد وصولها لكل جهاز.",
+    accepted: "الرسالة دخلت طابور الأجهزة المشتركة. ده مش تأكيد قبول خدمة الإشعارات ولا وصولها لكل جهاز.",
     failed: "ماقدرناش نأكد قبول الرسالة للإرسال. متعيدش الإرسال تلقائيًا؛ راجع حالته الأول.",
   };
 }

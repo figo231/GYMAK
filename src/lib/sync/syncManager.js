@@ -1,3 +1,6 @@
+import {syncPrivateDrafts,capturePrivateDrafts} from './privateDraftSync';
+import {syncMutableDomains} from './mutableDomains';
+import {mutableConflicts} from './mutableConflictReview';
 import {setTrainingUser,reconcileTrainingGeneration,resumePendingReset} from '../trainingReset';
 import { supabase } from "../supabaseClient";
 import Store from "../store/gymakStore";
@@ -11,7 +14,8 @@ const BASE_RETRY_DELAY = 5000;
 function loadSyncState() {
   try {
     const raw = localStorage.getItem(SYNC_STATE_KEY);
-    return raw ? JSON.parse(raw) : { lastSyncAt: null, migratedUserIds: [], lastMigration: null };
+    const state=raw?JSON.parse(raw):{};
+    return {...state,migratedUserIds:Array.isArray(state?.migratedUserIds)?state.migratedUserIds.filter(x=>typeof x==='string'):[],lastSyncAt:state?.lastSyncAt??null,lastMigration:state?.lastMigration??null};
   } catch {
     return { lastSyncAt: null, migratedUserIds: [], lastMigration: null };
   }
@@ -77,6 +81,7 @@ class SyncManager {
     this._debounceTimer = null;
     this._retryTimer = null;
     this._retryDelay = BASE_RETRY_DELAY;
+    this._generation = 0;
     this._running = false; // simple mutex — avoid overlapping sync cycles
     this._rerunRequested = false;
     this._applyingRemote = false;
@@ -86,6 +91,7 @@ class SyncManager {
 
     if (typeof window !== "undefined") {
       window.addEventListener("online", () => this._onOnline());
+      window.addEventListener("gymak-private-draft",()=>{if(this.userId){try{capturePrivateDrafts(this.userId);}catch(e){this._setStatus('error',{error:e.message,errorKind:'storage'});}this.pendingChangeCount++;this._notify();this._scheduleSync(1500);}});
       window.addEventListener("offline", () => this._setStatus("offline"));
     }
   }
@@ -97,7 +103,10 @@ class SyncManager {
   }
 
   getSnapshot() {
+    let conflictCount=0,conflictRecoveryError=null;
+    if(this.userId){try{conflictCount=mutableConflicts(this.userId).length;}catch{conflictRecoveryError='sync_journal_corrupt';}}
     return {
+      conflictCount,conflictRecoveryError,
       status: this.status,
       lastSyncAt: this.lastSyncAt,
       lastError: this.lastError,
@@ -125,6 +134,7 @@ class SyncManager {
   start(userId) {
     if (!supabase) { this._setStatus("disabled"); return; }
     if (this._unsubStore) this._unsubStore(); // guard against start() being called twice without an intervening stop()
+    ++this._generation;
     this.userId = userId;setTrainingUser(userId);
     this.pendingChangeCount = 0;
     this._unsubStore = Store.onChange(() => {
@@ -136,6 +146,7 @@ class SyncManager {
       // this flag is only true for the few ms pullAll() is writing merged
       // data in.
       if (this._applyingRemote) return;
+      try{capturePrivateDrafts(userId);}catch(e){this._setStatus("error",{error:e.message,errorKind:"storage"});}
       this.pendingChangeCount += 1;
       this._notify();
       this._scheduleSync(1500);
@@ -145,6 +156,7 @@ class SyncManager {
 
   /** Called on sign-out — stop pushing/pulling for the now-anonymous session. */
   stop() {
+    ++this._generation;
     this.userId = null;setTrainingUser(null);
     if (this._unsubStore) this._unsubStore();
     clearTimeout(this._debounceTimer);
@@ -200,44 +212,57 @@ class SyncManager {
       this._rerunRequested = true;
       return;
     }
-    const cycleUser=this.userId;
+    const cycleUser=this.userId,generation=this._generation;
+    const canApply=()=>this.userId===cycleUser&&this._generation===generation;
+    const pullSafe=async()=>{
+      const revision=this.pendingChangeCount;
+      return pullAll(cycleUser,()=>canApply()&&this.pendingChangeCount===revision,fn=>{
+        this._applyingRemote=true;try{return fn();}finally{this._applyingRemote=false;}
+      },{mutable:false});
+    };
     this._running = true;
     this._setStatus("syncing");
     try {
-      const resumedReset=await resumePendingReset(cycleUser,supabase);
-      if(this.userId!==cycleUser)return;
-      const resetElsewhere=await reconcileTrainingGeneration(cycleUser,supabase);
-      if(this.userId!==cycleUser)return;
-      if(resetElsewhere||resumedReset){this._applyingRemote=true;try{await pullAll(cycleUser);}finally{this._applyingRemote=false;}}
-      if(this.userId!==cycleUser)return;
+      const resumedReset=await resumePendingReset(cycleUser,supabase,canApply);
+      if(!canApply())return;
+      const resetElsewhere=await reconcileTrainingGeneration(cycleUser,supabase,canApply);
+      if(!canApply())return;
+      if(resetElsewhere||resumedReset)await pullSafe();
+      if(!canApply())return;
       if(localStorage.getItem('gymak_guest_import_remote_committed_v1')===cycleUser){
-        this._applyingRemote=true;try{await pullAll(cycleUser);}finally{this._applyingRemote=false;}
-        if(this.userId!==cycleUser)return;
+        await pullSafe();
+        if(!canApply())return;
         this._markMigrated(cycleUser);localStorage.removeItem('gymak_guest_import_remote_committed_v1');
         this.lastSyncAt=Date.now();this._setStatus('synced');return;
       }
-      await this._migrateIfNeeded(cycleUser);
-      if(this.userId!==cycleUser)return;
+      await this._migrateIfNeeded(cycleUser,canApply);
+      if(!canApply())return;
 
       this._setStatus("syncing");
-      const pushDropped = await pushAll(cycleUser);
-      if(this.userId!==cycleUser)return;
+      const beforePush=this.pendingChangeCount;
+      const mutableResult=await syncMutableDomains(cycleUser,supabase,{canApply,applyRemote:fn=>{this._applyingRemote=true;try{return fn();}finally{this._applyingRemote=false;}}});
+      if(!canApply())return;
+      const pushDropped = mutableResult.dropped+await pushAll(cycleUser,{mutable:false});
+      if(!canApply())return;
+      if(this.pendingChangeCount!==beforePush){this._rerunRequested=true;return;}
 
-      this._applyingRemote = true;
-      let pullDropped = 0;
-      try {
-        pullDropped = await pullAll(cycleUser);
-      } finally {
-        this._applyingRemote = false;
-      }
+      await syncPrivateDrafts(cycleUser,supabase,canApply);
+      if(!canApply())return;
+      const beforePull=this.pendingChangeCount;
+      const pullDropped = await pullSafe();
+      const editedDuringPull=this.pendingChangeCount!==beforePull;
 
+      if(!canApply())return;
       this.lastSyncAt = Date.now();
       this.lastDroppedCount = pushDropped + pullDropped;
-      this.pendingChangeCount = 0;
+      if(!editedDuringPull)this.pendingChangeCount = 0;
+      else this._rerunRequested=true;
       saveSyncState({ ...loadSyncState(), lastSyncAt: this.lastSyncAt });
       this._retryDelay = BASE_RETRY_DELAY;
-      this._setStatus("synced");
+      if(mutableResult.conflicts)this._setStatus("error",{error:tx("فيه تعديلات مختلفة بين الجهاز والسيرفر. النسختين محفوظين. راجع اختيارات المزامنة في حسابي."),errorKind:"conflict"});
+      else this._setStatus("synced");
     } catch (err) {
+      if(!canApply())return;
       console.error("[gymak sync] cycle failed", err);
       if (isAuthError(err)) {
         // Retrying with the same dead token will just fail again. Surface a
@@ -279,7 +304,7 @@ class SyncManager {
    * record) so the UI can show something more specific than generic
    * "syncing" during what might be a large one-time upload.
    */
-  async _migrateIfNeeded(userId) {
+  async _migrateIfNeeded(userId,canApply=()=>true) {
     if (this._isMigrated(userId)) return;
 
     const { data: profileRow, error } = await supabase
@@ -288,6 +313,7 @@ class SyncManager {
       .eq("id", userId)
       .maybeSingle();
     if (error) throw error;
+    if(!canApply())return;
 
     if (profileRow?.migrated_at) {
       this._markMigrated(userId);
@@ -315,7 +341,11 @@ class SyncManager {
         );
       } catch { /* snapshot is best-effort, never blocks the actual migration */ }
 
-      await pushAll(userId);
+      if(!canApply())return;
+      const mutable=await syncMutableDomains(userId,supabase,{canApply,applyRemote:fn=>{this._applyingRemote=true;try{return fn();}finally{this._applyingRemote=false;}}});
+      if(mutable.conflicts)throw Error("sync_conflict_review_required");
+      await pushAll(userId,{mutable:false});
+      if(!canApply())return;
 
       const { error: markError } = await supabase
         .from("profiles").update({ migrated_at: new Date().toISOString() }).eq("id", userId);

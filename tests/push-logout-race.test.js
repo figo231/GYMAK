@@ -1,0 +1,17 @@
+import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
+const m=vi.hoisted(()=>({token:vi.fn(),revoke:vi.fn(),upsert:vi.fn(),remove:vi.fn(),subscribe:vi.fn(),permission:vi.fn(),on:vi.fn()}));
+vi.mock('@capacitor/core',()=>({Capacitor:{isNativePlatform:()=>true}}));
+vi.mock('@capacitor-firebase/messaging',()=>({FirebaseMessaging:{checkPermissions:m.permission,getToken:m.token,deleteToken:m.revoke,subscribeToTopic:m.subscribe,addListener:m.on}}));
+vi.mock('../src/lib/push/ownerReceipts',()=>({queueOwnerReceipt:vi.fn(),flushOwnerReceipts:async()=>{},collectNativeOwnerTaps:async()=>{}}));
+vi.mock('../src/lib/supabaseClient',()=>({supabase:{from:()=>({upsert:m.upsert,delete:()=>({eq:m.remove})})}}));
+let api;
+beforeEach(async()=>{vi.resetModules();vi.stubEnv('VITE_PUSH_ENABLED','true');vi.clearAllMocks();localStorage.clear();m.permission.mockResolvedValue({receive:'granted'});m.on.mockResolvedValue({remove:async()=>{}});m.upsert.mockResolvedValue({});m.remove.mockResolvedValue({});m.revoke.mockResolvedValue({});m.token.mockResolvedValue({token:'device-token'});api=await import('../src/lib/push/pushService');});
+afterEach(()=>vi.unstubAllEnvs());
+describe('native account push logout',()=>{
+ it('revokes a token even on cold-start explicit logout before in-memory registration',async()=>{await api.removePushToken({explicit:true});expect(m.revoke).toHaveBeenCalledOnce();expect(m.remove).toHaveBeenCalledOnce();});
+ it('does not delete token on transient initial missing-session state',async()=>{await api.removePushToken();expect(m.revoke).not.toHaveBeenCalled();});
+ it('does not register a token fetched after logout',async()=>{let resolve;m.token.mockImplementation(()=>new Promise(r=>resolve=r));const registration=api.registerForPush('account-a');await vi.waitFor(()=>expect(m.token).toHaveBeenCalled());await api.removePushToken({explicit:true});resolve({token:'late-token'});await registration;expect(m.upsert).not.toHaveBeenCalled();});
+ it('waits for in-flight database write before revocation and row deletion',async()=>{const calls=[];let finish;m.upsert.mockImplementation(()=>{calls.push('write');return new Promise(r=>finish=r);});m.revoke.mockImplementation(async()=>calls.push('revoke'));m.remove.mockImplementation(async()=>{calls.push('delete');return {};});const registration=api.registerForPush('account-a');await vi.waitFor(()=>expect(m.upsert).toHaveBeenCalled());const logout=api.removePushToken({explicit:true});await Promise.resolve();expect(calls).toEqual(['write']);finish({});await Promise.all([registration,logout]);expect(calls).toEqual(['write','revoke','delete']);});
+ it('surfaces provider revocation failure to explicit signout',async()=>{m.revoke.mockRejectedValue(Error('unavailable'));await expect(api.removePushToken({explicit:true})).rejects.toThrow('unavailable');expect(m.remove).not.toHaveBeenCalled();});
+});
+it('does not expose the previous account or legacy unscoped notification inbox',async()=>{localStorage.setItem('gymak_inbox_v1',JSON.stringify([{id:'legacy',body:'private'}]));localStorage.setItem('gymak_inbox_v1:account-a',JSON.stringify([{id:'a',body:'for account a'}]));await api.registerForPush('account-a');expect(api.getInbox().map(n=>n.id)).toEqual(['a']);await api.removePushToken({explicit:true});expect(api.getInbox()).toEqual([]);await api.registerForPush('account-b');expect(api.getInbox()).toEqual([]);});

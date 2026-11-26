@@ -1,60 +1,50 @@
-import { useMemo, useState } from "react";
-import SectionNav from "../../components/layout/SectionNav";
-import { useToast } from "../../hooks/useToast";
-import { useStoreVersion } from "../../hooks/useStoreVersion";
-import Store from "../../lib/store/gymakStore";
-import { buildPlan, shoppingList, fmtGrams, listText } from "../../lib/mealPlan";
-import { shareText, APP_URL } from "../../lib/shareLink";
-import { tx, txf } from "../../lib/i18n/tx";
-
-const DAYS = [tx("السبت"), tx("الأحد"), tx("الاتنين"), tx("التلات"), tx("الأربع"), tx("الخميس"), tx("الجمعة")];
-const lookup = (n, g) => { const it = Store.parseFood(txf(`{0} {1} جم`, [n, g])); return it && it.length === 1 ? { kcal: it[0].kcal, protein: it[0].protein } : null; };
-
-export default function MealPlan() {
-  const [version] = useStoreVersion();
-  const toast = useToast();
-  const [seed, setSeed] = useState(0);
-  const [tab, setTab] = useState("plan");
-  const [checked, setChecked] = useState({});
-  const target = useMemo(() => Store.getDailyCalorieTarget(), [version]);
-  const plan = useMemo(() => buildPlan(target || 2200, lookup, seed), [target, seed]);
-  const list = useMemo(() => shoppingList(plan), [plan]);
-
-  async function copyList() {
-    const r = await shareText({ title: tx("قائمة التسوق"), text: listText(list, Store.foodDisplayName), url: APP_URL });
-    if (r === "copied") toast(tx("اتنسخت القائمة."));
-  }
-  return (
-    <div className="mp-page">
-      <SectionNav group="food" title={tx("الأكل")} />
-      <p className="mp-note">{target ? txf(`خطة أسبوع على هدفك {0} سعرة في اليوم.`, [target]) : tx("سجّل وزنك في الرئيسية عشان الخطة تتظبط على هدفك. دلوقتي على 2200 سعرة.")} {tx("الكميات تقريبية.")}</p>
-      <div className="mp-tabs">
-        <button type="button" className={tab === "plan" ? "on" : ""} onClick={() => setTab("plan")}>{tx("الخطة")}</button>
-        <button type="button" className={tab === "shop" ? "on" : ""} onClick={() => setTab("shop")}>{tx("قائمة التسوق")}</button>
-        <button type="button" onClick={() => { setSeed((s) => s + 1); setChecked({}); }}>{tx("غيّر الخطة")}</button>
-      </div>
-      {tab === "plan" ? plan.map((d, i) => (
-        <div key={i} className="glass mp-day">
-          <div className="mp-day-top"><b>{DAYS[i]}</b><bdi className="mp-macros">{d.kcal} kcal · {d.protein}g</bdi></div>
-          {d.meals.map((m) => (
-            <div key={m.slot} className="mp-meal">
-              <span className="mp-slot">{m.label}</span>
-              <span className="mp-items">{m.items.map((it) => txf(`{0} {1}جم`, [Store.foodDisplayName(it.name), it.grams])).join(" + ")}</span>
-              <span className="mp-kcal" dir="ltr">{m.kcal}</span>
-            </div>
-          ))}
-        </div>
-      )) : (
-        <div className="glass mp-shop">
-          {list.map((x) => (
-            <label key={x.name} className={"mp-row" + (checked[x.name] ? " done" : "")}>
-              <input type="checkbox" checked={!!checked[x.name]} onChange={() => setChecked((c) => ({ ...c, [x.name]: !c[x.name] }))} />
-              <span>{Store.foodDisplayName(x.name)}</span><b>{fmtGrams(x.grams)}</b>
-            </label>
-          ))}
-          <button type="button" className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} onClick={copyList}>{tx("شارك / انسخ القائمة")}</button>
-        </div>
-      )}
-    </div>
-  );
+import {upgradeMealMonth,toggleMealDay} from '../../lib/mealMonth';
+import {currentPrivateAge} from '../../lib/privateAge';
+import DietSwapSheet from './DietSwapSheet';
+import {applyDietSwap} from '../../lib/dietSwap';
+import {saveGuidedDiet} from '../../lib/guidedDietDraft';
+import {useAuth} from '../../hooks/useAuth';
+import DietWizard from './DietWizard';
+import {buildGuidedDiet,dietAssessment,dietPreparation} from '../../lib/guidedDiet';
+import {Link} from 'react-router-dom';
+import {createMealPlanner,loadMealPlanner,saveMealPlanner,updateMealPortion} from '../../lib/mealPlannerDraft';
+import {isEn} from '../../lib/i18n/lang';
+import {useMemo,useState} from 'react';
+import SectionNav from '../../components/layout/SectionNav';
+import {useToast} from '../../hooks/useToast';
+import {useStoreVersion} from '../../hooks/useStoreVersion';
+import Store from '../../lib/store/gymakStore';
+import {buildPlan,shoppingList,fmtGrams,listText} from '../../lib/mealPlan';
+import {shareText,APP_URL} from '../../lib/shareLink';
+const lookup=(n,g)=>{const r=Store.parseFood(`${n} ${g} جم`);return r?.length===1?r[0]:null;};
+export default function MealPlan(){const {user}=useAuth();return user?.id?<MealPlanBody key={user.id} owner={user.id}/>:null;}
+function MealPlanBody({owner}){
+ const en=isEn(),t=(a,b)=>en?b:a,[version]=useStoreVersion(),toast=useToast();
+ const [draft,setDraft]=useState(()=>loadMealPlanner(owner)),[wizard,setWizard]=useState(()=>!loadMealPlanner(owner)),[seed,setSeed]=useState(()=>loadMealPlanner(owner)?.seed||0),[week,setWeek]=useState(0),[day,setDay]=useState(0),[swap,setSwap]=useState(null),[tab,setTab]=useState('plan'),[editing,setEditing]=useState(null),[grams,setGrams]=useState(''),[error,setError]=useState('');
+ const target=useMemo(()=>Store.getDailyCalorieTarget(),[version]),generated=useMemo(()=>draft?null:buildPlan(target||2200,lookup,seed),[target,seed,draft]);
+ const plan=draft?.days||generated,weekCount=Math.ceil(plan.length/7),start=week*7,weekDays=plan.slice(start,start+7),selected=Math.min(day,weekDays.length-1),current=weekDays[selected];
+ const assessment=draft?.guided?dietAssessment(draft.guided):{};
+ const list=useMemo(()=>shoppingList(weekDays),[plan,week]);
+ function persist(x){try{saveMealPlanner(owner,x);setDraft(x);setError('');return true;}catch{setError(t('مقدرناش نحفظ. راجع مساحة الجهاز. خطتك القديمة زي ما هي.','Could not save. Check device storage. Your previous plan is unchanged.'));return false;}}
+ function create(result,answers){try{setDraft(saveGuidedDiet(owner,result,answers));setSeed(0);setWeek(0);setDay(0);setWizard(false);setError('');return true;}catch{setError(t('مقدرناش نحفظ بأمان. خطتك القديمة محفوظة.','Could not save safely. Your previous plan is preserved.'));return false;}}
+ function regenerate(){try{const n=seed+1,r=draft?.guided?buildGuidedDiet(draft.guided,lookup,n):{days:buildPlan(target||2200,lookup,n),target:target||2200};if(persist({...createMealPlanner(r.days,r.target,n),...(draft?.guided?{guided:draft.guided}:{})}))setSeed(n);}catch{setError(t('القيود دي محتاجة مراجعة مختص.','These restrictions need specialist review.'));}}
+ function upgradeMonth(){try{const extra=draft.guided?buildGuidedDiet(draft.guided,lookup,seed+1).days:Array.from({length:4},(_,i)=>buildPlan(draft.target||2200,lookup,seed+i+1)).flat();setDraft(upgradeMealMonth(owner,extra));setWeek(0);setDay(0);setError('');}catch{setError(t('مقدرناش نكمّل الشهر بأمان. خطتك القديمة زي ما هي.','Could not extend safely. Your old plan is unchanged.'));}}
+ function check(name){const x=draft||createMealPlanner(generated,target||2200,seed),key=plan.length>7?week+':'+name:name;persist({...x,updatedAt:Date.now(),checked:{...x.checked,[key]:!x.checked?.[key]}});}
+ function portion(){try{if(persist(updateMealPortion(draft||createMealPlanner(generated,target||2200,seed),editing.day,editing.meal,editing.item,Number(grams),lookup)))setEditing(null);}catch{setError(t('اكتب كمية من 1 لحد 3000 جرام.','Enter 1 to 3000 grams.'));}}
+ async function shareList(){const r=await shareText({title:t('كميات الأسبوع','Weekly shopping'),text:t('الأسبوع ','Week ')+(week+1)+'\n'+listText(list,n=>Store.foodDisplayName(n)+' ('+dietPreparation(n,en)+')'),url:APP_URL});if(r==='copied')toast(t('اتنسخت القائمة.','Copied.'));}
+ return <div className="mp-page diet-plan-page"><SectionNav group="food" title={t('نظامك الغذائي','Your food plan')}/>{wizard?<DietWizard initial={{...draft?.guided,...(currentPrivateAge(owner)?{age:currentPrivateAge(owner)}:{})}} lookup={lookup} onCancel={()=>setWizard(false)} onCreate={create}/>:!draft?.guided?<section className="dp-month-upgrade"><h2>{t('نبدأ بخطة على بياناتك','Start with your own details')}</h2><p>{t('لسه معندناش بيانات كفاية نعمل لك خطة شخصية. جاوب على الهدف والسن والوزن والطول وروتينك الأول.','We need your goal, age, weight, height and routine before suggesting a personal plan.')}</p>{draft&&<p>{t('خطتك القديمة محفوظة زي ما هي، لكنها مش مبنية على استبيان مكتمل. هنحفظ نسخة قبل ما تعمل خطة جديدة.','Your old plan is preserved, but was not based on a completed questionnaire. We save a copy before creating a new plan.')}</p>}<button className="btn btn-primary" onClick={()=>setWizard(true)}>{t('ابدأ استبيان خطة الشهر','Start the monthly plan questionnaire')}</button></section>:<>
+ <section className="dp-hero"><div className="dp-kicker"><span>GYMAK NUTRITION</span><span className="dp-status">{draft?t('✓ محفوظ أوفلاين','✓ Saved offline'):t('معاينة','Preview')}</span></div><h2>{plan.length>7?t('شهرك، على مقاس يومك.','Your month. Your routine.'):t('أسبوعك، بخطة واضحة.','Your week, planned.')}</h2><p>{plan.length} {t('يوم منظمين · اختياراتك، من غير تعقيد','planned days · your preferences, less friction')}</p><div className="dp-summary"><div><strong>{draft?.target||target||2200}</strong><span>{t('سعرة تقديرية / يوم','estimated kcal / day')}</span></div><div><strong>{current.meals.length}</strong><span>{t('وجبات يوميًا','meals daily')}</span></div><div><strong>{weekCount}</strong><span>{t('قوائم مشتريات','shopping lists')}</span></div></div><button onClick={()=>setWizard(true)}>{t('تعديل بيانات الخطة','Edit plan details')} <span>↗</span></button></section>
+ {draft?.guided?.goal==='muscle'&&<p className="dp-disclaimer">{t('هدف بناء عضلات · فائض تقديري200سعرة · بروتين1.8جم/كجم (نطاق الخطة1.6–2.0، مش حد أمان طبي). محتاج تمرين مقاومة ومراجعة تقدمك.','Muscle gain · estimated200kcal surplus · protein1.8g/kg (planning range1.6–2.0, not a medical safety limit). Pair with resistance training and review progress.')}</p>}<p className="dp-disclaimer">{t('تخطيط عام مش نظام علاجي. الكميات والسعرات تقريبية، راجع المكونات والحساسية.','General planning, not treatment. Portions and calories are estimates. Check ingredients and allergens.')} <Link to="/professionals">{t('استشر مختص','Ask a specialist')}</Link></p>
+ {error&&<p className="dw-error" role="alert">{error}</p>}
+ {!draft&&<button className="btn btn-primary" onClick={()=>persist(createMealPlanner(generated,target||2200,seed))}>{t('احفظ الأسبوع أوفلاين','Save this week offline')}</button>}
+ {plan.length===7&&<section className="dp-month-upgrade"><h3>{t('خطتك المحفوظة لسه أسبوع واحد','Your saved plan is still one week')}</h3><p>{t('كمّلها لـ٣٠ يوم. أول ٧ أيام بتعديلاتك هتفضل زي ما هي، وهنحفظ نسخة قبل الإضافة. الأيام الجديدة من نفس اختياراتك، وممكن أكلات تتكرر.','Extend to30days. Your first7days and edits stay unchanged. We save a copy before adding days. New days use the same preferences, with some repeated foods.')}</p><button className="btn btn-primary" onClick={upgradeMonth}>{t('كمّل خطتي لـ٣٠ يوم','Extend my plan to30days')}</button></section>}
+ <section className="dp-month-overview" aria-label={t('كل أيام الشهر','All month days')}><header><h3>{t('كل أيام خطتك','Every day of your plan')}</h3><b>{Object.values(draft?.completedDays||{}).filter(Boolean).length} / {plan.length} {t('مكتمل','done')}</b></header><p>{t('اختار أي يوم لوجباته. علّم ✓ لما تخلّصه.','Choose a day for its meals. Check ✓ when done.')}</p><div className="dp-month-grid">{plan.map((d,i)=><div key={i} className={draft?.completedDays?.[i]?'done':''}><button className={start+selected===i?'selected':''} onClick={()=>{setWeek(Math.floor(i/7));setDay(i%7);setTab('plan');}} aria-label={t('وجبات يوم ','Meals for day ')+(i+1)}><small>{t('يوم','Day')}</small><strong>{i+1}</strong></button><label><input type="checkbox" aria-label={t('يوم ','Day ')+(i+1)+t(' مكتمل',' done')} checked={!!draft?.completedDays?.[i]} onChange={()=>persist(toggleMealDay(draft||createMealPlanner(plan,target||2200,seed),i))}/><span>{draft?.completedDays?.[i]?'✓':t('تم','Done')}</span></label></div>)}</div><small>{t('محفوظ أوفلاين · بيتزامن كنسخة خاصة بحسابك لما النت يرجع. اختلاف النسخ بيتراجع قبل الاستبدال.','Saved offline · syncs as a private account revision when online. Conflicting revisions are reviewed before replacement.')}</small></section>
+ <div className="dp-week-label"><h3>{t('خطة الشهر','Plan overview')}</h3><span>{t('اختار أسبوعك','Choose a week')}</span></div><div className="dp-weeks" role="group" aria-label={t('الأسابيع','Weeks')}>{Array.from({length:weekCount},(_,i)=><button key={i} aria-pressed={week===i} className={week===i?'active':''} onClick={()=>{setWeek(i);setDay(0);}}><span>{t('الأسبوع','Week')} {i+1}</span><small>{i*7+1}–{Math.min(plan.length,(i+1)*7)}</small></button>)}</div>
+ <div className="dp-tabs"><button className={tab==='plan'?'active':''} onClick={()=>setTab('plan')}>{t('وجباتي','My meals')}</button><button className={tab==='shop'?'active':''} onClick={()=>setTab('shop')}>{t('كميات الأسبوع','Weekly quantities')}</button></div>
+ {tab==='plan'?<><div className="dp-days" role="group" aria-label={t('أيام الخطة','Plan days')}>{weekDays.map((d,i)=><button key={i} aria-pressed={selected===i} className={selected===i?'active':''} onClick={()=>setDay(i)}><small>{t('يوم','Day')}</small><strong>{start+i+1}</strong></button>)}</div><div className="dp-day-head"><div><h3>{t('وجبات اليوم','Today’s meals')} {start+selected+1}</h3><p>{t('اضغط على أي مكوّن لتعديل الكمية','Tap an ingredient to adjust its portion')}</p></div><b>{current.kcal}<small> kcal</small></b></div>
+ <p className="dp-disclaimer">{t('بروتين اليوم: ','Daily protein: ')}{current.protein}g{assessment.proteinTarget?` / ${assessment.proteinTarget}g · ${assessment.proteinMin}–${assessment.proteinMax}g`:''}{assessment.proteinTarget&&(current.protein<assessment.proteinMin||current.protein>assessment.proteinMax)?t(' · تعديلك خرج برّه نطاق الخطة، راجع الكميات.',' · Your edits are outside the plan range. Review portions.'):''}</p><p className="dp-disclaimer">{['carbs','fat'].map(k=><span key={k}>{k==='carbs'?t('كارب ','Carbs '):t(' · دهون ',' · Fat ')}{current.meals.flatMap(m=>m.items).every(i=>Number.isFinite(i[k]))?Math.round(current.meals.flatMap(m=>m.items).reduce((s,i)=>s+i[k],0))+'g':t('غير متاح للخطة القديمة','unavailable for legacy plan')}</span>)}</p><div className="dp-meals">{current.meals.map((m,mi)=><article className="dp-meal" key={m.slot}><header><span className="dp-meal-no">{String(mi+1).padStart(2,'0')}</span><div><h4>{draft?.guided?t('وجبة ','Meal ')+m.label:m.label}</h4><span>{m.items.length} {t('مكونات','ingredients')}</span></div><b>{m.kcal}<small>kcal</small></b></header><button className="dp-swap" onClick={()=>setSwap({day:start+selected,meal:mi,item:null})}>{t("بدّل الوجبة بالمتاح عندك","Swap meal for food you have")} ⇄</button><div>{m.items.map((x,ii)=><button className="dp-ingredient" key={ii} onClick={()=>{setEditing({day:start+selected,meal:mi,item:ii});setGrams(String(x.grams));}}><span><i/>{Store.foodDisplayName(x.name)}<small className="dp-preparation">{dietPreparation(x.name,en)}</small></span><b>{x.grams}<small>{t('جم','g')}</small><em>✎</em></b></button>)}</div><footer><span>{t('بروتين تقريبي','Estimated protein')}</span><strong>{m.items.reduce((s,x)=>s+x.protein,0)} {t('جم','g')}</strong></footer></article>)}</div></>:<section className="dp-shopping"><div><h3>{t('كميات أكل الأسبوع','Weekly meal quantities')}</h3><p>{t('الأسبوع','Week')} {week+1} · {weekDays.length} {t('أيام · الكميات بنفس حالة الصنف، مش تحويل لوزن الشراء النيّ','days · listed preparation weights, not raw purchase conversions')}</p></div>{list.map(x=><label className="dp-shop-row" key={x.name}><input type="checkbox" checked={!!draft?.checked?.[plan.length>7?week+':'+x.name:x.name]} onChange={()=>check(x.name)}/><span>{Store.foodDisplayName(x.name)}<small className="dp-preparation">{dietPreparation(x.name,en)}</small></span><b>{fmtGrams(x.grams)}</b></label>)}<button className="btn btn-primary" onClick={shareList}>{t('شارك / انسخ القائمة','Share / copy list')}</button></section>}
+ <div className="dp-bottom"><button onClick={regenerate}>{t('تنويع نفس الخطة','Vary this plan')} ↻</button><Link to="/professionals">{t('الدكاترة والمدربين','Doctors and coaches')} ↗</Link></div>
+ {editing&&<section className="dp-editor glass" role="dialog" aria-label={t('تعديل الكمية','Edit portion')}><h3>{t('ظبّط كميتك','Adjust your portion')}</h3><label>{t('الكمية بالجرام','Grams')}<input type="number" min="1" max="3000" value={grams} onChange={e=>setGrams(e.target.value)}/></label><div><button className="btn" onClick={()=>{setSwap(editing);setEditing(null);}}>{t('بدّل المكوّن','Swap ingredient')} ⇄</button><button className="btn btn-primary" onClick={portion}>{t('حفظ الكمية','Save quantity')}</button><button className="btn" onClick={()=>setEditing(null)}>{t('إلغاء','Cancel')}</button></div></section>}
+ {swap&&<DietSwapSheet items={swap.item==null?plan[swap.day].meals[swap.meal].items:[plan[swap.day].meals[swap.meal].items[swap.item]]} prefs={draft?.guided} dayProtein={current.protein} onClose={()=>setSwap(null)} onApply={replacement=>{if(persist(applyDietSwap(draft||createMealPlanner(plan,target||2200,seed),swap.day,swap.meal,swap.item,replacement)))setSwap(null);}}/>}
+ </>}</div>;
 }

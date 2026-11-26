@@ -50,7 +50,7 @@ export default function Photos() {
   }
   async function del(p) {
     if (!(await confirmAsync({ title: tx("تمسح الصورة دي من الجهاز؟"), danger: true, confirmLabel: tx("مسح"), cancelLabel: tx("إلغاء") }))) return;
-    await deletePhoto(p.id); setView(null); await refresh();
+    try{await deletePhoto(p.id); setView(null); await refresh();}catch{toast(tx("معرفناش نمسح الصورة. جرّب تاني."));}
   }
   const cmp = compareSet(photos, filter);
   async function shareCmp() {

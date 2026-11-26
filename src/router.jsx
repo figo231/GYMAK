@@ -7,6 +7,8 @@ import DetailShell, { ChatShell } from "./components/layout/DetailShell";
 import RouteError from "./components/RouteError";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+const Friends = lazy(() => import("./pages/Friends/Friends"));
+const WorkoutPlayer = lazy(() => import("./pages/Workout/WorkoutPlayer"));
 const ChatProfile = lazy(() => import("./pages/Profile/ChatProfile"));
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 
@@ -57,9 +59,10 @@ export const router = createBrowserRouter([
       { path: "/exercises", element: <Exercises /> },
       { path: "/stats", element: <Stats /> },
       { path: "/profile", element: <Profile /> },
-      { path: "/food", element: <Food /> },
+      { path: "/food", element: <OtaRouteReady><Food /></OtaRouteReady> },
       { path: "/chat-profile", element: <ProtectedRoute><ChatProfile /></ProtectedRoute> },
       { path: "/chat-profile/:id", element: <ProtectedRoute><ChatProfile /></ProtectedRoute> },
+      { path: "/friends", element: <ProtectedRoute><Friends /></ProtectedRoute> },
       { path: "/messages", element: <ProtectedRoute><PrivateChat /></ProtectedRoute> },
       { path: "/professionals", element: <Professionals /> },
       { path: "/tour", element: <TourPage /> },
@@ -85,6 +88,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute><DetailShell /></ProtectedRoute>,
     errorElement: <RouteError />,
     children: [
+      { path: "/workout", element: <WorkoutPlayer /> },
       { path: "/exercise/:id", element: <ExerciseDetail /> },
       { path: "/account", element: <ProtectedRoute><Account /></ProtectedRoute> },
       { path: "/coach", element: <ProtectedRoute><Coach /></ProtectedRoute> },

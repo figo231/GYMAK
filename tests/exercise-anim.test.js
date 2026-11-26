@@ -6,8 +6,8 @@ import { getExerciseFrames, getExerciseEnglish } from "../src/lib/exerciseImages
 describe("exercise animated demos", () => {
   it("serves bundled local WebP frames for a known exercise", () => {
     expect(getExerciseFrames("bench-press-barbell")).toEqual([
-      "/exercises/bench-press-barbell/0.webp",
-      "/exercises/bench-press-barbell/1.webp",
+      "/exercises/bench-press-barbell/0.webp?art=studio-v2",
+      "/exercises/bench-press-barbell/1.webp?art=studio-v2",
     ]);
   });
 

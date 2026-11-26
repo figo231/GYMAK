@@ -128,7 +128,8 @@ describe("gym content and access guards", () => {
   st.deletedExerciseIds=["frog-pump"]; st.exercises=st.exercises.filter(e=>e.id!=="frog-pump");
   localStorage.setItem("gymak_state_v1", JSON.stringify(st));
   vi.resetModules(); const T=(await import("../src/lib/store/gymakStore.js")).default;
-  expect(T.getExerciseById("bench-press-barbell").name).toBe("My edited bench");
+  expect(T.get().exercises.find(e=>e.id==="bench-press-barbell").name).toBe("My edited bench");
+  expect(T.getExerciseById("bench-press-barbell")).toBeNull();
   expect(T.getExerciseLogs("bench-press-barbell")).toHaveLength(1);
   expect(T.getExerciseById("frog-pump")).toBeNull();
   expect(T.getExerciseById("w-hip-abductor")).toBeTruthy();
@@ -142,7 +143,12 @@ describe("original female illustrations", () => {
   for (const ex of WOMEN_EXERCISES) {
    const frames=getExerciseFrames(ex.id);
    expect(frames).toHaveLength(2);
-   for (const f of frames) expect(fs.existsSync(`public${f}`)).toBe(true);
+   for (const f of frames) expect(fs.existsSync(`public${f.split('?')[0]}`)).toBe(true);
   }
  });
+});
+
+describe("separate catalogs",()=>{
+ it("female discovers curated female programs only, with every referenced exercise",()=>{S.setGender('female');expect(S.getPrograms().every(p=>p.only==='female')).toBe(true);expect(S.getExerciseById('bench-press-barbell')).toBeNull();for(const p of S.getPrograms())for(const d of S.getProgramDays(p.id))expect(d.exercises.length).toBeGreaterThan(0);});
+ it("owner retains both complete catalogs",()=>{S.setGender('male');S.setOwnerView(true);expect(S.getExerciseById('bench-press-barbell')).toBeTruthy();expect(S.getExerciseById('w-hip-abductor')).toBeTruthy();expect(S.getPrograms().some(p=>p.id==='glutes-tone')).toBe(true);S.setOwnerView(false);});
 });

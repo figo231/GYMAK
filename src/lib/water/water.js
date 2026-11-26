@@ -13,7 +13,7 @@ function load() {
     return { goal: Number(v.goal) > 0 ? Number(v.goal) : DEFAULT_GOAL, days: v.days && typeof v.days === "object" ? v.days : {} };
   } catch { return { goal: DEFAULT_GOAL, days: {} }; }
 }
-function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* quota: ignore */ } }
+function save(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
 
 export function getWater(date = dayKey()) { const s = load(); return { ml: Number(s.days[date]) || 0, goal: s.goal }; }
 export function addWater(delta, date = dayKey()) {

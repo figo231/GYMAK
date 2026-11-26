@@ -1,13 +1,13 @@
 // supabase/functions/dispatch-scheduled/index.ts
 import { getServiceClient } from "../_shared/verifyAdmin.ts";
-import { sendToTopic } from "../_shared/fcmClient.ts";
 
 const BATCH_INSERT_SIZE = 500;
 
 Deno.serve(async (req: Request) => {
   const authHeader = req.headers.get("Authorization") ?? "";
-  const expected = `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`;
-  if (authHeader !== expected) {
+  const secret=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const expected = `Bearer ${secret}`;
+  if (req.method!=="POST" || !secret || authHeader !== expected) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
@@ -25,23 +25,13 @@ Deno.serve(async (req: Request) => {
   let processed = 0;
 
   for (const notification of due) {
+    const {data:claim,error:claimError}=await serviceClient.from('notifications').update({status:'sending'}).eq('id',notification.id).eq('status','scheduled').select('id');
+    if(claimError)return Response.json({error:"claim_failed"},{status:500});if(!claim?.length)continue;
+    try {
     if (notification.audience_type === "everyone" || notification.audience_type === "topic") {
       const topicName = notification.audience_type === "everyone" ? "all_users" : notification.audience_ref?.topic;
-      const result = topicName
-        ? await sendToTopic(topicName, {
-            title: notification.title,
-            body: notification.body,
-            imageUrl: notification.image_url,
-            deepLink: notification.deep_link,
-            notificationId: notification.id,
-            priority: notification.priority,
-          })
-        : { ok: false, errorCode: "MISSING_TOPIC", retryable: false };
-
-      await serviceClient
-        .from("notifications")
-        .update({ status: result.ok ? "sent" : "failed", sent_at: new Date().toISOString() })
-        .eq("id", notification.id);
+      if(topicName!=='all_users')throw Error('TOPIC_PREFERENCES_UNSUPPORTED');
+      const {error:queueError}=await serviceClient.rpc('enqueue_broadcast_devices_v1',{p_notification:notification.id});if(queueError)throw queueError;
       processed++;
       continue;
     }
@@ -67,12 +57,13 @@ Deno.serve(async (req: Request) => {
       .in("user_id", userIds);
     const optedOut = new Set((preferenceRows ?? []).map((r) => r.user_id));
 
-    const { data: tokenRows } = await serviceClient
+    const { data: tokenRows,error:tokenError } = await serviceClient
       .from("push_tokens")
       .select("id, user_id")
       .in("user_id", userIds)
       .eq("is_active", true);
 
+    if(tokenError)throw tokenError;
     const targetTokens = (tokenRows ?? []).filter((t) => !optedOut.has(t.user_id));
 
     for (let i = 0; i < targetTokens.length; i += BATCH_INSERT_SIZE) {
@@ -81,14 +72,16 @@ Deno.serve(async (req: Request) => {
         token_id: t.id,
         status: "pending",
       }));
-      await serviceClient.from("notification_deliveries").upsert(chunk, {
+      const {error:insertError}=await serviceClient.from("notification_deliveries").upsert(chunk, {
         onConflict: "notification_id,token_id",
         ignoreDuplicates: true,
       });
+      if(insertError)throw insertError;
     }
 
-    await serviceClient.from("notifications").update({ status: "sending" }).eq("id", notification.id);
+    await serviceClient.from("notifications").update({ status: targetTokens.length?"sending":"sent" }).eq("id", notification.id);
     processed++;
+    }catch{await serviceClient.from("notifications").update({status:"failed"}).eq("id",notification.id);}
   }
 
   return new Response(JSON.stringify({ ok: true, processed }), { status: 200 });

@@ -9,7 +9,7 @@ export async function runChatPush(db:any,send:any,limit=50){
   const {data:p,error}=await db.rpc('chat_push_claim_v1');
   if(error)throw Error('chat_push_claim_failed');if(!p)break;if(p.skipped){skipped++;continue;}
   attempted++;let state='outcome_unknown',provider=null,code=null;
-  try{const r=await send(p.token,chatPushPayload(p.delivery_id,p.language,p.preview));
+  try{const r=await send(p.token,{...chatPushPayload(p.delivery_id,p.language,p.preview),category:'chat'});
    if(r.ok){state='accepted';provider=r.messageId;}else{state=r.errorCode==='UNREGISTERED'?'invalid_token':'failed';code=r.errorCode;}
   }catch{/* Provider may have accepted before the network dropped. */}
   const {error:e}=await db.rpc('chat_push_finish_v1',{p_delivery:p.delivery_id,p_state:state,p_provider:provider,p_error:code});

@@ -14,6 +14,11 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(state);
         OwnerPushTapPlugin.record(this,getIntent());
         if (getBridge() == null) return;
+        android.content.SharedPreferences mediaPrefs = getSharedPreferences("gymak_media_revision", MODE_PRIVATE);
+        if (!mediaPrefs.getBoolean("studio_v2", false)) {
+            getBridge().getWebView().clearCache(true);
+            mediaPrefs.edit().putBoolean("studio_v2", true).apply();
+        }
         // Retain the old HTTPS origin, but let Capacitor serve packaged assets.
         // A legacy PWA worker must not pin this native build to an old web bundle.
         getBridge().setWebViewClient(new BridgeWebViewClient(getBridge()) {

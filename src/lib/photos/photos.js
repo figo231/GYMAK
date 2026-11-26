@@ -38,7 +38,7 @@ export function createMemoryAdapter() {
 
 let adapter = null;
 export function setAdapter(a) { adapter = a; }
-function ad() { if (!adapter) adapter = createIdbAdapter() || createMemoryAdapter(); return adapter; }
+function ad() { if (!adapter) adapter = createIdbAdapter(); if(!adapter)throw Error("persistent_storage_required");return adapter; }
 
 export function newId() { return `ph_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`; }
 export function todayKey(d = new Date()) {

@@ -64,6 +64,8 @@ beforeAll(async()=>{installed=false;
  await db.exec(readFileSync('supabase/migrations/0043_chat_photo_reports.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0044_chat_directory_badges.sql','utf8'));await db.exec(readFileSync('supabase/migrations/0045_chat_live_identity.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0047_chat_photo_free_guard.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/0053_chat_username_search.sql','utf8'));
+
  await consentAll();
 });
 
@@ -121,5 +123,106 @@ describe('APK25 photo budget boundaries',()=>{
   await db.query("insert into storage.objects(bucket_id,name,metadata) values('unrelated','leftover',$1)",[JSON.stringify({size:419430400})]);
   await expect(query('select chat_storage_budget_check(1)')).rejects.toThrow(/photo_storage_full/);
   await db.query("delete from storage.objects where bucket_id='unrelated'");
+ });
+});
+
+it('finds an existing conversation by username even when its visible name differs',async()=>{const id=await conversation('doctor');await rpc('doctor','chat_profile_save',['Doctor Display','',null,true,true]);const rows=await actor(ids.client,()=>query("select * from chat_inbox_v3(null,null,null,$1)",['@U_DOCTOR']));expect(rows.some(r=>r.id===id)).toBe(true);const partial=await actor(ids.client,()=>query("select * from chat_inbox_v3(null,null,null,$1)",['u_doct']));expect(partial.some(r=>r.id===id)).toBe(true);});
+
+it('reproduces production missing username match then fixes it with53 without changing privacy',async()=>{const id=await conversation('doctor');await rpc('doctor','chat_profile_save',['Doctor Display','',null,true,true]);await db.exec(readFileSync('supabase/migrations/0045_chat_live_identity.sql','utf8').split('create function public.chat_identity_broadcast')[0]+'commit;');expect((await actor(ids.client,()=>query("select * from chat_inbox_v3(p_search=>$1)",['@u_doctor']))).some(r=>r.id===id)).toBe(false);await db.exec(readFileSync('supabase/migrations/0053_chat_username_search.sql','utf8'));expect((await actor(ids.client,()=>query("select * from chat_inbox_v3(p_search=>$1)",['@u_doctor']))).some(r=>r.id===id)).toBe(true);await rpc('stranger','chat_accept_terms',[V2]);expect(await actor(ids.stranger,()=>query("select * from chat_inbox_v3(p_search=>$1)",['@u_doctor']))).toHaveLength(0);});
+
+
+describe('Automatic verified professional suggestions',()=>{
+ beforeAll(async()=>{await db.exec(readFileSync('supabase/migrations/0059_verified_professional_directory.sql','utf8'));});
+ it('lists verified roles without manual cards and respects profile privacy',async()=>{
+  await rpc('owner','chat_set_verified',[ids.doctor,true]);
+  await rpc('doctor','chat_profile_save',['Doctor display','Hidden bio',null,false,true]);
+  await db.query('delete from professional_cards where user_id=$1',[ids.doctor]);
+  let rows=await rpc('client','professional_directory_v2',['doctor',null]);
+  expect(rows.find(x=>x.user_id===ids.doctor)).toMatchObject({verified:true,name:'doctor',bio:'',kind:'doctor'});
+  await rpc('doctor','chat_profile_save',['Doctor display','Visible bio',null,true,true]);
+  rows=await rpc('client','professional_directory_v2',['doctor',null]);
+  expect(rows.find(x=>x.user_id===ids.doctor)).toMatchObject({name:'Doctor display',bio:'Visible bio'});
+  expect(JSON.stringify(rows)).not.toContain('@test.invalid');
+ });
+ it('unverify removes and reverify restores, removed role never remains',async()=>{
+  await rpc('owner','chat_set_verified',[ids.doctor,false]);
+  expect((await rpc('client','professional_directory_v2',['all',null])).some(x=>x.user_id===ids.doctor)).toBe(false);
+  await rpc('owner','chat_set_verified',[ids.doctor,true]);
+  expect((await rpc('client','professional_directory_v2',['doctor',null])).some(x=>x.user_id===ids.doctor)).toBe(true);
+  await rpc('owner','chat_set_user_role',[ids.doctor,'user']);
+  expect((await rpc('client','professional_directory_v2',['all',null])).some(x=>x.user_id===ids.doctor)).toBe(false);
+  await rpc('owner','chat_set_user_role',[ids.doctor,'doctor']);
+ });
+ it('accepts a consented request without card while retaining private contact controls',async()=>{
+  await db.query('delete from professional_requests where professional_id=$1 and client_id=$2',[ids.doctor,ids.sender]);
+  const id=await rpc('sender','professional_request_send',[ids.doctor,'doctor']);expect(id).toBeTruthy();
+  await rpc('sender','chat_block',[ids.doctor]);
+  expect((await rpc('sender','professional_directory_v2',['doctor',null])).some(x=>x.user_id===ids.doctor)).toBe(false);
+  await expect(rpc('sender','professional_request_send',[ids.doctor,'doctor'])).rejects.toThrow(/request_not_allowed/);
+  await rpc('sender','chat_unblock',[ids.doctor]);
+ });
+});
+
+
+describe('Professional audience restrictions',()=>{
+ it('defaults all and enforces male/female and unset viewers server-side',async()=>{
+  expect(await rpc('owner','professional_audience_owner',[ids.doctor])).toBe('all');
+  await expect(rpc('client','professional_audience_save',[ids.doctor,'female'])).rejects.toThrow(/owner_only/);
+  await rpc('owner','professional_audience_save',[ids.doctor,'female']);
+  await db.query("update profiles set gender=null where id=$1",[ids.client]);
+  expect((await rpc('client','professional_directory_v2',['doctor',null])).some(x=>x.user_id===ids.doctor)).toBe(false);
+  await expect(rpc('client','professional_request_send',[ids.doctor,'doctor'])).rejects.toThrow(/request_not_allowed/);
+  await db.query("update profiles set gender='male' where id=$1",[ids.client]);
+  expect((await rpc('client','professional_directory_v2',['doctor',null])).some(x=>x.user_id===ids.doctor)).toBe(false);
+  await db.query("update profiles set gender='female' where id=$1",[ids.client]);
+  expect((await rpc('client','professional_directory_v2',['doctor',null])).some(x=>x.user_id===ids.doctor)).toBe(true);
+  await rpc('owner','professional_audience_save',[ids.doctor,'all']);
+ });
+});
+describe('Default avatar preserves explicit choices',()=>{
+ beforeAll(async()=>{await db.exec(readFileSync('supabase/migrations/0060_default_chat_avatar.sql','utf8'));});
+ it('imports only unset profiles, never switches a saved hidden choice',async()=>{
+  await db.query('delete from chat_profiles where user_id=$1',[ids.coach]);
+  expect((await rpc('coach','chat_profile_get',[ids.coach])).visible).toBe(true);
+  expect(await rpc('coach','chat_default_avatar',[ids.coach+'/chat-avatar.jpg'])).toBe(true);
+  expect((await rpc('coach','chat_profile_get',[ids.coach])).avatar_path).toBe(ids.coach+'/chat-avatar.jpg');
+  await rpc('coach','chat_profile_save',['Coach','',ids.coach+'/chat-avatar.jpg',false,true]);
+  expect(await rpc('coach','chat_default_avatar',[ids.coach+'/chat-avatar.jpg'])).toBe(false);
+  expect((await rpc('coach','chat_profile_get',[ids.coach])).visible).toBe(false);
+  await rpc('coach','chat_profile_save',['Coach','Kept bio',null,true,true]);
+  expect(await rpc('coach','chat_default_avatar',[ids.coach+'/chat-avatar.jpg'])).toBe(true);
+  expect((await rpc('coach','chat_profile_get',[ids.coach])).bio).toBe('Kept bio');
+  await expect(rpc('client','chat_default_avatar',[ids.coach+'/chat-avatar.jpg'])).rejects.toThrow(/invalid_avatar/);
+ });
+});
+
+
+describe('Exact username discovery without opt in',()=>{
+ beforeAll(async()=>{await db.exec(readFileSync('supabase/migrations/0061_username_default_discovery.sql','utf8'));await db.exec(readFileSync('supabase/migrations/0062_owner_usernames.sql','utf8'));});
+ it('finds exact usernames without a chat profile but never partial or blocked accounts',async()=>{
+  await db.query('delete from chat_lookup_limits');await db.query('delete from chat_profiles where user_id=$1',[ids.phone]);
+  expect((await rpc('client','chat_username_lookup',['@U_PHONE'])).user_id).toBe(ids.phone);
+  expect(await rpc('client','chat_username_lookup',['u_ph'])).toBeNull();
+  await rpc('client','chat_block',[ids.phone]);expect(await rpc('client','chat_username_lookup',['u_phone'])).toBeNull();await rpc('client','chat_unblock',[ids.phone]);
+ });
+ it('exposes username and exact timestamp in owner-only users endpoint',async()=>{
+  await expect(rpc('client','chat_users',['','all',null,null])).rejects.toThrow(/owner_only/);
+  const r=await rpc('owner','chat_users',['','all',null,null]);expect(r.users.find(x=>x.user_id===ids.client)).toMatchObject({username:'u_client',gender:'female'});expect(r.users[0].created_at).toContain('T');
+ });
+});
+
+
+describe('Every exact username findable before target chat consent',()=>{
+ beforeAll(async()=>{await db.exec(readFileSync('supabase/migrations/0063_exact_username_findable.sql','utf8'));});
+ it('finds a target without terms or profile, without changing consent or private fields',async()=>{
+  await db.query('delete from chat_lookup_limits');await db.query('delete from terms_acceptances where user_id=$1',[ids.phone]);await db.query('delete from chat_profiles where user_id=$1',[ids.phone]);
+  const r=await rpc('client','chat_username_lookup',['@U_PHONE']);expect(r.user_id).toBe(ids.phone);expect(Object.keys(r).sort()).toEqual(['label','user_id','username','verified']);
+  expect((await query('select count(*)::int n from terms_acceptances where user_id=$1',[ids.phone]))[0].n).toBe(0);
+  expect(await rpc('client','chat_username_lookup',['u_ph'])).toBeNull();
+  await rpc('client','chat_block',[ids.phone]);expect(await rpc('client','chat_username_lookup',['u_phone'])).toBeNull();await rpc('client','chat_unblock',[ids.phone]);
+ });
+ it('still requires caller chat consent and keeps the existing probe limit',async()=>{
+  await expect(rpc('phone','chat_username_lookup',['u_client'])).rejects.toThrow(/consent_required/);
+  await db.query('delete from chat_lookup_limits');for(let i=0;i<15;i++)await rpc('client','chat_username_lookup',['nonexistent']);expect((await rpc('client','chat_username_lookup',['u_phone'])).limited).toBe(true);
  });
 });

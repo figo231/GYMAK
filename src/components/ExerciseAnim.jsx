@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { getExerciseFrames } from "../lib/exerciseImages";
 
 // Two-frame looping demo (start / end position) for built-in exercises.
@@ -7,6 +7,7 @@ import { getExerciseFrames } from "../lib/exerciseImages";
 export default function ExerciseAnim({ exerciseId, alt, className = "", still = false }) {
   const frames = getExerciseFrames(exerciseId);
   const [failed, setFailed] = useState(false);
+  useEffect(()=>setFailed(false),[exerciseId]);
   if (!frames || failed) return null;
   return (
     <div className={"ex-anim " + (/^\/(?:women-exercises|exercises)\//.test(String(frames?.[0] || "")) ? "generated-art " : "") + (still ? "still " : "") + className}>

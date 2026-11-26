@@ -21,9 +21,10 @@ export async function registerWebPush(userId,{prompt=false,client=supabase}={}){
  if(!token)throw Error('web_push_token_missing');
  const again=await client.auth.getUser();if(generation!==lifecycle||again.error||again.data?.user?.id!==userId)throw Error('account_changed');
  let device=localStorage.getItem('gymak_web_push_device_v1');if(!device){device='web-'+crypto.randomUUID();localStorage.setItem('gymak_web_push_device_v1',device);}
+ current={userId,device,messaging};
  const saved=await client.from('push_tokens').upsert({user_id:userId,device_id:device,token,platform:'web',is_active:true,last_seen:new Date().toISOString(),language:(navigator.language||'ar').slice(0,2),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone},{onConflict:'device_id'});
  if(saved.error)throw saved.error;
- current={userId,device,messaging};
+ if(generation!==lifecycle){const {deleteToken}=await import('firebase/messaging');await deleteToken(messaging);await client.from('push_tokens').delete().eq('device_id',device);throw Error('account_changed');}
  if(!unsubscribe){const listener=e=>{if(!e.source?.scriptURL||new URL(e.source.scriptURL).origin!==location.origin||!e.source.scriptURL.endsWith('/firebase-messaging-sw.js'))return;if(e.data?.type!=='GYMAK_WEB_PUSH'||!current)return;const n=e.data.payload?.notification||{};window.dispatchEvent(new CustomEvent('gymak-web-push-received',{detail:e.data.payload}));window.dispatchEvent(new CustomEvent('gymak-foreground-push',{detail:{title:n.title,body:n.body}}));};navigator.serviceWorker.addEventListener('message',listener);unsubscribe=()=>navigator.serviceWorker.removeEventListener('message',listener);}
  return {status:'registered'};
 }

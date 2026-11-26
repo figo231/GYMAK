@@ -41,7 +41,7 @@ export function createMemoryAdapter() {
 
 let adapter = null;
 export function setAdapter(a) { adapter = a; }
-function ad() { if (!adapter) adapter = createIdbAdapter() || createMemoryAdapter(); return adapter; }
+function ad() { if (!adapter) adapter = createIdbAdapter(); if(!adapter)throw Error("persistent_storage_required");return adapter; }
 
 /** "image" | "video" | null for a picked file (null = unsupported or too large). */
 export function mediaKindOf(file) {
@@ -78,6 +78,7 @@ export function useExerciseMedia(exerciseId, enabled) {
   const [state, setState] = useState({ url: null, kind: null });
   useEffect(() => {
     if (!enabled || !exerciseId) { setState({ url: null, kind: null }); return undefined; }
+    setState({ url: null, kind: null });
     let alive = true, objUrl = null;
     getExerciseMedia(exerciseId).then((r) => {
       if (!alive || !r) return;

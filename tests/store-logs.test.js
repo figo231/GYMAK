@@ -58,7 +58,7 @@ describe("exercise logs", () => {
     const e = S.getExerciseLogEntries()[0];
     S.deleteExerciseLog(e.exerciseId, e.i);
     const today = e.date;
-    S.mergeExerciseLogsFromRemote([{ exercise_id: "bench-press-barbell", date: today, weight: 60, sets: 3, reps: 10 }]);
+    S.mergeExerciseLogsFromRemote([{ id:e.id, exercise_id: "bench-press-barbell", date: today, weight: 60, sets: 3, reps: 10 }]);
     expect(S.getExerciseLogEntries()).toHaveLength(0);
   });
 

@@ -1,3 +1,6 @@
+import {validSavedState} from "../savedStateShape";
+import {exerciseLogId,exerciseLogKey,validLogId} from "../sync/exerciseLogIdentity";
+import {createWorkoutSession,nextWorkoutSet,finishWorkoutSession} from "../workoutSession";
 import { GYM_EXPANSION_MORE } from "../content/gymExpansionMore";
 import {GYM_EXPANSION} from "../content/gymExpansion";
 /* =========================================================
@@ -55,7 +58,7 @@ let ownerView = false;
       cheatDays: [], // ISO dates: free days that don't break the streak
       savedMeals: [], // {id, name, items:[{name,grams,kcal,protein,carbs,fat}]}
       foodLog: [], // {date, items:[{name,grams,kcal,protein,carbs,fat}], totalKcal, totalProtein, totalCarbs, totalFat}
-      settings: { unit: "kg", notifEnabled: false, notifTime: "19:00", lang: "ar" },
+      settings: { unit: "kg", notificationsMaster:true, notifEnabled: true, notifTime: "19:00", lang: "ar" },
       // Local deletions not yet confirmed on the server (see Store.deleteXxx and sync/domains.js).
       // Stops a pull from resurrecting a row the user deleted while offline.
       pendingDeletes: { weight: [], food: [], exerciseLogs: [], prs: [] },
@@ -130,7 +133,7 @@ let ownerView = false;
       desc: "تقسيم بسيط يناسب اللي وقته محدود — 4 أيام بس في الأسبوع، وبيدي توازن كويس بين الجزء العلوي والسفلي مع راحة كافية.",
     },
     {
-      id: "glutes-tone", goal: "fitness", name: "أرداف وتشكيل", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع",
+      id: "glutes-tone", only: "female", goal: "fitness", name: "أرداف وتشكيل", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع",
       dayChips: ["أرداف وأرجل", "علوي وكور", "أرداف وسمانة"],
       desc: "برنامج بيركز على الأرداف والأرجل مع يوم علوي وكور لتشكيل متوازن. مناسب للبنات وأي حد هدفه تشكيل الجزء السفلي.",
     },
@@ -609,6 +612,8 @@ let ownerView = false;
         return s;
       }
       const parsed = JSON.parse(raw);
+      if(!validSavedState(parsed))throw Error('invalid_saved_state');
+      parsed.weightLogs??=[];parsed.workoutDays??=[];parsed.exerciseLogs??={};
       if (!parsed.exercises) parsed.exercises = SEED_EXERCISES.slice();
       if (!parsed.profile) parsed.profile = defaultState().profile;
       if (parsed.profile.heightCm === undefined) parsed.profile.heightCm = null;
@@ -621,9 +626,10 @@ let ownerView = false;
       if (parsed.profile.gender === undefined) parsed.profile.gender = null;
       if (!parsed.prHistory) parsed.prHistory = [];
       if (parsed.activeProgramId === undefined) parsed.activeProgramId = null;
-      if (!parsed.settings) parsed.settings = { unit: "kg", notifEnabled: false, notifTime: "19:00", lang: "ar" };
+      if (!parsed.settings) parsed.settings = { unit: "kg", notifEnabled: true, notifTime: "19:00", lang: "ar" };
       if (parsed.settings.unit === undefined) parsed.settings.unit = "kg";
-      if (parsed.settings.notifEnabled === undefined) parsed.settings.notifEnabled = false;
+      if (parsed.settings.notifEnabled === undefined) parsed.settings.notifEnabled = true;
+      if(parsed.settings.notificationsMaster===undefined)parsed.settings.notificationsMaster=true;
       if (parsed.settings.notifTime === undefined) parsed.settings.notifTime = "19:00";
       if (parsed.settings.lang === undefined) parsed.settings.lang = "ar";
       if (!parsed.foodLog) parsed.foodLog = [];
@@ -655,9 +661,10 @@ let ownerView = false;
       }
       return (cachedState = parsed);
     } catch (e) {
-      const s = defaultState();
-      save(s);
-      return s;
+      // Never overwrite the only saved history with defaults after a parse or
+      // migration failure. Leave the original bytes intact for recovery.
+      cachedState=null;
+      throw Error('Saved data could not be opened. Your original copy has not been changed.',{cause:e});
     }
   }
 
@@ -701,8 +708,12 @@ let ownerView = false;
       // Gender-tagged built-ins (only: "female") are hidden from everyone else,
       // History remains stored independently of discovery visibility.
       return mergeExercises(st.exercises || SEED_EXERCISES.slice())
-        .filter((e) => !e.only || ownerView || e.only === gender)
+        .filter((e) => e.custom || ownerView || (gender === "female" ? this.isWomenExercise(e) : e.only !== "female"))
         .map(normalizeExercise);
+    },
+
+    isWomenExercise(e) {
+      return e.only === "female" || Object.entries(PROGRAM_TEMPLATES).filter(([id])=>id==="glutes-tone"||WOMEN_PROGRAMS.some(p=>p.id===id)).some(([,days])=>days.some(d=>d.exerciseIds.includes(e.id)));
     },
 
     getExerciseById(id) {
@@ -831,21 +842,22 @@ let ownerView = false;
       return s.settings.unit;
     },
 
+    setNotificationsMaster(enabled){const s=load();s.settings.notificationsMaster=!!enabled;if(!save(s))throw Error("notification_save_failed");return s.settings;},
     getReminderPrefs() { return normalizeReminders(load().settings.reminders); },
     setReminderPrefs(patch) {
       const s = load();
       const cur = normalizeReminders(s.settings.reminders);
       for (const k of Object.keys(cur)) if (patch && patch[k]) cur[k] = { ...cur[k], ...patch[k] };
       s.settings.reminders = normalizeReminders(cur);
-      save(s);
+      if(!save(s))throw Error("notification_save_failed");
       return s.settings.reminders;
     },
     trainedOn(date = todayISO()) { return load().workoutDays.includes(date); },
     setNotifSettings({ enabled, time }) {
       const s = load();
       if (enabled !== undefined) s.settings.notifEnabled = !!enabled;
-      if (time) s.settings.notifTime = time;
-      save(s);
+      if (time!==undefined) {if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(time)))throw Error("invalid_reminder_time");s.settings.notifTime=time;}
+      if(!save(s))throw Error("notification_save_failed");
       return s.settings;
     },
 
@@ -876,7 +888,7 @@ let ownerView = false;
       if (typeof Notification === "undefined") return;
       if (this._reminderTimerId) { clearTimeout(this._reminderTimerId); this._reminderTimerId = null; }
       const s = load().settings;
-      if (!s.notifEnabled || Notification.permission !== "granted") return;
+      if (s.notificationsMaster===false || !s.notifEnabled || Notification.permission !== "granted") return;
       const [h, m] = (s.notifTime || "19:00").split(":").map(Number);
       const now = new Date();
       let next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
@@ -987,9 +999,16 @@ let ownerView = false;
     },
 
     // ===== Exercises =====
-    logSet(exerciseId, weight, sets, reps, effort = null) {
+    logSet(exerciseId, weight, sets, reps, effort = null, sessionUpdate = null) {
       if(effort !== null && (!Number.isInteger(effort) || effort<0 || effort>5 || Number(sets)!==1))throw Error("تقييم المجهود لمجموعة واحدة، من0 لحد5.");
       const s = load();
+      let sessionNext=null;
+      if(sessionUpdate){
+        if(Number(sets)!==1 || !s.workoutSession || s.workoutSession.id!==sessionUpdate.sessionId || s.workoutSession.owner!==localStorage.getItem('gymak_local_data_owner_v1'))throw Error('workout_session_changed');
+        const result=nextWorkoutSet(s.workoutSession,{...sessionUpdate,exerciseId,weight:Number(weight),reps:Number(reps),rir:effort});
+        if(result.duplicate)return s;
+        sessionNext=result.session;
+      }
       const today = todayISO();
       const levelBefore = s.profile.level;
       const streakBefore = this.getStreak();
@@ -999,7 +1018,7 @@ let ownerView = false;
       const prevMax = prevLogs.reduce((m, l) => Math.max(m, l.weight), 0);
       if (!s.exerciseLogs[exerciseId]) s.exerciseLogs[exerciseId] = [];
       const awarded = this._awardDailyXP(s, today);
-      s.exerciseLogs[exerciseId].push({ date: today, weight: w, sets: Number(sets), reps: Number(reps), at: nextLogStamp(), ...(effort !== null ? {rir:effort} : {}), ...(awarded ? { xp: true } : {}) });
+      s.exerciseLogs[exerciseId].push({ id:crypto.randomUUID(), date: today, weight: w, sets: Number(sets), reps: Number(reps), at: nextLogStamp(), ...(effort !== null ? {rir:effort} : {}), ...(awarded ? { xp: true } : {}) });
       if (w > prevMax && prevLogs.length > 0) {
         const ex = (s.exercises || []).find((e) => e.id === exerciseId);
         s.prHistory.unshift({
@@ -1010,7 +1029,8 @@ let ownerView = false;
         s.prHistory = s.prHistory.slice(0, 30);
       }
       this._markWorkoutDay(s, today);
-      save(s);
+      if(sessionNext)s.workoutSession=sessionNext;
+      if(!save(s))throw Error('workout_save_failed');
       const streakAfter = this.getStreak();
       const moments = momentsFor({
         levelUp: s.profile.level > levelBefore, level: s.profile.level,
@@ -1019,6 +1039,51 @@ let ownerView = false;
       });
       moments.forEach((m) => celebrate(m));
       return s;
+    },
+
+    getWorkoutSession(){
+      const session=load().workoutSession;
+      return session && session.owner===localStorage.getItem('gymak_local_data_owner_v1') ? JSON.parse(JSON.stringify(session)) : null;
+    },
+    startWorkoutSession(title,exercises){
+      const owner=localStorage.getItem('gymak_local_data_owner_v1');
+      if(!owner)throw Error('sign_in_required');
+      const s=load();
+      if(s.workoutSession?.status==='active')throw Error('workout_already_active');
+      const allowed=new Map(this.getExercises().map(e=>[e.id,e]));
+      const selected=exercises.map(e=>allowed.get(e.id)).filter(Boolean);
+      s.workoutSession=createWorkoutSession({id:crypto.randomUUID(),owner,title,exercises:selected});
+      if(!save(s))throw Error('workout_save_failed');
+      return this.getWorkoutSession();
+    },
+    logWorkoutSet(sessionId,exerciseId,requestId,weight,reps,rir=null){
+      this.logSet(exerciseId,weight,1,reps,rir,{sessionId,requestId});
+      return this.getWorkoutSession();
+    },
+    finishWorkoutSession(id){
+      const current=this.getWorkoutSession();if(!current||current.id!==id)throw Error('workout_session_changed');
+      const s=load();s.workoutSession=finishWorkoutSession(current);
+      if(!save(s))throw Error('workout_save_failed');return this.getWorkoutSession();
+    },
+
+    restoreWorkoutRevision(owner,payload){
+      if(localStorage.getItem('gymak_local_data_owner_v1')!==owner)throw Error('session_changed');
+      const session=payload?.session;
+      if(!session||session.owner!==owner||session.schema!==1||!['active','completed'].includes(session.status)||!Array.isArray(session.exercises)||!session.exercises.length||session.exercises.length>40||!Number.isInteger(session.cursor)||session.cursor<0||session.cursor>=session.exercises.length||session.exercises.some(e=>!e||typeof e.id!=='string'||!Number.isInteger(e.sets)||e.sets<1||e.sets>20||!Array.isArray(e.completed)||e.completed.length>e.sets))throw Error('invalid_workout_revision');
+      if(typeof session.id!=='string'||typeof session.title!=='string'||!Number.isFinite(session.startedAt)||!Number.isFinite(session.updatedAt)||!Number.isFinite(session.restUntil??0)||new Set(session.exercises.map(e=>e.id)).size!==session.exercises.length||session.exercises.some(e=>typeof e.name!=='string'||!Number.isInteger(e.reps)||e.reps<1||e.reps>500||e.completed.some(c=>!c||typeof c.requestId!=='string'||c.exerciseId!==e.id||!Number.isFinite(c.at)||!Number.isFinite(c.weight)||c.weight<0||c.weight>1500||!Number.isInteger(c.reps)||c.reps<1||c.reps>500||(c.rir!==null&&(!Number.isInteger(c.rir)||c.rir<0||c.rir>5)))))throw Error('invalid_workout_revision');
+      const current=this.getWorkoutSession();if(current?.status==='active'&&JSON.stringify(current)!==JSON.stringify(session))throw Error('active_workout_preserved');
+      const s=JSON.parse(JSON.stringify(load()));if(!payload.logs||typeof payload.logs!=='object'||Array.isArray(payload.logs))throw Error('invalid_workout_revision');
+      for(const [id,logs] of Object.entries(payload.logs)){
+       if(!Array.isArray(logs)||logs.some(l=>!l||!validLogId(l.id)||typeof l.date!=='string'||!Number.isFinite(l.weight)||!Number.isInteger(l.reps)||l.reps<1||!Number.isInteger(l.sets)||l.sets<1))throw Error('invalid_workout_revision');
+       const have=new Set((s.exerciseLogs[id]||[]).map(l=>l.id));s.exerciseLogs[id]??=[];for(const log of logs)if(!have.has(log.id)){s.exerciseLogs[id].push({...log});have.add(log.id);this._markWorkoutDay(s,log.date);}
+      }
+      s.workoutSession=JSON.parse(JSON.stringify(session));if(!save(s))throw Error('workout_save_failed');
+    },
+
+    cancelEmptyWorkoutSession(id){
+      const current=this.getWorkoutSession();if(!current||current.id!==id||current.status!=='active')throw Error('workout_session_changed');
+      if(current.exercises.some(e=>e.completed.length))throw Error('workout_has_sets');
+      const s=load();s.workoutSession=null;if(!save(s))throw Error('workout_save_failed');
     },
 
     // XP: +25 per logged exercise, at most XP_DAILY_CAP awards a day.
@@ -1511,7 +1576,7 @@ let ownerView = false;
     // ===== Programs =====
     getPrograms() {
       const g = load().profile.gender;
-      return PROGRAMS.filter((p) => !p.only || ownerView || p.only === g);
+      return PROGRAMS.filter((p) => ownerView || (g === "female" ? p.only === "female" : p.only !== "female"));
     },
 
     setOwnerView(on) {
@@ -1793,7 +1858,7 @@ let ownerView = false;
       return out.slice(0, limit);
     },
     _logKey(exerciseId, l) {
-      return `${exerciseId}|${l.date}|${l.weight}|${l.sets}|${l.reps}`;
+      return exerciseLogKey(exerciseId,l);
     },
     deleteExerciseLog(exerciseId, index) {
       const s = load();
@@ -1828,7 +1893,7 @@ let ownerView = false;
       const old = { ...logs[index] };
       // delete the old row (tombstoned for sync), then write the new values in place
       const oldKey = this._logKey(exerciseId, old);
-      logs[index] = { ...old, date: old.date, weight: w, sets: st, reps: r, ...(st!==1 ? {rir:undefined} : {}) };
+      logs[index] = { ...old, ...(validLogId(old.id)?{id:crypto.randomUUID()}:{}), date: old.date, weight: w, sets: st, reps: r, ...(st!==1 ? {rir:undefined} : {}) };
       const stillThere = logs.some((l) => this._logKey(exerciseId, l) === oldKey);
       if (!stillThere) this._tomb(s, "exerciseLogs", oldKey);
       this._untomb(s, "exerciseLogs", this._logKey(exerciseId, logs[index]));
@@ -2009,6 +2074,24 @@ let ownerView = false;
       save(s);
     },
 
+    applySyncedMutableRow(table,key,row){
+      const s=load();
+      if(table==='profiles'){
+       if(!row)throw Error('profile_missing');
+       const profileMap={name:'name',username:'username',bio:'bio',avatar:'avatar',cover:'cover',cover_gradient:'coverGradient',gender:'gender',height_cm:'heightCm',level:'level',xp:'xp',xp_next:'xpNext',member_since:'memberSince'};
+       for(const [remote,local] of Object.entries(profileMap))if(Object.hasOwn(row,remote))s.profile[local]=row[remote];
+       for(const [remote,local] of [['goal_weight','goalWeight'],['active_program_id','activeProgramId'],['best_streak','bestStreak']])if(Object.hasOwn(row,remote))s[local]=row[remote];
+       for(const [remote,local] of [['unit','unit'],['lang','lang'],['notif_enabled','notifEnabled'],['notif_time','notifTime']])if(Object.hasOwn(row,remote))s.settings[local]=row[remote];
+      }else if(table==='weight_logs'){
+       s.weightLogs=s.weightLogs.filter(r=>r.date!==key);if(row)s.weightLogs.push({date:row.date,weight:Number(row.weight),bodyFat:row.body_fat==null?null:Number(row.body_fat)});s.weightLogs.sort((a,b)=>a.date.localeCompare(b.date));s.pendingDeletes.weight=s.pendingDeletes.weight.filter(k=>k!==key);
+      }else if(table==='food_log'){
+       s.foodLog=s.foodLog.filter(r=>r.date!==key);if(row)s.foodLog.push({date:row.date,items:row.items,totalKcal:row.total_kcal,totalProtein:row.total_protein,totalCarbs:row.total_carbs,totalFat:row.total_fat});s.foodLog.sort((a,b)=>a.date.localeCompare(b.date));s.pendingDeletes.food=s.pendingDeletes.food.filter(k=>k!==key);
+      }else if(table==='exercises'){
+       s.exercises=s.exercises.filter(r=>r.id!==key);if(row)s.exercises.push({id:row.id,name:row.name,muscle:row.muscle,muscleLabel:this.getMuscleMeta(row.muscle).label,secondary:row.secondary||'',sets:row.sets,reps:row.reps,custom:true});s.deletedExerciseIds=s.deletedExerciseIds.filter(k=>k!==key);
+      }else throw Error('invalid_sync_table');
+      if(!save(s))throw Error('mutable_merge_save_failed');
+    },
+
     mergeWeightLogsFromRemote(remoteRows) {
       const s = load();
       const byDate = new Map(s.weightLogs.map((w) => [w.date, w]));
@@ -2062,25 +2145,22 @@ let ownerView = false;
       save(s);
     },
 
-    /** Union-merge by content match (exerciseId+date+weight+sets+reps) — local
-        entries never carried an id (see the original shape in defaultState()),
-        so dedup compares content, not a stored key. The id<->row mapping only
-        exists in the sync layer (deterministic, derived from this same content),
-        never in local storage — see src/lib/sync/domains.js. */
+    /** Union-merge by stable per-set id, with deterministic legacy compatibility. */
     mergeExerciseLogsFromRemote(remoteRows) {
       const s = load();
       const seen = new Set();
       Object.entries(s.exerciseLogs).forEach(([exId, arr]) => {
-        arr.forEach((l) => seen.add(`${exId}|${l.date}|${l.weight}|${l.sets}|${l.reps}`));
+        arr.forEach((l) => {seen.add(exerciseLogKey(exId,l));const owner=localStorage.getItem("gymak_local_data_owner_v1");if(owner)seen.add("id:"+exerciseLogId(owner,exId,l));});
       });
       const gone = new Set(s.pendingDeletes.exerciseLogs);
       remoteRows.forEach((r) => {
-        const key = `${r.exercise_id}|${r.date}|${r.weight}|${r.sets}|${r.reps}`;
-        if (gone.has(key)) return;
-        if (seen.has(key)) return;
+        const legacyKey = `${r.exercise_id}|${r.date}|${r.weight}|${r.sets}|${r.reps}`;
+        const key=exerciseLogKey(r.exercise_id,r);
+        if (gone.has(key)||gone.has(legacyKey)) return;
+        if (seen.has(key)||(!validLogId(r.id)&&seen.has(legacyKey))) return;
         seen.add(key);
         if (!s.exerciseLogs[r.exercise_id]) s.exerciseLogs[r.exercise_id] = [];
-        s.exerciseLogs[r.exercise_id].push({ date: r.date, weight: Number(r.weight), sets: r.sets, reps: r.reps });
+        s.exerciseLogs[r.exercise_id].push({ ...(validLogId(r.id)?{id:r.id}:{}), date: r.date, weight: Number(r.weight), sets: r.sets, reps: r.reps, ...(Number.isInteger(r.rir)&&r.rir>=0&&r.rir<=5?{rir:r.rir}:{}), ...(r.client_logged_at&&Number.isFinite(Date.parse(r.client_logged_at))?{at:Date.parse(r.client_logged_at)}:{}) });
         s.exerciseLogs[r.exercise_id].sort((a, b) => (a.date > b.date ? 1 : -1));
         this._markWorkoutDay(s, r.date);
       });

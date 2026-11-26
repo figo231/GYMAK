@@ -13,7 +13,7 @@ Deno.serve(async(req:Request)=>{
   if(e||!p){skipped++;continue;}
   // The claim is consumed before the network call. No retries on timeout/crash.
   let status='outcome_unknown';
-  try{const result=await sendToDeviceToken(p.token,{title:p.title,body:p.body,notificationId:p.notificationId,priority:'normal',ttlSeconds:900,collapseKey:p.collapseKey});status=result.ok?'accepted':'rejected';}catch{/* May have reached FCM: never retry. */}
+  try{const result=await sendToDeviceToken(p.token,{category:'encouragement',title:p.title,body:p.body,notificationId:p.notificationId,priority:'normal',ttlSeconds:900,collapseKey:p.collapseKey});status=result.ok?'accepted':'rejected';}catch{/* May have reached FCM: never retry. */}
   const {error:updateError}=await db.from('encouragement_deliveries').update({status,completed_at:new Date().toISOString()}).eq('id',claim.id).eq('status','outcome_unknown');
   if(updateError||status==='outcome_unknown')unknown++;else if(status==='accepted')accepted++;else rejected++;
  }

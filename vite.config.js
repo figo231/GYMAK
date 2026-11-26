@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       // We call registerSW() ourselves (via the virtual:pwa-register module,
       // in src/components/PWAUpdatePrompt.jsx) so we can drive an
       // update-available toast and force periodic update checks — instead of
@@ -48,7 +48,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,woff2,png,ico,svg}"],
+        globPatterns: ["**/*.{js,css,html,woff2,png,ico,svg,webp}"],
         // The original was a multi-page app where every .html file was
         // individually precached and network-first. This is now a single-page
         // app, so a hard refresh or deep link (e.g. /exercises) while offline
@@ -59,32 +59,23 @@ export default defineConfig({
         // of plugin defaults: a new SW takes over immediately instead of
         // sitting "waiting" until every open tab/PWA instance is closed, and
         // every stale precache from a previous deploy is deleted right after.
-        skipWaiting: true,
+        skipWaiting: false,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        // Exercise demo photos: cache after first view so they work offline.
-        // The bundled WebP frames under /exercises/ are intentionally NOT in
-        // globPatterns above, so they stay out of the precache (4 MB the SW
-        // would otherwise fetch up front) and are lazy-loaded + cached on use.
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^art$/],
+        // All locally bundled exercise poses are core offline content.
+        // Precache them during installation, including never-opened exercises.
         runtimeCaching: [
           {
             urlPattern: /\/exercises\/[\w-]+\/\d\.webp$/,
             handler: "CacheFirst",
             options: {
-              cacheName: "exercise-frames",
+              cacheName: "exercise-frames-studio-v2",
               expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          {
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/yuhonas\/free-exercise-db@/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "exercise-photos",
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
+
         ],
       },
     }),

@@ -28,11 +28,13 @@ export async function stageOta({plugin,manifest,identity,storage}){
 }
 export async function activateStagedOta({plugin,storage,nativeBuild,canCommit=()=>true}){
  const raw=storage.getItem('gymak_ota_staged_v1');if(!raw)return false;
- storage.removeItem('gymak_ota_staged_v1'); // clear BEFORE reload to prevent loop
  let candidate;try{candidate=JSON.parse(raw);}catch{return false;}
- if(candidate.nativeBuild!==nativeBuild||typeof candidate.id!=='string')return false;
+ if(candidate.nativeBuild!==nativeBuild||typeof candidate.id!=='string'){storage.removeItem('gymak_ota_staged_v1');return false;}
  const {bundles=[]}=await plugin.list();
- if(!bundles.some(b=>b.id===candidate.id&&['pending','success'].includes(b.status)))return false;
+ if(!bundles.some(b=>b.id===candidate.id&&['pending','success'].includes(b.status))){storage.removeItem('gymak_ota_staged_v1');return false;}
+ // Keep the pending candidate if startup released the UI while native discovery
+ // was slow. Clearing it earlier silently loses a valid update forever.
  if(!canCommit())return false;
+ storage.removeItem('gymak_ota_staged_v1'); // only clear at the committed switch, before reload
  await plugin.set({id:candidate.id});return true;
 }

@@ -15,24 +15,25 @@ export default function WaterCard() {
   const pct = Math.min(100, Math.round((ml / goal) * 100));
   const liters = (v) => String(Number((v / 1000).toFixed(2)));
 
+  const persist = (action) => { try { action();refresh();return true; } catch { toast(tx("تعذر الحفظ. بياناتك السابقة زي ما هي. راجع مساحة الجهاز وجرب تاني."));return false; } };
   async function editGoal() {
     const v = await promptAsync({ title: tx("هدفك اليومي من المياه (مللي):"), inputType: "number", defaultValue: goal });
     if (v === null || v === undefined || v === "") return;
-    if (!setWaterGoal(v)) { toast(tx("هدف المياه لازم يكون بين 500 و 10000 مل.")); return; }
-    refresh();
+    if (!(Math.round(Number(v))>=500&&Math.round(Number(v))<=10000)) { toast(tx("هدف المياه لازم يكون بين 500 و 10000 مل.")); return; }
+    persist(()=>setWaterGoal(v));
   }
   async function editTotal() {
     const v = await promptAsync({ title: tx("إجمالي مياه النهارده (مللي):"), inputType: "number", defaultValue: ml });
     if (v === null || v === undefined || v === "") return;
-    if (!setWaterTotal(v)) { toast(tx("اكتب كمية بين 0 و 10000 مل.")); return; }
-    refresh();
+    if (!(Math.round(Number(v))>=0&&Math.round(Number(v))<=10000)) { toast(tx("اكتب كمية بين 0 و 10000 مل.")); return; }
+    persist(()=>setWaterTotal(v));
   }
   async function addCustom() {
     const v = await promptAsync({ title: tx("كمية المياه (مللي):"), inputType: "number", defaultValue: "" });
     if (v === null || v === undefined || v === "") return;
     const n = Math.round(Number(v));
     if (!(n >= 1 && n <= 5000)) { toast(tx("اكتب كمية بين 1 و 5000 مل.")); return; }
-    addWater(n); buzz(10); refresh();
+    if(persist(()=>addWater(n)))buzz(10);
   }
   const AR_DAYS = [tx("الأحد"), tx("الاتنين"), tx("التلات"), tx("الأربع"), tx("الخميس"), tx("الجمعة"), tx("السبت")];
   const dayName = (iso) => AR_DAYS[new Date(iso + "T00:00:00").getDay()];
@@ -49,9 +50,9 @@ export default function WaterCard() {
         <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg,#38bdf8,#0ea5e9)", transition: "width .3s" }} />
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-        <button type="button" style={btn} onClick={() => { addWater(-STEP); refresh(); }} aria-label={txf(`شيل {0} مل`, [STEP])}>−{STEP} {tx("مل")}</button>
-        <button type="button" style={btn} onClick={() => { addWater(STEP); buzz(10); refresh(); }}>+{STEP} {tx("مل")}</button>
-        <button type="button" style={btn} onClick={() => { addWater(500); buzz(10); refresh(); }}>{tx("+500 مل")}</button>
+        <button type="button" style={btn} onClick={() => { persist(()=>addWater(-STEP)); }} aria-label={txf(`شيل {0} مل`, [STEP])}>−{STEP} {tx("مل")}</button>
+        <button type="button" style={btn} onClick={() => { if(persist(()=>addWater(STEP)))buzz(10); }}>+{STEP} {tx("مل")}</button>
+        <button type="button" style={btn} onClick={() => { if(persist(()=>addWater(500)))buzz(10); }}>{tx("+500 مل")}</button>
         <button type="button" style={btn} onClick={addCustom} aria-label={tx("كمية تانية")}>{tx("أكتر")}</button>
         <button type="button" style={btn} onClick={editTotal} aria-label={tx("عدّل إجمالي اليوم")}>✎</button>
       </div>

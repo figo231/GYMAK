@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import UpdateService from "../lib/update/UpdateService";
 import { useI18n } from "../hooks/useI18n";
+import {hasActiveWorkout} from "../lib/update/workoutUpdateGuard";
 import { tx } from "../lib/i18n/tx";
 
 // If the user doesn't tap "تحديث الآن", apply the update on their behalf
@@ -10,15 +11,17 @@ const AUTO_RELOAD_AFTER_MS = 10 * 1000;
 export default function PWAUpdatePrompt() {
   const { lang } = useI18n();
   const [needRefresh, setNeedRefresh] = useState(false);
+  const [training,setTraining]=useState(false);
+  useEffect(()=>{if(!needRefresh)return;const check=()=>setTraining(hasActiveWorkout());check();const timer=setInterval(check,1000);return()=>clearInterval(timer);},[needRefresh]);
 
   // UpdateService.init() is a one-time, app-lifetime singleton (guarded
   // internally), so mounting this more than once — or React StrictMode's
   // double-invoke in dev — is safe.
   useEffect(() => {
-    UpdateService.init();
     const unsubscribe = UpdateService.subscribe((event) => {
       if (event.type === "available") setNeedRefresh(true);
     });
+    UpdateService.init();
     return unsubscribe;
   }, []);
 
@@ -34,7 +37,7 @@ export default function PWAUpdatePrompt() {
     UpdateService.applyUpdate();
   }
 
-  if (!needRefresh) return null;
+  if (!needRefresh || training) return null;
 
   const text = lang === "en"
     ? { title: "A new version of GYMAK is available", action: "Update now" }

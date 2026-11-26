@@ -1,3 +1,4 @@
+import {exerciseLogId} from "./sync/exerciseLogIdentity";
 import Store from './store/gymakStore';
 import {deterministicId} from './sync/deterministicId';
 const profileFields=[['height_cm','heightCm'],['gender','gender'],['goal_weight','goalWeight'],['active_program_id','activeProgramId'],['unit','unit'],['lang','lang']];
@@ -56,7 +57,7 @@ export async function finishGuestImport(review,choices,client){
    weights:local.weightLogs.filter(r=>select('weight',r.date)).map(r=>({id:deterministicId('weight_log',userId,r.date),date:r.date,weight:r.weight,body_fat:r.bodyFat??null})),
    food:local.foodLog.filter(r=>select('food',r.date)).map(r=>({id:deterministicId('food_log',userId,r.date),date:r.date,items:r.items,total_kcal:r.totalKcal,total_protein:r.totalProtein,total_carbs:r.totalCarbs,total_fat:r.totalFat})),
    exercises:local.exercises.filter(r=>r.custom&&select('exercise',r.id)).map(({id,name,muscle,secondary,sets,reps})=>({id,name,muscle,secondary,sets,reps})),
-   logs:Object.entries(local.exerciseLogs).flatMap(([exercise_id,rows])=>rows.map(r=>({id:deterministicId('exercise_log',userId,exercise_id,r.date,r.weight,r.sets,r.reps),exercise_id,...r}))),
+   logs:Object.entries(local.exerciseLogs).flatMap(([exercise_id,rows])=>rows.map(r=>({id:exerciseLogId(userId,exercise_id,r),exercise_id,...r}))),
    prs:local.prHistory.map(r=>({id:deterministicId('pr',userId,r.exerciseId,r.date,r.weight,r.prevWeight),exercise_id:r.exerciseId,exercise_name:r.exerciseName,date:r.date,weight:r.weight,prev_weight:r.prevWeight})),days:local.workoutDays};
   request={p_user:userId,p_request:crypto.randomUUID(),p_expected:review.remote,p_data:data};localStorage.setItem(stagedKey,JSON.stringify(request));
  }

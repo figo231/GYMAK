@@ -1,5 +1,9 @@
+import ServerPushPreferences from "./ServerPushPreferences";
+import {useAuth} from "../../hooks/useAuth";
+import {readPushPreferences,savePushPreference} from "../../lib/push/serverPreferences";
+import SmartReminderPreference from "./SmartReminderPreference";
 import WebPushPreference from "../../components/WebPushPreference";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { useToast } from "../../hooks/useToast";
@@ -19,13 +23,32 @@ const ROWS = [
 
 export default function Notifications() {
   const toast = useToast();
+  const {user}=useAuth();
   const [prefs, setPrefs] = useState(() => Store.getReminderPrefs());
   const native = isNative();
+  const [master,setMaster]=useState(()=>Store.getSettings().notificationsMaster!==false);
+  useEffect(()=>{let live=true;if(user?.id)readPushPreferences(user.id).then(p=>{
+    if(!live)return;
+    // Any recorded OFF wins. A stale device must never silently re-enable it.
+    if(p.master===false){Store.setNotificationsMaster(false);setMaster(false);}
+    else if(Store.getSettings().notificationsMaster===false)savePushPreference(user.id,'master',false).catch(()=>{});
+  }).catch(()=>{});return()=>{live=false;};},[user?.id]);
+  async function toggleMaster(on){
+    try{
+      Store.setNotificationsMaster(on);setMaster(on);Store.scheduleReminder();
+      if(native){const {cancelAllAppReminders}=await import("../../lib/push/nativeReminder");if(!on)await cancelAllAppReminders();}
+      try{await savePushPreference(user?.id,'master',on);}
+      catch{toast(tx("اختيارك محفوظ على الجهاز. إيقاف إشعارات السيرفر لسه محتاج نت بنفس الحساب، ورسالة اتبعتت ممكن توصل."));}
+    }catch{toast(tx("التغيير متعملش بالكامل. جرّب تاني."));}
+  }
 
   async function update(k, patch) {
+    try { await updateChoice(k,patch); } catch { setPrefs(Store.getReminderPrefs());toast(tx("الحفظ أو الجدولة متعملش. جرّب تاني.")); }
+  }
+  async function updateChoice(k,patch) {
     const next = Store.setReminderPrefs({ [k]: patch });
     setPrefs(next);
-    if (!native) return;
+    if (!native || !master) return;
     const ok = await applyExtraReminders(next);
     if (!ok) { toast(tx("محتاجين إذنك للإشعارات. فعّلها من إعدادات الموبايل.")); const off = Store.setReminderPrefs({ [k]: { on: false } }); setPrefs(off); return; }
     syncMissedReminder(next, Store.trainedOn(), true);
@@ -35,6 +58,11 @@ export default function Notifications() {
     <div className="help-page">
       <div className="section-head"><h1 className="section-title">{tx("التنبيهات")}</h1></div>
       {!native && <p className="notif-note">{tx("التنبيهات الإضافية بتشتغل في تطبيق الأندرويد. على المتصفح بنحفظ اختياراتك بس.")}</p>}
+      <section className="glass notif-row"><label className="toggle-row"><span>{tx("كل الإشعارات والتذكيرات")}</span><input type="checkbox" checked={master} onChange={e=>toggleMaster(e.target.checked)} /></label><p className="notif-note">{tx("يقفل التذكيرات المحلية وإشعارات الحساب. اختيار السيرفر محتاج اتصال للتأكيد، ورسالة اتبعتت بالفعل ممكن توصل.")}</p></section>
+      <fieldset disabled={!master} style={{border:0,padding:0,margin:0,opacity:master?1:.5}}>
+      <SmartReminderPreference />
+      </fieldset>
+      <ServerPushPreferences />
       <WebPushPreference />
       <ChatPushPreference />
       <EncouragementPreference />

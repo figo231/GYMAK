@@ -1,3 +1,4 @@
+import {isEn} from "./i18n/lang";
 import { tx, txf } from "./i18n/tx";
 /* Egyptian weekly meal plan + shopping list. Pure: caller passes `lookup(name, grams)` -> {kcal, protein} | null. */
 export const POOLS = {
@@ -63,5 +64,5 @@ export function shoppingList(days) {
   for (const d of days) for (const m of d.meals) for (const it of m.items) map.set(it.name, (map.get(it.name) || 0) + it.grams);
   return [...map.entries()].map(([name, grams]) => ({ name, grams })).sort((a, b) => b.grams - a.grams);
 }
-export const fmtGrams = (g) => (g >= 1000 ? txf(`{0} كجم`, [(Math.round(g / 100) / 10).toString()]) : txf(`{0} جم`, [g]));
-export function listText(list, displayName = (x) => x) { return (isEn() ? "Shopping list (GYMAK)" : "قائمة التسوق (GYMAK)") + "\n" + list.map((x) => `- ${displayName(x.name)}: ${fmtGrams(x.grams)}`).join("\n"); }
+export const fmtGrams = (g) => (g >= 1000 ? txf(`{0} كجم`, [(Math.round(g) / 1000).toString()]) : txf(`{0} جم`, [g]));
+export function listText(list, displayName = (x) => x) { return (isEn() ? "Meal quantities (GYMAK), use the listed preparation, not raw purchase conversions" : "كميات الوجبات (GYMAK)، نفس حالة الصنف مش تحويل لأوزان شراء نيّة") + "\n" + list.map((x) => `- ${displayName(x.name)}: ${fmtGrams(x.grams)}`).join("\n"); }

@@ -1,3 +1,5 @@
+import PrivateDraftReview from './PrivateDraftReview';
+import SyncConflictReview from './SyncConflictReview';
 import { useRef, useState } from "react";
 import UpdateService from "../../lib/update/UpdateService";
 import { useNavigate } from "react-router-dom";
@@ -80,7 +82,7 @@ export default function Account() {
       danger: true, confirmLabel: tx("استرجاع"), cancelLabel: tx("إلغاء"),
     });
     if (!ok) return;
-    applyBackup(parsed.payload);
+    try {applyBackup(parsed.payload);} catch {toast(tx("الاسترجاع متحفظش. بياناتك الأصلية محفوظة، راجع مساحة الجهاز."));return;}
     toast(tx("اتسترجعت البيانات."));
     setTimeout(() => window.location.assign("/profile"), 600);
   }
@@ -97,10 +99,13 @@ export default function Account() {
       confirmLabel: tx("امسح واخرج"), cancelLabel: tx("اخرج وسيبها"),
     });
     setBusy(true);
-    await signOut();
-    if (wipe) { await clearLocalData(); Store.resetAllData(); }
-    setBusy(false);
-    navigate("/profile", { replace: true });
+    try {
+      const result=await signOut();
+      if(result?.error){toast(tx("تسجيل الخروج متعملش. بيانات الجهاز زي ما هي، جرّب تاني."));return;}
+      if (wipe) { await clearLocalData(); Store.resetAllData(); }
+      navigate("/profile", { replace: true });
+    } catch { toast(tx("تسجيل الخروج متعملش بالكامل. جرّب تاني.")); }
+    finally { setBusy(false); }
   }
 
   const statusInfo = STATUS_LABEL[status] || STATUS_LABEL.idle;
@@ -109,6 +114,8 @@ export default function Account() {
   return (
     <>
       <DetailTopBar title={tx("حسابي")} backTo="/profile" />
+      <SyncConflictReview />
+      <PrivateDraftReview />
 
       <div className="glass" style={{ padding: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 700, marginBottom: 4 }}>{tx("مسجّل دخول بـ")}</div>

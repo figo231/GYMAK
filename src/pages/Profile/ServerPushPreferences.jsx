@@ -1,0 +1,13 @@
+import {useEffect,useState,useRef} from 'react';
+import {useAuth} from '../../hooks/useAuth';
+import {useI18n} from '../../hooks/useI18n';
+import {readPushPreferences,savePushPreference} from '../../lib/push/serverPreferences';
+const names={announcement:['إشعارات إعلانات التطبيق','App announcements'],chat:['إشعارات الرسائل الجديدة','New message notifications'],encouragement:['إشعارات التشجيع من السيرفر','Server encouragement notifications']};
+export default function ServerPushPreferences(){
+ const {user}=useAuth(),{lang}=useI18n(),en=lang==='en',id=user?.id;
+ const current=useRef(id);current.current=id;
+ const [values,setValues]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[retry,setRetry]=useState(0);
+ useEffect(()=>{let live=true;setValues(null);setBusy(false);setMessage('');if(id)readPushPreferences(id).then(p=>{if(live)setValues(p);}).catch(()=>{if(live)setMessage(en?'Could not read server choices. Connect and retry.':'معرفناش نقرأ اختيارات السيرفر. اتصل وحاول تاني.');});return()=>{live=false;};},[id,retry,en]);
+ async function change(category,on){setBusy(true);setMessage('');try{await savePushPreference(id,category,on);if(current.current===id){setValues(v=>({...v,[category]:on}));setMessage(en?'Saved on server. A notification already sent may still arrive.':'اتحفظ على السيرفر. إشعار اتبعت بالفعل ممكن يوصل.');}}catch{if(current.current===id){setValues(v=>({...v,[category]:on}));setMessage(en?'Saved on this device, not yet confirmed on server. We retry for this account when online.':'محفوظ على الجهاز ولسه متأكدش على السيرفر. هنعيد المحاولة لنفس الحساب لما النت يرجع.');}}finally{if(current.current===id)setBusy(false);}}
+ return <section className="glass" style={{padding:16,marginBottom:16}}><h2 style={{fontSize:17}}>{en?'Server notifications':'إشعارات السيرفر'}</h2><p className="notif-note">{en?'On by default unless you previously turned them off. These switches never enable message previews or health sharing. Delivery needs internet and OS permission.':'مفتوحة افتراضيًا إلا لو قفلتها قبل كده. الأزرار دي مش بتفتح معاينة نص الرسايل ولا مشاركة بيانات صحية. الوصول محتاج نت وإذن النظام.'}</p>{Object.entries(names).map(([key,label])=><label key={key} className="toggle-row" style={{marginBlock:14}}><span>{label[en?1:0]}</span><input type="checkbox" checked={values?.[key]===true} disabled={!values||busy} onChange={e=>change(key,e.target.checked)}/></label>)}{message&&<p role="status" className="notif-note">{message}</p>}{!values&&<button type="button" className="btn" onClick={()=>setRetry(n=>n+1)}>{en?'Retry':'حاول تاني'}</button>}</section>;
+}

@@ -1,1 +1,12 @@
-{"enabled":false,"firebase":null,"vapidKey":null}
+{
+  "enabled": true,
+  "firebase": {
+    "apiKey": "AIzaSyBpoXHWf_Fqt80aENDshIdZmfBUtGQ3_Tg",
+    "authDomain": "gymak-9b6bd.firebaseapp.com",
+    "projectId": "gymak-9b6bd",
+    "storageBucket": "gymak-9b6bd.firebasestorage.app",
+    "messagingSenderId": "206705915301",
+    "appId": "1:206705915301:web:19d6d2c083f67eb8c2e44c"
+  },
+  "vapidKey": "BMbqRz0UN3qhruSDT_hwtYEPiRaPSbFq3SaQDgol3TJWXyFu8EfJVv84VyAcXdADLQRpgKq-863hkXREckeUB9k"
+}

@@ -22,3 +22,18 @@ html.pro-ui .ux-profile .cover-wrap{height:110px;}
 .profile-legacy-settings .settings-name{min-width:0;flex:1;}
 .profile-legacy-settings .settings-hint{max-width:38%;font-size:10px;}
 .rir-field{margin:18px 0}.rir-field>label{display:block;font-weight:700;font-size:13px;line-height:1.9}.rir-field label small{display:block;font-weight:400;font-size:11px;color:var(--text-secondary)}.rir-field select{width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--border-soft);background:rgba(128,128,128,.07);color:inherit;font:inherit;font-size:13px;margin-top:8px}.rir-tag{display:block;font-size:11px;color:var(--accent-text);margin-top:5px}
+
+/* Fixed circular frames, centered cover crop at every aspect ratio. */
+.gymak-avatar,.profile-avatar,.p-avatar-ring,.avatar-ring{position:relative!important;display:inline-grid!important;place-items:center;aspect-ratio:1/1!important;overflow:hidden!important;border-radius:50%!important;flex-shrink:0!important;align-self:center;min-width:0;min-height:0;box-sizing:border-box;background:var(--avatar-photo-bg,#e2e5e9)!important}
+.gymak-avatar>img,.profile-avatar>img,.p-avatar-ring>img,.avatar-ring>img{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:50%!important;background:transparent!important}
+.gymak-avatar.pc-avatar{width:48px!important;height:48px!important;flex:0 0 48px!important}.gymak-avatar.pc-chat-avatar{width:42px!important;height:42px!important;flex:0 0 42px!important}.gymak-avatar.pc-message-avatar{width:28px!important;height:28px!important;flex:0 0 28px!important}
+:root{--avatar-photo-bg:#292c33}html[data-theme="light"]{--avatar-photo-bg:#e2e5e9}
+/* Compatibility aliases for forms using the newer token names, in every theme. */
+:root{--surface:var(--bg-deep-2);--surface-2:var(--card-glass-strong);--text:var(--text-primary);--text-muted:var(--text-secondary);--bg-input:var(--bg-deep-2)}
+.dw-option,.dw-chip,.dw-check{color:var(--text-primary)}
+html[data-theme="light"] :is(input:not([type=radio]):not([type=checkbox]):not([type=range]):not([type=color]),select,textarea){background-color:var(--bg-deep-2);color:var(--text-primary);border-color:var(--border-soft)}
+html[data-theme="light"] :is(input,textarea)::placeholder{color:var(--text-secondary);opacity:1}
+
+/* Keep the neutral circle free of legacy ring padding. */
+html .gymak-avatar,html .profile-avatar,html .p-avatar-ring,html .avatar-ring{padding:0!important;border:0!important}
+html .p-avatar-ring,html .avatar-ring{position:absolute!important;inset:0;width:100%;height:100%}

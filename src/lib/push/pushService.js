@@ -59,7 +59,7 @@ import pkg from "../../../package.json";
     (the common case up through Phase 1) never attempts to touch FCM at
     all, which is what prevents the native crash at its source rather than
     trying to catch it after the fact. */
-const PUSH_ENABLED = import.meta.env.VITE_PUSH_ENABLED !== "false";
+const PUSH_ENABLED = import.meta.env.VITE_PUSH_ENABLED === "true";
 
 /** FCM topic every signed-in device joins. Must match the topic name used by
     supabase/functions/send-notification ("everyone" audience). */
@@ -76,46 +76,50 @@ const BROADCAST_TOPIC = "all_users";
 
 /* ---- in-app inbox of server (FCM) notifications ---- */
 const INBOX_KEY = "gymak_inbox_v1";
+const inboxKey=()=>INBOX_KEY+":"+(currentUserId||"signed-out");
 export function getInbox() {
-  try { return JSON.parse(localStorage.getItem(INBOX_KEY) || "[]"); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(inboxKey()) || "[]"); } catch { return []; }
 }
 const DISMISSED_KEY = "gymak_inbox_dismissed_v1";
+const dismissedKey=()=>DISMISSED_KEY+":"+(currentUserId||"signed-out");
 function getDismissed() {
-  try { return JSON.parse(localStorage.getItem(DISMISSED_KEY) || "[]"); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(dismissedKey()) || "[]"); } catch { return []; }
 }
 function dismiss(ids) {
   const set = new Set([...getDismissed(), ...ids]);
-  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set].slice(-300)));
+  localStorage.setItem(dismissedKey(), JSON.stringify([...set].slice(-300)));
 }
 function notifyInbox() { try { window.dispatchEvent(new Event("gymak-inbox")); } catch { /* ignore */ } }
 /** Delete one notification from the inbox (it will not come back on re-import). */
 export function deleteInboxItem(id) {
   dismiss([id]);
-  localStorage.setItem(INBOX_KEY, JSON.stringify(getInbox().filter((x) => x.id !== id)));
+  localStorage.setItem(inboxKey(), JSON.stringify(getInbox().filter((x) => x.id !== id)));
   notifyInbox();
 }
 /** Clear the whole inbox. */
 export function clearInbox() {
   dismiss(getInbox().map((x) => x.id));
-  localStorage.setItem(INBOX_KEY, "[]");
+  localStorage.setItem(inboxKey(), "[]");
   notifyInbox();
 }
 function addInbox(n) {
-  if (!n || (!n.title && !n.body)) return;
+  if (!currentUserId || !n || (!n.title && !n.body)) return;
   const list = getInbox();
   const id = n.id || `${n.title || ""}|${n.body || ""}`;
   if (list.some((x) => x.id === id)) return;
   if (getDismissed().includes(id)) return;
   list.unshift({ id, title: n.title || "", body: n.body || "", ts: Date.now() });
-  localStorage.setItem(INBOX_KEY, JSON.stringify(list.slice(0, 50)));
+  localStorage.setItem(inboxKey(), JSON.stringify(list.slice(0, 50)));
   try { window.dispatchEvent(new Event("gymak-inbox")); } catch { /* ignore */ }
 }
 export async function importDelivered() {
-  if (!Capacitor.isNativePlatform()) return;
+  if (!PUSH_ENABLED || !Capacitor.isNativePlatform()) return;
   try {
     const { FM: FirebaseMessaging } = await getMessaging();
     const { notifications } = await FirebaseMessaging.getDeliveredNotifications();
-    (notifications || []).forEach((n) => addInbox({ id: n.id, title: n.title, body: n.body }));
+    // System tray may contain another signed-out account's previews. Only
+    // import entries whose authenticated delivery metadata names this account.
+    (notifications || []).filter(n=>n.data?.owner_user_id===currentUserId).forEach((n) => addInbox({ id: n.id, title: n.title, body: n.body }));
   } catch { /* ignore */ }
 }
 
@@ -145,7 +149,7 @@ function ensurePushListeners(plugin) {
     addInbox({ id: n.id, title: n.title, body: n.body });
   };
   return registerListeners(plugin, {
-    tokenReceived: event => { saveToken(event.token); },
+    tokenReceived: event => { saveToken(event.token).catch(err=>logPushErr("token",err)); },
     notificationReceived: event => {
       receive(event);
       queueOwnerReceipt(event?.notification,'received');if(currentUserId)flushOwnerReceipts(currentUserId,getDeviceId()).catch(()=>{});
@@ -156,6 +160,8 @@ function ensurePushListeners(plugin) {
   });
 }
 let currentUserId = null;
+let tokenGeneration = 0;
+let tokenWrites = Promise.resolve();
 let ownerReceiptWakeInstalled=false;
 
 let pendingToken = null;
@@ -163,10 +169,13 @@ let wasRegistered = false;
 async function saveToken(token) {
   if (!token) return;
   if (!supabase || !currentUserId) { pendingToken = token; return; } // flushed after auth
+  const owner=currentUserId,generation=tokenGeneration;
   pendingToken = null;
+  const write=async()=>{
+  if(generation!==tokenGeneration||owner!==currentUserId)return;
   const { error } = await supabase.from("push_tokens").upsert(
     {
-      user_id: currentUserId,
+      user_id: owner,
       device_id: getDeviceId(),
       platform: "android",
       app_version: pkg.version,
@@ -178,21 +187,27 @@ async function saveToken(token) {
     },
     { onConflict: "device_id" }
   );
+  if(generation!==tokenGeneration||owner!==currentUserId)return;
   if (error) {
     // eslint-disable-next-line no-console
     console.error("[gymak push] failed to save token", error);
     pendingToken = token; // retried on next foreground/online
   } else { wasRegistered = true; }
+  };
+  tokenWrites=tokenWrites.catch(()=>{}).then(write);
+  await tokenWrites;
 }
 
 /** Re-read the FCM token and upsert it. Cheap; called on foreground and reconnect. */
 export async function refreshPushToken() {
   if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase || !currentUserId) return;
+  const generation=tokenGeneration,owner=currentUserId;
   try {
     const { FM } = await getMessaging();
     let status = await FM.checkPermissions();
     if (status.receive !== "granted") return;
     const { token } = await FM.getToken();
+    if(generation!==tokenGeneration||owner!==currentUserId)return;
     await saveToken(token);
   } catch (err) { logPushErr("refresh", err); }
 }
@@ -262,7 +277,7 @@ export async function initBroadcastPush() {
 
 /** Current notification permission for the settings screen ("granted" | "denied" | "prompt" | "unsupported"). */
 export async function getPushPermission() {
-  if (!Capacitor.isNativePlatform()) return "unsupported";
+  if (!PUSH_ENABLED || !Capacitor.isNativePlatform()) return "unsupported";
   try {
     const { FM: FirebaseMessaging } = await getMessaging();
     return (await FirebaseMessaging.checkPermissions()).receive;
@@ -276,7 +291,7 @@ export async function getPushPermission() {
  * to local-only behavior" convention rather than throwing.
  */
 export async function registerForPush(userId) {
-  if (!PUSH_ENABLED || !supabase) return;
+  if (!supabase) return;
   if (!Capacitor.isNativePlatform()) {
     if(localStorage.getItem('gymak_web_push_enabled_v1')==='1') {
       const {registerWebPush}=await import('./webPush');
@@ -284,7 +299,9 @@ export async function registerForPush(userId) {
     }
     return;
   }
-  currentUserId = userId;
+  if(!PUSH_ENABLED)return;
+  const generation=++tokenGeneration;
+  currentUserId = userId;notifyInbox();
   collectNativeOwnerTaps().then(()=>flushOwnerReceipts(userId,getDeviceId())).catch(()=>{});
   if(!ownerReceiptWakeInstalled){ownerReceiptWakeInstalled=true;const resume=()=>{if(currentUserId)refreshPushToken();if(currentUserId)collectNativeOwnerTaps().then(()=>flushOwnerReceipts(currentUserId,getDeviceId())).catch(()=>{});};window.addEventListener('online',resume);document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});}
 
@@ -302,11 +319,14 @@ export async function registerForPush(userId) {
       return;
     }
 
+    if(generation!==tokenGeneration||currentUserId!==userId)return;
     await ensurePushListeners(FirebaseMessaging);
     const { token } = await FirebaseMessaging.getToken();
+    if(generation!==tokenGeneration||currentUserId!==userId)return;
     await saveToken(token);
     if (pendingToken) await saveToken(pendingToken);
 
+    if(generation!==tokenGeneration||currentUserId!==userId)return;
     // Broadcast topic: lets the admin send to every user (Firebase Console or the
     // send-notification function, which targets this same topic name).
     await FirebaseMessaging.subscribeToTopic({ topic: BROADCAST_TOPIC });
@@ -319,21 +339,24 @@ export async function registerForPush(userId) {
 /** Call once on sign-out (mirrors syncManager.stop()'s call site). Removes
     this device's row so a signed-out device stops receiving pushes meant
     for the account. */
-export async function removePushToken() {
-  if(!Capacitor.isNativePlatform()) return; // Explicit signOut revokes web subscription before session ends.
-  currentUserId = null;
-  if (!PUSH_ENABLED || !Capacitor.isNativePlatform() || !supabase) return;
-  // Cold start reports "no session" before auth restores; deleting then raced with
-  // the fresh registration. Only delete after this process actually registered.
-  if (!wasRegistered) return;
-  wasRegistered = false;
+export async function removePushToken({explicit=false}={}) {
+  if(!Capacitor.isNativePlatform()) return;
+  ++tokenGeneration;currentUserId=null;pendingToken=null;notifyInbox();
+  if (!PUSH_ENABLED || !supabase || (!explicit&&!wasRegistered)) return;
+  // Wait for writes started by the previous session before deleting its row.
+  await tokenWrites.catch(()=>{});
   try {
-    // Only the per-account token row is removed. The device stays on the
-    // broadcast topic (announcements are not account-specific).
-    await supabase.from("push_tokens").delete().eq("device_id", getDeviceId());
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[gymak push] failed to remove token on logout", err);
+    const {FM}=await getMessaging();
+    // Revoking the provider token is necessary when the network is offline or
+    // the server session has already expired. A stale database row cannot deliver.
+    await FM.deleteToken();
+    broadcastStarted=false;
+    wasRegistered=false;
+    const {error}=await supabase.from("push_tokens").delete().eq("device_id",getDeviceId());
+    if(error)logPushErr("remove-row",error);
+  } catch(error) {
+    logPushErr("remove-token",error);
+    if(explicit)throw error;
   }
 }
 

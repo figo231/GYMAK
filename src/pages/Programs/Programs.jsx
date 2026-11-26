@@ -35,8 +35,9 @@ export default function Programs() {
   const { t } = useI18n();
   const [detailId, setDetailId] = useState(null);
   const [goal, setGoal] = useState("all");
+  const [ownerGender,setOwnerGender]=useState("male");
 
-  const programs = useMemo(() => Store.getPrograms(), [version]);
+  const programs = useMemo(() => Store.getPrograms().filter(p=>!Store.isOwnerView()||(ownerGender==="female"?p.only==="female":p.only!=="female")), [version,ownerGender]);
   const active = useMemo(() => programDisplay(Store.getActiveProgram()), [version]);
   const recommendedId = useMemo(() => Store.getRecommendedProgramId(), [version]);
   const shownRaw = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
@@ -78,6 +79,8 @@ export default function Programs() {
   return (
     <>
       <SectionNav group="train" title={tx("تدريب")} />
+      {Store.isOwnerView()?<div role="group" aria-label="قسم التمارين للمالك" style={{display:'flex',gap:10,marginBlock:14}}>{[['male','تمارين الرجال'],['female','تمارين البنات']].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?'قسم تمارين البنات':'قسم تمارين الرجال'}</p>}
+
       <p className="pg-sub">{tx("اختار برنامج وطبّقه تلقائيًا على جدولك")}</p>
 
       {active && (

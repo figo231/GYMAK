@@ -1,3 +1,4 @@
+import {normalizeSearchUsername} from "./usernameSearch";
 import {notifyIdentityChanged} from "./chatLiveIdentity";
 import {supabase} from './supabaseClient';
 import {withTimeout} from './authLogic';
@@ -17,5 +18,8 @@ export async function chatAvatarUrl(path){if(!path)return null;const {data,error
 export async function uploadChatAvatar(userId,blob){if(!blob||blob.type!=='image/jpeg'||blob.size>102400)throw Error('avatar_size');const path=`${userId}/chat-avatar.jpg`;const {error}=await supabase.storage.from('chat-avatars').upload(path,blob,{contentType:'image/jpeg',upsert:true,cacheControl:'0'});if(error)throw error;signedAvatars.delete(path);return path;}
 export const discoveryStatus=()=>identityRpc('chat_discovery_status');
 export const saveDiscovery=enabled=>identityRpc('chat_discovery_save',{p_enabled:enabled});
-export const usernameLookup=name=>identityRpc('chat_username_lookup',{p_username:name.trim().replace(/^@/,'')});
+export const usernameLookup=name=>identityRpc('chat_username_lookup',{p_username:normalizeSearchUsername(name)});
 export const usernameStart=id=>identityRpc('chat_username_start',{p_user_id:id});
+
+// One-time default import only. Server ON CONFLICT preserves every saved privacy choice.
+export const importDefaultChatAvatar=path=>identityRpc('chat_default_avatar',{p_avatar:path});

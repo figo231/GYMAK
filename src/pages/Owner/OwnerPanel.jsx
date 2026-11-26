@@ -32,7 +32,7 @@ function ExerciseForm({ onSaved }) {
       ...(frames.length ? { frames } : {}),
     };
     try { await saveContent("content_exercises", slug(f.name), data); toast(tx("اتحفظ ونزل لكل المستخدمين ✅")); onSaved(); setF({ ...f, name: "", description: "", steps: "", img1: "", img2: "" }); }
-    catch (e) { toast(tx("فشل الحفظ: ") + e.message); }
+    catch (e) { toast(tx("فشل الحفظ: ") + tx("اتأكد من الاتصال وحاول تاني.")); }
   }
   return (
     <div style={card}>
@@ -60,7 +60,7 @@ function FoodForm({ onSaved }) {
     if (!names.length || f.kcal === "") return toast(tx("اكتب الاسم والسعرات"));
     const data = { names, per100: { kcal: Number(f.kcal) || 0, protein: Number(f.protein) || 0, carbs: Number(f.carbs) || 0, fat: Number(f.fat) || 0 }, ...(Number(f.piece) ? { pieceWeight: Number(f.piece) } : {}) };
     try { await saveContent("content_foods", slug(names[0]), data); toast(tx("اتحفظ ونزل لكل المستخدمين ✅")); onSaved(); setF({ names: "", kcal: "", protein: "", carbs: "", fat: "", piece: "" }); }
-    catch (e) { toast(tx("فشل الحفظ: ") + e.message); }
+    catch (e) { toast(tx("فشل الحفظ: ") + tx("اتأكد من الاتصال وحاول تاني.")); }
   }
   return (
     <div style={card}>
@@ -79,12 +79,15 @@ function PublishedList({ table, label }) {
   const toast = useToast();
   const [rows, setRows] = useState([]);
   const load = async () => {
-    const { data } = await supabase.from(table).select("id,data,active,updated_at").order("updated_at", { ascending: false });
-    setRows(data || []);
+    try {
+    if (!supabase) throw Error("offline");
+    const { data,error } = await supabase.from(table).select("id,data,active,updated_at").order("updated_at", { ascending: false });
+    if(error)throw error;setRows(data || []);
+    }catch {toast(tx("ماقدرناش نحمّل القائمة. اتأكد من الاتصال وحاول تاني."));}
   };
   useEffect(() => { load(); }, [table]);
   async function toggle(r) {
-    try { await setContentActive(table, r.id, !r.active); load(); } catch (e) { toast(tx("فشل: ") + e.message); }
+    try { await setContentActive(table, r.id, !r.active); load(); } catch (e) { toast(tx("فشل: ") + tx("اتأكد من الاتصال وحاول تاني.")); }
   }
   if (!rows.length) return <p className="notif-note">{txf("لسه مفيش {0} منشورة من هنا.", [label])}</p>;
   return rows.map((r) => (

@@ -189,3 +189,31 @@ if [ "${GYMAK_VERSION_CODE:-}" = "25" ]; then
   run_test native25VersionAndWelcomeUpdate
   adb pull /sdcard/Android/data/com.gymak.app/files/native25-welcome.png verification/native25-welcome.png
 fi
+
+# Verify migration from the current published bundle, APK26.
+adb shell cmd connectivity airplane-mode disable
+adb shell svc wifi enable
+curl --fail --location --retry 2 https://github.com/figo231/GYMAK/releases/download/apk-26/GYMAK.apk -o /tmp/gymak-apk26.apk
+adb uninstall com.gymak.app.test
+adb uninstall com.gymak.app
+adb install -r -g /tmp/gymak-apk26.apk
+adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+run_test seedLegacyData
+cp verification/seedLegacyData.txt verification/apk26-seed.txt
+adb shell am force-stop com.gymak.app
+adb shell svc wifi disable
+adb shell svc data disable
+adb shell cmd connectivity airplane-mode enable
+adb install -r -g android/app/build/outputs/apk/debug/app-debug.apk
+run_test keepsDataAndRunsOffline
+cp verification/keepsDataAndRunsOffline.txt verification/apk26-upgrade.txt
+adb pull /sdcard/Android/data/com.gymak.app/files/offline-upgrade.png verification/apk26-offline-upgrade.png
+
+
+
+# APK27 bridge check uses only an isolated synthetic reminder.
+if [ "${GYMAK_VERSION_CODE:-}" = "27" ]; then
+  adb shell pm grant com.gymak.app android.permission.POST_NOTIFICATIONS
+  adb shell am instrument -w -e class com.gymak.app.Apk27ReminderTest com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/apk27-reminder.txt
+  grep -q 'OK (1 test)' verification/apk27-reminder.txt
+fi

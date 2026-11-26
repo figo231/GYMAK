@@ -1,0 +1,3 @@
+import {it,expect} from 'vitest';import fs from 'node:fs';
+it('maps new surface and text tokens to theme-owned tokens rather than dark fallbacks',()=>{const css=fs.readFileSync('src/styles/reorganization.css','utf8');expect(css).toContain('--surface:var(--bg-deep-2)');expect(css).toContain('--surface-2:var(--card-glass-strong)');expect(css).toContain('--text:var(--text-primary)');expect(css).toContain('--text-muted:var(--text-secondary)')});
+it('contains portrait images in fixed square avatar frames',()=>{const css=fs.readFileSync('src/styles/reorganization.css','utf8');for(const x of ['aspect-ratio:1/1!important','overflow:hidden!important','object-fit:cover!important','flex-shrink:0!important'])expect(css).toContain(x)});

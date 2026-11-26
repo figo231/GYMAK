@@ -1,0 +1,4 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {createSnapshot,restoreText} from '../src/lib/backup';
+afterEach(()=>vi.unstubAllGlobals());
+it('does not report a safety backup as saved when its IndexedDB transaction aborts after request success',async()=>{const before=JSON.stringify({profile:{},weightLogs:[{date:'2026-01-01',weight:80}],exerciseLogs:{},workoutDays:[]});localStorage.setItem('gymak_state_v1',before);const db={transaction(){const tx={objectStore:()=>({put(){queueMicrotask(()=>tx.onabort());return {};}}),error:Error('disk_commit_failed')};return tx;},close(){}};vi.stubGlobal('indexedDB',{open(){const req={result:db};queueMicrotask(()=>req.onsuccess());return req;}});expect(await createSnapshot('manual')).toBeNull();expect((await restoreText(JSON.stringify({profile:{name:'Other'},weightLogs:[],exerciseLogs:{},workoutDays:[]}))).ok).toBe(false);expect(localStorage.getItem('gymak_state_v1')).toBe(before);});

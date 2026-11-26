@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { normalizeReminders, buildNotifications, missedNotification, ALL_IDS } from "../src/lib/push/reminders";
 describe("reminders", () => {
-  it("defaults are all off and nothing is scheduled", () => {
+  it("defaults are on, while existing explicit saved offs stay off", () => {
     const p = normalizeReminders(null);
-    expect(Object.values(p).every((x) => x.on === false)).toBe(true);
-    expect(buildNotifications(p)).toEqual([]);
+    expect(Object.values(p).every((x) => x.on === true)).toBe(true);
+    expect(buildNotifications(p)).toHaveLength(9);
+    expect(buildNotifications({meals:{on:false}})).toEqual([]);
   });
   it("sanitises bad input", () => {
     const p = normalizeReminders({ meals: { on: 1, time: "99:99" }, weigh: { on: true, time: "07:30" }, evil: { on: true } });
@@ -42,3 +43,5 @@ describe("supplement reminders", () => {
     expect(normalizeReminders({ supplements: { on: true, time: "junk" } }).supplements.time).toBe("16:00");
   });
 });
+
+it('uses inexact fitness reminders without asking for special alarm access',()=>{expect(buildNotifications(null).every(n=>n.isExactNotification===false)).toBe(true);});

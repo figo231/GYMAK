@@ -6,6 +6,7 @@ export function compressImage(file, maxDim, quality) {
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
+        try {
         let { width, height } = img;
         if (width > height && width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
         else if (height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
@@ -13,6 +14,7 @@ export function compressImage(file, maxDim, quality) {
         canvas.width = width; canvas.height = height;
         canvas.getContext("2d").drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", quality));
+        }catch(error){reject(error);}
       };
       img.onerror = () => reject(new Error(tx("تعذر فتح الصورة")));
       img.src = e.target.result;
@@ -42,6 +44,7 @@ export function compressImageToBlob(file, maxDim, quality) {
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
+        try {
         let { width, height } = img;
         if (width > height && width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
         else if (height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
@@ -53,6 +56,7 @@ export function compressImageToBlob(file, maxDim, quality) {
           "image/jpeg",
           quality
         );
+        }catch(error){reject(error);}
       };
       img.onerror = () => reject(new Error(tx("تعذر فتح الصورة")));
       img.src = e.target.result;

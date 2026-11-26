@@ -1,3 +1,4 @@
+import {normalizeSearchUsername} from './usernameSearch';
 import { supabase } from "./supabaseClient";
 import { withTimeout } from "./authLogic";
 import { tx } from "./i18n/tx";
@@ -76,7 +77,7 @@ async function rpc(name, args, client = supabase) {
 export const chatBootstrap = (client) => rpc("chat_bootstrap_v2", undefined, client);
 export const acceptChatTerms = (client) => rpc("chat_accept_terms_v2", { p_version: CHAT_TERMS_VERSION }, client);
 export const fetchChatContacts = (cursor = null, client) => rpc("chat_contacts_v3", cursor ? { p_after_kind: cursor.kind, p_after_id: cursor.user_id } : {}, client);
-export const fetchChatInbox = (cursor = null, client, search = "") => rpc("chat_inbox_v3", {p_search:search,...(cursor ? { p_before_at: cursor.last_message_at, p_before_id: cursor.id } : {})}, client);
+export const fetchChatInbox = (cursor = null, client, search = "") => rpc("chat_inbox_v3", {p_search:normalizeSearchUsername(search),...(cursor ? { p_before_at: cursor.last_message_at, p_before_id: cursor.id } : {})}, client);
 export const fetchChatThread = async (id, client) => (await rpc("chat_inbox_v3", { p_only: id }, client))?.[0] || null;
 export const startChat = (professionalId, kind, client) => rpc("chat_start_v2", { p_professional_id: professionalId, p_kind: kind }, client);
 export const markChatRead = (id, seq, client) => rpc("chat_mark_read", { p_conversation_id: id, p_through_seq: seq }, client);

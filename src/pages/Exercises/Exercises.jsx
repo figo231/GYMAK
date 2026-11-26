@@ -50,6 +50,7 @@ export default function Exercises() {
   const [homeOnly, setHomeOnly] = useState(false);
   const [gymOnly, setGymOnly] = useState(false);
   const [womenOnly, setWomenOnly] = useState(false);
+  const [ownerGender,setOwnerGender]=useState("male");
   const isFemale = useMemo(() => Store.getProfile().gender === "female", [version]);
   const showWomenChip = useMemo(() => Store.canSeeWomenContent(), [version]);
   const [mediaError, setMediaError] = useState("");
@@ -60,7 +61,7 @@ export default function Exercises() {
   const todayIds = useMemo(() => new Set(Store.getTodayPlanIds()), [version]);
 
   const effectiveScope = scope ?? (Store.isOwnerView() ? "all" : "program");
-  const all = useMemo(() => Store.getExercises(), [version]);
+  const all = useMemo(() => Store.getExercises().filter(e=>!Store.isOwnerView()||e.custom||(ownerGender==="female"?Store.isWomenExercise(e):e.only!=="female")), [version,ownerGender]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);
   const programExerciseIds = useMemo(
     () => (activeProgram ? Store.getProgramExerciseIds(activeProgram.id) : null),
@@ -158,7 +159,10 @@ export default function Exercises() {
   return (
     <>
       <SectionNav group="train" />
+      {Store.isOwnerView()?<div role="group" aria-label="قسم التمارين للمالك" style={{display:'flex',gap:10,marginBlock:14}}>{[['male','تمارين الرجال'],['female','تمارين البنات']].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?'قسم تمارين البنات':'قسم تمارين الرجال'}</p>}
+
       <RamadanCard kind="train" />
+      <Link to="/workout" className="btn-apply" style={{display:"block",textAlign:"center",padding:14,marginBottom:16}}>{isEn()?"Start / resume workout":"ابدأ أو كمّل تمرينك"} ←</Link>
       <div className="page-head">
         <div>
           <h1 className="page-title">{tx("التمارين")}</h1>

@@ -57,6 +57,11 @@ describe("auth errors never leak English", () => {
   ];
   it("every message is Arabic", () => cases.forEach((c) => expect(translateAuthError(c, true)).toMatch(ar)));
   it("offline wins", () => expect(translateAuthError({ message: "Invalid login credentials" }, false)).toContain("الإنترنت"));
+  it("distinguishes shared mail quota from personal request throttling", () => {
+    expect(translateAuthError({code:"over_email_send_rate_limit"},true)).toContain("خدمة رسائل التأكيد");
+    expect(translateAuthError({message:"email rate limit exceeded"},true)).toContain("مش من عدد محاولاتك");
+    expect(translateAuthError({message:"too many requests"},true)).toContain("محاولات كتير");
+  });
   it("maps specifics", () => {
     expect(translateAuthError({ message: "Invalid login credentials" }, true)).toContain("غلط");
     expect(translateAuthError({ message: "Something totally unexpected" }, true)).toBe("حصلت مشكلة. جرب تاني بعد شوية.");

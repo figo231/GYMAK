@@ -19,14 +19,20 @@ export default function ReminderSheet({ initialEnabled, initialTime, onClose, on
   }
 
   async function handleSave() {
+    try { await saveChoice(); } catch { toast(tx("الحفظ متعملش. راجع مساحة الجهاز وجرب تاني.")); }
+  }
+
+  async function saveChoice() {
     if (isNative()) {
+      const previous=Store.getSettings();
+      Store.setNotifSettings({enabled,time});
       // Android app: the web Notification API does not exist here, use native notifications.
-      if (enabled) {
+      if (enabled && Store.getSettings().notificationsMaster!==false) {
         let ok = false;
         try { ok = await enableNativeReminder(time, Store.getLang ? Store.getLang() : "ar"); } catch (e) { ok = false; }
         if (!ok) {
           toast(tx("محتاجين إذنك للإشعارات. فعّلها من إعدادات الموبايل ثم جرب تاني."));
-          Store.setNotifSettings({ enabled: false });
+          Store.setNotifSettings({ enabled:previous.notifEnabled,time:previous.notifTime });
           onClose();
           return;
         }

@@ -11,7 +11,7 @@ const GROUPS = {
   food: [
     { to: "/food", label: tx("النهارده") },
     { to: "/food-swaps", label: "بدائل الأكل" },
-    { to: "/meal-plan", label: tx("خطة الأسبوع") },
+    { to: "/meal-plan", label: tx("نظامك الغذائي") },
     { to: "/supplements", label: tx("مكملات") },
   ],
   train: [

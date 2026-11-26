@@ -1,6 +1,6 @@
 {
   "name": "gymak",
-  "description": "GYMAK \u2014 gym workout, weight, and nutrition tracker",
+  "description": "GYMAK — gym workout, weight, and nutrition tracker",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -33,6 +33,7 @@
     "jsdom": "^25.0.1",
     "vite": "^5.4.1",
     "vite-plugin-pwa": "^0.20.5",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "workbox-window": "^7.4.1"
   }
 }

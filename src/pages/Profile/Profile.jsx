@@ -1,3 +1,7 @@
+import AvatarImage from "../../components/AvatarImage";
+import VerifiedBadge from '../../components/VerifiedBadge';
+import {subscribeIdentity} from '../../lib/chatLiveIdentity';
+import PrivateAgeField from '../../components/PrivateAgeField';
 import {getChatProfile,saveChatProfile,uploadChatAvatar} from "../../lib/chatIdentity";
 import {performTrainingReset,clearTrainingLocally} from '../../lib/trainingReset';
 import {supabase} from '../../lib/supabaseClient';
@@ -46,6 +50,8 @@ export default function Profile({ panel = null }) {
   const toast = useToast();
   const { lang: currentLang, setLang } = useI18n();
   const { user } = useAuth();
+  const [myIdentity,setMyIdentity]=useState(null);
+  useEffect(()=>{let live=true;setMyIdentity(null);const load=()=>{if(user?.id)getChatProfile(user.id).then(p=>{if(live)setMyIdentity(p);}).catch(()=>{});};load();const off=subscribeIdentity(user?.id,load);const visible=()=>{if(!document.hidden)load();};document.addEventListener('visibilitychange',visible);return()=>{live=false;off();document.removeEventListener('visibilitychange',visible);};},[user?.id]);
   const identityOwnerRef=useRef(user?.id);identityOwnerRef.current=user?.id;
   const { theme: activeTheme } = useTheme();
 
@@ -286,15 +292,16 @@ export default function Profile({ panel = null }) {
         </div>
         <div className="profile-head-body">
           <div className="p-avatar-wrap">
-            <div className="p-avatar-ring"><img src={profile.avatar || "/icon-192.png"} alt={tx("صورتي")} /></div>
+            <div className="p-avatar-ring"><AvatarImage src={profile.avatar || "/avatar-default.svg"} alt={tx("صورتي")} /></div>
             <div className="p-level-badge">Lv. {profile.level}</div>
             <button className="avatar-edit-btn" aria-label={tx("تغيير الصورة الشخصية")} onClick={() => setShowEdit(true)}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z" /><circle cx="12" cy="13" r="4" /></svg>
             </button>
           </div>
-          <p className="p-name" style={{ cursor: "pointer" }} {...press(() => setShowEdit(true))}>{profile.name || tx("بطل الجيم")}</p>
+          <p className="p-name" style={{ cursor: "pointer" }} {...press(() => setShowEdit(true))}>{profile.name || tx("بطل الجيم")} {myIdentity?.verified && <VerifiedBadge developer={myIdentity.is_developer}/>}</p>
           {profile.username && <p className="p-username">@{profile.username}</p>}
           {profile.bio && <p className="p-bio">{profile.bio}</p>}
+          <Link className="pc-small" to="/chat-profile">{tx("صورتي وخصوصيتي في المحادثات")}</Link>
           <p className="p-role">{tx("عضو منذ")} {arDateFull(profile.memberSince)}</p>
 
 
@@ -318,6 +325,7 @@ export default function Profile({ panel = null }) {
       </div>
       {pTab==='me'&&<><Profile panel="training"/><Profile panel="body"/></>}
       {pTab==='ach'&&<Profile panel="ach"/>}
+      {pTab==='me'&&<PrivateAgeField key={user?.id}/>}
       {pTab==='set'&&<div className="profile-legacy-settings"><section className="ux-group"><h3 className="legacy-settings-title">{tx("الحساب ومزامنة البيانات")}</h3><div className="ux-group-body"><Link to={user ? "/account" : "/auth/login"} className="settings-row" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--info-text)" strokeWidth="2" strokeLinecap="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4" /><path d="M4 4v4h4M20 20v-4h-4" /></svg></div>
           <span className="settings-name">{user ? tx("حسابي ومزامنة البيانات") : tx("تسجيل الدخول ومزامنة البيانات")}</span>
@@ -345,7 +353,7 @@ export default function Profile({ panel = null }) {
           <div className="settings-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round"><path d="M12 2a7 7 0 0 0-7 7v3.6c0 .5-.2 1-.6 1.4L3 16.5h18l-1.4-2.5c-.4-.4-.6-.9-.6-1.4V9a7 7 0 0 0-7-7Z" /><path d="M9 19a3 3 0 0 0 6 0" /></svg></div>
           <span className="settings-name">{tx("التذكير اليومي")}</span>
           <svg className="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>
-        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("التنبيهات ←")}</Link></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("المساعدة والدعم")}</h3><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("المساعدة وأسئلة شائعة ←")}</Link><Link to="/chat-profile" className="glass coach-card" style={{padding:14,display:"block",fontWeight:700,marginBottom:10}}>{tx("ملفي وخصوصيتي في المحادثات ←")}</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("تواصل معانا ←")}</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("جولة تعريفية بالتطبيق ←")}</Link><a
+        </div><Link to="/notifications" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("التنبيهات ←")}</Link></div></section><section className="ux-group"><h3 className="legacy-settings-title">{tx("المساعدة والدعم")}</h3><div className="ux-group-body"><Link to="/help" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("المساعدة وأسئلة شائعة ←")}</Link><Link to="/friends" className="glass coach-card" style={{padding:14,display:"block",fontWeight:700,marginBottom:10}}>{currentLang==='en'?"Friends and ranking ←":"الأصدقاء والترتيب ←"}</Link><Link to="/chat-profile" className="glass coach-card" style={{padding:14,display:"block",fontWeight:700,marginBottom:10}}>{tx("ملفي وخصوصيتي في المحادثات ←")}</Link><Link to="/contact" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("تواصل معانا ←")}</Link><Link to="/tour" className="glass coach-card" style={{ textDecoration: "none", color: "inherit", marginBottom: 10, padding: 14, display: "block", fontWeight: 700 }}>{tx("جولة تعريفية بالتطبيق ←")}</Link><a
           href={Store.getDeveloperWhatsAppUrl()} target="_blank" rel="noreferrer"
           className="settings-row" style={{ textDecoration: "none", color: "inherit" }}
         >

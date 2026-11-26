@@ -1,0 +1,13 @@
+import {beforeEach,afterEach,it,expect,vi} from 'vitest';
+import {act,createElement} from 'react';import {createRoot} from 'react-dom/client';
+const m=vi.hoisted(()=>({signup:vi.fn(),resend:vi.fn()}));
+vi.mock('../src/lib/reviewBuild',()=>({REVIEW_BACKEND_GATED:false}));
+vi.mock('../src/hooks/useAuth',()=>({useAuth:()=>({signUp:m.signup,resendConfirmation:m.resend,isConfigured:true})}));
+vi.mock('../src/hooks/useI18n',()=>({useI18n:()=>({lang:'en'})}));
+vi.mock('react-router-dom',()=>({useNavigate:()=>vi.fn(),Link:({children})=>createElement('span',null,children)}));
+vi.mock('../src/components/IdentityFields',()=>({default:({onChange})=>createElement('button',{type:'button',id:'fixture',onClick:()=>onChange({name:'Fixture Person',gender:'male',username:'fixture',age:'25'})},'fixture')}));
+import Register from '../src/pages/Auth/Register';
+let el,root;beforeEach(()=>{globalThis.IS_REACT_ACT_ENVIRONMENT=true;m.signup.mockReset();m.resend.mockReset();el=document.createElement('div');document.body.append(el);root=createRoot(el)});afterEach(()=>{act(()=>root.unmount());el.remove()});
+async function prepare(){await act(async()=>root.render(createElement(Register)));await act(async()=>el.querySelector('#fixture').click());const inputs=[...el.querySelectorAll('input')];await act(async()=>{for(const input of inputs){const value=input.type==='email'?'fixture@example.test':input.type==='password'?'Fixture12345':null;if(value){Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}}});}
+it('one submit is exactly one request, two same-tick submits stay one while pending',async()=>{let finish;m.signup.mockImplementation(()=>new Promise(r=>finish=r));await prepare();await act(async()=>{const form=el.querySelector('form');form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});expect(m.signup).toHaveBeenCalledTimes(1);await act(async()=>finish({}));expect(el.textContent).toContain('تحقق من إيميلك');});
+it('failed signup unlocks another deliberate attempt without automatic retry',async()=>{m.signup.mockResolvedValue({error:{code:'over_email_send_rate_limit'}});await prepare();await act(async()=>el.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));expect(m.signup).toHaveBeenCalledTimes(1);expect(el.textContent).toContain('خدمة رسائل التأكيد');await act(async()=>el.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));expect(m.signup).toHaveBeenCalledTimes(2);});

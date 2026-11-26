@@ -18,7 +18,7 @@ describe('balanced gym expansion',()=>{
   for(const e of [...GYM_EXPANSION,...WOMEN_GYM_EXPANSION]){
    const guide=GYM_EXPANSION_GUIDES[e.id];expect(guide.source).toMatch(/^https:/);
    for(const lang of ['ar','en']){for(const key of ['summary','setup','feel','safety'])expect(guide[lang][key].length).toBeGreaterThan(25);expect(guide[lang].steps.length).toBeGreaterThanOrEqual(4);expect(guide[lang].mistakes.length).toBeGreaterThanOrEqual(3);}
-   for(const path of getExerciseFrames(e.id))expect(fs.existsSync(`public${path}`),path).toBe(true);
+   for(const path of getExerciseFrames(e.id))expect(fs.existsSync(`public${path.split('?')[0]}`),path).toBe(true);
   }
  });
  it('searches shared and female moves by English names in Arabic mode',()=>{
@@ -34,7 +34,7 @@ describe('balanced gym expansion',()=>{
  it('backfills new seeds while preserving custom edits, logs and deletion tombstones',async()=>{
   S.setGender('female');S.logSet('bench-press-barbell',20,3,8);
   const st=S.get();st.exercises=st.exercises.filter(e=>![...GYM_EXPANSION,...WOMEN_GYM_EXPANSION].some(n=>n.id===e.id));st.exercises.find(e=>e.id==='bench-press-barbell').name='Preserved bench';st.deletedExerciseIds=['pallof-press'];localStorage.setItem('gymak_state_v1',JSON.stringify(st));vi.resetModules();const T=(await import('../src/lib/store/gymakStore')).default;
-  expect(T.getExerciseById('single-arm-landmine-press')).toBeTruthy();expect(T.getExerciseById('w-lat-pulldown')).toBeTruthy();expect(T.getExerciseById('bench-press-barbell').name).toBe('Preserved bench');expect(T.getExerciseLogs('bench-press-barbell')).toHaveLength(1);expect(T.getExerciseById('pallof-press')).toBeNull();
+  expect(T.get().exercises.some(e=>e.id==='single-arm-landmine-press')).toBe(true);expect(T.getExerciseById('w-lat-pulldown')).toBeTruthy();expect(T.get().exercises.find(e=>e.id==='bench-press-barbell').name).toBe('Preserved bench');expect(T.getExerciseLogs('bench-press-barbell')).toHaveLength(1);expect(T.getExerciseById('pallof-press')).toBeNull();
  });
 });
 
@@ -46,6 +46,6 @@ describe('larger gym batch',()=>{
   for(const e of [...a,...w]){expect(g[e.id].source).toMatch(/^https:/);for(const lang of ['ar','en']){expect(g[e.id][lang].steps.length).toBeGreaterThanOrEqual(4);expect(g[e.id][lang].mistakes).toHaveLength(3);expect(g[e.id][lang].safety.length).toBeGreaterThan(30);}}
  });
  it('hides rejected illustrations and serves checked frames for every other addition',async()=>{
-  const{GYM_EXPANSION_MORE:a,WOMEN_GYM_EXPANSION_MORE:w}=await import('../src/lib/content/gymExpansionMore');for(const e of [...a,...w]){const frames=getExerciseFrames(e.id);if(['single-arm-cable-chest-press','barbell-front-squat'].includes(e.id)){expect(frames).toBeNull();continue;}expect(frames).toHaveLength(2);for(const p of frames)expect(fs.existsSync(`public${p}`)).toBe(true);}
+  const{GYM_EXPANSION_MORE:a,WOMEN_GYM_EXPANSION_MORE:w}=await import('../src/lib/content/gymExpansionMore');for(const e of [...a,...w]){const frames=getExerciseFrames(e.id);if(['single-arm-cable-chest-press','barbell-front-squat'].includes(e.id)){expect(frames).toBeNull();continue;}expect(frames).toHaveLength(2);for(const p of frames)expect(fs.existsSync(`public${p.split('?')[0]}`)).toBe(true);}
  });
 });

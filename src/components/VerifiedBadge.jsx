@@ -1,2 +1,3 @@
+import './VerifiedBadge.css';
 import {isEn} from '../lib/i18n/lang';
 export default function VerifiedBadge({developer=false}){const label=isEn()?(developer?'GYMAK developer':'Verified by the app owner. Not a professional licence.'):(developer?'مطور GYMAK':'موثّق من صاحب التطبيق، مش توثيق لشهادة أو ترخيص.');return <span className="verified-badge" title={label} aria-label={label} role="img"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 1 3 2 4 .5.5 4L22 11l-2.5 3.5-.5 4-4 .5-3 3-3-3-4-.5-.5-4L2 11l2.5-3.5.5-4L9 3Z"/><path d="m7.5 11.5 3 3 6-6" stroke="var(--bg-deep-2)" strokeWidth="2" fill="none"/></svg></span>;}

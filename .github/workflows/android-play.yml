@@ -9,6 +9,8 @@ on:
 jobs:
   aab:
     runs-on: ubuntu-latest
+    env:
+      VITE_PUSH_ENABLED: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

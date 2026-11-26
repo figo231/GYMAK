@@ -1,3 +1,4 @@
+import {Capacitor} from '@capacitor/core';
 import { tx } from "../lib/i18n/tx";
 export default function SplashScreen() {
   return (
@@ -9,6 +10,7 @@ export default function SplashScreen() {
       <p className="splash-wordmark">GYMAK</p>
       <p className="splash-tagline">{tx("جسمك اللي هتفتخر بيه")}</p>
       <div className="splash-bar"><div className="splash-bar-fill" /></div>
+      {Capacitor.isNativePlatform()&&<p className="ota-launch-label">جاري البحث عن تحديث</p>}
     </div>
   );
 }

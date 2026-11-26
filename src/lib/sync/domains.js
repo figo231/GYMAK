@@ -1,3 +1,5 @@
+import {readOwnerRows} from "./readPages";
+import {exerciseLogId,validLogId} from "./exerciseLogIdentity";
 import { supabase } from "../supabaseClient";
 import Store from "../store/gymakStore";
 import { deterministicId } from "./deterministicId";
@@ -60,11 +62,11 @@ export async function pushProfile(userId) {
   return { dropped: 0 };
 }
 
-export async function pullProfile(userId) {
+export async function pullProfile(userId,canApply=()=>true,applyRemote=fn=>fn()) {
   const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
   if (error) throw error;
   if (data && !validateProfileFromRemote(data)) return { dropped: 1 };
-  Store.mergeProfileFromRemote(data);
+  if(canApply())applyRemote(()=>Store.mergeProfileFromRemote(data));
   return { dropped: 0 };
 }
 
@@ -86,12 +88,10 @@ export async function pushWeightLogs(userId) {
   return { dropped };
 }
 
-export async function pullWeightLogs(userId) {
-  const { data, error } = await supabase.from("weight_logs").select("*").eq("user_id", userId);
-  if (error) throw error;
-  const rows = data || [];
+export async function pullWeightLogs(userId,canApply=()=>true,applyRemote=fn=>fn()) {
+  const rows=await readOwnerRows(supabase,"weight_logs",userId,{canRead:canApply});
   const valid = rows.filter(validateWeightLog);
-  Store.mergeWeightLogsFromRemote(valid);
+  if(canApply())applyRemote(()=>Store.mergeWeightLogsFromRemote(valid));
   return { dropped: rows.length - valid.length };
 }
 
@@ -114,12 +114,10 @@ export async function pushFoodLog(userId) {
   return { dropped };
 }
 
-export async function pullFoodLog(userId) {
-  const { data, error } = await supabase.from("food_log").select("*").eq("user_id", userId);
-  if (error) throw error;
-  const rows = data || [];
+export async function pullFoodLog(userId,canApply=()=>true,applyRemote=fn=>fn()) {
+  const rows=await readOwnerRows(supabase,"food_log",userId,{canRead:canApply});
   const valid = rows.filter(validateFoodLog);
-  Store.mergeFoodLogFromRemote(valid);
+  if(canApply())applyRemote(()=>Store.mergeFoodLogFromRemote(valid));
   return { dropped: rows.length - valid.length };
 }
 
@@ -148,12 +146,10 @@ export async function pushExercises(userId) {
   return { dropped };
 }
 
-export async function pullExercises(userId) {
-  const { data, error } = await supabase.from("exercises").select("*").eq("user_id", userId);
-  if (error) throw error;
-  const rows = data || [];
+export async function pullExercises(userId,canApply=()=>true,applyRemote=fn=>fn()) {
+  const rows=await readOwnerRows(supabase,"exercises",userId,{canRead:canApply});
   const valid = rows.filter(validateExercise);
-  Store.mergeExercisesFromRemote(valid);
+  if(canApply())applyRemote(()=>Store.mergeExercisesFromRemote(valid));
   return { dropped: rows.length - valid.length };
 }
 
@@ -163,6 +159,7 @@ export async function pullExercises(userId) {
 export async function pushExerciseLogs(userId) {
   const s = Store.getRawStateForSync();
   await flushDeletes(userId, "exercise_logs", "exerciseLogs", (key) => {
+    if(key.startsWith("id:")&&validLogId(key.slice(3)))return {id:key.slice(3)};
     const [exerciseId, date, weight, sets, reps] = key.split("|");
     return { id: deterministicId("exercise_log", userId, exerciseId, date, Number(weight), Number(sets), Number(reps)) };
   });
@@ -173,8 +170,9 @@ export async function pushExerciseLogs(userId) {
       const candidate = { ...l, exerciseId };
       if (!validateExerciseLog(candidate)) { dropped++; return; }
       rows.push({
-        id: deterministicId("exercise_log", userId, exerciseId, l.date, l.weight, l.sets, l.reps),
+        id: exerciseLogId(userId,exerciseId,l),
         user_id: userId, exercise_id: exerciseId, date: l.date, weight: l.weight, sets: l.sets, reps: l.reps,
+        rir:Number.isInteger(l.rir)&&l.rir>=0&&l.rir<=5?l.rir:null,client_logged_at:typeof l.at==='number'&&Number.isFinite(l.at)?new Date(l.at).toISOString():null,
       });
     });
   });
@@ -184,12 +182,10 @@ export async function pushExerciseLogs(userId) {
   return { dropped };
 }
 
-export async function pullExerciseLogs(userId) {
-  const { data, error } = await supabase.from("exercise_logs").select("*").eq("user_id", userId);
-  if (error) throw error;
-  const rows = data || [];
+export async function pullExerciseLogs(userId,canApply=()=>true,applyRemote=fn=>fn()) {
+  const rows=await readOwnerRows(supabase,"exercise_logs",userId,{canRead:canApply});
   const valid = rows.filter(validateExerciseLog);
-  Store.mergeExerciseLogsFromRemote(valid);
+  if(canApply())applyRemote(()=>Store.mergeExerciseLogsFromRemote(valid));
   return { dropped: rows.length - valid.length };
 }
 
@@ -214,12 +210,10 @@ export async function pushPRHistory(userId) {
   return { dropped };
 }
 
-export async function pullPRHistory(userId) {
-  const { data, error } = await supabase.from("pr_history").select("*").eq("user_id", userId);
-  if (error) throw error;
-  const rows = data || [];
+export async function pullPRHistory(userId,canApply=()=>true,applyRemote=fn=>fn()) {
+  const rows=await readOwnerRows(supabase,"pr_history",userId,{canRead:canApply});
   const valid = rows.filter(validatePR);
-  Store.mergePRHistoryFromRemote(valid);
+  if(canApply())applyRemote(()=>Store.mergePRHistoryFromRemote(valid));
   return { dropped: rows.length - valid.length };
 }
 
@@ -237,12 +231,11 @@ export async function pushWorkoutDays(userId) {
   return { dropped };
 }
 
-export async function pullWorkoutDays(userId) {
-  const { data, error } = await supabase.from("workout_days").select("date").eq("user_id", userId);
-  if (error) throw error;
-  const dates = (data || []).map((r) => r.date);
+export async function pullWorkoutDays(userId,canApply=()=>true,applyRemote=fn=>fn()) {
+  const rows=await readOwnerRows(supabase,"workout_days",userId,{columns:"date",key:"date",canRead:canApply});
+  const dates = rows.map((r) => r.date);
   const valid = dates.filter(validateWorkoutDay);
-  Store.mergeWorkoutDaysFromRemote(valid);
+  if(canApply())applyRemote(()=>Store.mergeWorkoutDaysFromRemote(valid));
   return { dropped: dates.length - valid.length };
 }
 
@@ -274,13 +267,13 @@ export async function pushFavorites(userId) {
   return { dropped: 0 };
 }
 
-export async function pullFavorites(userId) {
+export async function pullFavorites(userId,canApply=()=>true,applyRemote=fn=>fn()) {
   try {
     const { data, error } = await supabase.from("exercise_favorites").select("exercise_ids,updated_ms").eq("user_id", userId).maybeSingle();
     if (error) throw error;
     if (!data) return { dropped: 0 };
     if (!validFavRow(data)) return { dropped: 1 };
-    Store.mergeFavoritesFromRemote(data.exercise_ids, Number(data.updated_ms));
+    if(canApply())applyRemote(()=>Store.mergeFavoritesFromRemote(data.exercise_ids, Number(data.updated_ms)));
   } catch (e) {
     console.warn("favorites pull skipped", e && e.message);
   }
@@ -291,18 +284,18 @@ export async function pullFavorites(userId) {
 // Orchestration helpers used by syncManager.js — each returns the total
 // number of rows dropped for failing validation, across every domain.
 // ---------------------------------------------------------------------------
-export async function pushAll(userId) {
+export async function pushAll(userId,{mutable=true}={}) {
   const results = await Promise.all([
-    pushProfile(userId), pushWeightLogs(userId), pushFoodLog(userId), pushExercises(userId),
+    ...(mutable?[pushProfile(userId), pushWeightLogs(userId), pushFoodLog(userId), pushExercises(userId)]:[]),
     pushExerciseLogs(userId), pushPRHistory(userId), pushWorkoutDays(userId), pushFavorites(userId),
   ]);
   return results.reduce((sum, r) => sum + r.dropped, 0);
 }
 
-export async function pullAll(userId) {
+export async function pullAll(userId,canApply=()=>true,applyRemote=fn=>fn(),{mutable=true}={}) {
   const results = await Promise.all([
-    pullProfile(userId), pullWeightLogs(userId), pullFoodLog(userId), pullExercises(userId),
-    pullExerciseLogs(userId), pullPRHistory(userId), pullWorkoutDays(userId), pullFavorites(userId),
+    ...(mutable?[pullProfile(userId,canApply,applyRemote), pullWeightLogs(userId,canApply,applyRemote), pullFoodLog(userId,canApply,applyRemote), pullExercises(userId,canApply,applyRemote)]:[]),
+    pullExerciseLogs(userId,canApply,applyRemote), pullPRHistory(userId,canApply,applyRemote), pullWorkoutDays(userId,canApply,applyRemote), pullFavorites(userId,canApply,applyRemote),
   ]);
   return results.reduce((sum, r) => sum + r.dropped, 0);
                          }

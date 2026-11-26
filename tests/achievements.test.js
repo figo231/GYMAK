@@ -22,7 +22,8 @@ describe("achievements", () => {
 describe("programs by goal", () => {
   it("every program has a goal and a template with valid exercises", () => {
     const progs = S.getPrograms();
-    expect(progs.length).toBe(7);
+    expect(progs.length).toBe(6);
+    expect(progs.some(p=>p.id==="glutes-tone")).toBe(false);
     for (const p of progs) {
       expect(["bulk", "cut", "strength", "fitness"]).toContain(p.goal);
       const days = S.getProgramDays(p.id);

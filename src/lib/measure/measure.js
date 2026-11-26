@@ -13,7 +13,7 @@ export function loadMeasures() {
     return Array.isArray(a) ? a.filter((e) => e && typeof e.date === "string").sort((x, y) => (x.date < y.date ? -1 : 1)) : [];
   } catch { return []; }
 }
-function save(a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch { /* quota */ } }
+function save(a) { localStorage.setItem(KEY, JSON.stringify(a)); }
 
 /** Adds/updates today's entry; ignores invalid or empty values. Returns the saved entry or null. */
 export function saveMeasure(values, date = todayKey()) {
@@ -80,4 +80,14 @@ export function latestByField(entries = loadMeasures()) {
     out[k] = { value: last[k], date: last.date, delta: prev ? Math.round((last[k] - prev[k]) * 10) / 10 : null, series: withK.slice(-8).map((e) => e[k]) };
   }
   return out;
+}
+
+/** Atomic form replacement, including date changes and intentionally cleared fields. */
+export function replaceMeasure(values,date,previousDate=date){
+ const clean={};for(const [k] of FIELDS){const n=parseFloat(values[k]);if(Number.isFinite(n)&&n>=10&&n<=300)clean[k]=Math.round(n*10)/10;}
+ if(!Object.keys(clean).length)return null;
+ const current=loadMeasures();
+ if(date!==previousDate&&current.some(e=>e.date===date))throw Error('measurement_date_exists');
+ const all=current.filter(e=>e.date!==previousDate&&e.date!==date),entry={...clean,date};
+ all.push(entry);save(all.sort((a,b)=>a.date.localeCompare(b.date)));return entry;
 }

@@ -31,7 +31,7 @@ function Detail({ trainee, onClose }) {
   useEffect(() => { sentAssignments(trainee.trainee_id).then(setSent); }, [trainee.trainee_id]);
   async function send() {
     try { await assignProgram(trainee.trainee_id, prog); toast(tx("اتبعت البرنامج للمتدرب ✅")); setSent(await sentAssignments(trainee.trainee_id)); }
-    catch (e) { toast(tx("فشل الإرسال: ") + e.message); }
+    catch (e) { toast(tx("فشل الإرسال: ") + tx("اتأكد من الاتصال وحاول تاني.")); }
   }
   useEffect(() => { traineeReport(trainee.trainee_id).then(setR).catch(() => setR({ errors: true })); }, [trainee.trainee_id]);
   const Row = ({ k, v }) => (<div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-soft)", fontSize: 13 }}><span style={{ opacity: 0.7 }}>{k}</span><b>{v}</b></div>);
@@ -98,16 +98,16 @@ export default function Coach() {
         setTrainees(t);
         t.filter((x) => x.status === "active" && x.trainee_id).forEach((x) => traineeReport(x.trainee_id).then((r) => setReports((p) => ({ ...p, [x.id]: r }))).catch(() => {}));
       }
-    } catch (e) { toast(tx("فشل التحميل: ") + e.message); }
+    } catch (e) { toast(tx("فشل التحميل: ") + tx("اتأكد من الاتصال وحاول تاني.")); }
   }
   useEffect(() => { load(); }, []);
 
   const sum = summarize(trainees, reports);
   const list = sortTrainees(filterTrainees(trainees, reports, q), reports);
 
-  async function answer(id, ok) { try { await respondInvite(id, ok); load(); toast(ok ? tx("اتفعّل المدرب ✅") : tx("اتلغى")); } catch (e) { toast(tx("فشل: ") + e.message); } }
-  async function invite() { try { await inviteTrainee(email); setEmail(""); load(); toast(tx("اتبعتت الدعوة ✅")); } catch (e) { toast(e.message); } }
-  async function revoke(id) { try { await revokeLink(id); load(); } catch (e) { toast(tx("فشل: ") + e.message); } }
+  async function answer(id, ok) { try { await respondInvite(id, ok); load(); toast(ok ? tx("اتفعّل المدرب ✅") : tx("اتلغى")); } catch (e) { toast(tx("فشل: ") + tx("اتأكد من الاتصال وحاول تاني.")); } }
+  async function invite() { try { await inviteTrainee(email); setEmail(""); load(); toast(tx("اتبعتت الدعوة ✅")); } catch (e) { toast(tx("مقدرناش نكمل. اتأكد من الاتصال وحاول تاني.")); } }
+  async function revoke(id) { try { await revokeLink(id); load(); } catch (e) { toast(tx("فشل: ") + tx("اتأكد من الاتصال وحاول تاني.")); } }
 
   return (
     <>

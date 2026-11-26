@@ -1,3 +1,4 @@
+import AvatarImage from "../../components/AvatarImage";
 import HomeSection from "../../components/HomeSection";
 import LineIcon from "../../components/LineIcon";
 import "./dashboard25.css";
@@ -123,7 +124,7 @@ export default function Dashboard() {
     <div className="home">
       <div className="header">
         <div className="avatar-wrap">
-          <div className="avatar-ring"><img src={profile.avatar || "/icon-192.png"} alt={tx("صورتي")} /></div>
+          <div className="avatar-ring"><AvatarImage src={profile.avatar || "/avatar-default.svg"} alt={tx("صورتي")} /></div>
           <div className="level-badge">Lv. {profile.level}</div>
         </div>
         <div className="header-info">

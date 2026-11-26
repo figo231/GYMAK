@@ -27,3 +27,6 @@ export function professionalError(error) {
   return tx('معرفناش نكمل. راجع النت وجرب تاني.');
 }
 export const REQUEST_LABELS = { pending: tx('في انتظار الرد'), accepted: tx('مقبول'), declined: tx('مرفوض'), canceled: tx('متوقف') };
+
+export const getProfessionalAudience=id=>rpc('professional_audience_owner',{p_user_id:id});
+export const saveProfessionalAudience=(id,audience)=>rpc('professional_audience_save',{p_user_id:id,p_audience:audience});

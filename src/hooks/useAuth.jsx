@@ -1,4 +1,7 @@
+import DefaultChatAvatarSync from '../components/DefaultChatAvatarSync';
+import {savePrivateAge,syncPrivateAge,validAge} from '../lib/privateAge';
 import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport,dataOwner,bindDataOwner} from "../lib/guestImport";
+import {flushPushPreferences} from "../lib/push/serverPreferences";
 import { flushEncouragementStop } from "../lib/encouragement";
 import { recordAppActivity,resetActivitySession } from '../lib/appActivity';
 import { createContext, useContext, useEffect, useState } from "react";
@@ -112,6 +115,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const userId = session?.user?.id;
     if (userId && !isPasswordRecovery) {
+      flushPushPreferences(userId).catch(()=>{});
       registerForPush(userId);
     } else {
       removePushToken();
@@ -121,7 +125,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const id=session?.user?.id;
     if(!id || isPasswordRecovery){resetActivitySession();return;}
-    const tick=()=>recordAppActivity(id);tick();
+    const tick=()=>{recordAppActivity(id);flushPushPreferences(id).catch(()=>{});};tick();
     document.addEventListener('visibilitychange',tick);
     window.addEventListener('online',tick);
     const timer=setInterval(tick,15*60*1000);
@@ -135,13 +139,16 @@ export function AuthProvider({ children }) {
     return()=>{window.removeEventListener('online',tick);document.removeEventListener('visibilitychange',tick);};
   },[session?.user?.id,isPasswordRecovery]);
 
+  useEffect(()=>{const id=session?.user?.id;if(!id||isPasswordRecovery)return;const tick=()=>syncPrivateAge(id,supabase).catch(()=>{});tick();window.addEventListener('online',tick);window.addEventListener('gymak-private-age',tick);return()=>{window.removeEventListener('online',tick);window.removeEventListener('gymak-private-age',tick);};},[session?.user?.id,isPasswordRecovery]);
+
   async function signUp(email, password, identity) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
     const { data, error } = await withTimeout(supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/login`, ...(identity ? {data:{identity_version:"v1",display_name:identity.name.trim(),gender:identity.gender,username:identity.username.trim().toLowerCase()}} : {}) },
+      options: { emailRedirectTo: `${window.location.origin}/auth/login`, ...(identity ? {data:{identity_version:"v1",display_name:identity.name.trim(),gender:identity.gender,username:identity.username.trim().toLowerCase(),private_age:Number(identity.age),private_age_recorded_at:Date.now()}} : {}) },
     }));
+    if(!error&&!isDuplicateSignup(data)&&data?.user?.id&&validAge(identity?.age)){try{savePrivateAge(data.user.id,identity.age);}catch{}}
     return { error, data, duplicate: !error && isDuplicateSignup(data) };
   }
 
@@ -154,6 +161,7 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     if (!supabase) return { error: NO_CLIENT_ERROR };
+    try { await removePushToken({explicit:true}); } catch { return {error:{message:"Could not turn off account notifications. Try signing out again."}}; }
     if (!window.Capacitor?.isNativePlatform?.()) { const {stopWebPush}=await import("../lib/push/webPush"); await stopWebPush(); }
     const { error } = await supabase.auth.signOut();
     return { error };
@@ -196,7 +204,7 @@ export function AuthProvider({ children }) {
     updatePassword,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}><DefaultChatAvatarSync userId={!isPasswordRecovery&&guestImport.status==='ready'?session?.user?.id:null}/>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

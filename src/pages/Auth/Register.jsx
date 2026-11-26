@@ -1,8 +1,9 @@
+import {validAge} from '../../lib/privateAge';
 import {REVIEW_BACKEND_GATED,reviewBackendMessage} from "../../lib/reviewBuild";
 import IdentityFields from "../../components/IdentityFields";
 import {useI18n} from "../../hooks/useI18n";
 import {identityText,validateIdentity} from "../../lib/accountIdentity";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { translateAuthError } from "../../lib/authErrors";
@@ -13,29 +14,33 @@ export default function Register() {
   const { signUp, resendConfirmation, isConfigured } = useAuth();
   const navigate = useNavigate();
   const {lang}=useI18n();const it=identityText[lang==='en'?'en':'ar'];
-  const [identity,setIdentity]=useState({name:"",gender:"",username:""});
+  const [identity,setIdentity]=useState({name:"",gender:"",username:"",age:""});
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
   const [sent, setSent] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [wait, startWait] = useCooldown();
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (inFlight.current || sent) return;
     setError(""); setDuplicate(false);
-    const invalid=validateIdentity(identity);if(invalid){setError(it[invalid]);return;}
+    if(!validAge(identity.age)){setError(lang==='en'?'Enter your age in whole years (1–120).':'اكتب سنك بالسنين من1لـ120.');return;}const invalid=validateIdentity(identity);if(invalid){setError(it[invalid]);return;}
     const mail = normalizeEmail(email);
     if (!mail || !password) { setError("املا الإيميل والباسورد."); return; }
     if (!validEmail(mail)) { setError("صيغة الإيميل مش صحيحة."); return; }
     if (password.length < MIN_PASSWORD) { setError(`الباسورد لازم يكون ${MIN_PASSWORD} حروف على الأقل.`); return; }
     if (password !== confirm) { setError("الباسوردين مش متطابقين."); return; }
+    inFlight.current = true;
     setBusy(true);
     let res;
     try { res = await signUp(mail, password,identity); } catch (err) { res = { error: err }; }
+    inFlight.current = false;
     setBusy(false);
     if (res.error) { setError(/database|username/i.test(res.error.message||"")?it.signup_conflict:translateAuthError(res.error)); return; }
     if (res.duplicate) { setDuplicate(true); setError("الإيميل ده مسجل قبل كده."); return; }
@@ -45,10 +50,12 @@ export default function Register() {
   }
 
   async function handleResend() {
-    if (wait > 0) return;
+    if (wait > 0 || inFlight.current) return;
+    inFlight.current = true;
     setError(""); setInfo("");
     let res;
     try { res = await resendConfirmation(normalizeEmail(email)); } catch (err) { res = { error: err }; }
+    inFlight.current = false;
     startWait(60);
     if (res.error) setError(translateAuthError(res.error)); else setInfo("بعتناه تاني. شوف الوارد والسبام.");
   }
@@ -62,6 +69,7 @@ export default function Register() {
         <p className="auth-sub">
           بعتنالك رابط تأكيد على <b dir="ltr">{email}</b>. دوس عليه عشان تفعّل حسابك، وبعدها سجّل دخول.
         </p>
+        <p className="auth-sub">لو الرسالة مش في الوارد، افتح Spam أو الرسائل غير المرغوب فيها. اختار الرسالة واضغط "ليست رسالة غير مرغوب فيها"، وبعدها افتح رابط التأكيد.</p>
         <AuthNotice message={info} />
         <AuthError message={error} />
         <button type="button" className="btn btn-primary auth-submit" onClick={() => navigate("/auth/login")}>
@@ -84,7 +92,7 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} noValidate>
         <IdentityFields value={identity} onChange={setIdentity} lang={lang} disabled={busy}/>
-        <AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        <AuthField label={lang==='en'?'Age, private':'السن بالسنين، خاص بيك'} type="number" min="1" max="120" step="1" value={identity.age} onChange={e=>setIdentity({...identity,age:e.target.value})} hint={lang==='en'?'Not shown to members. Used in food planning.':'مش بيظهر للأعضاء. بنستخدمه في إعداد الأكل.'}/><AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         <AuthField label="الباسورد" icon="lock" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={`${MIN_PASSWORD} حروف على الأقل`} hint={<PasswordMeter value={password} />} />
         <AuthField label="تأكيد الباسورد" icon="lock" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" />
         <AuthError message={error}>

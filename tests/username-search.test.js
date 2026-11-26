@@ -1,0 +1,3 @@
+import {it,expect} from 'vitest';import {normalizeSearchUsername,usernameSearchError} from '../src/lib/usernameSearch';
+it('normalizes copied RTL marks, at prefix, spaces and case without wildcard expansion',()=>{expect(normalizeSearchUsername('\u200f @  USER_Name \u200e')).toBe('user_name');expect(normalizeSearchUsername('＠NAME')).toBe('name');expect(normalizeSearchUsername('name%')).toBe('name%');});
+it('distinguishes terms, invalid username and offline failures',()=>{expect(usernameSearchError(Error('consent_required'))).toContain('شروط');expect(usernameSearchError(Error('Failed to fetch'))).toContain('نت');expect(usernameSearchError(Error('invalid_username'))).toContain('كامل');});

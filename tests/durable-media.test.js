@@ -1,0 +1,4 @@
+import {beforeEach,it,expect,vi} from 'vitest';
+beforeEach(()=>{vi.resetModules();localStorage.clear();});
+it('does not claim a photo or custom exercise video was saved when durable storage is unavailable',async()=>{vi.stubGlobal('indexedDB',undefined);try{const photos=await import('../src/lib/photos/photos');const media=await import('../src/lib/exerciseMedia');await expect(photos.addPhoto(new Blob(['x']))).rejects.toThrow('persistent_storage_required');await expect(media.saveExerciseMedia('x',new File(['x'],'x.mp4',{type:'video/mp4'}))).rejects.toThrow('persistent_storage_required');}finally{vi.unstubAllGlobals();}});
+it('rejects invalid reminder time without committing the setting',async()=>{const {default:Store}=await import('../src/lib/store/gymakStore');const before=Store.getSettings().notifTime;expect(()=>Store.setNotifSettings({time:'99:99'})).toThrow('invalid_reminder_time');expect(Store.getSettings().notifTime).toBe(before);});

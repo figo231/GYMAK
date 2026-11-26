@@ -1,0 +1,2 @@
+export function normalizeFoodQuery(text){return String(text||'').normalize('NFKC').toLowerCase().replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[\u064B-\u065F\u0670]/g,'').trim();}
+export function searchFoods(catalog,query){const q=normalizeFoodQuery(query);if(!q)return[];return catalog.filter(f=>[f.name,...(f.aliases||[])].some(n=>normalizeFoodQuery(n).includes(q))).sort((a,b)=>Number(!normalizeFoodQuery(a.name).startsWith(q))-Number(!normalizeFoodQuery(b.name).startsWith(q)));}

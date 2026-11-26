@@ -8,7 +8,7 @@ import { localISO } from "../../lib/dateKey";
 import { dayLabel } from "../../lib/historyLogic";
 import Store from "../../lib/store/gymakStore";
 import TrendChart from "../Stats/TrendChart";
-import { FIELDS, loadMeasures, saveMeasure, deleteMeasure, restoreMeasure, measureDeltas, validateMeasures, latestByField, seriesForField } from "../../lib/measure/measure";
+import { FIELDS, loadMeasures, saveMeasure, replaceMeasure, deleteMeasure, restoreMeasure, measureDeltas, validateMeasures, latestByField, seriesForField } from "../../lib/measure/measure";
 import { tx, txf } from "../../lib/i18n/tx";
 
 // Waist and hips going down is the usual goal; for the rest we do not judge the direction.
@@ -67,17 +67,17 @@ export default function Measurements() {
     if (!v.count) { toast(tx("اكتب قياس واحد على الأقل (بالسنتيمتر).")); return; }
     if (date > today) { toast(tx("مينفعش تسجّل قياس في تاريخ لسه ماجاش.")); return; }
     const had = entries.find((e) => e.date === date);
-    if (editingEntry) deleteMeasure(editingEntry.date); // replace, so cleared fields are removed
-    saveMeasure(vals, date);
+    try { if (editingEntry) replaceMeasure(vals,date,editingEntry.date); else saveMeasure(vals,date); }
+    catch (error) { toast(tx(error.message === "measurement_date_exists" ? "التاريخ ده فيه قياس مسجل. اختار تاريخ تاني. القياسين زي ما هم." : "تعذر الحفظ. بياناتك السابقة زي ما هي. راجع مساحة الجهاز وجرب تاني.")); return; }
     setEditingEntry(null);
     reload(); setVals({}); setAdding(false); buzz(15);
-    toast(had ? tx("اتحدّثت قياسات اليوم ده") : tx("اتسجلت القياسات"), had ? { duration: 6000, action: { label: tx("تراجع"), onClick: () => { restoreMeasure(had); reload(); } } } : undefined);
+    toast(had ? tx("اتحدّثت قياسات اليوم ده") : tx("اتسجلت القياسات"), had ? { duration: 6000, action: { label: tx("تراجع"), onClick: () => { try { restoreMeasure(had); reload(); } catch { toast(tx("تعذر الحفظ. بياناتك السابقة زي ما هي. راجع مساحة الجهاز وجرب تاني.")); } } } } : undefined);
   }
   async function del(e) {
     const ok = await confirm({ title: tx("مسح القياسات؟"), label: dayLabel(e.date, today), confirmLabel: tx("مسح"), danger: true });
     if (!ok) return;
-    deleteMeasure(e.date); reload();
-    toast(tx("تم مسح القياسات"), { duration: 6000, action: { label: tx("تراجع"), onClick: () => { restoreMeasure(e); reload(); } } });
+    try { deleteMeasure(e.date); } catch { toast(tx("تعذر الحفظ. بياناتك السابقة زي ما هي. راجع مساحة الجهاز وجرب تاني.")); return; } reload();
+    toast(tx("تم مسح القياسات"), { duration: 6000, action: { label: tx("تراجع"), onClick: () => { try { restoreMeasure(e); reload(); } catch { toast(tx("تعذر الحفظ. بياناتك السابقة زي ما هي. راجع مساحة الجهاز وجرب تاني.")); } } } });
   }
   const setField = (k, v) => { setVals((o) => ({ ...o, [k]: v })); if (errors[k]) setErrors((o) => { const n = { ...o }; delete n[k]; return n; }); };
 

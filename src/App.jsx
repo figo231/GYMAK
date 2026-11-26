@@ -1,7 +1,9 @@
+import NativeOtaPrompt from './components/NativeOtaPrompt';
+import PrivateAgePrompt from './components/PrivateAgePrompt';
+import NativeReminderLifecycle from "./components/NativeReminderLifecycle";
 import AnnouncementNotice from "./components/AnnouncementNotice";
 import ForegroundPushBanner from "./components/ForegroundPushBanner";
 import Store from "./lib/store/gymakStore";
-import { isNative, syncMissedReminder } from "./lib/push/nativeReminder";
 import { autoSnapshotIfDue } from "./lib/backup";
 import { initializeOta } from "./lib/update/otaUpdateStrategy";
 import { Suspense, useEffect, useState } from "react";
@@ -53,7 +55,7 @@ export default function App() {
   useEffect(() => {
     let hiddenAt = 0;
     const onVis = () => {
-      if (isNative()) { const trained = Store.trainedOn(); syncMissedReminder(Store.getReminderPrefs(), trained, !document.hidden); }
+
       if (document.hidden) { hiddenAt = Date.now(); return; }
       if (isLockEnabled() && shouldRelock(hiddenAt)) setLocked(true);
       hiddenAt = 0;
@@ -90,15 +92,17 @@ export default function App() {
         <I18nProvider>
           <PWAUpdatePrompt />
           <ApkUpdateSheet />
+          <NativeOtaPrompt />
           <ToastProvider>
             <DialogProvider>
               <AuthProvider>
+                <NativeReminderLifecycle />
                 <Suspense fallback={<RouteFallback />}>
                   <RouterProvider router={router} />
                 </Suspense>
                 {!showSplash && !locked && onboarded && <EncouragementNotice key={"encouragement"} />}
                 {!showSplash && !locked && onboarded && <ForegroundPushBanner />}
-                {!showSplash && !locked && onboarded && <CompleteIdentityPrompt key={"identity"} />}
+                {!showSplash && !locked && onboarded && <><CompleteIdentityPrompt key={"identity"} /><PrivateAgePrompt key={"private-age"}/></>}
                 {!showSplash && !locked && onboarded && <AnnouncementNotice />}
                 <RestTimer />
                 <Celebration />

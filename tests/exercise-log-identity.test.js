@@ -1,0 +1,10 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {exerciseLogId} from '../src/lib/sync/exerciseLogIdentity';
+let S;
+beforeEach(async()=>{localStorage.clear();vi.resetModules();S=(await import('../src/lib/store/gymakStore')).default;S.resetAllData();localStorage.setItem('gymak_local_data_owner_v1','owner');});
+describe('stable set identity across offline/reconnect',()=>{
+ it('keeps three identical offline sets on a second device and across retries',()=>{const id=S.getExercises()[0].id;for(let i=0;i<3;i++)S.logSet(id,40,1,10);const local=S.getExerciseLogs(id);const remote=local.map(l=>({id:exerciseLogId('owner',id,l),exercise_id:id,date:l.date,weight:l.weight,sets:l.sets,reps:l.reps}));expect(new Set(remote.map(l=>l.id)).size).toBe(3);S.resetAllData();S.mergeExerciseLogsFromRemote(remote);S.mergeExerciseLogsFromRemote(remote);expect(S.getExerciseLogs(id)).toHaveLength(3);});
+ it('delete/edit and undo target just one identical set',()=>{const id=S.getExercises()[0].id;S.logSet(id,40,1,10);S.logSet(id,40,1,10);const first=S.getExerciseLogs(id)[0].id;const snap=S.deleteExerciseLog(id,0);expect(S.getPendingDeletes().exerciseLogs).toContain('id:'+first);expect(S.getExerciseLogs(id)).toHaveLength(1);S.restore(snap);expect(S.getExerciseLogs(id)).toHaveLength(2);expect(S.getPendingDeletes().exerciseLogs).not.toContain('id:'+first);});
+ it('merges cloud PR history without leaking set-only identity variables',()=>{const row={exercise_id:'bench-press-barbell',exercise_name:'Bench',date:'2026-11-25',weight:60,prev_weight:50};S.mergePRHistoryFromRemote([row]);S.mergePRHistoryFromRemote([row]);expect(S.getRawStateForSync().prHistory).toHaveLength(1);});
+ it('legacy deterministic remote row does not duplicate existing legacy history',()=>{const id=S.getExercises()[0].id;S.logSet(id,40,1,10);const state=S.getRawStateForSync();delete state.exerciseLogs[id][0].id;localStorage.setItem('gymak_state_v1',JSON.stringify(state));S.invalidateCache();const l=S.getExerciseLogs(id)[0];S.mergeExerciseLogsFromRemote([{id:exerciseLogId('owner',id,l),exercise_id:id,...l}]);expect(S.getExerciseLogs(id)).toHaveLength(1);});
+});
