@@ -1,0 +1,10 @@
+import {it,expect,afterEach} from 'vitest';
+import {act} from 'react';
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {readFileSync} from 'node:fs';
+import OtaRouteReady from '../src/components/OtaRouteReady';
+globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+afterEach(()=>document.documentElement.removeAttribute('data-gymak-route-ready'));
+it('wraps the eagerly imported food route with the same readiness boundary as lazy routes',()=>{const source=readFileSync('src/router.jsx','utf8');expect(source).toContain('{ path: "/food", element: <OtaRouteReady><Food /></OtaRouteReady> }');expect(source).toContain('createElement(OtaRouteReady,null,createElement(m.default,props))')});
+it('sets readiness only when actual route content mounts and clears when it leaves',async()=>{const node=document.createElement('div');document.body.append(node);const root=createRoot(node);await act(async()=>root.render(React.createElement(OtaRouteReady,null,React.createElement('main',null,'Food route'))));expect(node.textContent).toBe('Food route');expect(document.documentElement.getAttribute('data-gymak-route-ready')).toBe('1');await act(async()=>root.unmount());expect(document.documentElement.hasAttribute('data-gymak-route-ready')).toBe(false);node.remove()});

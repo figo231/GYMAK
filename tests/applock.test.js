@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
+import { createHash } from "node:crypto";
 import { setPin, verifyPin, clearPin, isLockEnabled, validPin, shouldRelock } from "../src/lib/appLock";
 import { exercisesWord, parseBackup, applyBackup, exportPayload, xpToNext, timeAgoAr } from "../src/lib/profileLogic";
 
@@ -9,7 +10,17 @@ describe("app lock", () => {
     expect(validPin("1234")).toBe(true); expect(validPin("12a4")).toBe(false); expect(validPin("123")).toBe(false);
     expect(await setPin("12")).toBe(false); expect(isLockEnabled()).toBe(false);
     expect(await setPin("4821")).toBe(true); expect(isLockEnabled()).toBe(true);
-    expect(localStorage.getItem("gymak_lock_v1")).not.toContain("4821");
+    const record = JSON.parse(localStorage.getItem("gymak_lock_v1"));
+    expect(Object.keys(record).sort()).toEqual(["fails", "hash", "salt", "until"]);
+    expect(record.salt).toMatch(/^[a-f0-9]{32}$/);
+    expect(record.hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(record.hash).toBe(createHash("sha256").update(`${record.salt}:4821`).digest("hex"));
+    expect(record).toMatchObject({ fails: 0, until: 0 });
+    expect(Object.values(record)).not.toContain("4821");
+    expect(Object.values(record)).not.toContain(4821);
+    expect(record.hash).not.toBe(createHash("sha256").update("4821").digest("hex"));
+    expect((await verifyPin("4821")).ok).toBe(true);
+    expect((await verifyPin("0000")).ok).toBe(false);
   });
   it("verifies, throttles after five wrong tries, and clears", async () => {
     await setPin("4821");
