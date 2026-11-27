@@ -122,6 +122,8 @@
       "release/apk28-candidate-ci": false,
       "release/apk29-candidate": false,
       "stage/apk29-private": false,
+      "stage/apk29-private-v3": false,
+      "stage/apk29-private-v3-r2": false,
       "stage/apk25-private": false
     }
   }

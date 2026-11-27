@@ -1,0 +1,169 @@
+name: Private APK 29 v3 test build (encrypted artifact, no publish)
+# One-time private test build for one phone (v3: APK 29 source + three local fix commits 0782a97, 7fda314 and a signup error-handling commit).
+# Built from the exact app source of release/apk29-candidate commit ff56287. Not a release: no GitHub Release,
+# no OTA manifest, no deploy, no clear APK upload.
+on:
+  push:
+    branches: [stage/apk29-private-v3]
+    paths: [.github/workflows/apk29-private-v3.yml]
+concurrency:
+  group: apk29-private-v3
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  build:
+    if: github.ref == 'refs/heads/stage/apk29-private-v3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "false"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_PUSH_ENABLED: "false"
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 8
+          persist-credentials: false
+      - name: Source must be exactly ff56287 + 60a0d93 + c21f7e2 + 48d26c0 + 0782a97 + 7fda314 + one signup commit (pinned by tree) + one commit adding only this workflow and one vercel.json line
+        run: |
+          set -euo pipefail
+          B=ff56287546ae6fe3e2fb11a011ebed7d2e300bc8
+          test "$(git rev-parse HEAD~7)" = "$B"
+          test "$(git rev-parse HEAD~6)" = 60a0d936144256e60625709d663c37cbb876fa74
+          test "$(git rev-parse HEAD~5)" = c21f7e26c51f3f73bff0d0c228f0dd94b7bf0226
+          test "$(git rev-parse HEAD~4)" = 48d26c093de7d0768c26f2bf31db0cac8996ce0f
+          test "$(git rev-parse HEAD~3)" = 0782a9775644f2194af25263e26bb857cec52177
+          test "$(git rev-parse HEAD~2)" = 7fda31449aeebb0ebedd466eb5d1f5c4b630716f
+          test "$(git rev-parse HEAD~1^{tree})" = 9b3caec8a43069eb7773b1d2b3ab541a895556ec
+          test "$(git rev-list --count HEAD~7..HEAD)" = 7
+          test "$(git rev-list --merges HEAD~7..HEAD | wc -l)" = 0
+          test "$(git diff --name-only HEAD~4 HEAD~3 | LC_ALL=C sort | tr '\n' ' ')" = "src/lib/authErrors.js src/lib/connectionCheck.js src/pages/Auth/Register.jsx tests/apk29-signup-server-error.test.js "
+          test "$(git diff --name-only HEAD~3 HEAD~2 | LC_ALL=C sort | tr '\n' ' ')" = "src/components/GuestImportGate.jsx src/hooks/useAuth.jsx src/lib/accountSwitch.js tests/account-mismatch-gate.test.js tests/account-switch.test.js "
+          test "$(git diff --name-only HEAD~2 HEAD~1 | LC_ALL=C sort | tr '\n' ' ')" = "AiCoach Auth Dashboard ExerciseDetail Exercises Profile Programs Stats dir gymak-admin/.gitignore gymak-admin/tsconfig.app.tsbuildinfo gymak-admin/tsconfig.node.tsbuildinfo index.html src/App.jsx src/hooks/useAuth.jsx src/lib/authErrors.js src/lib/authFailureProbe.js src/lib/backup.js src/lib/i18n/en.js src/lib/push/pushService.js src/lib/supabaseClient.js src/lib/sync/syncManager.js src/pages/Admin/Admin.jsx src/pages/Auth/Account.jsx src/pages/Auth/ForgotPassword.jsx src/pages/Auth/Login.jsx src/pages/Auth/Register.jsx src/pages/Profile/ChatProfile.jsx tests/admin-labels.test.js tests/apk29-auth-polish.test.js tests/apk29-signup-server-error.test.js tests/auth-offline-session.test.js tests/chat-profile-discovery-guard.test.js tests/login-error-messages.test.js tests/push-logout-race.test.js tests/recover-error-messages.test.js tests/review-hygiene.test.js tests/signup-error-messages.test.js tests/theme-color-meta.test.js "
+          test "$(git diff --name-only HEAD~1 HEAD | LC_ALL=C sort | tr '\n' ' ')" = ".github/workflows/apk29-private-v3.yml vercel.json "
+          test "$(git diff --name-only $B HEAD | LC_ALL=C sort | tr '\n' ' ')" = ".github/workflows/apk29-private-v3.yml .github/workflows/apk29-private.yml AiCoach Auth Dashboard ExerciseDetail Exercises Profile Programs Stats dir gymak-admin/.gitignore gymak-admin/tsconfig.app.tsbuildinfo gymak-admin/tsconfig.node.tsbuildinfo index.html src/App.jsx src/components/GuestImportGate.jsx src/hooks/useAuth.jsx src/lib/accountSwitch.js src/lib/authErrors.js src/lib/authFailureProbe.js src/lib/backup.js src/lib/connectionCheck.js src/lib/i18n/en.js src/lib/push/pushService.js src/lib/supabaseClient.js src/lib/sync/syncManager.js src/pages/Admin/Admin.jsx src/pages/Auth/Account.jsx src/pages/Auth/ForgotPassword.jsx src/pages/Auth/Login.jsx src/pages/Auth/Register.jsx src/pages/Profile/ChatProfile.jsx tests/account-mismatch-gate.test.js tests/account-switch.test.js tests/admin-labels.test.js tests/apk29-auth-polish.test.js tests/apk29-signup-server-error.test.js tests/auth-offline-session.test.js tests/chat-profile-discovery-guard.test.js tests/login-error-messages.test.js tests/push-logout-race.test.js tests/recover-error-messages.test.js tests/review-hygiene.test.js tests/signup-error-messages.test.js tests/theme-color-meta.test.js vercel.json "
+          test "$(git diff -U0 HEAD~1 HEAD -- vercel.json | grep -cE '^[+-][^+-]')" = 2
+          git diff -U0 HEAD~1 HEAD -- vercel.json | grep -qE '^\+.*"stage/apk29-private-v3": false'
+          git diff -U0 HEAD~1 HEAD -- vercel.json | grep -qE '^\+.*"stage/apk29-private-v3-r2": false'
+          test "$(git rev-parse HEAD:vercel.json)" = 7d4d49b0948c2e9f8795ac1a35f61631f33bac41
+          test "$(git rev-parse HEAD~1:vercel.json)" = 5749645db779a1a8a0e4b9dd471dc9371aa0df27
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Public settings only (publishable key, no fixture)
+        run: |
+          set -euo pipefail
+          test -n "$VITE_SUPABASE_URL"; test -n "$VITE_SUPABASE_ANON_KEY"
+          case "$VITE_SUPABASE_URL" in *fixture.invalid*) echo "fixture URL" >&2; exit 1;; esac
+          case "$VITE_SUPABASE_ANON_KEY" in
+            sb_publishable_*) ;;
+            eyJ*) node -e 'const p=process.env.VITE_SUPABASE_ANON_KEY.split(".")[1];const r=JSON.parse(Buffer.from(p,"base64url").toString()).role;if(r!=="anon"){console.error("key role is not anon");process.exit(1)}' ;;
+            *) echo "unknown key format" >&2; exit 1;;
+          esac
+      - run: npm install --no-audit --no-fund
+      - name: Test and build bundled app (OTA off)
+        run: |
+          set -euo pipefail
+          npm test
+          npm run build
+          if grep -rq __avatarVerificationReady dist; then echo "test fixture leaked" >&2; exit 1; fi
+          if grep -rqE 'sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----' dist; then echo "secret-like text in bundle" >&2; exit 1; fi
+          node - <<'JSEOF'
+          const fs=require("fs"),path=require("path");
+          const re=/eyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*/g;
+          let bad=0,ok=0,skipped=0;
+          const walk=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(d,e.name)):[path.join(d,e.name)]);
+          for(const f of walk("dist")){
+            const t=fs.readFileSync(f,"latin1");
+            for(const m of t.match(re)||[]){
+              let p;try{p=JSON.parse(Buffer.from(m.split(".")[1],"base64url").toString("utf8"))}catch{skipped++;continue}
+              if(p===null||typeof p!=="object"){skipped++;continue}
+              if(p.role===undefined){skipped++;continue}
+              if(p.role==="anon"){ok++;continue}
+              console.error("JWT with role "+JSON.stringify(p.role)+" in "+f);bad++;
+            }
+          }
+          console.log("jwt scan: anon="+ok+" not-a-jwt-or-no-role="+skipped+" bad="+bad);
+          if(bad>0)process.exit(1);
+          JSEOF
+          npx cap sync android
+      - name: Restore existing signing identity
+        env:
+          KS_B64: ${{ secrets.GYMAK_KEYSTORE_B64 }}
+        run: |
+          set -euo pipefail
+          test -n "$KS_B64"
+          printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/gymak.jks"
+          echo "GYMAK_KEYSTORE_PATH=$RUNNER_TEMP/gymak.jks" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_CODE=29" >> "$GITHUB_ENV"
+          echo "GYMAK_VERSION_NAME=1.29" >> "$GITHUB_ENV"
+      - name: Temporary CI-copy edits (not committed)
+        run: |
+          set -euo pipefail
+          g=android/app/build.gradle
+          s=android/app/src/main/res/values/strings.xml
+          test "$(grep -cE '^\s*applicationId "com\.gymak\.app"$' $g)" = 1
+          sed -i 's/^\(\s*\)applicationId "com\.gymak\.app"$/\1applicationId "com.gymak.app.v29test"/' $g
+          test "$(grep -c 'applicationId "com.gymak.app.v29test"' $g)" = 1
+          test "$(grep -c '<string name="app_name">GYMAK</string>' $s)" = 1
+          test "$(grep -c '<string name="title_activity_main">GYMAK</string>' $s)" = 1
+          sed -i 's|<string name="app_name">GYMAK</string>|<string name="app_name">GYMAK v29 test</string>|; s|<string name="title_activity_main">GYMAK</string>|<string name="title_activity_main">GYMAK v29 test</string>|' $s
+          git diff --stat | tee "$RUNNER_TEMP/ci-edits.txt"
+          test "$(git diff --name-only | LC_ALL=C sort | tr '\n' ' ')" = "android/app/build.gradle android/app/capacitor.build.gradle android/app/src/main/res/values/strings.xml android/capacitor.settings.gradle "
+          test "$(git diff -U0 -- android/app/build.gradle android/app/src/main/res/values/strings.xml | grep -cE '^[+-][^+-]')" = 6
+          test "$(grep -cE '^\s*applicationId "com\.gymak\.app\.v29test"$' $g)" = 1
+          test "$(grep -cF '<string name="app_name">GYMAK v29 test</string>' $s)" = 1
+          test "$(grep -cF '<string name="title_activity_main">GYMAK v29 test</string>' $s)" = 1
+      - name: Build APK
+        working-directory: android
+        env:
+          GYMAK_KEYSTORE_PASSWORD: ${{ secrets.GYMAK_KEYSTORE_PASSWORD }}
+        run: bash ./gradlew :app:assembleDebug
+      - name: Signing certificate must match APK 28, package and version must match (stops on mismatch)
+        run: |
+          set -euo pipefail
+          AS=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-28/GYMAK.apk -o "$RUNNER_TEMP/apk28.apk"
+          test "$(sha256sum "$RUNNER_TEMP/apk28.apk" | cut -d' ' -f1)" = "5885f79652c9700bc1233095c22196bc53d3fdd0d4f377df2e7245c56783ee68"
+          old=$("$AS"apksigner verify --print-certs "$RUNNER_TEMP/apk28.apk" | grep 'certificate SHA-256 digest' | head -1)
+          new=$("$AS"apksigner verify --print-certs "$APK" | grep 'certificate SHA-256 digest' | head -1)
+          test -n "$old"; test "$old" = "$new" || { echo "SIGNING CERT MISMATCH" >&2; exit 1; }
+          B=$("$AS"aapt dump badging "$APK")
+          echo "$B" | grep -q "^package: name='com.gymak.app.v29test' versionCode='29' versionName='1.29'"
+          echo "$B" | grep -q "application-label:'GYMAK v29 test'"
+          { echo "package com.gymak.app.v29test versionCode 29 versionName 1.29 label GYMAK v29 test"; echo "$new"; echo "ota build flag: VITE_OTA_ENABLED=false"; } > "$RUNNER_TEMP/build-info.txt"
+      - name: Encrypt APK for one receiver (the clear APK never leaves the runner)
+        run: |
+          set -euo pipefail
+          mkdir -p private-out
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          echo 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF1Y0NsVjhoNXFOQVRmVGNBV1pzYQo1SzYyZzc1OFNtL2FZWUlmNDFwb1E4L1ErajQvQncwZGI0M2RocFQ4NGVNR0FOWnhwcmR5ODFJQkR6MzJaUHo5CnN5YXRQK09PeGNPSW05cWRNVi9pM25NWCs1R2hVNU41SHZiUSs4TW90TDk5eGNxUzRCaUdva0d3WmlNSTBqdGQKMEpVRk9CZnQ2anh2eEpyZjRGRTVrb3lqL2pzV3dIbzhoVy94dTRZNDB6Y3dNaVRaY0svTCtlUjNOcE9xbTd6KwpxSkU5ZWlMVkhsUUtrQWtFMEVvRCtPczN6eW5rVSt4Ky83MXNDV2FwUjRkb05tbHgxbGd3a1JZQzFMbHBqV3lwClFzWUNWTVhwT3pZNC9wTkQvMmtZVkF2a3VIeE1qRDdWWDhCZXRiU3J5VHo5VkdKSngzOVRzS1FUdDFMOEVLdHYKNXF5ajIrVkNZOUdJSU1LVEsvNCt4dUZNL2NQTDl1eEo0aFlhREM2MXFUTVpwWjFpbGFSa0xrNWRTcEZxd3MyRAplVlFlaVFTc3ZRM1dqZVZUNWQ1anZRZWN0TGhGVU9mMmJJNXdUTmVqOEN4YXdhN1VZV3VBZHlEMUQzem1zUFhOCmdwZCtYRWhYbEFsSEZPcGIraTZUYkc0VGJOWSt0M3BBbjdoSWVITzN3VWgvQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==' | base64 -d > "$RUNNER_TEMP/recv-public.pem"
+          sha256sum "$APK" | cut -d' ' -f1 > private-out/apk.sha256
+          openssl rand -out "$RUNNER_TEMP/k.bin" 32
+          openssl enc -aes-256-cbc -pbkdf2 -md sha256 -in "$APK" -out private-out/apk.enc -pass file:"$RUNNER_TEMP/k.bin"
+          openssl pkeyutl -encrypt -pubin -inkey "$RUNNER_TEMP/recv-public.pem" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -in "$RUNNER_TEMP/k.bin" -out private-out/k.bin.enc
+          cp "$RUNNER_TEMP/build-info.txt" private-out/build-info.txt
+          test "$(head -c 8 private-out/apk.enc)" = "Salted__"
+          if [ "$(head -c 2 private-out/apk.enc | xxd -p)" = "504b" ]; then echo "clear zip in output" >&2; exit 1; fi
+          test "$(ls private-out | sort | tr '\n' ' ')" = "apk.enc apk.sha256 build-info.txt k.bin.enc "
+          if find private-out -type f \( -iname '*.apk' -o -iname '*.jks' -o -iname '*.keystore' -o -iname '*.zip' \) | grep -q .; then echo "forbidden file" >&2; exit 1; fi
+      - name: Remove signing material from the runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/gymak.jks" "$RUNNER_TEMP/k.bin"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: apk29-private-v3-encrypted
+          path: private-out/
+          if-no-files-found: error
+          retention-days: 1
