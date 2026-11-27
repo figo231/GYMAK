@@ -2,6 +2,7 @@ import NativeOtaPrompt from './components/NativeOtaPrompt';
 import PrivateAgePrompt from './components/PrivateAgePrompt';
 import NativeReminderLifecycle from "./components/NativeReminderLifecycle";
 import AnnouncementNotice from "./components/AnnouncementNotice";
+import NotificationAsk from "./components/NotificationAsk";
 import ForegroundPushBanner from "./components/ForegroundPushBanner";
 import Store from "./lib/store/gymakStore";
 import { autoSnapshotIfDue } from "./lib/backup";
@@ -102,6 +103,7 @@ export default function App() {
                 {!showSplash && !locked && onboarded && <ForegroundPushBanner />}
                 {!showSplash && !locked && onboarded && <><CompleteIdentityPrompt key={"identity"} /><PrivateAgePrompt key={"private-age"}/></>}
                 {!showSplash && !locked && onboarded && <AnnouncementNotice />}
+                {!showSplash && !locked && onboarded && <NotificationAsk />}
                 <RestTimer />
                 <Celebration />
                 {showSplash && <SplashScreen />}

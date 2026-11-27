@@ -13,6 +13,35 @@ async function plugin() {
 
 export const isNative = () => Capacitor.isNativePlatform();
 
+/* Notification permission helpers for the first-open ask. Native uses the
+   local-notifications plugin that APK 28 already ships (with the
+   POST_NOTIFICATIONS permission), so no new APK is needed. Nothing is
+   scheduled here: this only asks the system for permission. */
+export async function getNotificationPermission() {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const { LN } = await plugin();
+      const r = (await LN.checkPermissions()).display;
+      return r === "granted" ? "granted" : r === "denied" ? "denied" : "prompt";
+    }
+    if (typeof Notification === "undefined") return "unsupported";
+    return Notification.permission === "default" ? "prompt" : Notification.permission;
+  } catch { return "unsupported"; }
+}
+
+export async function requestNotificationPermission() {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const { LN } = await plugin();
+      const r = (await LN.requestPermissions()).display;
+      return r === "granted" ? "granted" : "denied";
+    }
+    if (typeof Notification === "undefined") return "unsupported";
+    const r = await Notification.requestPermission();
+    return r === "granted" ? "granted" : "denied";
+  } catch { return "unsupported"; }
+}
+
 export async function enableNativeReminder(time, lang = "ar", {requestPermission=true}={}) {
   if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(time)))throw Error("invalid_reminder_time");
   const { LN } = await plugin();
