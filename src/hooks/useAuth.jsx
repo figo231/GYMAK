@@ -1,6 +1,7 @@
 import DefaultChatAvatarSync from '../components/DefaultChatAvatarSync';
 import {savePrivateAge,syncPrivateAge,validAge} from '../lib/privateAge';
 import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport,dataOwner,bindDataOwner} from "../lib/guestImport";
+import {findAccountStash,restoreAccountData,startFreshForAccount} from "../lib/accountSwitch";
 import {flushPushPreferences} from "../lib/push/serverPreferences";
 import { flushEncouragementStop } from "../lib/encouragement";
 import { recordAppActivity,resetActivitySession } from '../lib/appActivity';
@@ -87,12 +88,19 @@ export function AuthProvider({ children }) {
     if(loading)return;
     if(!id||isPasswordRecovery){setGuestImport({status:"ready"});return;}
     const owner=dataOwner();
-    if(owner&&owner!==id){setGuestImport({status:"accountMismatch",userId:id});return;}
+    if(owner&&owner!==id){
+      // This account has its own saved copy on this device: swap it back in (the other account's data is stashed, never deleted).
+      if(findAccountStash(id)){try{if(restoreAccountData(id)){setGuestImport({status:"ready",userId:id});return;}}catch{}}
+      setGuestImport({status:"accountMismatch",userId:id});return;}
     if(!hasGuestImport()){bindDataOwner(id);setGuestImport({status:"ready",userId:id});return;}
     setGuestImport({status:"checking",userId:id});
     inspectGuestImport(id,supabase).then(review=>{if(active)setGuestImport({status:"review",userId:id,review});}).catch(error=>{if(active)setGuestImport({status:"error",userId:id,error});});
     return()=>{active=false;};
   },[session?.user?.id,isPasswordRecovery,loading]);
+  function continueFreshOnDevice(){
+    const id=session?.user?.id;if(!id||guestImport.userId!==id||guestImport.status!=="accountMismatch")throw Error("session_changed");
+    startFreshForAccount(id);setGuestImport({status:"ready",userId:id});
+  }
   async function completeGuestImport(choices){
     const id=session?.user?.id;if(!id||guestImport.userId!==id)throw Error("session_changed");
     await finishGuestImport(guestImport.review,choices,supabase);
@@ -200,6 +208,7 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
+    continueFreshOnDevice,
     resetPasswordForEmail,
     updatePassword,
   };
