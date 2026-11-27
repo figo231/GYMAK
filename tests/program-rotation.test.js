@@ -103,7 +103,7 @@ describe("DayPlan view", () => {
     S.applyProgram("arnold-split");
     await mount();
     expect(el.querySelector(".dp-title").textContent).toBe("صدر وظهر");
-    expect(el.querySelectorAll(".dp-list > *").length).toBe(7);
+    expect(el.querySelectorAll(".dp-list > *").length).toBe(6);
     expect(el.querySelectorAll(".dp-chip").length).toBe(6);
     expect(el.textContent).not.toContain("سكوات");
   });
@@ -112,7 +112,7 @@ describe("DayPlan view", () => {
     await mount();
     act(() => btn("خلصت اليوم").click());
     expect(el.querySelector(".dp-title").textContent).toBe("أكتاف وذراعين");
-    expect(el.querySelectorAll(".dp-list > *").length).toBe(7);
+    expect(el.querySelectorAll(".dp-list > *").length).toBe(6);
     expect(btn("تراجع")).toBeTruthy();
     act(() => btn("تراجع").click());
     expect(el.querySelector(".dp-title").textContent).toBe("صدر وظهر");
@@ -140,5 +140,44 @@ describe("DayPlan view", () => {
     await mount();
     act(() => btn("ابدأ تمرين اليوم").click());
     expect(el.querySelector(".dp-error")).toBeTruthy();
+  });
+});
+
+describe("per-day volume guide for built-in programs", () => {
+  const sum = (a) => a.reduce((n, e) => n + (Number(e.sets) || 0), 0);
+  function all() { S.setOwnerView(true); return S.getAllPrograms().map((p) => ({ p, days: S.getProgramDays(p.id) })); }
+  it("every day of every built-in program stays inside the limits", () => {
+    const L = S.getProgramDayLimits();
+    expect(L).toEqual({ maxExercises: 6, maxSets: 22, maxPerMuscleMultiDay: 3, maxLegsExercises: 5 });
+    const bad = [];
+    for (const { p, days } of all()) {
+      for (const d of days) {
+        const by = {};
+        d.exercises.forEach((e) => { by[e.muscle] = (by[e.muscle] || 0) + 1; });
+        const multi = Object.keys(by).length > 1;
+        if (d.exercises.length > L.maxExercises) bad.push(`${p.id}/${d.title}: ${d.exercises.length} exercises`);
+        if (sum(d.exercises) > L.maxSets) bad.push(`${p.id}/${d.title}: ${sum(d.exercises)} sets`);
+        if (multi && Object.entries(by).some(([m, n]) => n > (m === "legs" ? L.maxLegsExercises : L.maxPerMuscleMultiDay))) bad.push(`${p.id}/${d.title}: too many for one muscle`);
+        if (!d.exercises.length) bad.push(`${p.id}/${d.title}: empty day`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+  it("Arnold split: nothing dropped, two exercises moved to the repeat days", () => {
+    const ids = (d) => d.exercises.map((e) => e.id);
+    const a = all().find((x) => x.p.id === "arnold-split").days;
+    expect(a.map((d) => d.exercises.length)).toEqual([6, 6, 5, 5, 6, 4]);
+    expect(ids(a[0])).not.toContain("dumbbell-fly"); expect(ids(a[3])).toContain("dumbbell-fly");
+    expect(ids(a[1])).not.toContain("front-raise"); expect(ids(a[4])).toContain("front-raise");
+    expect(a.flatMap(ids).length).toBe(32); // same 32 exercise slots as before the rebalance
+  });
+  it("weekly sets per main muscle stay at 10 or more in the split programs", () => {
+    // Arnold runs 6 days = each muscle twice a week. PPL's 3 templates are repeated twice in its 5-6 day week.
+    for (const [id, times] of [["arnold-split", 1], ["push-pull-legs", 2]]) {
+      const days = all().find((x) => x.p.id === id).days;
+      const weekly = {};
+      days.forEach((d) => d.exercises.forEach((e) => { weekly[e.muscle] = (weekly[e.muscle] || 0) + times * (Number(e.sets) || 0); }));
+      for (const m of ["chest", "back", "shoulders", "legs"]) expect(weekly[m], `${id} ${m}`).toBeGreaterThanOrEqual(10);
+    }
   });
 });

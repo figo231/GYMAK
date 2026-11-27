@@ -43,7 +43,7 @@ export default function DayPlan({ program, rotation, favs, onToggleFav, todayIds
           <div className="dp-title-wrap">
             <h2 className="dp-title">{day.title}</h2>
             <p className="dp-sub">
-              {isCurrent ? t("يوم النهارده", "Today's day") : t("يوم تاني من البرنامج", "Another day of the plan")} · {day.exercises.length} {t("تمارين", "exercises")}
+              {isCurrent ? t("يوم النهارده", "Today's day") : t("يوم تاني من البرنامج", "Another day of the plan")} · {day.exercises.length} {t("تمارين", "exercises")} · {day.exercises.reduce((n, e) => n + (Number(e.sets) || 0), 0)} {t("مجموعة", "sets")}
             </p>
           </div>
         </div>

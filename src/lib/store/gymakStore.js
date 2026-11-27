@@ -84,16 +84,16 @@ let ownerView = false;
       { title: "كور وتحمل", exerciseIds: ["dumbbell-lunges", "pushup", "plank", "hanging-leg-raise", "crunch"] },
     ],
     "arnold-split": [
-      { title: "صدر وظهر", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "cable-crossover", "dumbbell-fly", "lat-pulldown", "barbell-row", "seated-cable-row"] },
-      { title: "أكتاف وذراعين", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "rear-delt-fly", "front-raise", "barbell-curl", "tricep-pushdown", "skullcrusher"] },
+      { title: "صدر وظهر", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "cable-crossover", "lat-pulldown", "barbell-row", "seated-cable-row"] },
+      { title: "أكتاف وذراعين", exerciseIds: ["shoulder-press-barbell", "lateral-raise", "rear-delt-fly", "barbell-curl", "tricep-pushdown", "skullcrusher"] },
       { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "leg-extension", "lying-leg-curl", "calf-raise"] },
-      { title: "صدر وظهر (تكرار)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "lat-pulldown", "deadlift"] },
-      { title: "أكتاف وذراعين (تكرار)", exerciseIds: ["dumbbell-shoulder-press", "lateral-raise", "hammer-curl", "dips", "preacher-curl"] },
+      { title: "صدر وظهر (تكرار)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "dumbbell-fly", "lat-pulldown", "deadlift"] },
+      { title: "أكتاف وذراعين (تكرار)", exerciseIds: ["dumbbell-shoulder-press", "lateral-raise", "front-raise", "hammer-curl", "dips", "preacher-curl"] },
       { title: "أرجل (تكرار)", exerciseIds: ["squat-barbell", "dumbbell-lunges", "hip-thrust", "seated-calf-raise"] },
     ],
     "push-pull-legs": [
       { title: "دفع (صدر/أكتاف/ترايسبس)", exerciseIds: ["bench-press-barbell", "incline-dumbbell-press", "shoulder-press-barbell", "lateral-raise", "tricep-pushdown", "dumbbell-triceps-extension"] },
-      { title: "سحب (ظهر/بايسبس)", exerciseIds: ["deadlift", "lat-pulldown", "barbell-row", "seated-cable-row", "face-pull", "barbell-curl", "hammer-curl"] },
+      { title: "سحب (ظهر/بايسبس)", exerciseIds: ["deadlift", "lat-pulldown", "barbell-row", "face-pull", "barbell-curl", "hammer-curl"] },
       { title: "أرجل", exerciseIds: ["squat-barbell", "leg-press", "romanian-deadlift", "leg-extension", "calf-raise"] },
     ],
     "upper-lower": [
@@ -114,6 +114,13 @@ let ownerView = false;
       { title: "جسم كامل C", exerciseIds: ["romanian-deadlift", "pushup", "pullup", "one-arm-dumbbell-row", "cable-crunch"] },
     ],
   };
+
+  // Sensible size of one session: at most 6 exercises and 22 working sets, and on a
+  // day that trains several muscle groups at most 3 exercises (about 10-12 sets) per group (legs count up to 5: quads, hamstrings, glutes and calves are one group in the app).
+  // Rationale: weekly sets per muscle matter most (about 10+ per week), and the extra
+  // benefit of more sets inside ONE session flattens out, so extra volume is better
+  // placed on another day of the week than stacked into one session.
+  const PROGRAM_DAY_LIMITS = { maxExercises: 6, maxSets: 22, maxPerMuscleMultiDay: 3, maxLegsExercises: 5 };
 
   const PROGRAMS = [
     ...WOMEN_PROGRAMS,
@@ -799,6 +806,8 @@ let ownerView = false;
     // Which day of the active program is "today's" workout. The user moves it
     // forward himself ("done"), or marks a rest day. Rest does not skip the
     // planned day: it waits until he trains. Switching programs restarts at day 1.
+    // Per-day volume guide for the built-in programs (checked by tests).
+    getProgramDayLimits() { return { ...PROGRAM_DAY_LIMITS }; },
     getProgramRotation() {
       const prog = this.getActiveProgram();
       if (!prog) return null;
