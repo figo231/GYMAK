@@ -25,19 +25,21 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          fetch-depth: 3
+          fetch-depth: 4
           persist-credentials: false
-      - name: Source must be ff56287 + 60a0d93 + one fix commit touching only this workflow
+      - name: Source must be ff56287 + 60a0d93 + c21f7e2 + one fix commit touching only this workflow
         run: |
           set -euo pipefail
           B=ff56287546ae6fe3e2fb11a011ebed7d2e300bc8
-          test "$(git rev-parse HEAD~2)" = "$B"
-          test "$(git rev-parse HEAD~1)" = 60a0d936144256e60625709d663c37cbb876fa74
+          test "$(git rev-parse HEAD~3)" = "$B"
+          test "$(git rev-parse HEAD~2)" = 60a0d936144256e60625709d663c37cbb876fa74
+          test "$(git rev-parse HEAD~1)" = c21f7e26c51f3f73bff0d0c228f0dd94b7bf0226
           test "$(git diff --name-only $B HEAD | sort | tr '\n' ' ')" = ".github/workflows/apk29-private.yml vercel.json "
           test "$(git diff -U0 $B HEAD -- vercel.json | grep -cE '^[+-][^+-]')" = 1
           git diff -U0 $B HEAD -- vercel.json | grep -qE '^\+.*"stage/apk29-private": false'
           test "$(git rev-parse HEAD:vercel.json)" = 5749645db779a1a8a0e4b9dd471dc9371aa0df27
           test "$(git diff --name-only HEAD~1 HEAD)" = ".github/workflows/apk29-private.yml"
+          test "$(git diff --name-only HEAD~2 HEAD~1)" = ".github/workflows/apk29-private.yml"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
@@ -106,7 +108,11 @@ jobs:
           test "$(grep -c '<string name="title_activity_main">GYMAK</string>' $s)" = 1
           sed -i 's|<string name="app_name">GYMAK</string>|<string name="app_name">GYMAK v29 test</string>|; s|<string name="title_activity_main">GYMAK</string>|<string name="title_activity_main">GYMAK v29 test</string>|' $s
           git diff --stat | tee "$RUNNER_TEMP/ci-edits.txt"
-          test "$(git diff --name-only | sort | tr '\n' ' ')" = "android/app/build.gradle android/app/src/main/res/values/strings.xml "
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "android/app/build.gradle android/app/capacitor.build.gradle android/app/src/main/res/values/strings.xml android/capacitor.settings.gradle "
+          test "$(git diff -U0 -- android/app/build.gradle android/app/src/main/res/values/strings.xml | grep -cE '^[+-][^+-]')" = 6
+          test "$(grep -cE '^\s*applicationId "com\.gymak\.app\.v29test"$' $g)" = 1
+          test "$(grep -cF '<string name="app_name">GYMAK v29 test</string>' $s)" = 1
+          test "$(grep -cF '<string name="title_activity_main">GYMAK v29 test</string>' $s)" = 1
       - name: Build APK
         working-directory: android
         env:
