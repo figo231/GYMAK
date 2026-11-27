@@ -300,6 +300,7 @@ export async function registerForPush(userId) {
     return;
   }
   if(!PUSH_ENABLED)return;
+  await retryPendingPushRevoke();
   const generation=++tokenGeneration;
   currentUserId = userId;notifyInbox();
   collectNativeOwnerTaps().then(()=>flushOwnerReceipts(userId,getDeviceId())).catch(()=>{});
@@ -339,10 +340,40 @@ export async function registerForPush(userId) {
 /** Call once on sign-out (mirrors syncManager.stop()'s call site). Removes
     this device's row so a signed-out device stops receiving pushes meant
     for the account. */
+const REVOKE_PENDING_KEY="gymak_push_revoke_pending_v1";
+function setRevokePending(on){try{if(on)localStorage.setItem(REVOKE_PENDING_KEY,getDeviceId());else localStorage.removeItem(REVOKE_PENDING_KEY);}catch{ /* storage unavailable */ }}
+export function hasPendingPushRevoke(){try{return !!localStorage.getItem(REVOKE_PENDING_KEY);}catch{return false;}}
+
+/** Retry a provider-token revoke that failed during sign-out (offline, etc.).
+    Safe to call any time; does nothing when nothing is queued. Never throws. */
+let retryInFlight=null;
+export function retryPendingPushRevoke() {
+  if(!Capacitor.isNativePlatform()||!PUSH_ENABLED||!hasPendingPushRevoke())return Promise.resolve(false);
+  if(retryInFlight)return retryInFlight;
+  retryInFlight=(async()=>{
+    try {
+      const {FM}=await getMessaging();
+      await FM.deleteToken();
+      setRevokePending(false);
+      broadcastStarted=false;
+      wasRegistered=false;
+      if(supabase){const {error}=await supabase.from("push_tokens").delete().eq("device_id",getDeviceId());if(error)logPushErr("remove-row-retry",error);}
+      return true;
+    } catch(error) { logPushErr("remove-token-retry",error); return false; }
+    finally { retryInFlight=null; }
+  })();
+  return retryInFlight;
+}
+
+/** Call once on sign-out (mirrors syncManager.stop()'s call site). Removes
+    this device's row so a signed-out device stops receiving pushes meant
+    for the account. With {explicit:true} (user pressed sign out) a failed
+    revoke does not block sign-out: it is queued for retry and the result
+    says {deferred:true}. */
 export async function removePushToken({explicit=false}={}) {
-  if(!Capacitor.isNativePlatform()) return;
+  if(!Capacitor.isNativePlatform()) return {deferred:false};
   ++tokenGeneration;currentUserId=null;pendingToken=null;notifyInbox();
-  if (!PUSH_ENABLED || !supabase || (!explicit&&!wasRegistered)) return;
+  if (!PUSH_ENABLED || !supabase || (!explicit&&!wasRegistered)) return {deferred:false};
   // Wait for writes started by the previous session before deleting its row.
   await tokenWrites.catch(()=>{});
   try {
@@ -352,11 +383,14 @@ export async function removePushToken({explicit=false}={}) {
     await FM.deleteToken();
     broadcastStarted=false;
     wasRegistered=false;
+    setRevokePending(false);
     const {error}=await supabase.from("push_tokens").delete().eq("device_id",getDeviceId());
     if(error)logPushErr("remove-row",error);
+    return {deferred:false};
   } catch(error) {
     logPushErr("remove-token",error);
-    if(explicit)throw error;
+    if(explicit){setRevokePending(true);return {deferred:true};}
+    return {deferred:false};
   }
 }
 

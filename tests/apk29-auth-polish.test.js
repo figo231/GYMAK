@@ -13,7 +13,6 @@ it('network failure while online says the server is unreachable, not that the in
 it('really offline still says offline, but a server answer is never hidden by a wrong offline flag',()=>{
  expect(translateAuthError(new TypeError('Failed to fetch'),false)).toContain('مفيش اتصال');
  expect(translateAuthError({message:'Invalid login credentials',status:400},false)).toContain('غلط');});
-it('network errors carry a short diagnostic tag so a user can report what happened',()=>{
- expect(translateAuthError(new TypeError('Failed to fetch'),true)).toMatch(/\[net TypeError\]/);
- expect(translateAuthError(new TypeError('x'),false)).toMatch(/\[offline-flag TypeError\]/);
- expect(translateAuthError({message:'Invalid login credentials',status:400},true)).not.toContain('[');});
+it('auth messages never carry diagnostic tags like [server 500] or (chk:...)',()=>{
+ for(const e of [new TypeError('Failed to fetch'),{message:'x',status:500},{message:'x',status:400},{message:'Invalid login credentials',status:400}])for(const online of [true,false]){const m=translateAuthError(e,online);expect(m).not.toMatch(/[\[\]]|chk:|\d{3}/);}
+});

@@ -19,7 +19,6 @@ import SplashScreen from "./components/SplashScreen";
 import Onboarding from "./components/Onboarding";
 import PWAUpdatePrompt from "./components/PWAUpdatePrompt";
 import CompleteIdentityPrompt from "./components/CompleteIdentityPrompt";
-import EncouragementNotice from "./components/EncouragementNotice";
 import ApkUpdateSheet from "./components/ApkUpdateSheet";
 import RestTimer from "./components/RestTimer";
 import LockScreen from "./components/LockScreen";
@@ -100,7 +99,6 @@ export default function App() {
                 <Suspense fallback={<RouteFallback />}>
                   <RouterProvider router={router} />
                 </Suspense>
-                {!showSplash && !locked && onboarded && <EncouragementNotice key={"encouragement"} />}
                 {!showSplash && !locked && onboarded && <ForegroundPushBanner />}
                 {!showSplash && !locked && onboarded && <><CompleteIdentityPrompt key={"identity"} /><PrivateAgePrompt key={"private-age"}/></>}
                 {!showSplash && !locked && onboarded && <AnnouncementNotice />}

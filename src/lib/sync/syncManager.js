@@ -293,7 +293,7 @@ class SyncManager {
       if (isNetworkError(err)) {
         this._setStatus("error", { error: tx("معنديش اتصال بالخادم دلوقتي. هنعيد المحاولة تلقائيًا."), errorKind: "network" });
       } else {
-        this._setStatus("error", { error: err?.message || String(err), errorKind: "server" });
+        this._setStatus("error", { error: tx("حصلت مشكلة في المزامنة. هنحاول تاني تلقائيًا."), errorKind: "server" });
       }
       this._scheduleRetry();
     } finally {

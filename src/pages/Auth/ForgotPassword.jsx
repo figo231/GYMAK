@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { translateAuthError } from "../../lib/authErrors";
+import { recoverFailureMessage } from "../../lib/authErrors";
 import { normalizeEmail, validEmail } from "../../lib/authLogic";
 import { AuthField, AuthError, AuthNotice, AuthStatus, Spinner, useCooldown } from "./AuthShell";
 import { tx, txf } from "../../lib/i18n/tx";
@@ -24,7 +24,7 @@ export default function ForgotPassword() {
     try { res = await resetPasswordForEmail(mail); } catch (err) { res = { error: err }; }
     setBusy(false);
     startWait(60);
-    if (res.error) { setError(translateAuthError(res.error)); return false; }
+    if (res.error) { setError(recoverFailureMessage(res.error)); return false; }
     setEmail(mail);
     return true;
   }

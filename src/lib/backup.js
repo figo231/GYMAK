@@ -1,5 +1,6 @@
 import {validSavedState} from "./savedStateShape";
 import { tx } from "./i18n/tx";
+import { localISO } from "./dateKey";
 // Local automatic backups of the app data. Snapshots live in IndexedDB (own database, separate from photos).
 // Pure helpers are exported for tests; the IndexedDB parts are small and guarded.
 export const STATE_KEY = "gymak_state_v1";
@@ -92,7 +93,7 @@ export function downloadCurrent() {
   const text = localStorage.getItem(STATE_KEY) || "{}";
   const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
   const a = document.createElement("a");
-  a.href = url; a.download = `gymak-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.href = url; a.download = `gymak-backup-${localISO()}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

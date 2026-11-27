@@ -37,6 +37,6 @@ it("client timeout shows the slow-connection message", async () => {
   let err; try { await withTimeout(new Promise(() => {}), 20); } catch (e) { err = e; }
   expect(isServerError(err)).toBe(false); expect(translateAuthError(err, true)).toContain("بطيء");
 });
-it("Register screen uses the signup email message for 5xx", () => {
-  const s = readFileSync("src/pages/Auth/Register.jsx", "utf8"); expect(s).toContain("isServerError(res.error)?SIGNUP_EMAIL_ERROR");
+it("Register screen uses the signup-specific message function for failed signups", () => {
+  const s = readFileSync("src/pages/Auth/Register.jsx", "utf8"); expect(s).toContain("signupFailureMessage(res.error,res.detail)");
 });

@@ -2410,6 +2410,10 @@ export const EN = {
 "ملف {*} فيه {*} يوم تمرين و{*} وزنة": "File {*} has {*} workout days and {*} weigh-ins",
 "ملف {0} فيه {1} يوم تمرين و{2} وزنة": "File {0} has {1} workout days and {2} weight entries",
 "ملف شخصي على السيرفر": "Profile on server",
+"معرفناش نجهّز ملف الـCSV. جرّب تاني.": "Could not prepare the CSV file. Try again.",
+"بروفايلات اتعملت آخر 7 أيام": "Profiles created in the last 7 days",
+"حسابات فعّلت المشاركة وفتحت التطبيق (اختياري)": "Accounts that opted in and opened the app (optional)",
+"ده مش عدد المسجلين. بيعدّ بس الحسابات اللي فعّلت زر المشاركة من البروفايل وفتحت التطبيق في اليوم (حسب UTC). طبيعي يكون أقل بكتير من عدد المسجلين. يبدأ من تفعيل الميزة، مفيش أرقام تاريخية.": "Not the number of registered users. Counts only accounts that turned on the sharing switch in Profile and opened the app that day (UTC). Much lower than registered users is normal. Starts from when the feature was enabled, no historical numbers.",
 "ملف مش صورة": "File is not an image",
 "ملفات": "Files",
 "ملفك": "Your file",
@@ -2761,4 +2765,5 @@ export const EN = {
 "الربط مع الخادم لسه متظبطش. التطبيق شغال أوفلاين عادي.": "The server connection is not set up yet. The app works offline normally.",
 "لو الرسالة مش في الوارد، افتح Spam أو الرسائل غير المرغوب فيها. اختار الرسالة واضغط \"ليست رسالة غير مرغوب فيها\"، وبعدها افتح رابط التأكيد.": "If it is not in your inbox, open Spam or Junk. Choose the message, tap \"Not spam\", then open the confirmation link.",
 "النت شغال بس مش قادر أوصل للخادم. جرب تبدّل بين الواي فاي والداتا، أو اقفل الـ VPN أو الـ DNS الخاص، وجرب تاني.": "Your internet works but the server cannot be reached. Try switching between Wi-Fi and mobile data, or turn off VPN or private DNS, then try again.",
+"مقدرناش نبعت إيميل إعادة التعيين دلوقتي. جرّب تاني بعد شوية.": "We could not send the reset email right now. Try again in a little while.",
 };

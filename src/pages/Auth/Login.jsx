@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { checkConnection, isNetworkAuthError } from "../../lib/connectionCheck";
-import { translateAuthError, isUnconfirmed } from "../../lib/authErrors";
+import { translateAuthError, loginFailureMessage, isUnconfirmed } from "../../lib/authErrors";
 import { normalizeEmail, validEmail } from "../../lib/authLogic";
 import { AuthField, AuthError, AuthNotice, Spinner, useCooldown } from "./AuthShell";
 import { tx, txf } from "../../lib/i18n/tx";
@@ -35,8 +34,7 @@ export default function Login() {
     try { res = await signIn(mail, password); } catch (err) { res = { error: err }; }
     setBusy(false);
     if (res.error) {
-      setError(translateAuthError(res.error));
-      if(isNetworkAuthError(res.error))checkConnection().then(d=>setError(cur=>cur+" ("+d+")"));
+      setError(loginFailureMessage(res.error));
       setUnconfirmed(isUnconfirmed(res.error));
       return;
     }

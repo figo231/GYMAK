@@ -54,11 +54,11 @@ function AdminSession() {
       <DetailTopBar title={tx("لوحة الإدارة")} backTo="/profile" />
       <div className="th-stats ad-stats">
         <div><b>{n(stats?.total)}</b><span>{tx("ملف شخصي على السيرفر")}</span></div>
-        <div><b>{n(stats?.week)}</b><span>{tx("جدد آخر 7 أيام")}</span></div>
+        <div><b>{n(stats?.week)}</b><span>{tx("بروفايلات اتعملت آخر 7 أيام")}</span></div>
         <div><b>{counts.new}</b><span>{tx("رسايل جديدة")}</span></div>
       </div>
       <p className="notif-note">{tx("راجل")} {n(stats?.male)} {tx("· ست")} {n(stats?.female)}</p>
-      <h2>{tx("الحسابات النشطة المشاركة في القياس")}</h2><p className="notif-note">{tx("قياس اختياري للحسابات المسجلة فقط، مش إجمالي كل المستخدمين. اليوم حسب UTC. يبدأ من تفعيل الميزة، مفيش أرقام تاريخية مفترضة.")}</p>
+      <h2>{tx("حسابات فعّلت المشاركة وفتحت التطبيق (اختياري)")}</h2><p className="notif-note">{tx("ده مش عدد المسجلين. بيعدّ بس الحسابات اللي فعّلت زر المشاركة من البروفايل وفتحت التطبيق في اليوم (حسب UTC). طبيعي يكون أقل بكتير من عدد المسجلين. يبدأ من تفعيل الميزة، مفيش أرقام تاريخية.")}</p>
       {activity ? <div className="th-stats ad-stats"><div><b>{activity.today}</b><span>{tx("اليوم")}</span></div><div><b>{activity.week}</b><span>{tx("آخر 7 أيام")}</span></div><div><b>{activity.month}</b><span>{tx("آخر 30 يوم")}</span></div></div> : <p className="notif-note">{tx("القياس غير متاح الآن.")}</p>}
       <OwnerChatRoles />
       <h2 style={{ fontSize: 18, marginTop: 28 }}>{tx("رسائل الدعم")}</h2>

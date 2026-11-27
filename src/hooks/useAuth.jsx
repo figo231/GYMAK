@@ -1,6 +1,7 @@
 import DefaultChatAvatarSync from '../components/DefaultChatAvatarSync';
 import {savePrivateAge,syncPrivateAge,validAge} from '../lib/privateAge';
 import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport,dataOwner,bindDataOwner} from "../lib/guestImport";
+import {clearSignupFailure,takeSignupFailure} from "../lib/authFailureProbe";
 import {findAccountStash,restoreAccountData,startFreshForAccount} from "../lib/accountSwitch";
 import {flushPushPreferences} from "../lib/push/serverPreferences";
 import { flushEncouragementStop } from "../lib/encouragement";
@@ -151,13 +152,15 @@ export function AuthProvider({ children }) {
 
   async function signUp(email, password, identity) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
+    clearSignupFailure();
     const { data, error } = await withTimeout(supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/login`, ...(identity ? {data:{identity_version:"v1",display_name:identity.name.trim(),gender:identity.gender,username:identity.username.trim().toLowerCase(),private_age:Number(identity.age),private_age_recorded_at:Date.now()}} : {}) },
     }));
     if(!error&&!isDuplicateSignup(data)&&data?.user?.id&&validAge(identity?.age)){try{savePrivateAge(data.user.id,identity.age);}catch{}}
-    return { error, data, duplicate: !error && isDuplicateSignup(data) };
+    const detail = takeSignupFailure();
+    return { error, data, detail: error ? detail : null, duplicate: !error && isDuplicateSignup(data) };
   }
 
   async function signIn(email, password) {
@@ -169,7 +172,8 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     if (!supabase) return { error: NO_CLIENT_ERROR };
-    try { await removePushToken({explicit:true}); } catch { return {error:{message:"Could not turn off account notifications. Try signing out again."}}; }
+    // Sign-out must work offline: a failed token revoke is queued for retry inside removePushToken.
+    try { await removePushToken({explicit:true}); } catch { /* never block sign-out */ }
     if (!window.Capacitor?.isNativePlatform?.()) { const {stopWebPush}=await import("../lib/push/webPush"); await stopWebPush(); }
     const { error } = await supabase.auth.signOut();
     return { error };

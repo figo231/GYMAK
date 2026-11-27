@@ -12,6 +12,7 @@ import { buildCsv, exportPayload, clearLocalData, parseBackup, applyBackup, time
 import Store from "../../lib/store/gymakStore";
 import { DetailTopBar } from "../../components/layout/DetailShell";
 import { tx } from "../../lib/i18n/tx";
+import { localISO } from "../../lib/dateKey";
 
 /* Enabled 2026-11-22: edge function deployed and verified end to end with a disposable account (function, session invalidation, row cascade). */
 const DELETE_ACCOUNT_ENABLED = true;
@@ -61,13 +62,13 @@ export default function Account() {
       a.href = url; a.download = "gymak-data.csv";
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
-    } catch { /* ignore */ }
+    } catch { toast(tx("معرفناش نجهّز ملف الـCSV. جرّب تاني.")); }
   }
   function handleExport() {
     const blob = new Blob([JSON.stringify(exportPayload(), null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `gymak-data-${new Date().toISOString().slice(0, 10)}.json`;
+    a.href = url; a.download = `gymak-data-${localISO()}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     toast(tx("اتحمّلت نسخة من بياناتك."));
