@@ -1,4 +1,5 @@
 import DefaultChatAvatarSync from '../components/DefaultChatAvatarSync';
+import { tx } from "../lib/i18n/tx";
 import {savePrivateAge,syncPrivateAge,validAge} from '../lib/privateAge';
 import {markGuestData,hasGuestImport,inspectGuestImport,finishGuestImport,dataOwner,bindDataOwner} from "../lib/guestImport";
 import {clearSignupFailure,takeSignupFailure} from "../lib/authFailureProbe";
@@ -21,7 +22,7 @@ if (BOOT.type === "recovery" && typeof sessionStorage !== "undefined") setRecove
 
 const AuthContext = createContext(null);
 
-const NO_CLIENT_ERROR = { message: "لسه معملناش ربط مع Supabase (متغيرات البيئة ناقصة). راجع .env.example." };
+const NO_CLIENT_ERROR = { message: tx("لسه معملناش ربط مع Supabase (متغيرات البيئة ناقصة). راجع .env.example.") };
 
 /**
  * Session persistence: supabase-js already persists the session to

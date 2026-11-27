@@ -10,13 +10,13 @@ const GROUPS = {
   ],
   food: [
     { to: "/food", label: tx("النهارده") },
-    { to: "/food-swaps", label: "بدائل الأكل" },
+    { to: "/food-swaps", label: tx("بدائل الأكل") },
     { to: "/meal-plan", label: tx("نظامك الغذائي") },
     { to: "/supplements", label: tx("مكملات") },
   ],
   train: [
     { to: "/exercises", label: tx("التمارين") },
-    { to: "/supersets", label: "سوبر سِت" },
+    { to: "/supersets", label: tx("سوبر سِت") },
     { to: "/programs", label: tx("البرامج") },
     { to: "/warmup", label: tx("إحماء وإطالة") },
     { to: "/strength", label: tx("قوتك") },

@@ -118,7 +118,7 @@ function ExerciseDetail({ id }) {
       if (el) el.focus();
       return;
     }
-    if(rir!=="" && r.sets!==1){setError("تقييم المجهود لمجموعة واحدة. خلّي عدد المجموعات1 أو سيب التقييم فاضي.");return;}
+    if(rir!=="" && r.sets!==1){setError(tx("تقييم المجهود لمجموعة واحدة. خلّي عدد المجموعات1 أو سيب التقييم فاضي."));return;}
     setError(null);
     const before = Store.getExerciseLogs(exerciseId).length;
     Store.logSet(exerciseId, r.kg, r.sets, r.reps, rir===""?null:Number(rir));
@@ -258,7 +258,7 @@ function ExerciseDetail({ id }) {
         </div>
         {exercise?.muscle === "cardio" && <p className="log-hint">{isEn()?"Log duration in seconds. Keep weight at 0, machine resistance is not kilograms.":"سجّل المدة بالثواني وسيب الوزن 0. مقاومة الجهاز مش وزن بالكيلو."}</p>}
         {exercise?.muscle !== "cardio" && isBodyweight(exercise) && <p className="log-hint">{tx("الوزن 0 معناه وزن الجسم بس.")}</p>}
-        {!secUnit && <div className="rir-field"><label htmlFor="log-rir">كان فاضلك كام عدة؟ <small>اختياري · لكل مجموعة لوحدها</small></label><select id="log-rir" value={rir} onChange={e=>{setRir(e.target.value);setError(null);}}><option value="">من غير تقييم</option>{[0,1,2,3,4,5].map(n=><option value={n} key={n}>{n===0?"0 · مكنش فاضل عدة بنفس الأداء":n===5?"5+ · كان فاضل5 عدات أو أكتر":`${n} عدات بنفس الأداء`}</option>)}</select><p className="log-hint">تقديرك الشخصي، مش اختبار لازم توصل فيه للفشل. لو في ألم وقف. التقييم محفوظ على الجهاز وداخل النسخة الاحتياطية.</p></div>}
+        {!secUnit && <div className="rir-field"><label htmlFor="log-rir">{tx("كان فاضلك كام عدة؟")} <small>{tx("اختياري · لكل مجموعة لوحدها")}</small></label><select id="log-rir" value={rir} onChange={e=>{setRir(e.target.value);setError(null);}}><option value="">{tx("من غير تقييم")}</option>{[0,1,2,3,4,5].map(n=><option value={n} key={n}>{n===0?tx("0 · مكنش فاضل عدة بنفس الأداء"):n===5?tx("5+ · كان فاضل5 عدات أو أكتر"):`${n} عدات بنفس الأداء`}</option>)}</select><p className="log-hint">{tx("تقديرك الشخصي، مش اختبار لازم توصل فيه للفشل. لو في ألم وقف. التقييم محفوظ على الجهاز وداخل النسخة الاحتياطية.")}</p></div>}
         {error && <p className="log-error" role="alert">{error}</p>}
         <button type="button" className="log-btn" onClick={handleSave}>{tx("تسجيل المجموعة")}</button>
         {justSaved && (
@@ -294,7 +294,7 @@ function ExerciseDetail({ id }) {
             <div className="log-today-head"><span>{tx("النهارده ·")} {todaySets.length} {todaySets.length === 1 ? tx("تسجيلة") : tx("تسجيلات")}</span>{!secUnit && <span dir="ltr">{Store.formatWeight(volume(todaySets))}</span>}</div>
             {todaySets.map((l) => (
               <div className="log-today-row" key={l.i}>
-                <span>{fmtSet(l)}{l.rir!=null&&<small className="rir-tag">فاضل {l.rir===5?"5+":l.rir} عدة</small>}</span>
+                <span>{fmtSet(l)}{l.rir!=null&&<small className="rir-tag">{tx("فاضل")} {l.rir===5?"5+":l.rir} {tx("عدة")}</small>}</span>
                 <button type="button" aria-label={tx("مسح المجموعة")} onClick={() => removeSet(l)}>{tx("مسح")}</button>
               </div>
             ))}

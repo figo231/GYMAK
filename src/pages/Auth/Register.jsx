@@ -93,7 +93,7 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} noValidate>
         <IdentityFields value={identity} onChange={setIdentity} lang={lang} disabled={busy}/>
-        <AuthField label={lang==='en'?'Age, private':'السن بالسنين، خاص بيك'} type="number" min="1" max="120" step="1" value={identity.age} onChange={e=>setIdentity({...identity,age:e.target.value})} hint={lang==='en'?'Not shown to members. Used in food planning.':'مش بيظهر للأعضاء. بنستخدمه في إعداد الأكل.'}/><AuthField label="الإيميل" icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        <AuthField label={lang==='en'?'Age, private':'السن بالسنين، خاص بيك'} type="number" min="1" max="120" step="1" value={identity.age} onChange={e=>setIdentity({...identity,age:e.target.value})} hint={lang==='en'?'Not shown to members. Used in food planning.':'مش بيظهر للأعضاء. بنستخدمه في إعداد الأكل.'}/><AuthField label={tx("الإيميل")} icon="mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         <AuthField label={tx("الباسورد")} icon="lock" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={`${MIN_PASSWORD} حروف على الأقل`} hint={<PasswordMeter value={password} />} />
         <AuthField label={tx("تأكيد الباسورد")} icon="lock" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" />
         <AuthError message={error}>

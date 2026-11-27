@@ -79,7 +79,7 @@ export default function Programs() {
   return (
     <>
       <SectionNav group="train" title={tx("تدريب")} />
-      {Store.isOwnerView()?<div role="group" aria-label="قسم التمارين للمالك" style={{display:'flex',gap:10,marginBlock:14}}>{[['male','تمارين الرجال'],['female','تمارين البنات']].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?'قسم تمارين البنات':'قسم تمارين الرجال'}</p>}
+      {Store.isOwnerView()?<div role="group" aria-label={tx("قسم التمارين للمالك")} style={{display:'flex',gap:10,marginBlock:14}}>{[['male',tx("تمارين الرجال")],['female',tx("تمارين البنات")]].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?tx("قسم تمارين البنات"):tx("قسم تمارين الرجال")}</p>}
 
       <p className="pg-sub">{tx("اختار برنامج وطبّقه تلقائيًا على جدولك")}</p>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { tx } from "../../lib/i18n/tx";
 import { Link } from "react-router-dom";
 import { getInbox, importDelivered, getPushPermission, initBroadcastPush, deleteInboxItem, clearInbox } from "../../lib/push/pushService";
 import { BROADCAST_ENABLED, isOwnerAdmin, sendBroadcast, broadcastFeedback } from "../../lib/push/ownerBroadcast";
@@ -51,18 +52,18 @@ export default function NotifSheet({ onClose }) {
     <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="edit-sheet" style={{ maxHeight: "86vh", overflowY: "auto" }}>
         <div className="edit-sheet-handle" />
-        <h3>الإشعارات</h3>
-        <p className="notif-note">{perm === null ? "بنتحقق من إذن الإشعارات..." : perm === "unsupported" ? "إشعارات الدفع متاحة في تطبيق الأندرويد، مش المتصفح. إعدادات التذكير منفصلة عن الرسائل الواردة." : perm === "granted" ? "إذن الإشعارات مفعّل على الجهاز. ده مش تأكيد إن إشعار تجريبي وصل أو إن الإرسال من السيرفر شغّال." : "حالة إذن الإشعارات على الجهاز:"}</p>
-        <Link className="btn btn-secondary" style={{ display: "block", textAlign: "center", marginBottom: 10 }} to="/notifications" onClick={onClose}>إعدادات التذكير والتنبيهات</Link>
-        <h4>الرسائل الواردة</h4>
+        <h3>{tx("الإشعارات")}</h3>
+        <p className="notif-note">{perm === null ? tx("بنتحقق من إذن الإشعارات...") : perm === "unsupported" ? tx("إشعارات الدفع متاحة في تطبيق الأندرويد، مش المتصفح. إعدادات التذكير منفصلة عن الرسائل الواردة.") : perm === "granted" ? tx("إذن الإشعارات مفعّل على الجهاز. ده مش تأكيد إن إشعار تجريبي وصل أو إن الإرسال من السيرفر شغّال.") : tx("حالة إذن الإشعارات على الجهاز:")}</p>
+        <Link className="btn btn-secondary" style={{ display: "block", textAlign: "center", marginBottom: 10 }} to="/notifications" onClick={onClose}>{tx("إعدادات التذكير والتنبيهات")}</Link>
+        <h4>{tx("الرسائل الواردة")}</h4>
 
-        {perm === "denied" && <p className="notif-note">الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.</p>}
-        {(perm === "prompt" || perm === "prompt-with-rationale") && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 10 }} onClick={enablePush}>تفعيل إشعارات التطبيق</button>}
+        {perm === "denied" && <p className="notif-note">{tx("الإشعارات مقفولة للتطبيق. فعّلها من إعدادات الموبايل.")}</p>}
+        {(perm === "prompt" || perm === "prompt-with-rationale") && <button type="button" className="btn-apply" style={{ width: "100%", marginBottom: 10 }} onClick={enablePush}>{tx("تفعيل إشعارات التطبيق")}</button>}
 
         {owner && <Link to="/owner?section=notifications" className="btn btn-secondary" onClick={onClose}>{lang==='en'?'Owner notification controls':'إدارة إشعارات المالك'}</Link>}
 
         {inbox.length === 0 ? (
-          <p className="notif-note">مفيش إشعارات محفوظة لسه. الإشعارات اللي يقدر التطبيق يلتقطها أو يستوردها من الجهاز هتظهر هنا.</p>
+          <p className="notif-note">{tx("مفيش إشعارات محفوظة لسه. الإشعارات اللي يقدر التطبيق يلتقطها أو يستوردها من الجهاز هتظهر هنا.")}</p>
         ) : (
           <>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -73,20 +74,20 @@ export default function NotifSheet({ onClose }) {
                     <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{n.body}</div>
                     <div style={{ fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>{new Date(n.ts).toLocaleString("ar-EG")}</div>
                   </div>
-                  <button type="button" aria-label="مسح الإشعار" onClick={() => deleteInboxItem(n.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: 4 }}>
+                  <button type="button" aria-label={tx("مسح الإشعار")} onClick={() => deleteInboxItem(n.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: 4 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>
                   </button>
                 </div>
               ))}
             </div>
             <div className="edit-sheet-actions" style={{ marginTop: 12 }}>
-              <button type="button" onClick={clearInbox}>مسح الكل</button>
-              <button type="button" onClick={onClose}>إغلاق</button>
+              <button type="button" onClick={clearInbox}>{tx("مسح الكل")}</button>
+              <button type="button" onClick={onClose}>{tx("إغلاق")}</button>
             </div>
           </>
         )}
         {inbox.length === 0 && (
-          <div className="edit-sheet-actions" style={{ marginTop: 12 }}><button type="button" onClick={onClose}>إغلاق</button></div>
+          <div className="edit-sheet-actions" style={{ marginTop: 12 }}><button type="button" onClick={onClose}>{tx("إغلاق")}</button></div>
         )}
       </div>
     </div>

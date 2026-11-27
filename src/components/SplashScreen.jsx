@@ -10,7 +10,7 @@ export default function SplashScreen() {
       <p className="splash-wordmark">GYMAK</p>
       <p className="splash-tagline">{tx("جسمك اللي هتفتخر بيه")}</p>
       <div className="splash-bar"><div className="splash-bar-fill" /></div>
-      {Capacitor.isNativePlatform()&&<p className="ota-launch-label">جاري البحث عن تحديث</p>}
+      {Capacitor.isNativePlatform()&&<p className="ota-launch-label">{tx("جاري البحث عن تحديث")}</p>}
     </div>
   );
 }
