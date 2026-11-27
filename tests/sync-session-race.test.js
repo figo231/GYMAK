@@ -29,3 +29,34 @@ describe('sync offline gate',()=>{
   }finally{vi.useRealTimers();}
  });
 });
+describe('sync on app resume',()=>{
+ const show=state=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:state});document.dispatchEvent(new Event('visibilitychange'));};
+ afterEach(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});});
+ it('syncs when the app returns to the foreground after a stale last sync',async()=>{
+  vi.useFakeTimers();
+  try{
+   m.pull.mockResolvedValue(0);manager.start('a');await vi.advanceTimersByTimeAsync(2000);m.pull.mockClear();
+   manager.lastSyncAt=Date.now()-5*60000;
+   show('hidden');show('visible');await vi.advanceTimersByTimeAsync(1000);
+   expect(m.pull).toHaveBeenCalledTimes(1);
+  }finally{vi.useRealTimers();}
+ });
+ it('does not sync again on a quick resume when the last sync is fresh, and not when signed out',async()=>{
+  vi.useFakeTimers();
+  try{
+   m.pull.mockResolvedValue(0);manager.start('a');await vi.advanceTimersByTimeAsync(2000);m.pull.mockClear();
+   manager.lastSyncAt=Date.now();manager.status='synced';
+   show('visible');await vi.advanceTimersByTimeAsync(1000);expect(m.pull).not.toHaveBeenCalled();
+   manager.stop();show('visible');await vi.advanceTimersByTimeAsync(1000);expect(m.pull).not.toHaveBeenCalled();
+  }finally{vi.useRealTimers();}
+ });
+ it('retries on resume after a failed sync even if it was recent, but at most once per 15 seconds',async()=>{
+  vi.useFakeTimers();
+  try{
+   m.pull.mockResolvedValue(0);manager.start('a');await vi.advanceTimersByTimeAsync(2000);m.pull.mockClear();
+   manager.lastSyncAt=Date.now();manager.status='error';
+   show('visible');await vi.advanceTimersByTimeAsync(1000);expect(m.pull).toHaveBeenCalledTimes(1);
+   manager.status='error';show('visible');await vi.advanceTimersByTimeAsync(1000);expect(m.pull).toHaveBeenCalledTimes(1);
+  }finally{vi.useRealTimers();}
+ });
+});

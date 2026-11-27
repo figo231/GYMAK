@@ -1,0 +1,12 @@
+create schema auth;
+create schema storage;
+create schema extensions;
+grant usage on schema auth,public to authenticated,anon;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,created_at timestamptz default now());
+create function auth.uid()returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create function auth.role()returns text language sql as $$select 'authenticated'$$;
+create function auth.jwt()returns jsonb language sql as $$select '{}'::jsonb$$;
+create function storage.foldername(n text)returns text[] language sql as $$select string_to_array(n,'/')$$;
+create table storage.buckets(id text primary key,name text,public bool,file_size_limit bigint,allowed_mime_types text[]);
+create table storage.objects(id uuid default gen_random_uuid() primary key,bucket_id text,name text,owner uuid,metadata jsonb,created_at timestamptz default now());
+alter table storage.objects enable row level security;

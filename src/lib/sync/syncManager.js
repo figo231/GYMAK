@@ -10,6 +10,8 @@ import { tx } from "../i18n/tx";
 const SYNC_STATE_KEY = "gymak_sync_state_v1";
 const MAX_RETRY_DELAY = 5 * 60 * 1000; // 5 min ceiling
 const BASE_RETRY_DELAY = 5000;
+const RESUME_MIN_GAP_MS = 15000;
+const RESUME_STALE_MS = 60000;
 
 function loadSyncState() {
   try {
@@ -91,6 +93,9 @@ class SyncManager {
 
     if (typeof window !== "undefined") {
       window.addEventListener("online", () => this._onOnline());
+      // Sync when the app comes back to the foreground (phones suspend timers and sockets while backgrounded).
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") this._onResume(); });
+      if (window.Capacitor?.isNativePlatform?.()) import("@capacitor/app").then(({ App }) => App.addListener("appStateChange", ({ isActive }) => { if (isActive) this._onResume(); })).catch(() => {});
       window.addEventListener("gymak-private-draft",()=>{if(this.userId){try{capturePrivateDrafts(this.userId);}catch(e){this._setStatus('error',{error:e.message,errorKind:'storage'});}this.pendingChangeCount++;this._notify();this._scheduleSync(1500);}});
       window.addEventListener("offline", () => this._setStatus("offline"));
     }
@@ -179,6 +184,17 @@ class SyncManager {
 
   _onOnline() {
     if (this.userId) this._scheduleSync(0);
+  }
+
+  /** App returned to the foreground. Sync if the last good sync is old or the last attempt failed. At most once per 15 s. */
+  _onResume() {
+    if (!this.userId || this._running) return;
+    const now = Date.now();
+    if (now - (this._lastResumeAt || 0) < RESUME_MIN_GAP_MS) return;
+    const stale = !this.lastSyncAt || now - this.lastSyncAt > RESUME_STALE_MS;
+    if (!stale && this.status !== "error" && this.status !== "offline") return;
+    this._lastResumeAt = now;
+    this._scheduleSync(300);
   }
 
   _scheduleSync(delay) {

@@ -1,0 +1,44 @@
+name: Backup and restore test (fake data)
+
+# Proves the backup and restore steps on a throwaway Postgres with generated FAKE data.
+# No secrets, no production URL, no network to Supabase. It never reads the real database.
+on:
+  workflow_dispatch:
+  push:
+    branches: [release/apk29-candidate]
+    paths: ["scripts/backup-restore/**", ".github/workflows/backup-restore-test.yml", "supabase/migrations/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  restore-fake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      pg:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: throwaway
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install Postgres 17 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y postgresql-client-17 >/dev/null
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Backup, restore and compare (fake data)
+        env:
+          PGHOST: localhost
+          PGPORT: "5433"
+          PGUSER: postgres
+          PGPASSWORD: throwaway
+        run: bash scripts/backup-restore/run.sh

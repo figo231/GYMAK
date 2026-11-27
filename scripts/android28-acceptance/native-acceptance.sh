@@ -43,10 +43,20 @@ assert x,'missing staged diagnostic output'
 d=json.loads(x[-1]);candidate=json.loads(d['staged'])['id'];open('verification/ota-candidate.txt','w').write(candidate)
 PY2
 candidate=$(cat verification/ota-candidate.txt)
-adb exec-out "run-as com.gymak.app tar -cf - 'app_webview/Default/Local Storage/leveldb'" > verification/ota-after-close-storage.tar
-mkdir -p verification/ota-after-close-storage
-tar -xf verification/ota-after-close-storage.tar -C verification/ota-after-close-storage
-python3 "$RUNNER_TEMP/read-activation-wal.py" verification/ota-after-close-storage "$candidate" > verification/ota-after-close-storage.json || test "$?" -eq 2
+# Chromium writes localStorage to disk a few seconds after the page sets it.
+# Force-stopping before that loses the staged key and the cold start has nothing to activate.
+# Poll the on-disk log until the candidate is recorded (max about 45s), then continue.
+flushed=no
+for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+  rm -rf verification/ota-after-close-storage verification/ota-after-close-storage.tar
+  adb exec-out "run-as com.gymak.app tar -cf - 'app_webview/Default/Local Storage/leveldb'" > verification/ota-after-close-storage.tar
+  mkdir -p verification/ota-after-close-storage
+  tar -xf verification/ota-after-close-storage.tar -C verification/ota-after-close-storage
+  if python3 "$RUNNER_TEMP/read-activation-wal.py" verification/ota-after-close-storage "$candidate" > verification/ota-after-close-storage.json; then flushed=yes; break; fi
+  sleep 3
+done
+echo "staged key flushed to disk before force-stop: $flushed (attempts: $attempt)"
+test "$flushed" = yes
 adb shell run-as com.gymak.app find files/versions/"$candidate" -type f > verification/ota-bundle-files.txt
 adb exec-out run-as com.gymak.app cat files/versions/"$candidate"/index.html | sha256sum > verification/ota-bundle-after-close.sha256
 adb shell am force-stop com.gymak.app
