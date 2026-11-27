@@ -683,7 +683,6 @@ export const EN = {
 "الرابط لازم يبدأ بـ https:// أو http://": "Link must start with https:// or http://",
 "الرابط متفتحش. جرب تاني أو انسخه وافتحه بنفسك.": "Link didn't open. Retry or copy & open it yourself.",
 "الراحة خلصت، كمّل المجموعة الجاية 💪": "Rest's over, on to the next set 💪",
-"الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي.": "The server connection is not set up by the app developer yet. The app works offline normally.",
 "الرد": "Reply",
 "الرد اتبعت": "Reply sent",
 "الرد طويل. الحد الأقصى 2000 حرف.": "Reply too long. Max 2000 characters.",
@@ -2759,4 +2758,7 @@ export const EN = {
 "فيه نسخة أحدث من GYMAK جاهزة. زرار تحديث هيفتح صفحة التحميل. اختار تحميل أندرويد، وبعدها افتح الملف واختار تثبيت من غير ما تمسح التطبيق الحالي.": "A newer GYMAK version is ready. Update opens the download page. Choose Android download, then open the file and install without uninstalling the current app.",
 "تعذر الحفظ. بياناتك السابقة زي ما هي. راجع مساحة الجهاز وجرب تاني.": "Could not save. Your previous data is unchanged. Check device storage and try again.",
 "التاريخ ده فيه قياس مسجل. اختار تاريخ تاني. القياسين زي ما هم.": "That date already has a measurement. Choose another date. Both entries are unchanged.",
+"الربط مع الخادم لسه متظبطش. التطبيق شغال أوفلاين عادي.": "The server connection is not set up yet. The app works offline normally.",
+"لو الرسالة مش في الوارد، افتح Spam أو الرسائل غير المرغوب فيها. اختار الرسالة واضغط \"ليست رسالة غير مرغوب فيها\"، وبعدها افتح رابط التأكيد.": "If it is not in your inbox, open Spam or Junk. Choose the message, tap \"Not spam\", then open the confirmation link.",
+"النت شغال بس مش قادر أوصل للخادم. جرب تبدّل بين الواي فاي والداتا، أو اقفل الـ VPN أو الـ DNS الخاص، وجرب تاني.": "Your internet works but the server cannot be reached. Try switching between Wi-Fi and mobile data, or turn off VPN or private DNS, then try again.",
 };

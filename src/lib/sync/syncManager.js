@@ -203,7 +203,7 @@ class SyncManager {
 
   async runSync() {
     if (!this.userId || !supabase) return;
-    if (typeof navigator !== "undefined" && !navigator.onLine) { this._setStatus("offline"); return; }
+    if (typeof navigator !== "undefined" && !navigator.onLine) { this._setStatus("offline"); this._scheduleRetry(); return; } // retry too: navigator.onLine can be wrong and no "online" event may follow
     if (this._running) {
       // A cycle is already in flight. Don't drop whatever triggered this
       // call — remember it and run again right after the current cycle

@@ -25,7 +25,7 @@ grep -q 'OK (1 test)' verification/rollback-isolated-upgrade.txt
 adb shell am force-stop com.gymak.app
 adb install -r -d -g /tmp/apk27.apk > verification/downgrade-install.txt 2>&1
 adb shell dumpsys package com.gymak.app | grep versionCode > verification/downgrade-version.txt
-grep 'versionCode=27' verification/downgrade-version.txt
+grep 'versionCode=28' verification/downgrade-version.txt
 adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#keepsDataAndRunsOffline com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner > verification/downgrade27.txt 2>&1
 cat verification/downgrade27.txt
 grep -q 'OK (1 test)' verification/downgrade27.txt

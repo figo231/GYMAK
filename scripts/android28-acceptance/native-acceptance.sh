@@ -62,13 +62,13 @@ cat verification/ota-rollback.txt
 grep -q 'OK (1 test)' verification/ota-rollback.txt
 cp android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/fixture-only.apk"
 rm -rf dist
-cp -r "$RUNNER_TEMP/exact28/dist" dist
+cp -r "$RUNNER_TEMP/exact29/dist" dist
 npx cap sync android >> "$RUNNER_TEMP/cap.log" 2>&1
 (cd android && bash ./gradlew :app:assembleDebug > "$RUNNER_TEMP/exact-gradle.log" 2>&1)
-curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-27/GYMAK.apk -o /tmp/apk27.apk
+curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-28/GYMAK.apk -o /tmp/apk27.apk
 adb uninstall com.gymak.app.test
 adb uninstall com.gymak.app
-echo '1d4679046fdaf9e95a4f8f6b7801a6aa3e0e455e8eb3687f9e16409eac530bd6  /tmp/apk27.apk' | sha256sum -c -
+echo '5885f79652c9700bc1233095c22196bc53d3fdd0d4f377df2e7245c56783ee68  /tmp/apk27.apk' | sha256sum -c -
 adb install -r -g /tmp/apk27.apk
 adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell pm clear com.gymak.app # isolated emulator fixture only
@@ -92,6 +92,6 @@ unzip -p android/app/build/outputs/apk/debug/app-debug.apk assets/public/index.h
 cmp dist/index.html verification/exact-index.html
 ! unzip -p android/app/build/outputs/apk/debug/app-debug.apk 'assets/public/assets/*.js' | grep -q __avatarVerificationReady
 adb shell dumpsys package com.gymak.app | grep versionCode > verification/version.txt
-grep 'versionCode=28' verification/version.txt
-cp android/app/build/outputs/apk/debug/app-debug.apk verification/GYMAK-28-verification.apk
-sha256sum verification/GYMAK-28-verification.apk > verification/apk.sha256
+grep 'versionCode=29' verification/version.txt
+cp android/app/build/outputs/apk/debug/app-debug.apk verification/GYMAK-29-verification.apk
+sha256sum verification/GYMAK-29-verification.apk > verification/apk.sha256

@@ -84,6 +84,28 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/sign-in",
+      "destination": "/auth/login",
+      "permanent": false
+    },
+    {
+      "source": "/login",
+      "destination": "/auth/login",
+      "permanent": false
+    },
+    {
+      "source": "/download",
+      "destination": "/welcome#dl",
+      "permanent": false
+    },
+    {
+      "source": "/download/",
+      "destination": "/welcome#dl",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/welcome",
@@ -98,6 +120,7 @@
     "deploymentEnabled": {
       "candidate/apk25-private": false,
       "release/apk28-candidate-ci": false,
+      "release/apk29-candidate": false,
       "stage/apk25-private": false
     }
   }

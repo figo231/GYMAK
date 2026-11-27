@@ -15,7 +15,7 @@ const KNOWN = [
   [/invalid or has expired|otp.expired|link.*expired|token.*expired/i, tx("الرابط انتهى أو اتفتح قبل كده. اطلب رابط جديد.")],
   [/user not found/i, tx("الإيميل ده مش مسجل.")],
   [/timeout/i, tx("الاتصال بطيء قوي. جرب تاني.")],
-  [/failed to fetch|load failed|networkerror|network request|fetch/i, tx("مفيش اتصال بالإنترنت. اتأكد من النت وجرب تاني.")],
+  [/failed to fetch|load failed|networkerror|network request/i, tx("مفيش اتصال بالإنترنت. اتأكد من النت وجرب تاني.")],
   [/network/i, tx("مفيش اتصال بالإنترنت. اتأكد من النت وجرب تاني.")],
 ];
 const GENERIC = tx("حصلت مشكلة. جرب تاني بعد شوية.");
@@ -27,9 +27,13 @@ export function authErrorCode(error) {
 
 export function translateAuthError(error, online = typeof navigator === "undefined" ? true : navigator.onLine !== false) {
   if (!error) return "";
-  if (!online) return tx("مفيش اتصال بالإنترنت. اتأكد من النت وجرب تاني.");
+  // A real server answer (HTTP 4xx) proves we are online, whatever navigator.onLine claims.
+  const answered = typeof error.status === "number" && error.status >= 400 && error.status < 500;
+  const tag = (why) => ` [${why}${error.name ? " " + error.name : ""}${error.status ? " " + error.status : ""}]`;
+  if (!online && !answered) return tx("مفيش اتصال بالإنترنت. اتأكد من النت وجرب تاني.") + tag("offline-flag");
   const msg = `${authErrorCode(error)} ${error.message || String(error)}`;
-  if (error.name === "AuthRetryableFetchError" || error instanceof TypeError) return KNOWN[KNOWN.length - 2][1];
+  // The browser says online but the request failed before any answer: the server is unreachable from this network.
+  if (error.name === "AuthRetryableFetchError" || error instanceof TypeError || /failed to fetch|load failed|networkerror|network request/i.test(msg)) return tx("النت شغال بس مش قادر أوصل للخادم. جرب تبدّل بين الواي فاي والداتا، أو اقفل الـ VPN أو الـ DNS الخاص، وجرب تاني.") + tag("net");
   for (const [pattern, ar] of KNOWN) if (pattern.test(msg)) return ar;
   // Arabic text from our own code passes through; anything else is hidden behind a generic line.
   return /[\u0600-\u06FF]/.test(error.message || "") ? error.message : GENERIC;

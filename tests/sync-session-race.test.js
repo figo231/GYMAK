@@ -16,3 +16,16 @@ describe('sync in-flight safety',()=>{
  it('suppresses only the synchronous merge write, not the whole network wait',async()=>{m.pull.mockImplementation(async(user,canApply,apply)=>{expect(canApply()).toBe(true);apply(()=>m.listener());return 0;});manager.start('a');await manager.manualSync();expect(manager.pendingChangeCount).toBe(0);expect(manager.status).toBe('synced');});
 });
 it('keeps a corrupt sync review journal intact without crashing subscribers',()=>{localStorage.setItem('gymak_mutable_sync_v1:a','broken');expect(()=>manager.start('a')).not.toThrow();expect(manager.getSnapshot().conflictRecoveryError).toBe('sync_journal_corrupt');expect(localStorage.getItem('gymak_mutable_sync_v1:a')).toBe('broken');});
+describe('sync offline gate',()=>{
+ it('retries by itself when navigator.onLine says offline and no online event follows',async()=>{
+  vi.useFakeTimers();
+  try{
+   manager.start('a');await vi.advanceTimersByTimeAsync(10);m.pull.mockClear();
+   Object.defineProperty(navigator,'onLine',{configurable:true,value:false});
+   await manager.runSync();expect(manager.getSnapshot().status).toBe('offline');
+   Object.defineProperty(navigator,'onLine',{configurable:true,value:true});m.pull.mockResolvedValue(0);
+   await vi.advanceTimersByTimeAsync(6000);
+   expect(m.pull).toHaveBeenCalled();expect(manager.getSnapshot().status).toBe('synced');
+  }finally{vi.useRealTimers();}
+ });
+});

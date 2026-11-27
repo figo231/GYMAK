@@ -49,6 +49,8 @@ const WeeklyCheckIn = lazy(() => import("./pages/FollowUp/WeeklyCheckIn"));
 const Coach = lazy(() => import("./pages/Coach/Coach"));
 
 export const router = createBrowserRouter([
+  { path: "/sign-in", element: <Navigate to="/auth/login" replace /> },
+  { path: "/login", element: <Navigate to="/auth/login" replace /> },
   { path: "/welcome", element: <Navigate to={/^[a-z0-9-]{1,80}$/.test(new URLSearchParams(window.location.search).get("p") || "") ? "/programs?p=" + encodeURIComponent(new URLSearchParams(window.location.search).get("p")) : "/"} replace /> },
   {
     element: <ProtectedRoute><TabShell /></ProtectedRoute>,

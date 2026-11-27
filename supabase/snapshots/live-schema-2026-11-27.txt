@@ -1,0 +1,745 @@
+# GYMAK live schema snapshot (metadata only, read-only export, 2026-11-27)
+# Source: Supabase SQL editor, SELECT on pg_catalog/information_schema. No user rows. No secrets.
+# Purpose: stand-in for missing history of migrations 0006-0014; use to detect drift. Not a migration.
+# Project: GYMAK (ref in dashboard). 72 public tables, all RLS enabled, 77 policies, 2 cron jobs, 6 deployed edge functions.
+
+## Tables and columns
+account_identities(user_id uuid NN, display_name text, gender text, username text, completed_at timestamp with time zone, prompted_at timestamp with time zone NN)
+account_username_reservations(username text NN, user_id uuid)
+admin_audit_log(id bigint NN, admin_id uuid, action text NN, target_table text, target_id text, details jsonb NN, created_at timestamp with time zone NN)
+admin_rate_limits(admin_id uuid NN, window_start timestamp with time zone NN, send_count integer NN)
+admin_users(user_id uuid NN, role text NN, created_at timestamp with time zone NN)
+apk18_rollout_control(id boolean NN, chat_writes boolean NN, identity_signup boolean NN)
+app_activity(user_id uuid NN, day date NN)
+app_announcement_dismissals(user_id uuid NN, announcement_id uuid NN, dismissed_at timestamp with time zone NN)
+app_announcements(id uuid NN, title text NN, body text NN, created_by uuid, created_at timestamp with time zone NN, expires_at timestamp with time zone NN, active boolean NN)
+care_appointments(id uuid NN, slot_id uuid NN, conversation_id uuid NN, client_id uuid NN, status text NN, created_at timestamp with time zone NN, updated_at timestamp with time zone NN)
+care_plan_choices(conversation_id uuid NN, version_id uuid NN, client_id uuid NN, updated_at timestamp with time zone NN)
+care_plan_versions(id uuid NN, conversation_id uuid NN, author_id uuid NN, version integer NN, title text NN, meals jsonb NN, note text NN, change_note text NN, created_at timestamp with time zone NN)
+care_slots(id uuid NN, professional_id uuid NN, starts_at timestamp with time zone NN, minutes integer NN, note text NN, canceled boolean NN, created_at timestamp with time zone NN)
+care_training_versions(id uuid NN, conversation_id uuid NN, author_id uuid NN, version integer NN, snapshot jsonb NN, change_note text NN, created_at timestamp with time zone NN)
+chat_blocks(blocker_id uuid NN, blocked_id uuid NN, created_at timestamp with time zone NN)
+chat_consents(user_id uuid NN, version text NN, accepted_at timestamp with time zone NN)
+chat_conversations(id uuid NN, client_id uuid NN, professional_id uuid NN, kind text NN, client_label text NN, professional_label text NN, client_read_seq bigint NN, professional_read_seq bigint NN, created_at timestamp with time zone NN, last_message_at timestamp with time zone, receipt_updated_at timestamp with time zone)
+chat_direct_links(a uuid NN, b uuid NN, created_at timestamp with time zone NN)
+chat_doctor_grants(user_id uuid NN, granted_by uuid, created_at timestamp with time zone NN)
+chat_lookup_limits(user_id uuid NN, window_at timestamp with time zone NN, hits integer NN)
+chat_messages(id uuid NN, seq bigint NN, conversation_id uuid NN, author_id uuid NN, client_id uuid NN, body text NN, created_at timestamp with time zone NN, edited_at timestamp with time zone, revision integer NN, photo_id uuid)
+chat_personal_pins(user_id uuid NN, message_id uuid NN, created_at timestamp with time zone NN)
+chat_photos(id uuid NN, conversation_id uuid NN, sender_id uuid NN, recipient_id uuid NN, nonce uuid NN, path text NN, bytes integer NN, status text NN, created_at timestamp with time zone NN, expires_at timestamp with time zone NN, saved_at timestamp with time zone, message_id uuid)
+chat_profiles(user_id uuid NN, display_name text NN, bio text NN, avatar_path text, visible boolean NN, read_receipts boolean NN, updated_at timestamp with time zone NN, discoverable boolean NN)
+chat_push_control(id boolean NN, enabled boolean NN)
+chat_push_preferences(user_id uuid NN, show_preview boolean NN, updated_at timestamp with time zone NN)
+chat_push_queue(id uuid NN, message_id uuid NN, recipient_id uuid NN, token_id uuid NN, state text NN, created_at timestamp with time zone NN, claimed_at timestamp with time zone, finished_at timestamp with time zone, provider_id text, error_code text)
+chat_receipts(conversation_id uuid NN, user_id uuid NN, delivered_seq bigint NN, read_seq bigint NN)
+chat_role_requests(id uuid NN, user_id uuid NN, requested_role text NN, note text NN, status text NN, created_at timestamp with time zone NN, decided_at timestamp with time zone, decided_by uuid)
+chat_verifications(user_id uuid NN, verified_by uuid, verified_at timestamp with time zone NN)
+coach_assignments(id uuid NN, coach_id uuid NN, coach_email text NN, trainee_id uuid NN, program_id text NN, note text, created_at timestamp with time zone NN)
+coach_grants(email text NN, granted_by uuid, created_at timestamp with time zone NN)
+coach_links(id uuid NN, coach_id uuid NN, coach_email text, trainee_email text NN, trainee_id uuid, status text NN, created_at timestamp with time zone NN)
+content_exercises(id text NN, data jsonb NN, active boolean NN, updated_at timestamp with time zone NN, updated_by uuid)
+content_foods(id text NN, data jsonb NN, active boolean NN, updated_at timestamp with time zone NN, updated_by uuid)
+encouragement_config(id boolean NN, enabled boolean NN, local_time time without time zone NN, timezone text NN, approved_text_version text, updated_at timestamp with time zone NN, approved_text_hash text)
+encouragement_deliveries(id uuid NN, user_id uuid, local_day date NN, token_id uuid, message_id smallint, status text NN, claimed_at timestamp with time zone NN, completed_at timestamp with time zone)
+encouragement_messages(id smallint NN, title text NN, body text NN)
+encouragement_preferences(user_id uuid NN, enabled boolean NN, device_id text, updated_at timestamp with time zone NN)
+exercise_favorites(user_id uuid NN, exercise_ids text[] NN, updated_ms bigint NN, updated_at timestamp with time zone NN)
+exercise_logs(id uuid NN, user_id uuid NN, exercise_id text NN, date date NN, weight numeric NN, sets integer NN, reps integer NN, created_at timestamp with time zone NN, rir integer, client_logged_at timestamp with time zone)
+exercises(id text NN, user_id uuid NN, name text NN, muscle text NN, secondary text, sets integer NN, reps integer NN, updated_at timestamp with time zone NN)
+feedback(id uuid NN, user_id uuid NN, message text NN, contact_email text, app_version text, status text NN, created_at timestamp with time zone NN, admin_reply text, replied_at timestamp with time zone)
+food_log(id uuid NN, user_id uuid NN, date date NN, items jsonb NN, total_kcal numeric NN, total_protein numeric NN, total_carbs numeric NN, total_fat numeric NN, updated_at timestamp with time zone NN)
+friend_cheers(sender uuid NN, recipient uuid NN, day date NN)
+friend_links(requester uuid NN, target uuid NN, status text NN, created_at timestamp with time zone NN)
+friend_preferences(user_id uuid NN, discoverable boolean NN, share_days boolean NN, share_streak boolean NN, share_volume boolean NN)
+friend_request_events(user_id uuid NN, created_at timestamp with time zone NN)
+guest_import_receipts(user_id uuid NN, request_id uuid NN, payload jsonb NN, result jsonb NN, created_at timestamp with time zone NN)
+moderation_reports(id uuid NN, reporter_id uuid NN, target_type text NN, target_user_id uuid, conversation_id uuid, message_id uuid, feedback_id uuid, content_snapshot text, reason text NN, details text, status text NN, reviewed_by uuid, reviewed_at timestamp with time zone, created_at timestamp with time zone NN, photo_evidence_path text, photo_evidence_expires_at timestamp with time zone)
+notification_deliveries(id uuid NN, notification_id uuid NN, token_id uuid NN, status text NN, error_code text, attempts integer NN, next_retry_at timestamp with time zone, created_at timestamp with time zone NN)
+notifications(id uuid NN, title text NN, body text NN, image_url text, deep_link text, category text NN, priority text NN, audience_type text NN, audience_ref jsonb, status text NN, scheduled_at timestamp with time zone, sent_at timestamp with time zone, created_by uuid, created_at timestamp with time zone NN)
+own_push_once(id text NN, claimed_at timestamp with time zone NN)
+owner_push_campaigns(id uuid NN, owner_id uuid NN, title text NN, body text NN, audience text NN, state text NN, created_at timestamp with time zone NN)
+owner_push_control(id boolean NN, enabled boolean NN)
+owner_push_devices(id uuid NN, campaign_id uuid NN, user_id uuid NN, token_id uuid, state text NN, provider_id text, error_code text, accepted_at timestamp with time zone, received_at timestamp with time zone, opened_at timestamp with time zone, claim_at timestamp with time zone, device_id text NN)
+owner_push_events(device_delivery uuid NN, kind text NN, created_at timestamp with time zone NN)
+pr_history(id uuid NN, user_id uuid NN, exercise_id text NN, exercise_name text NN, weight numeric NN, prev_weight numeric NN, date date NN, created_at timestamp with time zone NN)
+private_account_age(user_id uuid NN, age smallint NN, recorded_at timestamp with time zone NN)
+private_draft_revisions(id uuid NN, user_id uuid NN, kind text NN, entity_id text NN, payload jsonb NN, client_created_at timestamp with time zone NN, created_at timestamp with time zone NN)
+professional_audiences(user_id uuid NN, audience text NN, updated_at timestamp with time zone NN)
+professional_cards(user_id uuid NN, name text NN, bio text NN, published boolean NN, updated_at timestamp with time zone NN)
+professional_requests(id uuid NN, client_id uuid NN, professional_id uuid NN, kind text NN, status text NN, client_label text NN, professional_label text NN, created_at timestamp with time zone NN, updated_at timestamp with time zone NN)
+profiles(id uuid NN, name text NN, username text NN, bio text NN, avatar text, cover text, cover_gradient text NN, gender text, height_cm numeric, level integer NN, xp integer NN, xp_next integer NN, member_since date NN, goal_weight numeric, active_program_id text, best_streak integer NN, unit text NN, lang text NN, notif_enabled boolean NN, notif_time text NN, updated_at timestamp with time zone NN, migrated_at timestamp with time zone)
+push_preferences(user_id uuid NN, category text NN, enabled boolean NN)
+push_tokens(id uuid NN, user_id uuid NN, device_id text NN, platform text NN, app_version text, token text NN, language text, timezone text, created_at timestamp with time zone NN, updated_at timestamp with time zone NN, last_seen timestamp with time zone NN, is_active boolean NN)
+push_topics(name text NN, description text, created_at timestamp with time zone NN)
+terms_acceptances(user_id uuid NN, version text NN, accepted_at timestamp with time zone NN)
+training_generations(user_id uuid NN, generation bigint NN)
+training_reset_requests(user_id uuid NN, request_id uuid NN, generation bigint NN, created_at timestamp with time zone NN)
+weight_logs(id uuid NN, user_id uuid NN, date date NN, weight numeric NN, body_fat numeric, updated_at timestamp with time zone NN)
+workout_days(user_id uuid NN, date date NN)
+
+## Constraints
+account_identities.account_identities_check CHECK (((completed_at IS NULL) OR (((char_length(TRIM(BOTH FROM display_name)) >= 2) AND (char_length(TRIM(BOTH FROM display_name)) <= 40)) AND (gender IS NOT NULL) AND (username IS NOT NULL))))
+account_identities.account_identities_gender_check CHECK ((gender = ANY (ARRAY['male'::text, 'female'::text])))
+account_identities.account_identities_pkey PRIMARY KEY (user_id)
+account_identities.account_identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+account_identities.account_identities_username_check CHECK ((username ~ '^[a-z][a-z0-9_]{2,23}$'::text))
+account_identities.account_identities_username_key UNIQUE (username)
+account_username_reservations.account_username_reservations_pkey PRIMARY KEY (username)
+account_username_reservations.account_username_reservations_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+admin_audit_log.admin_audit_log_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL
+admin_audit_log.admin_audit_log_pkey PRIMARY KEY (id)
+admin_rate_limits.admin_rate_limits_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE CASCADE
+admin_rate_limits.admin_rate_limits_pkey PRIMARY KEY (admin_id, window_start)
+admin_users.admin_users_pkey PRIMARY KEY (user_id)
+admin_users.admin_users_role_check CHECK ((role = ANY (ARRAY['super_admin'::text, 'sender'::text])))
+admin_users.admin_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+apk18_rollout_control.apk18_rollout_control_id_check CHECK (id)
+apk18_rollout_control.apk18_rollout_control_pkey PRIMARY KEY (id)
+app_activity.app_activity_pkey PRIMARY KEY (user_id, day)
+app_activity.app_activity_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+app_announcement_dismissals.app_announcement_dismissals_announcement_id_fkey FOREIGN KEY (announcement_id) REFERENCES app_announcements(id) ON DELETE CASCADE
+app_announcement_dismissals.app_announcement_dismissals_pkey PRIMARY KEY (user_id, announcement_id)
+app_announcement_dismissals.app_announcement_dismissals_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+app_announcements.app_announcements_body_check CHECK (((char_length(btrim(body)) >= 1) AND (char_length(btrim(body)) <= 1000)))
+app_announcements.app_announcements_check CHECK (((expires_at > created_at) AND (expires_at <= (created_at + '90 days'::interval))))
+app_announcements.app_announcements_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL
+app_announcements.app_announcements_pkey PRIMARY KEY (id)
+app_announcements.app_announcements_title_check CHECK (((char_length(btrim(title)) >= 1) AND (char_length(btrim(title)) <= 120)))
+care_appointments.care_appointments_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.users(id) ON DELETE CASCADE
+care_appointments.care_appointments_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+care_appointments.care_appointments_pkey PRIMARY KEY (id)
+care_appointments.care_appointments_slot_id_fkey FOREIGN KEY (slot_id) REFERENCES care_slots(id) ON DELETE CASCADE
+care_appointments.care_appointments_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text, 'declined'::text, 'canceled'::text])))
+care_plan_choices.care_plan_choices_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.users(id) ON DELETE CASCADE
+care_plan_choices.care_plan_choices_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+care_plan_choices.care_plan_choices_pkey PRIMARY KEY (conversation_id)
+care_plan_choices.care_plan_choices_version_id_fkey FOREIGN KEY (version_id) REFERENCES care_plan_versions(id) ON DELETE CASCADE
+care_plan_versions.care_plan_versions_author_id_fkey FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE
+care_plan_versions.care_plan_versions_change_note_check CHECK ((char_length(change_note) <= 300))
+care_plan_versions.care_plan_versions_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+care_plan_versions.care_plan_versions_conversation_id_version_key UNIQUE (conversation_id, version)
+care_plan_versions.care_plan_versions_meals_check CHECK (((jsonb_typeof(meals) = 'array'::text) AND ((jsonb_array_length(meals) >= 1) AND (jsonb_array_length(meals) <= 12))))
+care_plan_versions.care_plan_versions_note_check CHECK ((char_length(note) <= 800))
+care_plan_versions.care_plan_versions_pkey PRIMARY KEY (id)
+care_plan_versions.care_plan_versions_title_check CHECK (((char_length(title) >= 1) AND (char_length(title) <= 100)))
+care_slots.care_slots_minutes_check CHECK ((minutes = ANY (ARRAY[15, 30, 45, 60])))
+care_slots.care_slots_note_check CHECK ((char_length(note) <= 200))
+care_slots.care_slots_pkey PRIMARY KEY (id)
+care_slots.care_slots_professional_id_fkey FOREIGN KEY (professional_id) REFERENCES auth.users(id) ON DELETE CASCADE
+care_training_versions.care_training_versions_author_id_fkey FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE
+care_training_versions.care_training_versions_change_note_check CHECK ((char_length(change_note) <= 300))
+care_training_versions.care_training_versions_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+care_training_versions.care_training_versions_conversation_id_version_key UNIQUE (conversation_id, version)
+care_training_versions.care_training_versions_pkey PRIMARY KEY (id)
+chat_blocks.chat_blocks_blocked_id_fkey FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_blocks.chat_blocks_blocker_id_fkey FOREIGN KEY (blocker_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_blocks.chat_blocks_check CHECK ((blocker_id <> blocked_id))
+chat_blocks.chat_blocks_pkey PRIMARY KEY (blocker_id, blocked_id)
+chat_consents.chat_consents_pkey PRIMARY KEY (user_id, version)
+chat_consents.chat_consents_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_consents.chat_consents_version_check CHECK ((version = '2026-11-22-v1'::text))
+chat_conversations.chat_conversations_check CHECK ((client_id <> professional_id))
+chat_conversations.chat_conversations_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_conversations.chat_conversations_client_id_professional_id_kind_key UNIQUE (client_id, professional_id, kind)
+chat_conversations.chat_conversations_client_label_check CHECK (((char_length(client_label) >= 1) AND (char_length(client_label) <= 80)))
+chat_conversations.chat_conversations_kind_check CHECK ((kind = ANY (ARRAY['coach'::text, 'doctor'::text, 'support'::text, 'direct'::text])))
+chat_conversations.chat_conversations_pkey PRIMARY KEY (id)
+chat_conversations.chat_conversations_professional_id_fkey FOREIGN KEY (professional_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_conversations.chat_conversations_professional_label_check CHECK (((char_length(professional_label) >= 1) AND (char_length(professional_label) <= 80)))
+chat_direct_links.chat_direct_links_a_fkey FOREIGN KEY (a) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_direct_links.chat_direct_links_b_fkey FOREIGN KEY (b) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_direct_links.chat_direct_links_check CHECK ((a < b))
+chat_direct_links.chat_direct_links_pkey PRIMARY KEY (a, b)
+chat_doctor_grants.chat_doctor_grants_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES auth.users(id) ON DELETE SET NULL
+chat_doctor_grants.chat_doctor_grants_pkey PRIMARY KEY (user_id)
+chat_doctor_grants.chat_doctor_grants_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_lookup_limits.chat_lookup_limits_pkey PRIMARY KEY (user_id)
+chat_lookup_limits.chat_lookup_limits_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_messages.chat_messages_author_id_client_id_key UNIQUE (author_id, client_id)
+chat_messages.chat_messages_author_id_fkey FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_messages.chat_messages_body_check CHECK (((char_length(btrim(body)) >= 1) AND (char_length(btrim(body)) <= 2000)))
+chat_messages.chat_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+chat_messages.chat_messages_photo_id_fkey FOREIGN KEY (photo_id) REFERENCES chat_photos(id) ON DELETE SET NULL
+chat_messages.chat_messages_pkey PRIMARY KEY (id)
+chat_messages.chat_messages_seq_key UNIQUE (seq)
+chat_personal_pins.chat_personal_pins_message_id_fkey FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE
+chat_personal_pins.chat_personal_pins_pkey PRIMARY KEY (user_id, message_id)
+chat_personal_pins.chat_personal_pins_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_photos.chat_photos_bytes_check CHECK (((bytes >= 1) AND (bytes <= 204800)))
+chat_photos.chat_photos_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+chat_photos.chat_photos_message_id_fkey FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE
+chat_photos.chat_photos_message_id_key UNIQUE (message_id)
+chat_photos.chat_photos_path_key UNIQUE (path)
+chat_photos.chat_photos_pkey PRIMARY KEY (id)
+chat_photos.chat_photos_recipient_id_fkey FOREIGN KEY (recipient_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_photos.chat_photos_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_photos.chat_photos_sender_id_nonce_key UNIQUE (sender_id, nonce)
+chat_photos.chat_photos_status_check CHECK ((status = ANY (ARRAY['reserved'::text, 'ready'::text, 'saved'::text, 'expired'::text])))
+chat_profiles.chat_profiles_bio_check CHECK ((char_length(bio) <= 400))
+chat_profiles.chat_profiles_display_name_check CHECK ((char_length(display_name) <= 80))
+chat_profiles.chat_profiles_pkey PRIMARY KEY (user_id)
+chat_profiles.chat_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_push_control.chat_push_control_id_check CHECK (id)
+chat_push_control.chat_push_control_pkey PRIMARY KEY (id)
+chat_push_preferences.chat_push_preferences_pkey PRIMARY KEY (user_id)
+chat_push_preferences.chat_push_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_push_queue.chat_push_queue_message_id_fkey FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE
+chat_push_queue.chat_push_queue_message_id_token_id_key UNIQUE (message_id, token_id)
+chat_push_queue.chat_push_queue_pkey PRIMARY KEY (id)
+chat_push_queue.chat_push_queue_recipient_id_fkey FOREIGN KEY (recipient_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_push_queue.chat_push_queue_state_check CHECK ((state = ANY (ARRAY['pending'::text, 'outcome_unknown'::text, 'accepted'::text, 'failed'::text, 'invalid_token'::text, 'skipped'::text])))
+chat_push_queue.chat_push_queue_token_id_fkey FOREIGN KEY (token_id) REFERENCES push_tokens(id) ON DELETE CASCADE
+chat_receipts.chat_receipts_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
+chat_receipts.chat_receipts_pkey PRIMARY KEY (conversation_id, user_id)
+chat_receipts.chat_receipts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_role_requests.chat_role_requests_decided_by_fkey FOREIGN KEY (decided_by) REFERENCES auth.users(id) ON DELETE SET NULL
+chat_role_requests.chat_role_requests_note_check CHECK (((char_length(btrim(note)) >= 10) AND (char_length(btrim(note)) <= 500)))
+chat_role_requests.chat_role_requests_pkey PRIMARY KEY (id)
+chat_role_requests.chat_role_requests_requested_role_check CHECK ((requested_role = ANY (ARRAY['coach'::text, 'doctor'::text])))
+chat_role_requests.chat_role_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'approved'::text, 'declined'::text])))
+chat_role_requests.chat_role_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_verifications.chat_verifications_pkey PRIMARY KEY (user_id)
+chat_verifications.chat_verifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+chat_verifications.chat_verifications_verified_by_fkey FOREIGN KEY (verified_by) REFERENCES auth.users(id) ON DELETE SET NULL
+coach_assignments.coach_assignments_coach_id_fkey FOREIGN KEY (coach_id) REFERENCES auth.users(id) ON DELETE CASCADE
+coach_assignments.coach_assignments_note_check CHECK (((note IS NULL) OR (char_length(note) <= 500)))
+coach_assignments.coach_assignments_pkey PRIMARY KEY (id)
+coach_assignments.coach_assignments_program_id_check CHECK (((char_length(program_id) >= 1) AND (char_length(program_id) <= 64)))
+coach_assignments.coach_assignments_trainee_id_fkey FOREIGN KEY (trainee_id) REFERENCES auth.users(id) ON DELETE CASCADE
+coach_grants.coach_grants_email_check CHECK ((email = lower(email)))
+coach_grants.coach_grants_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES auth.users(id)
+coach_grants.coach_grants_pkey PRIMARY KEY (email)
+coach_links.coach_links_coach_id_fkey FOREIGN KEY (coach_id) REFERENCES auth.users(id) ON DELETE CASCADE
+coach_links.coach_links_coach_id_trainee_email_key UNIQUE (coach_id, trainee_email)
+coach_links.coach_links_pkey PRIMARY KEY (id)
+coach_links.coach_links_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'active'::text, 'revoked'::text])))
+coach_links.coach_links_trainee_email_check CHECK ((trainee_email = lower(trainee_email)))
+coach_links.coach_links_trainee_id_fkey FOREIGN KEY (trainee_id) REFERENCES auth.users(id) ON DELETE CASCADE
+content_exercises.content_exercises_pkey PRIMARY KEY (id)
+content_exercises.content_exercises_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
+content_foods.content_foods_pkey PRIMARY KEY (id)
+content_foods.content_foods_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
+encouragement_config.encouragement_config_id_check CHECK (id)
+encouragement_config.encouragement_config_pkey PRIMARY KEY (id)
+encouragement_config.encouragement_config_timezone_check CHECK ((timezone = 'Africa/Cairo'::text))
+encouragement_deliveries.encouragement_deliveries_message_id_fkey FOREIGN KEY (message_id) REFERENCES encouragement_messages(id)
+encouragement_deliveries.encouragement_deliveries_pkey PRIMARY KEY (id)
+encouragement_deliveries.encouragement_deliveries_status_check CHECK ((status = ANY (ARRAY['claimed'::text, 'skipped'::text, 'accepted'::text, 'rejected'::text, 'outcome_unknown'::text])))
+encouragement_deliveries.encouragement_deliveries_token_id_fkey FOREIGN KEY (token_id) REFERENCES push_tokens(id) ON DELETE SET NULL
+encouragement_deliveries.encouragement_deliveries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+encouragement_deliveries.encouragement_deliveries_user_id_local_day_key UNIQUE (user_id, local_day)
+encouragement_messages.encouragement_messages_body_check CHECK (((char_length(body) >= 1) AND (char_length(body) <= 1000)))
+encouragement_messages.encouragement_messages_pkey PRIMARY KEY (id)
+encouragement_messages.encouragement_messages_title_check CHECK (((char_length(title) >= 1) AND (char_length(title) <= 120)))
+encouragement_preferences.encouragement_preferences_pkey PRIMARY KEY (user_id)
+encouragement_preferences.encouragement_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+exercise_favorites.exercise_favorites_exercise_ids_check CHECK ((cardinality(exercise_ids) <= 500))
+exercise_favorites.exercise_favorites_pkey PRIMARY KEY (user_id)
+exercise_favorites.exercise_favorites_updated_ms_check CHECK ((updated_ms >= 0))
+exercise_favorites.exercise_favorites_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+exercise_logs.exercise_logs_pkey PRIMARY KEY (id)
+exercise_logs.exercise_logs_rir_check CHECK (((rir >= 0) AND (rir <= 5)))
+exercise_logs.exercise_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+exercises.exercises_pkey PRIMARY KEY (id)
+exercises.exercises_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+feedback.feedback_admin_reply_check CHECK (((admin_reply IS NULL) OR ((char_length(admin_reply) >= 1) AND (char_length(admin_reply) <= 2000))))
+feedback.feedback_app_version_check CHECK (((app_version IS NULL) OR (char_length(app_version) <= 40)))
+feedback.feedback_contact_email_check CHECK (((contact_email IS NULL) OR (char_length(contact_email) <= 200)))
+feedback.feedback_message_check CHECK (((char_length(message) >= 5) AND (char_length(message) <= 2000)))
+feedback.feedback_pkey PRIMARY KEY (id)
+feedback.feedback_status_check CHECK ((status = ANY (ARRAY['new'::text, 'read'::text, 'replied'::text])))
+feedback.feedback_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+food_log.food_log_pkey PRIMARY KEY (id)
+food_log.food_log_user_id_date_key UNIQUE (user_id, date)
+food_log.food_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+friend_cheers.friend_cheers_check CHECK ((sender <> recipient))
+friend_cheers.friend_cheers_pkey PRIMARY KEY (sender, recipient, day)
+friend_cheers.friend_cheers_recipient_fkey FOREIGN KEY (recipient) REFERENCES auth.users(id) ON DELETE CASCADE
+friend_cheers.friend_cheers_sender_fkey FOREIGN KEY (sender) REFERENCES auth.users(id) ON DELETE CASCADE
+friend_links.friend_links_check CHECK ((requester <> target))
+friend_links.friend_links_pkey PRIMARY KEY (requester, target)
+friend_links.friend_links_requester_fkey FOREIGN KEY (requester) REFERENCES auth.users(id) ON DELETE CASCADE
+friend_links.friend_links_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text])))
+friend_links.friend_links_target_fkey FOREIGN KEY (target) REFERENCES auth.users(id) ON DELETE CASCADE
+friend_preferences.friend_preferences_pkey PRIMARY KEY (user_id)
+friend_preferences.friend_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+friend_request_events.friend_request_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+guest_import_receipts.guest_import_receipts_pkey PRIMARY KEY (user_id, request_id)
+guest_import_receipts.guest_import_receipts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+moderation_reports.moderation_reports_content_snapshot_check CHECK (((content_snapshot IS NULL) OR ((char_length(content_snapshot) >= 1) AND (char_length(content_snapshot) <= 4000))))
+moderation_reports.moderation_reports_details_check CHECK (((details IS NULL) OR ((char_length(details) >= 1) AND (char_length(details) <= 1000))))
+moderation_reports.moderation_reports_pkey PRIMARY KEY (id)
+moderation_reports.moderation_reports_reason_check CHECK ((reason = ANY (ARRAY['abuse'::text, 'sexual'::text, 'scam'::text, 'impersonation'::text, 'other'::text])))
+moderation_reports.moderation_reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE CASCADE
+moderation_reports.moderation_reports_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id) ON DELETE SET NULL
+moderation_reports.moderation_reports_status_check CHECK ((status = ANY (ARRAY['open'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])))
+moderation_reports.moderation_reports_target_type_check CHECK ((target_type = ANY (ARRAY['chat_message'::text, 'chat_user'::text, 'support_reply'::text])))
+moderation_reports.moderation_reports_target_user_id_fkey FOREIGN KEY (target_user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+notification_deliveries.notification_deliveries_notification_id_fkey FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE
+notification_deliveries.notification_deliveries_notification_id_token_id_key UNIQUE (notification_id, token_id)
+notification_deliveries.notification_deliveries_pkey PRIMARY KEY (id)
+notification_deliveries.notification_deliveries_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'dispatching'::text, 'sent'::text, 'failed_temporary'::text, 'failed_permanent'::text, 'invalid_token'::text])))
+notification_deliveries.notification_deliveries_token_id_fkey FOREIGN KEY (token_id) REFERENCES push_tokens(id) ON DELETE CASCADE
+notifications.notifications_audience_type_check CHECK ((audience_type = ANY (ARRAY['everyone'::text, 'topic'::text, 'single_user'::text, 'selected_users'::text, 'test_device'::text])))
+notifications.notifications_body_check CHECK (((char_length(body) >= 1) AND (char_length(body) <= 1000)))
+notifications.notifications_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL
+notifications.notifications_pkey PRIMARY KEY (id)
+notifications.notifications_priority_check CHECK ((priority = ANY (ARRAY['normal'::text, 'high'::text])))
+notifications.notifications_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'scheduled'::text, 'sending'::text, 'sent'::text, 'failed'::text, 'canceled'::text])))
+notifications.notifications_title_check CHECK (((char_length(title) >= 1) AND (char_length(title) <= 120)))
+own_push_once.own_push_once_pkey PRIMARY KEY (id)
+owner_push_campaigns.owner_push_campaigns_audience_check CHECK ((audience = ANY (ARRAY['all'::text, 'selected'::text])))
+owner_push_campaigns.owner_push_campaigns_body_check CHECK (((char_length(body) >= 1) AND (char_length(body) <= 1000)))
+owner_push_campaigns.owner_push_campaigns_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id)
+owner_push_campaigns.owner_push_campaigns_pkey PRIMARY KEY (id)
+owner_push_campaigns.owner_push_campaigns_state_check CHECK ((state = ANY (ARRAY['review'::text, 'queued'::text, 'closed'::text])))
+owner_push_campaigns.owner_push_campaigns_title_check CHECK (((char_length(title) >= 1) AND (char_length(title) <= 120)))
+owner_push_control.owner_push_control_id_check CHECK (id)
+owner_push_control.owner_push_control_pkey PRIMARY KEY (id)
+owner_push_devices.owner_push_devices_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES owner_push_campaigns(id) ON DELETE CASCADE
+owner_push_devices.owner_push_devices_campaign_id_token_id_key UNIQUE (campaign_id, token_id)
+owner_push_devices.owner_push_devices_pkey PRIMARY KEY (id)
+owner_push_devices.owner_push_devices_state_check CHECK ((state = ANY (ARRAY['pending'::text, 'attempting'::text, 'accepted'::text, 'failed'::text, 'invalid_token'::text, 'unconfirmed'::text, 'skipped'::text, 'outcome_unknown'::text])))
+owner_push_devices.owner_push_devices_token_id_fkey FOREIGN KEY (token_id) REFERENCES push_tokens(id) ON DELETE SET NULL
+owner_push_devices.owner_push_devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+owner_push_events.owner_push_events_device_delivery_fkey FOREIGN KEY (device_delivery) REFERENCES owner_push_devices(id) ON DELETE CASCADE
+owner_push_events.owner_push_events_kind_check CHECK ((kind = ANY (ARRAY['received'::text, 'opened'::text])))
+owner_push_events.owner_push_events_pkey PRIMARY KEY (device_delivery, kind)
+pr_history.pr_history_pkey PRIMARY KEY (id)
+pr_history.pr_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+private_account_age.private_account_age_age_check CHECK (((age >= 1) AND (age <= 120)))
+private_account_age.private_account_age_pkey PRIMARY KEY (user_id)
+private_account_age.private_account_age_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+private_draft_revisions.private_draft_revisions_entity_id_check CHECK (((char_length(entity_id) >= 1) AND (char_length(entity_id) <= 150)))
+private_draft_revisions.private_draft_revisions_kind_check CHECK ((kind = ANY (ARRAY['workout'::text, 'meal_plan'::text])))
+private_draft_revisions.private_draft_revisions_payload_check CHECK (((jsonb_typeof(payload) = 'object'::text) AND (octet_length((payload)::text) <= 250000)))
+private_draft_revisions.private_draft_revisions_pkey PRIMARY KEY (id)
+private_draft_revisions.private_draft_revisions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+professional_audiences.professional_audiences_audience_check CHECK ((audience = ANY (ARRAY['all'::text, 'male'::text, 'female'::text])))
+professional_audiences.professional_audiences_pkey PRIMARY KEY (user_id)
+professional_audiences.professional_audiences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+professional_cards.professional_cards_bio_check CHECK ((char_length(bio) <= 500))
+professional_cards.professional_cards_name_check CHECK (((char_length(btrim(name)) >= 1) AND (char_length(btrim(name)) <= 80)))
+professional_cards.professional_cards_pkey PRIMARY KEY (user_id)
+professional_cards.professional_cards_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+professional_requests.professional_requests_check CHECK ((client_id <> professional_id))
+professional_requests.professional_requests_client_id_fkey FOREIGN KEY (client_id) REFERENCES auth.users(id) ON DELETE CASCADE
+professional_requests.professional_requests_client_id_professional_id_kind_key UNIQUE (client_id, professional_id, kind)
+professional_requests.professional_requests_kind_check CHECK ((kind = ANY (ARRAY['coach'::text, 'doctor'::text])))
+professional_requests.professional_requests_pkey PRIMARY KEY (id)
+professional_requests.professional_requests_professional_id_fkey FOREIGN KEY (professional_id) REFERENCES auth.users(id) ON DELETE CASCADE
+professional_requests.professional_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text, 'declined'::text, 'canceled'::text])))
+profiles.profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+profiles.profiles_pkey PRIMARY KEY (id)
+push_preferences.push_preferences_pkey PRIMARY KEY (user_id, category)
+push_preferences.push_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+push_tokens.push_tokens_device_id_key UNIQUE (device_id)
+push_tokens.push_tokens_pkey PRIMARY KEY (id)
+push_tokens.push_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+push_topics.push_topics_pkey PRIMARY KEY (name)
+terms_acceptances.terms_acceptances_pkey PRIMARY KEY (user_id, version)
+terms_acceptances.terms_acceptances_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+terms_acceptances.terms_acceptances_version_check CHECK ((version = '2026-11-23-tou-v1'::text))
+training_generations.training_generations_generation_check CHECK ((generation >= 0))
+training_generations.training_generations_pkey PRIMARY KEY (user_id)
+training_generations.training_generations_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+training_reset_requests.training_reset_requests_pkey PRIMARY KEY (user_id, request_id)
+training_reset_requests.training_reset_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+weight_logs.weight_logs_pkey PRIMARY KEY (id)
+weight_logs.weight_logs_user_id_date_key UNIQUE (user_id, date)
+weight_logs.weight_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+workout_days.workout_days_pkey PRIMARY KEY (user_id, date)
+workout_days.workout_days_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+
+## Indexes
+CREATE UNIQUE INDEX account_identities_pkey ON public.account_identities USING btree (user_id)
+CREATE UNIQUE INDEX account_identities_username_key ON public.account_identities USING btree (username)
+CREATE UNIQUE INDEX account_username_reservations_pkey ON public.account_username_reservations USING btree (username)
+CREATE UNIQUE INDEX admin_audit_log_pkey ON public.admin_audit_log USING btree (id)
+CREATE UNIQUE INDEX admin_rate_limits_pkey ON public.admin_rate_limits USING btree (admin_id, window_start)
+CREATE UNIQUE INDEX admin_users_pkey ON public.admin_users USING btree (user_id)
+CREATE UNIQUE INDEX apk18_rollout_control_pkey ON public.apk18_rollout_control USING btree (id)
+CREATE UNIQUE INDEX app_activity_pkey ON public.app_activity USING btree (user_id, day)
+CREATE UNIQUE INDEX app_announcement_dismissals_pkey ON public.app_announcement_dismissals USING btree (user_id, announcement_id)
+CREATE UNIQUE INDEX app_announcements_pkey ON public.app_announcements USING btree (id)
+CREATE UNIQUE INDEX care_appointments_pkey ON public.care_appointments USING btree (id)
+CREATE UNIQUE INDEX care_one_active_request ON public.care_appointments USING btree (slot_id) WHERE (status = ANY (ARRAY['pending'::text, 'accepted'::text]))
+CREATE UNIQUE INDEX care_plan_choices_pkey ON public.care_plan_choices USING btree (conversation_id)
+CREATE UNIQUE INDEX care_plan_versions_conversation_id_version_key ON public.care_plan_versions USING btree (conversation_id, version)
+CREATE UNIQUE INDEX care_plan_versions_pkey ON public.care_plan_versions USING btree (id)
+CREATE UNIQUE INDEX care_slots_pkey ON public.care_slots USING btree (id)
+CREATE INDEX care_slots_pro_start ON public.care_slots USING btree (professional_id, starts_at)
+CREATE UNIQUE INDEX care_training_versions_conversation_id_version_key ON public.care_training_versions USING btree (conversation_id, version)
+CREATE UNIQUE INDEX care_training_versions_pkey ON public.care_training_versions USING btree (id)
+CREATE UNIQUE INDEX chat_blocks_pkey ON public.chat_blocks USING btree (blocker_id, blocked_id)
+CREATE UNIQUE INDEX chat_consents_pkey ON public.chat_consents USING btree (user_id, version)
+CREATE INDEX chat_conversations_client ON public.chat_conversations USING btree (client_id, last_message_at DESC)
+CREATE UNIQUE INDEX chat_conversations_client_id_professional_id_kind_key ON public.chat_conversations USING btree (client_id, professional_id, kind)
+CREATE UNIQUE INDEX chat_conversations_pkey ON public.chat_conversations USING btree (id)
+CREATE INDEX chat_conversations_professional ON public.chat_conversations USING btree (professional_id, last_message_at DESC)
+CREATE UNIQUE INDEX chat_direct_links_pkey ON public.chat_direct_links USING btree (a, b)
+CREATE UNIQUE INDEX chat_doctor_grants_pkey ON public.chat_doctor_grants USING btree (user_id)
+CREATE UNIQUE INDEX chat_lookup_limits_pkey ON public.chat_lookup_limits USING btree (user_id)
+CREATE UNIQUE INDEX chat_messages_author_id_client_id_key ON public.chat_messages USING btree (author_id, client_id)
+CREATE INDEX chat_messages_author_time ON public.chat_messages USING btree (author_id, created_at DESC)
+CREATE UNIQUE INDEX chat_messages_pkey ON public.chat_messages USING btree (id)
+CREATE UNIQUE INDEX chat_messages_seq_key ON public.chat_messages USING btree (seq)
+CREATE INDEX chat_messages_thread_seq ON public.chat_messages USING btree (conversation_id, seq DESC)
+CREATE UNIQUE INDEX chat_personal_pins_pkey ON public.chat_personal_pins USING btree (user_id, message_id)
+CREATE UNIQUE INDEX chat_photos_message_id_key ON public.chat_photos USING btree (message_id)
+CREATE UNIQUE INDEX chat_photos_path_key ON public.chat_photos USING btree (path)
+CREATE UNIQUE INDEX chat_photos_pkey ON public.chat_photos USING btree (id)
+CREATE UNIQUE INDEX chat_photos_sender_id_nonce_key ON public.chat_photos USING btree (sender_id, nonce)
+CREATE UNIQUE INDEX chat_profiles_pkey ON public.chat_profiles USING btree (user_id)
+CREATE UNIQUE INDEX chat_push_control_pkey ON public.chat_push_control USING btree (id)
+CREATE UNIQUE INDEX chat_push_preferences_pkey ON public.chat_push_preferences USING btree (user_id)
+CREATE INDEX chat_push_pending ON public.chat_push_queue USING btree (created_at) WHERE (state = 'pending'::text)
+CREATE UNIQUE INDEX chat_push_queue_message_id_token_id_key ON public.chat_push_queue USING btree (message_id, token_id)
+CREATE UNIQUE INDEX chat_push_queue_pkey ON public.chat_push_queue USING btree (id)
+CREATE UNIQUE INDEX chat_receipts_pkey ON public.chat_receipts USING btree (conversation_id, user_id)
+CREATE UNIQUE INDEX chat_role_request_pending ON public.chat_role_requests USING btree (user_id) WHERE (status = 'pending'::text)
+CREATE UNIQUE INDEX chat_role_requests_pkey ON public.chat_role_requests USING btree (id)
+CREATE UNIQUE INDEX chat_verifications_pkey ON public.chat_verifications USING btree (user_id)
+CREATE UNIQUE INDEX coach_assignments_pkey ON public.coach_assignments USING btree (id)
+CREATE INDEX coach_assignments_trainee_idx ON public.coach_assignments USING btree (trainee_id, created_at DESC)
+CREATE UNIQUE INDEX coach_grants_pkey ON public.coach_grants USING btree (email)
+CREATE UNIQUE INDEX coach_links_coach_id_trainee_email_key ON public.coach_links USING btree (coach_id, trainee_email)
+CREATE UNIQUE INDEX coach_links_pkey ON public.coach_links USING btree (id)
+CREATE UNIQUE INDEX content_exercises_pkey ON public.content_exercises USING btree (id)
+CREATE UNIQUE INDEX content_foods_pkey ON public.content_foods USING btree (id)
+CREATE UNIQUE INDEX encouragement_config_pkey ON public.encouragement_config USING btree (id)
+CREATE UNIQUE INDEX encouragement_deliveries_pkey ON public.encouragement_deliveries USING btree (id)
+CREATE UNIQUE INDEX encouragement_deliveries_user_id_local_day_key ON public.encouragement_deliveries USING btree (user_id, local_day)
+CREATE UNIQUE INDEX encouragement_messages_pkey ON public.encouragement_messages USING btree (id)
+CREATE UNIQUE INDEX encouragement_preferences_pkey ON public.encouragement_preferences USING btree (user_id)
+CREATE UNIQUE INDEX exercise_favorites_pkey ON public.exercise_favorites USING btree (user_id)
+CREATE UNIQUE INDEX exercise_logs_pkey ON public.exercise_logs USING btree (id)
+CREATE INDEX exercise_logs_user_exercise_idx ON public.exercise_logs USING btree (user_id, exercise_id, date)
+CREATE UNIQUE INDEX exercises_pkey ON public.exercises USING btree (id)
+CREATE INDEX feedback_created_idx ON public.feedback USING btree (created_at DESC)
+CREATE UNIQUE INDEX feedback_pkey ON public.feedback USING btree (id)
+CREATE UNIQUE INDEX food_log_pkey ON public.food_log USING btree (id)
+CREATE UNIQUE INDEX food_log_user_id_date_key ON public.food_log USING btree (user_id, date)
+CREATE UNIQUE INDEX friend_cheers_pkey ON public.friend_cheers USING btree (sender, recipient, day)
+CREATE INDEX friend_cheers_recipient ON public.friend_cheers USING btree (recipient, day)
+CREATE UNIQUE INDEX friend_links_pkey ON public.friend_links USING btree (requester, target)
+CREATE INDEX friend_links_target ON public.friend_links USING btree (target)
+CREATE UNIQUE INDEX friend_pair ON public.friend_links USING btree (LEAST(requester, target), GREATEST(requester, target))
+CREATE UNIQUE INDEX friend_preferences_pkey ON public.friend_preferences USING btree (user_id)
+CREATE INDEX friend_request_recent ON public.friend_request_events USING btree (user_id, created_at)
+CREATE UNIQUE INDEX guest_import_receipts_pkey ON public.guest_import_receipts USING btree (user_id, request_id)
+CREATE UNIQUE INDEX moderation_reports_dedup ON public.moderation_reports USING btree (reporter_id, target_type, COALESCE(message_id, feedback_id, target_user_id, '00000000-0000-0000-0000-000000000000'::uuid))
+CREATE UNIQUE INDEX moderation_reports_pkey ON public.moderation_reports USING btree (id)
+CREATE INDEX moderation_reports_status_created ON public.moderation_reports USING btree (status, created_at DESC)
+CREATE UNIQUE INDEX notification_deliveries_notification_id_token_id_key ON public.notification_deliveries USING btree (notification_id, token_id)
+CREATE UNIQUE INDEX notification_deliveries_pkey ON public.notification_deliveries USING btree (id)
+CREATE INDEX idx_notifications_status ON public.notifications USING btree (status, created_at DESC)
+CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id)
+CREATE UNIQUE INDEX own_push_once_pkey ON public.own_push_once USING btree (id)
+CREATE UNIQUE INDEX owner_push_campaigns_pkey ON public.owner_push_campaigns USING btree (id)
+CREATE UNIQUE INDEX owner_push_control_pkey ON public.owner_push_control USING btree (id)
+CREATE UNIQUE INDEX owner_push_devices_campaign_id_token_id_key ON public.owner_push_devices USING btree (campaign_id, token_id)
+CREATE UNIQUE INDEX owner_push_devices_pkey ON public.owner_push_devices USING btree (id)
+CREATE UNIQUE INDEX owner_push_events_pkey ON public.owner_push_events USING btree (device_delivery, kind)
+CREATE UNIQUE INDEX pr_history_pkey ON public.pr_history USING btree (id)
+CREATE INDEX pr_history_user_date_idx ON public.pr_history USING btree (user_id, date DESC)
+CREATE UNIQUE INDEX private_account_age_pkey ON public.private_account_age USING btree (user_id)
+CREATE UNIQUE INDEX private_draft_revisions_pkey ON public.private_draft_revisions USING btree (id)
+CREATE INDEX private_drafts_owner_created ON public.private_draft_revisions USING btree (user_id, created_at DESC)
+CREATE UNIQUE INDEX professional_audiences_pkey ON public.professional_audiences USING btree (user_id)
+CREATE UNIQUE INDEX professional_cards_pkey ON public.professional_cards USING btree (user_id)
+CREATE INDEX professional_requests_client ON public.professional_requests USING btree (client_id, created_at DESC, id DESC)
+CREATE UNIQUE INDEX professional_requests_client_id_professional_id_kind_key ON public.professional_requests USING btree (client_id, professional_id, kind)
+CREATE UNIQUE INDEX professional_requests_pkey ON public.professional_requests USING btree (id)
+CREATE INDEX professional_requests_pro ON public.professional_requests USING btree (professional_id, created_at DESC, id DESC)
+CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)
+CREATE UNIQUE INDEX push_preferences_pkey ON public.push_preferences USING btree (user_id, category)
+CREATE INDEX idx_push_tokens_is_active ON public.push_tokens USING btree (is_active)
+CREATE INDEX idx_push_tokens_last_seen ON public.push_tokens USING btree (last_seen)
+CREATE UNIQUE INDEX idx_push_tokens_token ON public.push_tokens USING btree (token)
+CREATE INDEX idx_push_tokens_user_active ON public.push_tokens USING btree (user_id, is_active)
+CREATE INDEX idx_push_tokens_user_id ON public.push_tokens USING btree (user_id)
+CREATE UNIQUE INDEX push_tokens_device_id_key ON public.push_tokens USING btree (device_id)
+CREATE UNIQUE INDEX push_tokens_pkey ON public.push_tokens USING btree (id)
+CREATE UNIQUE INDEX push_topics_pkey ON public.push_topics USING btree (name)
+CREATE UNIQUE INDEX terms_acceptances_pkey ON public.terms_acceptances USING btree (user_id, version)
+CREATE UNIQUE INDEX training_generations_pkey ON public.training_generations USING btree (user_id)
+CREATE UNIQUE INDEX training_reset_requests_pkey ON public.training_reset_requests USING btree (user_id, request_id)
+CREATE UNIQUE INDEX weight_logs_pkey ON public.weight_logs USING btree (id)
+CREATE UNIQUE INDEX weight_logs_user_id_date_key ON public.weight_logs USING btree (user_id, date)
+CREATE UNIQUE INDEX workout_days_pkey ON public.workout_days USING btree (user_id, date)
+
+## Triggers
+feedback.feedback_rate_limit_trg BEFORE INSERT
+chat_messages.enforce_chat_message_safety_v2 BEFORE INSERT
+chat_conversations.enforce_chat_thread_safety_v2 BEFORE INSERT
+profiles.protect_account_identity BEFORE INSERT
+profiles.protect_account_identity BEFORE UPDATE
+weight_logs.guard_weight_generation BEFORE INSERT
+weight_logs.guard_weight_generation BEFORE DELETE
+weight_logs.guard_weight_generation BEFORE UPDATE
+food_log.guard_food_generation BEFORE INSERT
+food_log.guard_food_generation BEFORE DELETE
+food_log.guard_food_generation BEFORE UPDATE
+exercise_logs.guard_logs_generation BEFORE INSERT
+exercise_logs.guard_logs_generation BEFORE DELETE
+exercise_logs.guard_logs_generation BEFORE UPDATE
+pr_history.guard_pr_generation BEFORE INSERT
+pr_history.guard_pr_generation BEFORE DELETE
+pr_history.guard_pr_generation BEFORE UPDATE
+workout_days.guard_days_generation BEFORE INSERT
+workout_days.guard_days_generation BEFORE DELETE
+workout_days.guard_days_generation BEFORE UPDATE
+profiles.guard_profile_generation BEFORE INSERT
+profiles.guard_profile_generation BEFORE UPDATE
+chat_profiles.chat_identity_changed AFTER INSERT
+chat_profiles.chat_identity_changed AFTER UPDATE
+chat_messages.chat_push_enqueue_v1 AFTER INSERT
+chat_photos.chat_photo_free_budget BEFORE INSERT
+moderation_reports.chat_evidence_free_budget BEFORE INSERT
+moderation_reports.chat_evidence_free_budget BEFORE UPDATE
+chat_push_queue.chat_queue_wake_v1 AFTER INSERT
+exercises.guest_exercise_lock BEFORE INSERT
+exercises.guest_exercise_lock BEFORE DELETE
+exercises.guest_exercise_lock BEFORE UPDATE
+
+## Functions: signature and md5 of definition
+ack_owner_push(p_delivery uuid, p_device text, p_kind text) fae3207270731924e7374c539cc164d2
+apk18_capabilities() cfb021709830fdf8e7a7fbdefa3e10aa
+app_announcement_dismiss(p_id uuid) 4fd4fa4c19736f49382f9f3cb9987ce8
+app_announcements_feed() f4492b49a7e7451b08622073e8cafedb
+capture_signup_identity() b9839871cf5976facbac16dcfea8d05c
+care_appointment_answer(p_thread uuid, p_id uuid, p_action text) c3173b7d35e329252d402bcfce73906f
+care_appointment_request(p_thread uuid, p_slot uuid, p_request uuid) b1c80ce9bba76264f6e3bf2879dd9cef
+care_appointment_thread(p_thread uuid) 23284960dbdd341724f845fad63006eb
+care_appointments_list(p_thread uuid) b068b6dda171fcb0ee393a55a3fb9626
+care_chat_pin(p_thread uuid, p_message uuid, p_pin boolean) 7b903f80e200aaa0e0731820fb6114c9
+care_chat_pins(p_thread uuid) 7c5b35a422963d514288d50416f48a22
+care_chat_search(p_thread uuid, p_query text, p_before bigint) e35e995190f75a3dd8efb69485a63c37
+care_plan_choose(p_thread uuid, p_version uuid) 13a8af679056d43182f1bbf4aebf93ce
+care_plan_list(p_thread uuid) f73ae46fa6a11fdf87ac37df305c247d
+care_plan_save(p_thread uuid, p_title text, p_meals jsonb, p_note text, p_change_note text, p_request uuid, p_expected_version integer) 625cbb8a94f122df590374ce7a27750d
+care_slot_add(p_thread uuid, p_start timestamp with time zone, p_minutes integer, p_note text, p_request uuid) eec0c52f6bb5eedc2180403984f869cf
+care_slot_cancel(p_thread uuid, p_slot uuid) 6c633daab7e2a07d058dede122ff42c9
+care_thread_access(p_thread uuid, p_write boolean) c561392d6555257262814ad33cbe1612
+care_training_list(p_thread uuid) a99d9a9e9006436c2fdc0a040995889b
+care_training_save(p_thread uuid, p_snapshot jsonb, p_note text, p_request uuid, p_expected_version integer) f54c7e7bbfb876d85d8b72be5eec6112
+chat_accept_terms(p_version text) 4110bbe5cebef520d31bfa8d8a523937
+chat_accept_terms_v2(p_version text) 54e362e188c1cf830ad0a2cbc08da419
+chat_ack(p_thread uuid, p_through bigint, p_read boolean) edfda503edf5669116b2cde838bb14c0
+chat_avatar_visible(p_path text) fe17100eee69b35200a12132b4e1e3a8
+chat_block(p_user_id uuid) 319cf799ac8eefaf440c6e96fd8c02cb
+chat_blocked_between(p_a uuid, p_b uuid) 0da69d9d8735cc5cdb556221028d93c3
+chat_blocks_mine() c98e5786a40f6bf380f102561e63aae9
+chat_bootstrap() 2a73fdc11d89f8366db9e5e4a36c5226
+chat_bootstrap_v2() dfe6c8ea9c2ec67770e9a6a28324f5d8
+chat_cleanup_wake_v1() b9726793261f5f2d9aab250118564b2c
+chat_contacts(p_after_kind text, p_after_id uuid) 604766c5d01fd2c8ce9b08584ed8b19d
+chat_contacts_v2(p_after_kind text, p_after_id uuid) 830a19a359e2db406a13f960e0b6fc4e
+chat_contacts_v3(p_after_kind text, p_after_id uuid) 63da481ee3ca89fee28e275390cddd5c
+chat_default_avatar(p_avatar text) 282ae5150504e2b0289f3bd51bf4aeba
+chat_discovery_save(p_enabled boolean) 5a365e2f780477dc0bfd53f48a416f49
+chat_discovery_status() d28a79030bca61a52ea40a9e15cb0665
+chat_dispatch_wake_v1() 310c81489f70e562f945a29ad1d9fa28
+chat_edit_message(p_conversation_id uuid, p_message_id uuid, p_body text, p_expected_revision integer) 1ab36dd2ff47405faf77ca352d17c21d
+chat_evidence_budget_reserve() aa3fc9f41f77cbada79e12273668a452
+chat_has_consent() d4196c725c97d4025588cc7a44874f57
+chat_has_consent_v2() 4f0dcbfce7968b957a72ecf66b791e8e
+chat_identity_broadcast() 8eab4f5aea25ff0de475252d494604a8
+chat_image_budget_write() afaa6f69734c36c717b0bca3c85e3ffd
+chat_inbox(p_only uuid, p_before_at timestamp with time zone, p_before_id uuid) bda6eacb0d1c737cce7f330c1e7eb10d
+chat_inbox_v2(p_only uuid, p_before_at timestamp with time zone, p_before_id uuid) 973efc9bf12d396a3d2378c44eba5784
+chat_inbox_v3(p_only uuid, p_before_at timestamp with time zone, p_before_id uuid, p_search text) 34314e0aa50f968a3bccd8ac817e054a
+chat_is_owner() ef31e0c299032d6e7bd08d598718bb15
+chat_legacy_coaches(p_after_email text) 3cad7d7e026ac1ee585e77023b189aa0
+chat_link_active(p_client uuid, p_professional uuid, p_kind text) 9d0f852ee91d02012caa15c82b3587c8
+chat_link_active_before_direct(p_client uuid, p_professional uuid, p_kind text) 23ea9715a1e659a5c11996982a5a4ddf
+chat_link_active_v2(p_client uuid, p_professional uuid, p_kind text) 743581d59be6843d72fa2f9b91d921ba
+chat_mark_read(p_conversation_id uuid, p_through_seq bigint) 19ac56abddeb67323d6fc3679aee07d5
+chat_owner_badges() 12cac9db56d79bd4d71f8c245e4fc85a
+chat_owner_stats() 822f8c772b31889cacd2d93604a6ffc3
+chat_photo_access(p_photo uuid) dbe81d94bb5980c304b1e13f446d1357
+chat_photo_budget_reserve() 23e5a869436a3fa201c2d9ead558bf42
+chat_photo_publish(p_photo uuid) c324f9c4822f273fc6e173c3c8c4b74a
+chat_photo_removed(p_photo uuid, p_saved boolean) 73570f1aed0980ccff214ede2a087ca0
+chat_photo_report(p_photo uuid, p_reason text, p_details text, p_include boolean) 6f7485b28838b18d5a40ac354909fb4e
+chat_photo_reserve(p_thread uuid, p_nonce uuid, p_bytes integer) 7d6d57b87571485cb84a8e5d77ebccd6
+chat_profile_get(p_user_id uuid) a810135d1248b3ba268d7799f1fcdf0e
+chat_profile_save(p_name text, p_bio text, p_avatar text, p_visible boolean, p_reads boolean) 44298d1c4d2aa376e7563411e94f8848
+chat_push_claim_v1() 0f1eebcbc603e276aa81595de133b54e
+chat_push_enqueue_v1() 05a9808a01c726786c3808cd54456ad6
+chat_push_finish_v1(p_delivery uuid, p_state text, p_provider text, p_error text) d7a04cc52c31f4af96e5645b29cb537c
+chat_push_preference_save_v1(p_preview boolean, p_expected_user uuid) 8f16f05ffafd764e2e10d6678d875e02
+chat_push_preference_v1() 3e5ac590d19f768199196c385fec41fa
+chat_queue_wake_v1() 7ac59d8cced05f7fcb1926560d6f3358
+chat_receipt_status(p_thread uuid) 93b1bde27e7d2f4148afc55d2842f1b1
+chat_report_photo_access(p_report uuid) 9c69d0ee0813bb6677d276d862408cbf
+chat_role_for(p_user_id uuid) 4bb615cf82b7de2f82811e69c6da220f
+chat_role_request_decide(p_request_id uuid, p_approve boolean, p_verify boolean) 9c3e3c1924d9d67f4abc7635916c5ac2
+chat_role_request_submit(p_role text, p_note text) 152d819f287d8417ba24e44d9ad3358b
+chat_role_requests_list() 3896f828ee58e68e11cb18b086246a4d
+chat_send(p_conversation_id uuid, p_body text, p_client_id uuid) 98124c7c34363d7c60eaa4dc90dfc9b4
+chat_send_v2(p_conversation_id uuid, p_body text, p_client_id uuid) 93bf9f4f9e0acc8919ef2c9b39a0bd65
+chat_set_role(p_email text, p_role text) dc403811a7f067c241d7502599c54a4d
+chat_set_user_role(p_user_id uuid, p_role text) 5adef2dcfee6d6e1d62074430f8c963b
+chat_set_verified(p_user_id uuid, p_verified boolean) 25c520eba1f7c885db36f9236ac2c88c
+chat_start(p_professional_id uuid, p_kind text) 54765737e8afde48bb6774fa37f0019e
+chat_start_v2(p_professional_id uuid, p_kind text) 5953603b5a813acd9fc319bedab665fb
+chat_storage_budget_check(p_extra bigint) 5e4d4a13cd1f125909ef37824209b5a2
+chat_unblock(p_user_id uuid) f268ef0c393858cc36ba8132d2e526c8
+chat_username_lookup(p_username text) 75a0dc3cb316f0b13f21fd7b21bf2cfe
+chat_username_start(p_user_id uuid) 841fa09df22f2cda67dc3cf90859fb84
+chat_users(p_search text, p_role text, p_before_at timestamp with time zone, p_before_id uuid) 82930db9ddb6031204484d891affa66e
+claim_encouragement() 8f820a397c49144d47251df043a6187f
+claim_owner_push(p_campaign uuid) 18c4ebd7b202eea5320bf7cdba7e5fd2
+clear_my_app_activity() 6f7fc668046497597294cbdc6a9bbec7
+coach_can_see(trainee uuid) 78f4c1ff2867eebc8b735c702f7a6676
+complete_account_identity(p_name text, p_gender text, p_username text, p_expected_user uuid) 9296e3eb6c413fe34f3fefc3d710fbd0
+encouragement_send_payload(p_claim uuid) 20b9bbbb0134a1069c869441a2a946c9
+encouragement_text_hash() a39a2928d36b569c77ff7cdbdf93e84f
+enforce_chat_safety_v2() 84b4f0915ccb922a8d7c38860485d672
+feedback_rate_limit() 671c4481b8ed08d8b9ad1d18dd2f9022
+finish_owner_push(p_delivery uuid, p_state text, p_provider text, p_error text) 430d2a6acea3b40e6ff073074c956b4c
+friend_active(p_a uuid, p_b uuid) 19ab0129537689663a2932e1fdeff6cd
+friend_block(p_peer uuid) 5186b7a3c6e2b660017f8986647cbec0
+friend_cheer(p_peer uuid) 1b4519eef56db6624755827ee9008039
+friend_request(p_username text) 16327daf043b702f494b8060bb292ddf
+friend_respond(p_peer uuid, p_accept boolean) 8b63895d24f7beabe320dd0f9b571256
+friend_settings(p_discoverable boolean, p_days boolean, p_streak boolean, p_volume boolean) ef0a018adecb84ba85785771a0d2cb58
+friend_snapshot() 400459b616eea685f01f9a8b20e4b8ea
+guard_training_generation() 839f7a4d1642ff4a49a8a1d9239dd51b
+guest_exercise_lock() 1eeb7db5f5022e4b994b378ccb37e730
+guest_import_commit(p_user uuid, p_request uuid, p_expected jsonb, p_data jsonb) 3207e9dfe1ed3ec0b861701a1477f610
+guest_import_snapshot() 1ef5675cab3bb7edf539d7fa91fd2b43
+handle_new_user() 6e9e7ffa782b793dbc7d1239b1ba1848
+is_admin(uid uuid) 14cf216716d7abb6f39513fc45032fc6
+is_coach(uid uuid) f9bc23d92e35782f02c1c635788711ea
+moderation_report(p_target_type text, p_reason text, p_target_user_id uuid, p_conversation_id uuid, p_message_id uuid, p_feedback_id uuid, p_details text) bf1a0ee448d06ea9d04841023d4d88cf
+moderation_report_update(p_id uuid, p_status text) 7656dec91b73d565d69f374ce1cffe6d
+moderation_reports_list(p_status text, p_before_at timestamp with time zone, p_before_id uuid) e1eda0bb24ab13f67933bb6471d83957
+my_account_identity() c096714024865d9410bdacc07bcbeed2
+my_encouragement() 3c6fd60974c0ef4d8e689efb40ba1f2d
+my_training_generation() c47b372652df8014149688abd76b53e2
+owner_announcement_hide(p_id uuid) 3cbd39ad9b46983d9238d7eb5485666f
+owner_announcement_publish(p_title text, p_body text, p_days integer) ba2ea0abecb07e846c7415a0c9bd4f9d
+owner_announcements_list() 217b6f645af2c1122faa4d9142802936
+owner_app_activity() b7aaac7f5aee1ad794d236a5054f6ace
+owner_encouragement_preview() e131c63e22ebce1624ac05086397aba8
+owner_push_confirm(p_campaign uuid, p_expected_user uuid) 3fc336696b13ab35188a099eddf2da38
+owner_push_history() c85986cd59fa48d4e4212db49e70dafb
+owner_push_review(p_title text, p_body text, p_audience text, p_users uuid[], p_expected_user uuid) 1b2efbfe59ad7c50b172cf360c1155e7
+owner_push_users(p_query text, p_after uuid) 4316714852dff679f2eeae02e0b8ba0c
+pause_encouragement() e87d908abc597413b79fe9e191a61b9d
+pause_owner_push() 9b91f9fae67c21168ae8a18eec523f8e
+professional_audience_allows(p_user_id uuid) 3f92b9b945afbc98bac3b7ab2c9b0018
+professional_audience_owner(p_user_id uuid) 84380312e9c611925f4a4ba5d341676f
+professional_audience_save(p_user_id uuid, p_audience text) 1d14e8491ced00228b34a87d0cd6ace6
+professional_card_owner(p_user_id uuid) 3bd82cc7f1eff35f4c395b30b73ea094
+professional_card_save(p_user_id uuid, p_name text, p_bio text, p_published boolean) b1c20772df80ab062acf256428b31ba4
+professional_directory(p_kind text, p_after_id uuid) 27fcacecbbfb689651e55e57523060f1
+professional_directory_v2(p_kind text, p_after_id uuid) 632bfb0e1153bf44e778c6001a0bf23e
+professional_request_answer(p_id uuid, p_action text) 278eb12e25364620d564dc02ca1bfc5d
+professional_request_list(p_after_at timestamp with time zone, p_after_id uuid) 061bd2ba08d7070f631ca2794ff62f13
+professional_request_send(p_professional_id uuid, p_kind text) 9be058b669d94fcf8933a994f636a4ab
+protect_account_identity() 95a616447e8d636f502c4dda7adba7af
+record_app_activity() 04f64acc96361557cce180923705e465
+reserve_account_username(handle text, owner_id uuid) a3814babe50aeb8fd4d154f96af469a1
+reset_my_training(p_expected_user uuid, p_request uuid, p_confirmation text) c12b0b124332f0c401089fe918e0990a
+rls_auto_enable() 6998ea6b4c2480f5d2e34b5dcf3f8d36
+seed_private_age() 2174f47ace714a7d1a72c9715efc59bf
+set_encouragement_draft_time(p_time time without time zone) 74e3afd55a3c6258acbfca3ab6d1ca03
+set_my_encouragement(p_enabled boolean, p_device_id text, p_expected_user uuid) 30c6ecf91cc73eafbc087fe8cf7ff0e6
+skip_account_identity(p_expected_user uuid) aa1d073d32e0bdb83ca99a2e96aba7cc
+sync_mutable_row_v1(p_table text, p_key text, p_expected jsonb, p_data jsonb, p_delete boolean) 1f684b8b3e443aa7c20549cbf6c83d72
+terms_accept(p_version text) 044b9614ecde281ed121354257ebe6f9
+terms_status() ff89541f4f17f99d8e1118d68ea33bd0
+touch_updated_at() 2efbb79a658aaf0d4b03834f23bfb177
+
+## RLS policies (table|name|cmd|roles|using|with check)
+admin_audit_log|audit: admin read|SELECT|authenticated|is_admin(auth.uid())|
+admin_users|admin_users: read own|SELECT|authenticated|(user_id = auth.uid())|
+app_announcements|announcements_read|SELECT|authenticated|(active AND (expires_at > now()))|
+chat_blocks|chat blocks: participants read|SELECT|authenticated|((auth.uid() = blocker_id) OR (auth.uid() = blocked_id))|
+chat_consents|chat consents: own|SELECT|authenticated|(user_id = auth.uid())|
+chat_conversations|chat conversations: participants only|SELECT|authenticated|(((auth.uid() = client_id) OR (auth.uid() = professional_id)) AND chat_has_consent())|
+chat_doctor_grants|chat doctor grants: own or owner|SELECT|authenticated|((user_id = auth.uid()) OR chat_is_owner())|
+chat_messages|chat messages: participants only|SELECT|authenticated|(chat_has_consent() AND (EXISTS ( SELECT 1 FROM chat_conversations c WHERE ((c.id = chat_messages.conversation_id) AND ((auth.uid() = c.client_id) OR (auth.uid() = c.professional_id))))))|
+coach_assignments|coach_assignments: coach delete|DELETE|authenticated|(coach_id = auth.uid())|
+coach_assignments|coach_assignments: coach insert|INSERT|authenticated||((coach_id = auth.uid()) AND (coach_email = lower((auth.jwt() ->> 'email'::text))) AND coach_can_see(trainee_id))
+coach_assignments|coach_assignments: read own|SELECT|authenticated|((coach_id = auth.uid()) OR (trainee_id = auth.uid()))|
+coach_grants|coach_grants: admin all|ALL|authenticated|chat_is_owner()|chat_is_owner()
+coach_grants|coach_grants: coach sees self|SELECT|authenticated|(email = lower((auth.jwt() ->> 'email'::text)))|
+coach_links|coach_links: coach invite|INSERT|authenticated||((coach_id = auth.uid()) AND is_coach(auth.uid()) AND (status = 'pending'::text) AND (trainee_id IS NULL) AND (coach_email = lower((auth.jwt() ->> 'email'::text))))
+coach_links|coach_links: coach read|SELECT|authenticated|((coach_id = auth.uid()) OR (trainee_email = lower((auth.jwt() ->> 'email'::text))) OR is_admin(auth.uid()))|
+coach_links|coach_links: coach revoke|UPDATE|authenticated|(coach_id = auth.uid())|((coach_id = auth.uid()) AND (status = 'revoked'::text))
+coach_links|coach_links: trainee respond|UPDATE|authenticated|(trainee_email = lower((auth.jwt() ->> 'email'::text)))|((trainee_email = lower((auth.jwt() ->> 'email'::text))) AND (trainee_id = auth.uid()) AND (status = ANY (ARRAY['active'::text, 'revoked'::text])))
+content_exercises|content_exercises: admin write|ALL|authenticated|is_admin(auth.uid())|is_admin(auth.uid())
+content_exercises|content_exercises: public read|SELECT|public|true|
+content_foods|content_foods: admin write|ALL|authenticated|is_admin(auth.uid())|is_admin(auth.uid())
+content_foods|content_foods: public read|SELECT|public|true|
+exercise_favorites|exercise_favorites: delete own|DELETE|authenticated|(user_id = auth.uid())|
+exercise_favorites|exercise_favorites: insert own|INSERT|authenticated||(user_id = auth.uid())
+exercise_favorites|exercise_favorites: select own|SELECT|authenticated|(user_id = auth.uid())|
+exercise_favorites|exercise_favorites: update own|UPDATE|authenticated|(user_id = auth.uid())|(user_id = auth.uid())
+exercise_logs|exercise_logs: coach read|SELECT|authenticated|coach_can_see(user_id)|
+exercise_logs|exercise_logs: delete own|DELETE|public|(auth.uid() = user_id)|
+exercise_logs|exercise_logs: insert own|INSERT|public||(auth.uid() = user_id)
+exercise_logs|exercise_logs: select own|SELECT|public|(auth.uid() = user_id)|
+exercises|exercises: delete own|DELETE|public|(auth.uid() = user_id)|
+exercises|exercises: insert own|INSERT|public||(auth.uid() = user_id)
+exercises|exercises: select own|SELECT|public|(auth.uid() = user_id)|
+exercises|exercises: update own|UPDATE|public|(auth.uid() = user_id)|(auth.uid() = user_id)
+feedback|feedback: admin read|SELECT|authenticated|is_admin(auth.uid())|
+feedback|feedback: admin update|UPDATE|authenticated|is_admin(auth.uid())|is_admin(auth.uid())
+feedback|feedback: insert own|INSERT|authenticated||(user_id = auth.uid())
+feedback|feedback: select own|SELECT|authenticated|(user_id = auth.uid())|
+food_log|food_log: coach read|SELECT|authenticated|coach_can_see(user_id)|
+food_log|food_log: delete own|DELETE|public|(auth.uid() = user_id)|
+food_log|food_log: insert own|INSERT|public||(auth.uid() = user_id)
+food_log|food_log: select own|SELECT|public|(auth.uid() = user_id)|
+food_log|food_log: update own|UPDATE|public|(auth.uid() = user_id)|(auth.uid() = user_id)
+moderation_reports|moderation reports: reporter or owner|SELECT|authenticated|((reporter_id = auth.uid()) OR chat_is_owner())|
+notification_deliveries|deliveries: admin read|SELECT|authenticated|is_admin(auth.uid())|
+notifications|notifications: admin all|ALL|authenticated|is_admin(auth.uid())|is_admin(auth.uid())
+pr_history|pr_history: coach read|SELECT|authenticated|coach_can_see(user_id)|
+pr_history|pr_history: delete own|DELETE|public|(auth.uid() = user_id)|
+pr_history|pr_history: insert own|INSERT|public||(auth.uid() = user_id)
+pr_history|pr_history: select own|SELECT|public|(auth.uid() = user_id)|
+private_account_age|own_age_delete|DELETE|authenticated|(user_id = auth.uid())|
+private_account_age|own_age_insert|INSERT|authenticated||(user_id = auth.uid())
+private_account_age|own_age_select|SELECT|authenticated|(user_id = auth.uid())|
+private_account_age|own_age_update|UPDATE|authenticated|(user_id = auth.uid())|(user_id = auth.uid())
+private_draft_revisions|private_drafts_delete|DELETE|authenticated|(user_id = auth.uid())|
+private_draft_revisions|private_drafts_insert|INSERT|authenticated||(user_id = auth.uid())
+private_draft_revisions|private_drafts_read|SELECT|authenticated|(user_id = auth.uid())|
+profiles|profiles: coach read|SELECT|authenticated|coach_can_see(id)|
+profiles|profiles: delete own|DELETE|public|(auth.uid() = id)|
+profiles|profiles: insert own|INSERT|public||(auth.uid() = id)
+profiles|profiles: select own|SELECT|public|(auth.uid() = id)|
+profiles|profiles: update own|UPDATE|public|(auth.uid() = id)|(auth.uid() = id)
+push_preferences|prefs: own|ALL|authenticated|(user_id = auth.uid())|(user_id = auth.uid())
+push_tokens|push_tokens_delete_own|DELETE|authenticated|(auth.uid() = user_id)|
+push_tokens|push_tokens_insert_own|INSERT|authenticated||(auth.uid() = user_id)
+push_tokens|push_tokens_select_own|SELECT|authenticated|(auth.uid() = user_id)|
+push_tokens|push_tokens_update_own|UPDATE|authenticated|(auth.uid() = user_id)|(auth.uid() = user_id)
+push_topics|topics: admin read|SELECT|authenticated|is_admin(auth.uid())|
+terms_acceptances|terms acceptances: own|SELECT|authenticated|(user_id = auth.uid())|
+weight_logs|weight_logs: coach read|SELECT|authenticated|coach_can_see(user_id)|
+weight_logs|weight_logs: delete own|DELETE|public|(auth.uid() = user_id)|
+weight_logs|weight_logs: insert own|INSERT|public||(auth.uid() = user_id)
+weight_logs|weight_logs: select own|SELECT|public|(auth.uid() = user_id)|
+weight_logs|weight_logs: update own|UPDATE|public|(auth.uid() = user_id)|(auth.uid() = user_id)
+workout_days|workout_days: coach read|SELECT|authenticated|coach_can_see(user_id)|
+workout_days|workout_days: delete own|DELETE|public|(auth.uid() = user_id)|
+workout_days|workout_days: insert own|INSERT|public||(auth.uid() = user_id)
+workout_days|workout_days: select own|SELECT|public|(auth.uid() = user_id)|
+
+## Tables with RLS on and no policy (access only through functions or service role)
+account_identities,account_username_reservations,admin_rate_limits,apk18_rollout_control,app_activity,app_announcement_dismissals,care_appointments,care_plan_choices,care_plan_versions,care_slots,care_training_versions,chat_direct_links,chat_lookup_limits,chat_personal_pins,chat_photos,chat_profiles,chat_push_control,chat_push_preferences,chat_push_queue,chat_receipts,chat_role_requests,chat_verifications,encouragement_config,encouragement_deliveries,encouragement_messages,encouragement_preferences,friend_cheers,friend_links,friend_preferences,friend_request_events,guest_import_receipts,own_push_once,owner_push_campaigns,owner_push_control,owner_push_devices,owner_push_events,professional_audiences,professional_cards,professional_requests,training_generations,training_reset_requests
+
+## pg_cron jobs (name|schedule|active|target)
+gymak-chat-push-sweep|* * * * *|true|(sql)
+
+## Deployed edge functions (dashboard list)
+chat-photo, delete-account, dispatch-chat-push, send-encouragement, send-notification, send-owner-push
+Not deployed (in repo only): dispatch-batch, dispatch-scheduled, retry-failed-deliveries, get-campaign-analytics, track-event

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { checkConnection, isNetworkAuthError } from "../../lib/connectionCheck";
 import { translateAuthError, isUnconfirmed } from "../../lib/authErrors";
 import { normalizeEmail, validEmail } from "../../lib/authLogic";
 import { AuthField, AuthError, AuthNotice, Spinner, useCooldown } from "./AuthShell";
@@ -35,6 +36,7 @@ export default function Login() {
     setBusy(false);
     if (res.error) {
       setError(translateAuthError(res.error));
+      if(isNetworkAuthError(res.error))checkConnection().then(d=>setError(cur=>cur+" ("+d+")"));
       setUnconfirmed(isUnconfirmed(res.error));
       return;
     }
@@ -57,7 +59,7 @@ export default function Login() {
       <h1 className="auth-title">{tx("تسجيل الدخول")}</h1>
       <p className="auth-sub">{tx("سجّل دخولك عشان بياناتك تتزامن على كل أجهزتك.")}</p>
 
-      {!isConfigured && <AuthError message={tx("الربط مع الخادم لسه متظبطش من مطوّر التطبيق. التطبيق شغال أوفلاين عادي.")} />}
+      {!isConfigured && <AuthError message={tx("الربط مع الخادم لسه متظبطش. التطبيق شغال أوفلاين عادي.")} />}
       <AuthNotice message={info} />
 
       <form onSubmit={handleSubmit} noValidate>
