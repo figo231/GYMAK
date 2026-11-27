@@ -16,3 +16,29 @@ describe('atomic Store session writes',()=>{
  it('storage failure preserves old session and logs together',()=>{const s=start();const before=localStorage.getItem('gymak_state_v1');const spy=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw Error('quota');});expect(()=>S.logWorkoutSet(s.id,s.exercises[0].id,'r1',30,10)).toThrow('workout_save_failed');spy.mockRestore();expect(localStorage.getItem('gymak_state_v1')).toBe(before);expect(S.getWorkoutSession().exercises[0].completed).toHaveLength(0);});
 });
 it('can leave an empty workout without fabricating completion or deleting logged sets',async()=>{localStorage.clear();vi.resetModules();const S=(await import('../src/lib/store/gymakStore')).default;S.resetAllData();localStorage.setItem('gymak_local_data_owner_v1','owner');let s=S.startWorkoutSession('Workout',[S.getExercises()[0]]);S.cancelEmptyWorkoutSession(s.id);expect(S.getWorkoutSession()).toBeNull();s=S.startWorkoutSession('Workout',[S.getExercises()[0]]);S.logWorkoutSet(s.id,s.exercises[0].id,'r',20,8);expect(()=>S.cancelEmptyWorkoutSession(s.id)).toThrow('workout_has_sets');expect(S.getExerciseLogs(s.exercises[0].id)).toHaveLength(1);});
+
+import { selectWorkoutExercise, nextIncompleteIndex, nextWorkoutSet, createWorkoutSession as _cws } from '../src/lib/workoutSession';
+describe('numbered list: pick any exercise', () => {
+  const mk = () => _cws({ id: 's', owner: 'o', title: 'D', exercises: [1,2,3].map(n => ({ id: 'e'+n, name: 'E'+n, sets: 1, reps: 10 })) });
+  it('moves the pointer without touching logs', () => {
+    const s = mk(); const n = selectWorkoutExercise(s, 2);
+    expect(n.cursor).toBe(2); expect(n.exercises).toEqual(s.exercises);
+  });
+  it('rejects bad index and inactive session', () => {
+    expect(() => selectWorkoutExercise(mk(), 3)).toThrow(); expect(() => selectWorkoutExercise(mk(), -1)).toThrow();
+    expect(() => selectWorkoutExercise({ ...mk(), status: 'completed' }, 1)).toThrow();
+  });
+  it('after finishing, goes to the next unfinished one, wrapping back', () => {
+    let s = selectWorkoutExercise(mk(), 2);
+    s = nextWorkoutSet(s, { exerciseId: 'e3', requestId: 'r1', weight: 10, reps: 10 }).session;
+    expect(s.cursor).toBe(0);
+    s = nextWorkoutSet(s, { exerciseId: 'e1', requestId: 'r2', weight: 10, reps: 10 }).session;
+    expect(s.cursor).toBe(1);
+    expect(nextIncompleteIndex(s.exercises, 1)).toBe(-1);
+  });
+  it('top to bottom use is unchanged', () => {
+    let s = mk();
+    s = nextWorkoutSet(s, { exerciseId: 'e1', requestId: 'a', weight: 1, reps: 1 }).session;
+    expect(s.cursor).toBe(1);
+  });
+});

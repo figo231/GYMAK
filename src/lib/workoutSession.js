@@ -10,6 +10,20 @@ export function createWorkoutSession({id, owner, title, exercises, now = Date.no
   if (!rows.length || rows.length > 40) throw Error('invalid_workout_session');
   return {schema:SESSION_SCHEMA,id,owner,title:String(title||'').slice(0,120),startedAt:now,updatedAt:now,status:'active',cursor:0,exercises:rows,restUntil:null};
 }
+// Next exercise that still has sets left: the first one after the current, else the first one before it.
+// In plain top-to-bottom use this is the same as cursor+1.
+export function nextIncompleteIndex(exercises,from){
+  for(let i=from+1;i<exercises.length;i++)if(exercises[i].completed.length<exercises[i].sets)return i;
+  for(let i=0;i<from;i++)if(exercises[i].completed.length<exercises[i].sets)return i;
+  return -1;
+}
+// Lets the person do the listed exercises in any order. Only moves the pointer; nothing is logged or removed.
+export function selectWorkoutExercise(session,index,now=Date.now()) {
+  if (!session || session.status!=='active') throw Error('workout_not_active');
+  if (!Number.isInteger(index) || index<0 || index>=session.exercises.length) throw Error('invalid_workout_exercise');
+  if (index===session.cursor) return session;
+  return {...session,cursor:index,updatedAt:now};
+}
 export function nextWorkoutSet(session,{exerciseId,requestId,weight,reps,rir=null,now=Date.now(),restSeconds=90}) {
   if (!session || session.status!=='active' || !requestId) throw Error('workout_not_active');
   const existing=session.exercises.flatMap(e=>e.completed).find(s=>s.requestId===requestId);
@@ -22,7 +36,7 @@ export function nextWorkoutSet(session,{exerciseId,requestId,weight,reps,rir=nul
   if(!row||row.id!==exerciseId||row.completed.length>=row.sets)throw Error('workout_exercise_changed');
   const next=JSON.parse(JSON.stringify(session));
   next.exercises[next.cursor].completed.push({requestId,exerciseId,weight,reps,rir,at:now});
-  if(next.exercises[next.cursor].completed.length>=row.sets && next.cursor<next.exercises.length-1)next.cursor++;
+  if(next.exercises[next.cursor].completed.length>=row.sets){const n=nextIncompleteIndex(next.exercises,next.cursor);if(n!==-1)next.cursor=n;}
   next.updatedAt=now;next.restUntil=now+Math.min(600,Math.max(0,Number(restSeconds)||0))*1000;
   return {session:next,duplicate:false};
 }

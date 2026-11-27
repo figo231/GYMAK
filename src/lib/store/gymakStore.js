@@ -1,6 +1,6 @@
 import {validSavedState} from "../savedStateShape";
 import {exerciseLogId,exerciseLogKey,validLogId} from "../sync/exerciseLogIdentity";
-import {createWorkoutSession,nextWorkoutSet,finishWorkoutSession} from "../workoutSession";
+import {createWorkoutSession,nextWorkoutSet,finishWorkoutSession,selectWorkoutExercise as selectWorkoutExerciseModel} from "../workoutSession";
 import { GYM_EXPANSION_MORE } from "../content/gymExpansionMore";
 import {GYM_EXPANSION} from "../content/gymExpansion";
 /* =========================================================
@@ -1129,6 +1129,13 @@ let ownerView = false;
       s.workoutSession=createWorkoutSession({id:crypto.randomUUID(),owner,title,exercises:selected});
       if(!save(s))throw Error('workout_save_failed');
       return this.getWorkoutSession();
+    },
+    selectWorkoutExercise(sessionId,index){
+      const current=this.getWorkoutSession();if(!current||current.id!==sessionId||current.status!=='active')throw Error('workout_session_changed');
+      const next=selectWorkoutExerciseModel(current,index);
+      if(next===current)return current;
+      const s=load();s.workoutSession=next;
+      if(!save(s))throw Error('workout_save_failed');return this.getWorkoutSession();
     },
     logWorkoutSet(sessionId,exerciseId,requestId,weight,reps,rir=null){
       this.logSet(exerciseId,weight,1,reps,rir,{sessionId,requestId});

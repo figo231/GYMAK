@@ -91,10 +91,10 @@ export default function DayPlan({ program, rotation, favs, onToggleFav, todayIds
         ))}
       </div>
 
-      <div className="exg dp-list">
-        {day.exercises.map((ex) => (
+      <ol className="dp-list dp-list-num" aria-label={t("تمارين اليوم بالترتيب", "Today's exercises in order")}>
+        {day.exercises.map((ex, i) => (
+          <li key={ex.id} className="dp-item"><span className="dp-idx" aria-hidden="true">{i + 1}</span>
           <ExerciseCard
-            key={ex.id}
             ex={ex}
             meta={Store.getMuscleMeta(ex.muscle)}
             fav={favs.has(ex.id)}
@@ -103,8 +103,9 @@ export default function DayPlan({ program, rotation, favs, onToggleFav, todayIds
             onToggleToday={onToggleToday}
             onDeleted={refresh}
           />
+          </li>
         ))}
-      </div>
+      </ol>
     </section>
   );
 }
