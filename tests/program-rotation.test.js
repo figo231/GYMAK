@@ -58,7 +58,7 @@ describe("split rotation (store)", () => {
     S.finishProgramDay(); S.finishProgramDay();
     S.applyProgram("push-pull-legs");
     let r = S.getProgramRotation();
-    expect(r.index).toBe(0); expect(r.count).toBe(3);
+    expect(r.index).toBe(0); expect(r.count).toBe(6);
     S.finishProgramDay();
     S.applyProgram("arnold-split");
     expect(S.getProgramRotation().index).toBe(0);
@@ -163,21 +163,49 @@ describe("per-day volume guide for built-in programs", () => {
     }
     expect(bad).toEqual([]);
   });
-  it("Arnold split: nothing dropped, two exercises moved to the repeat days", () => {
-    const ids = (d) => d.exercises.map((e) => e.id);
+  it("second pass of the week is complementary: no exercise repeats inside Arnold or PPL", () => {
+    for (const id of ["arnold-split", "push-pull-legs"]) {
+      const days = all().find((x) => x.p.id === id).days;
+      const ids = days.flatMap((d) => d.exercises.map((e) => e.id));
+      expect(new Set(ids).size, id).toBe(ids.length);
+    }
+  });
+  it("Arnold has 6 days and PPL has 6 days (A and B), every listed exercise resolves", () => {
     const a = all().find((x) => x.p.id === "arnold-split").days;
-    expect(a.map((d) => d.exercises.length)).toEqual([6, 6, 5, 5, 6, 4]);
-    expect(ids(a[0])).not.toContain("dumbbell-fly"); expect(ids(a[3])).toContain("dumbbell-fly");
-    expect(ids(a[1])).not.toContain("front-raise"); expect(ids(a[4])).toContain("front-raise");
-    expect(a.flatMap(ids).length).toBe(32); // same 32 exercise slots as before the rebalance
+    const p = all().find((x) => x.p.id === "push-pull-legs").days;
+    expect(a.map((d) => d.exercises.length)).toEqual([6, 6, 5, 6, 6, 5]);
+    expect(p.map((d) => d.exercises.length)).toEqual([6, 6, 5, 6, 6, 5]);
+    expect(a.map((d) => d.title)).toEqual(["صدر وظهر", "أكتاف وذراعين", "أرجل", "صدر وظهر 2", "أكتاف وذراعين 2", "أرجل 2"]);
+    // each paired day trains the same muscle groups
+    const groups = (d) => [...new Set(d.exercises.map((e) => e.muscle))].sort().join();
+    for (const days of [a, p]) for (let i = 0; i < 3; i++) expect(groups(days[i]), String(i)).toBe(groups(days[i + 3]));
   });
   it("weekly sets per main muscle stay at 10 or more in the split programs", () => {
-    // Arnold runs 6 days = each muscle twice a week. PPL's 3 templates are repeated twice in its 5-6 day week.
-    for (const [id, times] of [["arnold-split", 1], ["push-pull-legs", 2]]) {
+    // Both run 6 days: each muscle is trained twice a week.
+    for (const [id, times] of [["arnold-split", 1], ["push-pull-legs", 1]]) {
       const days = all().find((x) => x.p.id === id).days;
       const weekly = {};
       days.forEach((d) => d.exercises.forEach((e) => { weekly[e.muscle] = (weekly[e.muscle] || 0) + times * (Number(e.sets) || 0); }));
       for (const m of ["chest", "back", "shoulders", "legs"]) expect(weekly[m], `${id} ${m}`).toBeGreaterThanOrEqual(10);
     }
+  });
+  it("order: in Arnold and PPL a single-joint exercise never comes before a multi-joint one of the same muscle group", () => {
+    const iso = new Set(["lateral-raise", "rear-delt-fly", "cable-lateral-raise", "machine-chest-fly", "cable-crossover", "leg-extension", "lying-leg-curl", "calf-raise", "seated-calf-raise", "barbell-curl", "incline-db-curl", "hammer-curl", "preacher-curl", "skullcrusher", "overhead-rope-extension", "tricep-pushdown", "dumbbell-triceps-extension", "face-pull"]);
+    const bad = [];
+    for (const id of ["arnold-split", "push-pull-legs"]) {
+      for (const d of all().find((x) => x.p.id === id).days) {
+        const seenIso = {};
+        d.exercises.forEach((e) => {
+          if (iso.has(e.id)) seenIso[e.muscle] = true;
+          else if (seenIso[e.muscle] && e.muscle !== "arms") bad.push(`${id}/${d.title}: ${e.id} after isolation work`);
+        });
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+  it("PPL and Arnold weekly sets per muscle (documented numbers)", () => {
+    const week = (id) => { const w = {}; all().find((x) => x.p.id === id).days.forEach((d) => d.exercises.forEach((e) => { w[e.muscle] = (w[e.muscle] || 0) + (Number(e.sets) || 0); })); return w; };
+    expect(week("arnold-split")).toEqual({ chest: 20, back: 21, shoulders: 19, arms: 18, legs: 34 });
+    expect(week("push-pull-legs")).toMatchObject({ legs: 34 });
   });
 });

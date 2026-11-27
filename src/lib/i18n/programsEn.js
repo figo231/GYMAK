@@ -40,6 +40,8 @@ const DAY_TITLE_EN = {};
 for (const en of Object.values(PROGRAMS_EN)) for (const chip of en.dayChips) DAY_TITLE_EN[chip] = chip;
 const DAY_TITLE_AR = {
   "صدر وظهر": "Chest & back", "أكتاف وذراعين": "Shoulders & arms", "أرجل": "Legs", "×2 تكرار": "x2 repeat",
+  "صدر وظهر 2": "Chest & back 2", "أكتاف وذراعين 2": "Shoulders & arms 2", "أرجل 2": "Legs 2",
+  "دفع 2 (صدر/أكتاف/ترايسبس)": "Push 2 (chest/shoulders/triceps)", "سحب 2 (ظهر/بايسبس)": "Pull 2 (back/biceps)",
   "دفع (صدر/أكتاف/ترايسبس)": "Push (chest/shoulders/triceps)", "سحب (ظهر/بايسبس)": "Pull (back/biceps)",
   "علوي 1": "Upper 1", "سفلي 1": "Lower 1", "علوي 2": "Upper 2", "سفلي 2": "Lower 2",
   "أرداف وأرجل": "Glutes & legs", "علوي وكور": "Upper & core", "أرداف وسمانة": "Glutes & calves",
