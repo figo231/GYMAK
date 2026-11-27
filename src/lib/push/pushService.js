@@ -340,6 +340,9 @@ export async function registerForPush(userId) {
 /** Call once on sign-out (mirrors syncManager.stop()'s call site). Removes
     this device's row so a signed-out device stops receiving pushes meant
     for the account. */
+// A provider call that never answers (offline) must not block sign-out or the next sign-in.
+const REVOKE_TIMEOUT_MS=6000;
+const revokeWithTimeout=(FM)=>Promise.race([FM.deleteToken(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("push_revoke_timeout")),REVOKE_TIMEOUT_MS))]);
 const REVOKE_PENDING_KEY="gymak_push_revoke_pending_v1";
 function setRevokePending(on){try{if(on)localStorage.setItem(REVOKE_PENDING_KEY,getDeviceId());else localStorage.removeItem(REVOKE_PENDING_KEY);}catch{ /* storage unavailable */ }}
 export function hasPendingPushRevoke(){try{return !!localStorage.getItem(REVOKE_PENDING_KEY);}catch{return false;}}
@@ -353,7 +356,7 @@ export function retryPendingPushRevoke() {
   retryInFlight=(async()=>{
     try {
       const {FM}=await getMessaging();
-      await FM.deleteToken();
+      await revokeWithTimeout(FM);
       setRevokePending(false);
       broadcastStarted=false;
       wasRegistered=false;
@@ -380,7 +383,7 @@ export async function removePushToken({explicit=false}={}) {
     const {FM}=await getMessaging();
     // Revoking the provider token is necessary when the network is offline or
     // the server session has already expired. A stale database row cannot deliver.
-    await FM.deleteToken();
+    await revokeWithTimeout(FM);
     broadcastStarted=false;
     wasRegistered=false;
     setRevokePending(false);
