@@ -1,6 +1,6 @@
 // Short connection check for auth screens. Sends one anonymous GET to the public auth health URL.
 // Returns a short code only. No keys, no user data, no response body.
-export const isNetworkAuthError = (error) => !!error && (error.name === "AuthRetryableFetchError" || error instanceof TypeError || /failed to fetch|load failed|networkerror|network request/i.test(String(error.message || "")));
+export const isNetworkAuthError = (error) => !!error && !(typeof error.status === "number" && error.status >= 400) && (error.name === "AuthRetryableFetchError" || error instanceof TypeError || /failed to fetch|load failed|networkerror|network request/i.test(String(error.message || "")));
 
 export async function checkConnection({ url = import.meta.env.VITE_SUPABASE_URL, fetchFn = (typeof fetch === "function" ? fetch : null), timeoutMs = 8000 } = {}) {
   const online = typeof navigator === "undefined" ? "?" : String(navigator.onLine);

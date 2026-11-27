@@ -8,7 +8,7 @@ import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { checkConnection, isNetworkAuthError } from "../../lib/connectionCheck";
-import { translateAuthError } from "../../lib/authErrors";
+import { translateAuthError, isServerError, SIGNUP_EMAIL_ERROR } from "../../lib/authErrors";
 import { MIN_PASSWORD, normalizeEmail, validEmail } from "../../lib/authLogic";
 import { AuthField, AuthError, AuthNotice, AuthStatus, PasswordMeter, Spinner, useCooldown } from "./AuthShell";
 
@@ -44,7 +44,7 @@ export default function Register() {
     try { res = await signUp(mail, password,identity); } catch (err) { res = { error: err }; }
     inFlight.current = false;
     setBusy(false);
-    if (res.error) { setError(/database|username/i.test(res.error.message||"")?it.signup_conflict:translateAuthError(res.error)); if(isNetworkAuthError(res.error))checkConnection().then(d=>setError(cur=>cur+" ("+d+")")); return; }
+    if (res.error) { setError(/database|username/i.test(res.error.message||"")?it.signup_conflict:isServerError(res.error)?SIGNUP_EMAIL_ERROR:translateAuthError(res.error)); if(isNetworkAuthError(res.error))checkConnection().then(d=>setError(cur=>cur+" ("+d+")")); return; }
     if (res.duplicate) { setDuplicate(true); setError(tx("الإيميل ده مسجل قبل كده.")); return; }
     setEmail(mail);
     setSent(true);

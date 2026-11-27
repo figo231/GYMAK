@@ -25,12 +25,18 @@ export function authErrorCode(error) {
   return String(error.code || error.error_code || "");
 }
 
+// HTTP 5xx: the server answered with a failure. This is not a network problem.
+export const isServerError = (error) => !!error && typeof error.status === "number" && error.status >= 500;
+export const SIGNUP_EMAIL_ERROR = tx("مقدرناش نبعت إيميل التأكيد دلوقتي، والمشكلة عندنا مش من النت عندك. جرب بعد شوية.");
+
 export function translateAuthError(error, online = typeof navigator === "undefined" ? true : navigator.onLine !== false) {
   if (!error) return "";
   // A real server answer (HTTP 4xx) proves we are online, whatever navigator.onLine claims.
-  const answered = typeof error.status === "number" && error.status >= 400 && error.status < 500;
+  // Any HTTP answer (4xx or 5xx) proves the request reached the server.
+  const answered = typeof error.status === "number" && error.status >= 400;
   const tag = (why) => ` [${why}${error.name ? " " + error.name : ""}${error.status ? " " + error.status : ""}]`;
   if (!online && !answered) return tx("مفيش اتصال بالإنترنت. اتأكد من النت وجرب تاني.") + tag("offline-flag");
+  if (isServerError(error)) return tx("حصلت مشكلة عندنا في الخادم، مش من النت عندك. جرب تاني بعد شوية.") + tag("server");
   const msg = `${authErrorCode(error)} ${error.message || String(error)}`;
   // The browser says online but the request failed before any answer: the server is unreachable from this network.
   if (error.name === "AuthRetryableFetchError" || error instanceof TypeError || /failed to fetch|load failed|networkerror|network request/i.test(msg)) return tx("النت شغال بس مش قادر أوصل للخادم. جرب تبدّل بين الواي فاي والداتا، أو اقفل الـ VPN أو الـ DNS الخاص، وجرب تاني.") + tag("net");
