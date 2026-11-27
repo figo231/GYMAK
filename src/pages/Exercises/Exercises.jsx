@@ -6,6 +6,7 @@ import Store from "../../lib/store/gymakStore";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import ExerciseCard from "./ExerciseCard";
 import AddExerciseSheet from "./AddExerciseSheet";
+import DayPlan from "./DayPlan";
 import EmptyState from "../../components/ui/EmptyState";
 import { haystack, matchesQuery, DIFFICULTIES, EQUIPMENT_ORDER, isHomeExercise } from "../../lib/exerciseMeta";
 import { isEn } from "../../lib/i18n/lang";
@@ -60,9 +61,14 @@ export default function Exercises() {
   const [favs, setFavs] = useState(() => getFavs());
   const todayIds = useMemo(() => new Set(Store.getTodayPlanIds()), [version]);
 
-  const effectiveScope = scope ?? (Store.isOwnerView() ? "all" : "program");
   const all = useMemo(() => Store.getExercises().filter(e=>!Store.isOwnerView()||e.custom||(ownerGender==="female"?Store.isWomenExercise(e):e.only!=="female")), [version,ownerGender]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);
+  const rotation = useMemo(() => (activeProgram ? Store.getProgramRotation() : null), [activeProgram, version]);
+  // Default: the split day view when a program is active, the whole library for the owner or with no program.
+  const rawScope = scope ?? (Store.isOwnerView() ? "all" : rotation ? "day" : "program");
+  const effectiveScope = rawScope === "day" && !rotation ? "program" : rawScope;
+  // Searching leaves the day view so results come from the whole program, not just one day.
+  const dayMode = effectiveScope === "day" && !search.trim();
   const programExerciseIds = useMemo(
     () => (activeProgram ? Store.getProgramExerciseIds(activeProgram.id) : null),
     [activeProgram, version]
@@ -162,7 +168,7 @@ export default function Exercises() {
       {Store.isOwnerView()?<div role="group" aria-label="قسم التمارين للمالك" style={{display:'flex',gap:10,marginBlock:14}}>{[['male','تمارين الرجال'],['female','تمارين البنات']].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?'قسم تمارين البنات':'قسم تمارين الرجال'}</p>}
 
       <RamadanCard kind="train" />
-      <Link to="/workout" className="btn-apply" style={{display:"block",textAlign:"center",padding:14,marginBottom:16}}>{isEn()?"Start / resume workout":"ابدأ أو كمّل تمرينك"} ←</Link>
+      {!dayMode && <Link to="/workout" className="btn-apply" style={{display:"block",textAlign:"center",padding:14,marginBottom:16}}>{isEn()?"Start / resume workout":"ابدأ أو كمّل تمرينك"} ←</Link>}
       <div className="page-head">
         <div>
           <h1 className="page-title">{tx("التمارين")}</h1>
@@ -173,7 +179,7 @@ export default function Exercises() {
         </button>
       </div>
 
-      {activeProgram && (
+      {activeProgram && !dayMode && (
         <div className="glass" style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", marginBottom: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,var(--glow-blue),var(--glow-purple))" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
@@ -193,7 +199,12 @@ export default function Exercises() {
 
       {activeProgram && (
         <div className="prog-scope-toggle" role="group" aria-label={tx("نطاق التمارين")}>
-          <button type="button" className={"prog-scope-opt" + (effectiveScope === "program" ? " active" : "")} aria-pressed={effectiveScope === "program"} onClick={() => setScope("program")}>
+          {rotation && (
+            <button type="button" className={"prog-scope-opt" + (dayMode ? " active" : "")} aria-pressed={dayMode} onClick={() => setScope("day")}>
+              {tx("تمرين اليوم")}
+            </button>
+          )}
+          <button type="button" className={"prog-scope-opt" + (effectiveScope === "program" || (effectiveScope === "day" && !dayMode) ? " active" : "")} aria-pressed={effectiveScope === "program" || (effectiveScope === "day" && !dayMode)} onClick={() => setScope("program")}>
             {tx("برنامجي + تماريني الخاصة")}
           </button>
           <button type="button" className={"prog-scope-opt" + (effectiveScope === "all" ? " active" : "")} aria-pressed={effectiveScope === "all"} onClick={() => setScope("all")}>
@@ -208,7 +219,7 @@ export default function Exercises() {
           <input type="search" aria-label={tx("بحث في التمارين")} placeholder={tx("دور بالاسم أو العضلة أو المعدة (dumbbell...)")} value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        <div className="filters" role="group" aria-label={tx("العضلة")}>
+        {!dayMode && <div className="filters" role="group" aria-label={tx("العضلة")}>
           {FILTERS.map((f) => (
             <button
               type="button"
@@ -221,10 +232,22 @@ export default function Exercises() {
               <span>{f.label}</span>
             </button>
           ))}
-        </div>
+        </div>}
       </div>
 
-      <div className="ex-toolbar">
+      {dayMode && rotation && (
+        <DayPlan
+          program={activeProgram}
+          rotation={rotation}
+          favs={favs}
+          onToggleFav={(id) => setFavs(toggleFav(id))}
+          todayIds={todayIds}
+          onToggleToday={(id) => { Store.toggleTodayPlan(id); refresh(); }}
+          refresh={refresh}
+        />
+      )}
+
+      {!dayMode && <div className="ex-toolbar">
         <button type="button" className={"chip chip-btn" + (showFilters ? " active" : "")} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
           <span>{tx("فلاتر وترتيب")}</span>
           {activeFilterCount > 0 && <span className="count-dot">{activeFilterCount}</span>}
@@ -247,9 +270,9 @@ export default function Exercises() {
           </button>
         )}
         <span className="page-count" style={{ marginInlineStart: "auto" }}>{filtered.length} {tx("نتيجة")}</span>
-      </div>
+      </div>}
 
-      {showFilters && (
+      {!dayMode && showFilters && (
         <div className="glass ex-filter-panel">
           <div className="ex-filter-row">
             <span className="ex-filter-label">{tx("المعدة")}</span>
@@ -281,7 +304,7 @@ export default function Exercises() {
 
       {mediaError && <div className="ex-field-err" role="alert" style={{ margin: "0 0 10px" }}>{mediaError}</div>}
 
-      {!filtered.length ? (
+      {dayMode ? null : !filtered.length ? (
         <EmptyState
           type="search"
           title={mineOnly && !search.trim() ? tx("لسه ما ضفتش تمارين خاصة بيك") : favOnly && !search.trim() ? tx("مفيش تمارين في المفضلة لسه") : tx("مفيش تمارين مطابقة")}

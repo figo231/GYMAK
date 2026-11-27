@@ -795,6 +795,68 @@ let ownerView = false;
       s.todayPlan = { date: today, ids: cur.concat((ids || []).filter((x) => !cur.includes(x))) };
       save(s);
     },
+    // ===== Split rotation (device-local) =====
+    // Which day of the active program is "today's" workout. The user moves it
+    // forward himself ("done"), or marks a rest day. Rest does not skip the
+    // planned day: it waits until he trains. Switching programs restarts at day 1.
+    getProgramRotation() {
+      const prog = this.getActiveProgram();
+      if (!prog) return null;
+      const days = this.getProgramDays(prog.id);
+      const n = days.length;
+      if (!n) return null;
+      const r = load().programRotation;
+      const same = r && r.programId === prog.id;
+      const raw = same && Number.isInteger(r.index) ? r.index : 0;
+      const index = ((raw % n) + n) % n;
+      const today = todayISO();
+      return {
+        programId: prog.id,
+        index,
+        count: n,
+        day: days[index],
+        restToday: !!(same && r.restDate === today),
+        canUndo: !!(same && r.undo && r.undo.date === today),
+        doneToday: !!(same && r.doneDate === today),
+      };
+    },
+    setProgramDay(index) {
+      const cur = this.getProgramRotation();
+      if (!cur || !Number.isInteger(index) || index < 0 || index >= cur.count) return null;
+      const s = load();
+      const old = s.programRotation && s.programRotation.programId === cur.programId ? s.programRotation : {};
+      s.programRotation = { ...old, programId: cur.programId, index, undo: null };
+      save(s);
+      return this.getProgramRotation();
+    },
+    finishProgramDay() {
+      const cur = this.getProgramRotation();
+      if (!cur) return null;
+      const s = load();
+      const today = todayISO();
+      s.programRotation = { programId: cur.programId, index: (cur.index + 1) % cur.count, doneDate: today, restDate: null, undo: { date: today, index: cur.index, restDate: cur.restToday ? today : null, doneDate: cur.doneToday ? today : null } };
+      save(s);
+      return this.getProgramRotation();
+    },
+    restProgramDay() {
+      const cur = this.getProgramRotation();
+      if (!cur) return null;
+      const s = load();
+      const today = todayISO();
+      const old = s.programRotation && s.programRotation.programId === cur.programId ? s.programRotation : {};
+      s.programRotation = { programId: cur.programId, index: cur.index, doneDate: old.doneDate || null, restDate: today, undo: { date: today, index: cur.index, restDate: cur.restToday ? today : null, doneDate: old.doneDate || null } };
+      save(s);
+      return this.getProgramRotation();
+    },
+    undoProgramDay() {
+      const cur = this.getProgramRotation();
+      if (!cur || !cur.canUndo) return null;
+      const s = load();
+      const u = s.programRotation.undo;
+      s.programRotation = { programId: cur.programId, index: Number.isInteger(u.index) ? u.index : cur.index, doneDate: u.doneDate || null, restDate: u.restDate || null, undo: null };
+      save(s);
+      return this.getProgramRotation();
+    },
     getExerciseLogs(exerciseId) {
       return (load().exerciseLogs[exerciseId] || []).slice();
     },

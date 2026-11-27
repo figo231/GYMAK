@@ -14,7 +14,7 @@ describe('developer-only built-in content',()=>{
  });
  it('defaults the developer to full library but keeps normal program scope and explicit choices',()=>{
   const page=readFileSync('src/pages/Exercises/Exercises.jsx','utf8');
-  expect(page).toContain('scope ?? (Store.isOwnerView() ? "all" : "program")');
+  expect(page).toContain('scope ?? (Store.isOwnerView() ? "all" : rotation ? "day" : "program")');
   expect(page).toContain('effectiveScope === "all"');
  });
  it('shows a self-preview linking to profile, never starts a self-chat',()=>{
