@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Store from "../../lib/store/gymakStore";
 import { isEn } from "../../lib/i18n/lang";
+import { dayTitleEn } from "../../lib/i18n/programsEn";
 import ExerciseCard from "./ExerciseCard";
 import "./dayPlan.css";
 
@@ -41,7 +42,7 @@ export default function DayPlan({ program, rotation, favs, onToggleFav, todayIds
         <div className="dp-day-line">
           <span className="dp-num">{view + 1}<small>/{days.length}</small></span>
           <div className="dp-title-wrap">
-            <h2 className="dp-title">{day.title}</h2>
+            <h2 className="dp-title">{dayTitleEn(day.title)}</h2>
             <p className="dp-sub">
               {isCurrent ? t("يوم النهارده", "Today's day") : t("يوم تاني من البرنامج", "Another day of the plan")} · {day.exercises.length} {t("تمارين", "exercises")} · {day.exercises.reduce((n, e) => n + (Number(e.sets) || 0), 0)} {t("مجموعة", "sets")}
             </p>
@@ -85,7 +86,7 @@ export default function DayPlan({ program, rotation, favs, onToggleFav, todayIds
         {days.map((d, i) => (
           <button type="button" key={i} className={"dp-chip" + (i === view ? " active" : "") + (i === rotation.index ? " today" : "")} aria-pressed={i === view} onClick={() => setViewed(i)}>
             <b>{i + 1}</b>
-            <span>{d.title}</span>
+            <span>{dayTitleEn(d.title)}</span>
             {i === rotation.index && <i>{t("النهارده", "Today")}</i>}
           </button>
         ))}

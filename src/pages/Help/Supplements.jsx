@@ -14,7 +14,7 @@ export default function Supplements() {
         return (
           <div key={s.id} className="glass sp-card">
             <button type="button" className="sp-head" aria-expanded={on} onClick={() => setOpen(on ? "" : s.id)}>
-              <b>{s.name}</b><span className="sp-level">{s.level}</span>
+              <b>{tx(s.name)}</b><span className="sp-level">{s.level}</span>
             </button>
             {on && (
               <div className="sp-body">
