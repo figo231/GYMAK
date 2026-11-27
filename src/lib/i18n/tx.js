@@ -3,11 +3,12 @@
 // and untranslated strings fall back to the Arabic source untouched.
 import { getLang } from "./lang";
 import { EN } from "./en";
+import { EN_EXTRA } from "./enExtra";
 
 export function tx(ar) {
   if (ar == null) return ar;
   if (getLang() !== "en") return ar;
-  return EN[ar] || ar;
+  return EN[ar] || EN_EXTRA[ar] || ar;
 }
 
 // Interpolated variant: txf("فاضل {0} يوم", [n]) -> "3 days left".
