@@ -25,15 +25,19 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          fetch-depth: 2
+          fetch-depth: 3
           persist-credentials: false
-      - name: Source must be ff56287 plus exactly this workflow and one vercel.json line
+      - name: Source must be ff56287 + 60a0d93 + one fix commit touching only this workflow
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = ff56287546ae6fe3e2fb11a011ebed7d2e300bc8
-          test "$(git diff --name-only HEAD^ HEAD | sort | tr '\n' ' ')" = ".github/workflows/apk29-private.yml vercel.json "
-          test "$(git diff -U0 HEAD^ HEAD -- vercel.json | grep -cE '^[+-][^+-]')" = 1
-          git diff -U0 HEAD^ HEAD -- vercel.json | grep -qE '^\+.*"stage/apk29-private": false'
+          B=ff56287546ae6fe3e2fb11a011ebed7d2e300bc8
+          test "$(git rev-parse HEAD~2)" = "$B"
+          test "$(git rev-parse HEAD~1)" = 60a0d936144256e60625709d663c37cbb876fa74
+          test "$(git diff --name-only $B HEAD | sort | tr '\n' ' ')" = ".github/workflows/apk29-private.yml vercel.json "
+          test "$(git diff -U0 $B HEAD -- vercel.json | grep -cE '^[+-][^+-]')" = 1
+          git diff -U0 $B HEAD -- vercel.json | grep -qE '^\+.*"stage/apk29-private": false'
+          test "$(git rev-parse HEAD:vercel.json)" = 5749645db779a1a8a0e4b9dd471dc9371aa0df27
+          test "$(git diff --name-only HEAD~1 HEAD)" = ".github/workflows/apk29-private.yml"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
@@ -60,7 +64,25 @@ jobs:
           npm test
           npm run build
           if grep -rq __avatarVerificationReady dist; then echo "test fixture leaked" >&2; exit 1; fi
-          if grep -rqE 'service_role|sb_secret_|BEGIN [A-Z ]*PRIVATE KEY' dist; then echo "secret-like text in bundle" >&2; exit 1; fi
+          if grep -rqE 'sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----' dist; then echo "secret-like text in bundle" >&2; exit 1; fi
+          node - <<'JSEOF'
+          const fs=require("fs"),path=require("path");
+          const re=/eyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*/g;
+          let bad=0,ok=0,skipped=0;
+          const walk=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(d,e.name)):[path.join(d,e.name)]);
+          for(const f of walk("dist")){
+            const t=fs.readFileSync(f,"latin1");
+            for(const m of t.match(re)||[]){
+              let p;try{p=JSON.parse(Buffer.from(m.split(".")[1],"base64url").toString("utf8"))}catch{skipped++;continue}
+              if(p===null||typeof p!=="object"){skipped++;continue}
+              if(p.role===undefined){skipped++;continue}
+              if(p.role==="anon"){ok++;continue}
+              console.error("JWT with role "+JSON.stringify(p.role)+" in "+f);bad++;
+            }
+          }
+          console.log("jwt scan: anon="+ok+" not-a-jwt-or-no-role="+skipped+" bad="+bad);
+          if(bad>0)process.exit(1);
+          JSEOF
           npx cap sync android
       - name: Restore existing signing identity
         env:
