@@ -1,0 +1,44 @@
+name: Redeploy site to serve APK 29 (release apk-29 already published after all gates passed)
+on:
+  push:
+    branches: [stage/apk29-redeploy]
+permissions:
+  contents: write
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+      - name: Confirm release apk-29 is latest and read its digest
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          set -euo pipefail
+          LATEST=$(gh release view --json tagName -q .tagName)
+          test "$LATEST" = "apk-29"
+          SHA=$(gh release view apk-29 --json assets -q '.assets[]|select(.name=="GYMAK.apk")|.digest' | sed 's/^sha256://')
+          echo "RELEASE_SHA=$SHA" >> "$GITHUB_ENV"
+          echo "release apk-29 sha256 $SHA"
+      - name: Empty commit to web-production (triggers the Vercel build that fetches the latest release)
+        run: |
+          set -euo pipefail
+          git config user.name figo231 && git config user.email 89879739+figo231@users.noreply.github.com
+          git fetch origin web-production
+          git checkout -B apk-redeploy origin/web-production
+          git commit --allow-empty -m "Redeploy site to serve APK 29 download (latest release apk-29)"
+          git push origin HEAD:web-production
+      - name: Verify live download is APK 29 with the same SHA-256
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 60); do
+            V=$(curl -fsSL https://gymak-eight.vercel.app/download/version.json || true)
+            echo "$V" | grep -q '"tag":"apk-29"' && break
+            sleep 15
+          done
+          echo "live version.json: $V"
+          echo "$V" | grep -q "$RELEASE_SHA"
+          curl -fsSL https://gymak-eight.vercel.app/download/GYMAK.apk -o "$RUNNER_TEMP/live.apk"
+          test "$(sha256sum "$RUNNER_TEMP/live.apk" | cut -d' ' -f1)" = "$RELEASE_SHA"
+          echo "LIVE OK $RELEASE_SHA"
