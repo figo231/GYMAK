@@ -128,8 +128,10 @@ jobs:
             grep -q 'OK (1 test)' verification/upgrade.txt
             adb shell am start -n com.gymak.app/.MainActivity
             sleep 8
-            adb logcat -d | grep -iE "FATAL EXCEPTION|AndroidRuntime" | head -5 > verification/crash.txt || true
+            adb logcat -d | grep -iE "FATAL EXCEPTION|AndroidRuntime" | head -20 || true
+            adb logcat -d | grep -A4 "FATAL EXCEPTION" | grep -E "com\.gymak\.app" > verification/crash.txt || true
             test ! -s verification/crash.txt
+            adb shell pidof com.gymak.app
       - name: Encrypt APK for the one receiver (clear APK never leaves the runner)
         run: |
           set -euo pipefail
