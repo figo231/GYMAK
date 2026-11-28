@@ -53,7 +53,7 @@ export default function ProgramDetailSheet({ program: programRaw, isActive, onCl
               <div className="prog-gen-day" key={i}>
                 <div className="prog-gen-day-head">
                   <span className="detail-day-num">{i + 1}</span>
-                  <span className="detail-day-name">{day.title}</span>
+                  <span className="detail-day-name">{dayTitleEn(day.title)}</span>
                 </div>
                 <div className="prog-gen-ex-list">
                   {day.exercises.map((ex) => (
