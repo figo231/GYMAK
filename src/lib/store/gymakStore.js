@@ -320,13 +320,35 @@ let ownerView = false;
     const items = [];
     const usedRanges = [];
     const lower = normalizeDigits(rawText);
-    for (const food of [...activeRemoteFoods(), ...FOOD_DB]) {
-      for (const alias of food.names) {
-        let idx = lower.indexOf(alias);
-        if (idx === -1) continue;
-        // avoid double-matching overlapping ranges
-        const overlaps = usedRanges.some((r) => idx < r.end && idx + alias.length > r.start);
-        if (overlaps) continue;
+    // Whole-word match only ("بيض" must not match inside "ابيض" or "بيضاء", "بط" not inside "بطاطا").
+    const wordAt = (alias) => {
+      let from = 0;
+      for (;;) {
+        const at = lower.indexOf(alias, from);
+        if (at === -1) return -1;
+        const tokStartAt = Math.max(lower.lastIndexOf(" ", at - 1), lower.lastIndexOf("،", at - 1), lower.lastIndexOf(",", at - 1)) + 1;
+        const pre = lower.slice(tokStartAt, at);
+        const preOk = pre === "" || (pre.length <= 3 && /^[وبلكف]*(ال)?$|^[وبلكف]+$/.test(pre) && pre !== "ا" && pre !== "أ");
+        const post = lower.slice(at + alias.length);
+        const postOk = /^(?:ة|ه|ات|تين|ين|تان|ان)?(?:\s|$|[،,.:;!؟?\d])/.test(post);
+        if (preOk && postOk) return at;
+        from = at + 1;
+      }
+    };
+    // Longest alias first so "فراخ مقلية" wins over the shorter "فراخ"; one item per food; text order kept.
+    const foodsAll = [...activeRemoteFoods(), ...FOOD_DB];
+    const cands = [];
+    foodsAll.forEach((food, order) => { for (const alias of food.names) { const at = wordAt(alias); if (at !== -1) cands.push({ food, alias, idx: at, order }); } });
+    cands.sort((a, b) => b.alias.length - a.alias.length || a.order - b.order);
+    const chosen = []; const seenFood = new Set();
+    for (const c of cands) {
+      if (seenFood.has(c.food)) continue;
+      if (chosen.some((r) => c.idx < r.idx + r.alias.length && c.idx + c.alias.length > r.idx)) continue;
+      seenFood.add(c.food); chosen.push(c);
+    }
+    chosen.sort((a, b) => a.order - b.order);
+    for (const { food, alias, idx } of chosen) {
+      {
         usedRanges.push({ start: idx, end: idx + alias.length });
 
         // look at a small window before the match for a quantity/unit
@@ -347,7 +369,7 @@ let ownerView = false;
           const unit = qty[3];
           if (unit && UNIT_GRAMS[unit] !== undefined) grams = n * UNIT_GRAMS[unit];
           else if (food.pieceWeight) grams = n * food.pieceWeight;
-          else grams = n * 100; // fallback: treat bare number as "×100g servings"
+          else grams = n >= 20 ? n : n * 100; // bare number: 20 or more is grams, small numbers are 100g servings
         } else {
           // check for dual/plural word forms like "حبتين" or Arabic number words
           const wordMatch = before.match(/(واحد[ة]?|اتنين|أتنين|تلاتة|ثلاثة|أربعة|اربعة|خمسة|زوج|\S*تين|\S*ين)\s*$/);
@@ -371,7 +393,6 @@ let ownerView = false;
           carbs: Math.round(food.per100.carbs * factor * 10) / 10,
           fat: Math.round(food.per100.fat * factor * 10) / 10,
         });
-        break; // move to next food after first alias match
       }
     }
     return items;
