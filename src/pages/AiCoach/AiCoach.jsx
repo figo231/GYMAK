@@ -109,7 +109,7 @@ export default function AiCoach() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh" }}>
       <DetailTopBar backTo="/profile" />
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 14px 10px" }}>
         <div className="coach-avatar">

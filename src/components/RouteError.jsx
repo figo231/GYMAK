@@ -14,7 +14,7 @@ export default function RouteError() {
   return (
     <>
       <div className="bg-ambient" />
-      <div className="app" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <div className="app" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh" }}>
         <div className="glass" style={{ maxWidth: 380, padding: 28, textAlign: "center" }}>
           <p style={{ fontSize: 15, fontWeight: 800, margin: "0 0 8px" }}>{tx("الصفحة دي مش شغالة دلوقتي")}</p>
           <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.7, margin: "0 0 20px" }}>

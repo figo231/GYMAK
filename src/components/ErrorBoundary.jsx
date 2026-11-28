@@ -39,7 +39,7 @@ export default class ErrorBoundary extends Component {
   render() {
     if (!this.state.hasError) return this.props.children;
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div className="bg-ambient" />
         <div className="glass" style={{ maxWidth: 380, padding: 28, textAlign: "center" }}>
           <p style={{ fontSize: 15, fontWeight: 800, margin: "0 0 8px" }}>{tx("حصل خطأ غير متوقع")}</p>
