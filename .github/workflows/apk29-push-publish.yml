@@ -1,0 +1,168 @@
+name: Publish APK 29 (push-enabled) after all gates pass
+# Publishes ONLY if every gate step before 'Publish' passed. Release apk-29 becomes latest, site redeploys from it. OTA manifest is NOT changed.
+on:
+  push:
+    branches: [stage/apk29-push-publish]
+    paths: [.github/workflows/apk29-push-publish.yml]
+concurrency:
+  group: gymak-production-apk29-publish
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.ref == 'refs/heads/stage/apk29-push-publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"            # APK 28 ships the OTA engine; keep it
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_PUSH_ENABLED: "true"           # the one intended change
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      GYMAK_VERSION_CODE: "29"
+      GYMAK_VERSION_NAME: "1.29"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: google-services.json for com.gymak.app (existing secret)
+        env:
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "$GSJ"
+          printf '%s' "$GSJ" > android/app/google-services.json
+          grep -q '"package_name": *"com.gymak.app"' android/app/google-services.json
+      - name: Public settings only
+        run: |
+          set -euo pipefail
+          test -n "$VITE_SUPABASE_URL"; test -n "$VITE_SUPABASE_ANON_KEY"
+          case "$VITE_SUPABASE_URL" in *ybkeshztehjeoeonpkih*) ;; *) echo "not the production URL" >&2; exit 1;; esac
+          node -e 'const k=process.env.VITE_SUPABASE_ANON_KEY;if(k.startsWith("eyJ")){const r=JSON.parse(Buffer.from(k.split(".")[1],"base64url").toString()).role;if(r!=="anon")process.exit(1)}'
+      - run: npm ci --no-audit --no-fund
+      - name: OTA trust anchor must equal the one in APK 28
+        env: { GYMAK_OTA_PUBLIC_KEY: "${{ vars.GYMAK_OTA_PUBLIC_KEY }}" }
+        run: |
+          node scripts/ota/write-native-trust.mjs
+          git diff --exit-code src/lib/update/otaTrust.js
+      - name: Full tests (none skipped) and build
+        run: |
+          set -euo pipefail
+          npx vitest run --maxWorkers=2 --minWorkers=2
+          npm run build
+          if grep -rqE 'sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----' dist; then echo "secret-like text in bundle" >&2; exit 1; fi
+          npx cap sync android
+      - name: Restore existing signing identity
+        env: { KS_B64: "${{ secrets.GYMAK_KEYSTORE_B64 }}" }
+        run: |
+          set -euo pipefail
+          test -n "$KS_B64"
+          printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/gymak.jks"
+          echo "GYMAK_KEYSTORE_PATH=$RUNNER_TEMP/gymak.jks" >> "$GITHUB_ENV"
+      - name: Build signed APK and instrumentation tests
+        working-directory: android
+        env: { GYMAK_KEYSTORE_PASSWORD: "${{ secrets.GYMAK_KEYSTORE_PASSWORD }}" }
+        run: bash ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Gate 1, signing cert equals APK 28, package and version right (stops on mismatch)
+        run: |
+          set -euo pipefail
+          AS=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          curl --fail --location https://github.com/figo231/GYMAK/releases/download/apk-28/GYMAK.apk -o "$RUNNER_TEMP/apk28.apk"
+          test "$(sha256sum "$RUNNER_TEMP/apk28.apk" | cut -d' ' -f1)" = "5885f79652c9700bc1233095c22196bc53d3fdd0d4f377df2e7245c56783ee68"
+          old=$("$AS"apksigner verify --print-certs "$RUNNER_TEMP/apk28.apk" | grep 'certificate SHA-256 digest' | head -1)
+          new=$("$AS"apksigner verify --print-certs "$APK" | grep 'certificate SHA-256 digest' | head -1)
+          test -n "$old"; test "$old" = "$new" || { echo "SIGNING CERT MISMATCH" >&2; exit 1; }
+          B=$("$AS"aapt dump badging "$APK")
+          echo "$B" | grep -q "^package: name='com.gymak.app' versionCode='29' versionName='1.29'"
+          { echo "$B" | grep -E "^package:|uses-permission: name='android.permission.POST_NOTIFICATIONS'"; echo "$new"; sha256sum "$APK"; } | tee "$RUNNER_TEMP/build-info.txt"
+          echo "APK=$APK" >> "$GITHUB_ENV"
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Gate 2, upgrade over APK 28 keeps data, runs offline, push build starts
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -memory 2048 -cores 2 -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -dns-server 8.8.8.8,8.8.4.4
+          disable-animations: true
+          script: |
+            mkdir -p verification
+            adb wait-for-device
+            adb install -r -g "$RUNNER_TEMP/apk28.apk"
+            adb install -r -g -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#seedLegacyData com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/seed.txt
+            grep -q 'OK (1 test)' verification/seed.txt
+            adb shell am force-stop com.gymak.app
+            adb install -r -g "$APK"
+            adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#keepsDataAndRunsOffline com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/upgrade.txt
+            grep -q 'OK (1 test)' verification/upgrade.txt
+            adb shell am start -n com.gymak.app/.MainActivity
+            sleep 8
+            adb logcat -d | grep -iE "FATAL EXCEPTION|AndroidRuntime" | head -5 > verification/crash.txt || true
+            test ! -s verification/crash.txt
+      - name: Encrypt APK for the one receiver (clear APK never leaves the runner)
+        run: |
+          set -euo pipefail
+          mkdir -p private-out
+          node scripts/encrypt-private-apk.mjs "$APK" private-out/apk29.enc.json
+          sha256sum "$APK" | cut -d' ' -f1 > private-out/apk.sha256
+          cp "$RUNNER_TEMP/build-info.txt" private-out/build-info.txt
+          cp -r verification private-out/ || true
+          if find private-out -type f \( -iname '*.apk' -o -iname '*.jks' -o -iname '*.keystore' \) | grep -q .; then echo "forbidden file" >&2; exit 1; fi
+      - name: Publish release apk-29 (latest) and redeploy the site from it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          mkdir -p "$RUNNER_TEMP/pub" && cp "$APK" "$RUNNER_TEMP/pub/GYMAK.apk"
+          gh release create apk-29 -R figo231/GYMAK "$RUNNER_TEMP/pub/GYMAK.apk" --latest --target "$GITHUB_SHA" --title "GYMAK APK 29" --notes "APK 29 (1.29): push notifications enabled, signup/storage error messages, all fixes since web-280004. Signed with the same key as APK 28. SHA-256 $SHA"
+          DIG=$(gh api repos/figo231/GYMAK/releases/tags/apk-29 --jq '.assets[]|select(.name=="GYMAK.apk")|.digest')
+          test "$DIG" = "sha256:$SHA" || { echo "release digest mismatch $DIG vs $SHA" >&2; exit 1; }
+          echo "RELEASE_SHA=$SHA" >> "$GITHUB_ENV"
+          # trigger the site build, which downloads the latest release asset
+          git config user.name figo231 && git config user.email 89879739+figo231@users.noreply.github.com
+          git fetch origin web-production
+          git checkout -B apk-redeploy origin/web-production
+          git commit --allow-empty -m "Redeploy site to serve APK 29 download (latest release apk-29)"
+          git push origin HEAD:web-production
+      - name: Verify live download is APK 29 with the same SHA-256
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 40); do
+            V=$(curl -fsSL https://gymak-eight.vercel.app/download/version.json || true)
+            echo "$V" | grep -q '"tag":"apk-29"' && break
+            sleep 15
+          done
+          echo "live version.json: $V"
+          echo "$V" | grep -q "$RELEASE_SHA"
+          curl -fsSL https://gymak-eight.vercel.app/download/GYMAK.apk -o "$RUNNER_TEMP/live.apk"
+          test "$(sha256sum "$RUNNER_TEMP/live.apk" | cut -d' ' -f1)" = "$RELEASE_SHA"
+          echo "LIVE OK $RELEASE_SHA"
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/gymak.jks" android/app/google-services.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: apk29-push-candidate-encrypted
+          path: private-out/
+          if-no-files-found: error
+          retention-days: 2
