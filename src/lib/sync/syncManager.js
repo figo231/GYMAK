@@ -96,7 +96,7 @@ class SyncManager {
       // Sync when the app comes back to the foreground (phones suspend timers and sockets while backgrounded).
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") this._onResume(); });
       if (window.Capacitor?.isNativePlatform?.()) import("@capacitor/app").then(({ App }) => App.addListener("appStateChange", ({ isActive }) => { if (isActive) this._onResume(); })).catch(() => {});
-      window.addEventListener("gymak-private-draft",()=>{if(this.userId){try{capturePrivateDrafts(this.userId);}catch(e){this._setStatus('error',{error:e.message,errorKind:'storage'});}this.pendingChangeCount++;this._notify();this._scheduleSync(1500);}});
+      window.addEventListener("gymak-private-draft",()=>{if(this.userId){try{capturePrivateDrafts(this.userId);}catch(e){this._setStatus('error',{error:tx("مقدرناش نحفظ على الجهاز. المساحة ممكن تكون مليانة."),errorKind:'storage'});}this.pendingChangeCount++;this._notify();this._scheduleSync(1500);}});
       window.addEventListener("offline", () => this._setStatus("offline"));
     }
   }
@@ -151,7 +151,7 @@ class SyncManager {
       // this flag is only true for the few ms pullAll() is writing merged
       // data in.
       if (this._applyingRemote) return;
-      try{capturePrivateDrafts(userId);}catch(e){this._setStatus("error",{error:e.message,errorKind:"storage"});}
+      try{capturePrivateDrafts(userId);}catch(e){this._setStatus("error",{error:tx("مقدرناش نحفظ على الجهاز. المساحة ممكن تكون مليانة."),errorKind:"storage"});}
       this.pendingChangeCount += 1;
       this._notify();
       this._scheduleSync(1500);
