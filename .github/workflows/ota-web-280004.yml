@@ -25,8 +25,8 @@ jobs:
         with: { fetch-depth: 0 }
       - name: Build from exactly the approved source commit
         run: |
-          git checkout --detach 303756d58ce1cf6bea2a527216444d63aa46a62a
-          test "$(git rev-parse HEAD^{tree})" = "0e64993c5a6c7ff6c0f367156c72fb69248bd9ab"
+          git checkout --detach 4d1dc21b562653a1b981e6b327abaa6598d06634
+          test "$(git rev-parse HEAD^{tree})" = "c87a3732849ef01483d0604dd641d3404a425f8e"
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci --no-audit --no-fund
