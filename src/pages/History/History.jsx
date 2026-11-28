@@ -1,3 +1,4 @@
+import { appLocale } from "../../lib/i18n/locale";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import EmptyState from "../../components/ui/EmptyState";
@@ -123,7 +124,7 @@ export default function History() {
             }
             return (
             <section key={d.date} className="th-day" aria-label={dayLabel(d.date, today)}>
-              <div className="th-date"><b>{dt.getDate()}</b><span>{dt.toLocaleDateString("ar-EG", { month: "short" })}</span></div>
+              <div className="th-date"><b>{dt.getDate()}</b><span>{dt.toLocaleDateString(appLocale(), { month: "short" })}</span></div>
               <div className="th-card">
                 <div className="th-head"><span className="th-name">{dayLabel(d.date, today)}</span><span className="th-sum">{d.exercises} {d.exercises === 1 ? tx("تمرين") : tx("تمارين")} · {d.sets} {tx("مجموعة")}{d.volume > 0 ? ` · ${fmtKg(d.volume)}` : ""}</span></div>
                 {groups.map((g) => (

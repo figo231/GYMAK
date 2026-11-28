@@ -1,3 +1,4 @@
+import { appLocale } from "../../lib/i18n/locale";
 import {subscribeIdentity} from "../../lib/chatLiveIdentity";
 import PhotoReportDialog from "../../components/PhotoReportDialog";
 import ChatPhoto from "../../components/ChatPhoto";
@@ -30,7 +31,7 @@ import "./privateChat.css";
 import { tx, txf } from "../../lib/i18n/tx";
 
 function stamp(value) {
-  try { return new Date(value).toLocaleString("ar-EG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+  try { return new Date(value).toLocaleString(appLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 function ErrorBox({ text }) { return text ? <p className="pc-error" role="alert">{text}</p> : null; }
 function PrivacyNote() { return <details className="pc-privacy"><summary>{tx("خصوصية الرسائل وحدود الخدمة")}</summary><p>{CHAT_PRIVACY}</p><p>{tx("التعديل هيظهر للطرفين بعلامة معدّلة. أي بلاغ اتبعت قبل التعديل بيحتفظ بالنص وقت البلاغ.")}</p><p>{CHAT_HEALTH_NOTE}</p><p>{tx("خطط التغذية ونسخ التمرين والمواعيد واختيار نسخة الخطة بتتحفظ على السيرفر لطرفي المحادثة. بتشوف مراجعة قبل كل مشاركة أو طلب أو قبول. حذف ملخص محلي مش بيسحب رسالة اتبعتت. إيقاف المتابعة مش بيمسح السجل القديم، وحذف حساب أحد الطرفين بيحذف بيانات المحادثة من الخدمة، مش النسخ اللي احتفظ بيها الطرف التاني.")}</p><p>{tx("الصور بتتبعت بموافقة منفصلة. نسخة السيرفر مؤقتة لحد تأكيد حفظ الطرف التاني على جهازه أو 7 أيام. النسخ المحلية مش بتتنقل تلقائي لجهاز تاني، وممكن تضيع مع مسح البيانات أو إعادة التثبيت. بلاغ الصورة مش بيرفقها إلا باختيارك، والنسخة المرفقة بتفضل للمراجعة لحد 30 يوم. مفيش اتصال فيديو داخل التطبيق.")}</p></details>; }
@@ -117,7 +118,7 @@ function Inbox() {
     {!busy && !err && rows.length === 0 && <p className="pc-empty glass">{tx("لسه مفيش محادثات. افتح المدربين المقترحين لطلب تواصل، أو اختار جهة مقبولة من تحت.")}</p>}
     <div className="pc-list inbox-list">{rows.map((r) => <Link key={r.id} to={`/messages/${r.id}`} state={location.state} className="pc-thread">
       <ChatAvatar identityVersion={identityVersion} className="pc-avatar" userId={r.peer_id} label={r.peer_label} developer={r.is_developer}/>
-      <span className="pc-thread-main"><span className="inbox-title"><strong>{r.peer_label} {r.verified&&<VerifiedBadge developer={r.is_developer}/>}</strong><time dateTime={r.last_message_at}>{new Date(r.last_message_at).toLocaleDateString()==new Date().toLocaleDateString()?new Date(r.last_message_at).toLocaleTimeString(isEn()?'en-GB':'ar-EG',{hour:'2-digit',minute:'2-digit'}):new Date(r.last_message_at).toLocaleDateString(isEn()?'en-GB':'ar-EG',{day:'numeric',month:'short'})}</time></span><span className="inbox-preview">{r.preview||(isEn()?"Start your conversation":"ابدأ أول رسالة")}</span><small>{r.kind==='support'?(isEn()?"App developer":"مطور التطبيق"):(r.kind==='direct'?(isEn()?'Member':'عضو'):CHAT_ROLE_LABELS[r.kind])}{!r.writable?tx(" · للقراءة بس"):""}</small></span>
+      <span className="pc-thread-main"><span className="inbox-title"><strong>{r.peer_label} {r.verified&&<VerifiedBadge developer={r.is_developer}/>}</strong><time dateTime={r.last_message_at}>{new Date(r.last_message_at).toLocaleDateString()==new Date().toLocaleDateString()?new Date(r.last_message_at).toLocaleTimeString(isEn()?'en-GB':appLocale(),{hour:'2-digit',minute:'2-digit'}):new Date(r.last_message_at).toLocaleDateString(isEn()?'en-GB':appLocale(),{day:'numeric',month:'short'})}</time></span><span className="inbox-preview">{r.preview||(isEn()?"Start your conversation":"ابدأ أول رسالة")}</span><small>{r.kind==='support'?(isEn()?"App developer":"مطور التطبيق"):(r.kind==='direct'?(isEn()?'Member':'عضو'):CHAT_ROLE_LABELS[r.kind])}{!r.writable?tx(" · للقراءة بس"):""}</small></span>
       {Number(r.unread)>0&&<span className="pc-unread" aria-label={txf(`{0} رسالة غير مقروءة`,[r.unread])}>{r.unread>99?'99+':r.unread}</span>}
     </Link>)}</div>
     {more && <button type="button" className="pc-small" disabled={busy} onClick={older}>{tx("محادثات أقدم")}</button>}
@@ -148,8 +149,8 @@ function MessageText({ body }) {
   return <><p className="pc-message-text">{splitChatLinks(body).map((part, i) => part.href ? <a key={i} href={part.href} target="_blank" rel="noopener noreferrer nofollow" referrerPolicy="no-referrer" onClick={(event) => open(event, part.href)}>{part.text}<small className="pc-link-host" dir="ltr">{part.host}</small></a> : <span key={i}>{part.text}</span>)}</p>{err && <small role="alert">{err}</small>}</>;
 }
 
-function chatDay(value) { return new Date(value).toLocaleDateString("ar-EG", {day:"numeric",month:"long",year:"numeric"}); }
-function chatTime(value) { return new Date(value).toLocaleTimeString("ar-EG", {hour:"2-digit",minute:"2-digit"}); }
+function chatDay(value) { return new Date(value).toLocaleDateString(appLocale(), {day:"numeric",month:"long",year:"numeric"}); }
+function chatTime(value) { return new Date(value).toLocaleTimeString(appLocale(), {hour:"2-digit",minute:"2-digit"}); }
 function Thread({ id, userId }) {
   const [actionMessage,setActionMessage]=useState(null);
   const [receipt,setReceipt]=useState(null);const [identityVersion,setIdentityVersion]=useState(0);

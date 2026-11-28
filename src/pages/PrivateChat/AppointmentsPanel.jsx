@@ -1,10 +1,11 @@
+import { appLocale } from "../../lib/i18n/locale";
 import {useEffect,useRef,useState} from 'react';
 import { tx } from "../../lib/i18n/tx";
 import {chatToolsRpc} from './ChatSearchPins';
 import {newChatNonce} from '../../lib/privateChat';
 import '../FollowUp/followUp.css';
 const status={pending:tx("مستني قبول المختص"),accepted:tx("ميعاد مؤكد"),declined:tx("الطلب مرفوض"),canceled:tx("الميعاد ملغي")};
-const stamp=t=>new Date(t).toLocaleString('ar-EG',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
+const stamp=t=>new Date(t).toLocaleString(appLocale(),{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
 export default function AppointmentsPanel({threadId,writable,onClose}){
  const [data,setData]=useState(null),[start,setStart]=useState(''),[minutes,setMinutes]=useState(30),[note,setNote]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState(''),[notice,setNotice]=useState(''),[confirm,setConfirm]=useState(null);
  const live=useRef(true),epoch=useRef(0),pending=useRef(null);

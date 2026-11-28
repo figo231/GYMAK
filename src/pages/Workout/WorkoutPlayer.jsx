@@ -10,11 +10,13 @@ import {DetailTopBar} from '../../components/layout/DetailShell';
 import ExerciseAnim from '../../components/ExerciseAnim';
 import {fmtClock,remaining} from '../../lib/rest/restTimer';
 import './workoutPlayer.css';
+import {useWakeLock} from '../../hooks/useWakeLock';
 const text=(ar,en)=>isEn()?en:ar;
 export default function WorkoutPlayer(){
  useStoreVersion();const writing=useRef(false);const session=Store.getWorkoutSession();
  const [selected,setSelected]=useState([]),[error,setError]=useState(''),[weight,setWeight]=useState(''),[reps,setReps]=useState('10'),[rir,setRir]=useState(''),[saving,setSaving]=useState(false),[confirmFinish,setConfirmFinish]=useState(false),[now,setNow]=useState(Date.now());
  const active=Store.getActiveProgram(),days=active?Store.getProgramDays(active.id):[];
+ useWakeLock(!!session);
  const current=session?.exercises[session.cursor],summary=session?workoutSummary(session,now):null;
  useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),1000);return ()=>clearInterval(t);},[]);
  useEffect(()=>{if(!current)return;const previous=Store.getLastExerciseLog(current.id);setWeight(String(previous?Store.toDisplayWeight(previous.weight):0));setReps(String(previous?.reps||current.reps));setRir('');},[current?.id,session?.id]);

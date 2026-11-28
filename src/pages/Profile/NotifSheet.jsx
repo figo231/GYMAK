@@ -1,3 +1,4 @@
+import { appLocale } from "../../lib/i18n/locale";
 import { useEffect, useState } from "react";
 import { tx } from "../../lib/i18n/tx";
 import { Link } from "react-router-dom";
@@ -72,7 +73,7 @@ export default function NotifSheet({ onClose }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 800, fontSize: 13 }}>{n.title}</div>
                     <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{n.body}</div>
-                    <div style={{ fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>{new Date(n.ts).toLocaleString("ar-EG")}</div>
+                    <div style={{ fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>{new Date(n.ts).toLocaleString(appLocale())}</div>
                   </div>
                   <button type="button" aria-label={tx("مسح الإشعار")} onClick={() => deleteInboxItem(n.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: 4 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>

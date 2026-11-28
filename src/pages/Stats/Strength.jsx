@@ -1,10 +1,11 @@
+import { appLocale } from "../../lib/i18n/locale";
 import { useMemo, useState } from "react";
 import SectionNav from "../../components/layout/SectionNav";
 import Store from "../../lib/store/gymakStore";
 import { estimate1RM, workingWeights } from "../../lib/strength";
 import { tx } from "../../lib/i18n/tx";
 
-const arDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("ar-EG", { day: "numeric", month: "long" });
+const arDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString(appLocale(), { day: "numeric", month: "long" });
 
 export default function Strength() {
   const [tab, setTab] = useState("pr");

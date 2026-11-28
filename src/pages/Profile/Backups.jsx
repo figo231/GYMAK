@@ -1,10 +1,11 @@
+import { appLocale } from "../../lib/i18n/locale";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../hooks/useDialog";
 import { listSnapshots, createSnapshot, restoreText, validateBackup, downloadCurrent } from "../../lib/backup";
 import { tx, txf } from "../../lib/i18n/tx";
 
-const fmtDate = (ts) => new Date(ts).toLocaleString("ar-EG", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
+const fmtDate = (ts) => new Date(ts).toLocaleString(appLocale(), { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
 
 export default function Backups() {
   const toast = useToast();

@@ -10,7 +10,7 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body, #root { margin: 0; padding: 0; background: var(--bg-deep); min-height: 100vh; }
+html, body, #root { margin: 0; padding: 0; background: var(--bg-deep); min-height: 100vh; min-height: 100dvh; }
 body {
   font-family: 'Tajawal', 'Cairo', sans-serif;
   color: var(--text-primary);
@@ -681,7 +681,7 @@ a { color: inherit; }
 .send-btn { width: 44px; height: 44px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple)); box-shadow: 0 8px 20px rgba(var(--acc-rgb), 0.22); }
 
 /* ===== Auth pages ===== */
-.auth-app { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding-top: 20px; padding-bottom: 20px; }
+.auth-app { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; min-height: 100dvh; padding-top: 20px; padding-bottom: 20px; }
 .auth-logo { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 22px; }
 .auth-logo-mark { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
 .auth-card { padding: 22px 20px; }

@@ -1,3 +1,4 @@
+import { appLocale } from "../../lib/i18n/locale";
 import ReportPhotoEvidence from "../../components/ReportPhotoEvidence";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { REPORT_REASONS, REPORT_STATUS_LABELS, REPORT_TYPE_LABELS, fetchModerationReports, moderationError, setModerationReportStatus } from "../../lib/moderation";
@@ -6,7 +7,7 @@ import { tx, txf } from "../../lib/i18n/tx";
 
 const reasonLabel = (code) => REPORT_REASONS.find(([k]) => k === code)?.[1] || code;
 function stamp(value) {
-  try { return new Date(value).toLocaleString("ar-EG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+  try { return new Date(value).toLocaleString(appLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 
 // Owner-only moderation queue. Lists exactly the content users reported; nothing else

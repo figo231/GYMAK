@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtClock, remaining, getRestSettings } from "../lib/rest/restTimer";
 import { tx } from "../lib/i18n/tx";
+import { useWakeLock } from "../hooks/useWakeLock";
 
 function beep() {
   try {
@@ -45,6 +46,8 @@ export default function RestTimer() {
     window.addEventListener("gymak-rest-start", onStart);
     return () => window.removeEventListener("gymak-rest-start", onStart);
   }, []);
+
+  useWakeLock(endAt > 0);
 
   useEffect(() => {
     if (!endAt) return undefined;

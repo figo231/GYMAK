@@ -1,3 +1,4 @@
+import { appLocale } from "./i18n/locale";
 import {validSavedState} from "./savedStateShape";
 // Pure helpers for the Profile / Account pages.
 import { localISO, shiftISO } from "./dateKey";
@@ -65,7 +66,7 @@ export function timeAgoAr(ts, now = Date.now()) {
   if (min < 60) return txf(`من {0} دقيقة`, [min]);
   const hr = Math.round(min / 60);
   if (hr < 24) return txf(`من {0} ساعة`, [hr]);
-  return new Date(ts).toLocaleDateString("ar-EG");
+  return new Date(ts).toLocaleDateString(appLocale());
 }
 
 // Validates a backup file made by exportPayload(). Returns { ok, error?, payload? }.
