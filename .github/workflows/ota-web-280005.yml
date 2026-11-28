@@ -1,0 +1,59 @@
+# One-shot: sign and publish OTA web-280005 (release 30 batch) for native build 29 (APK 29, push enabled). Only ota/stable.json and the release change; the served site files and APK are untouched.
+name: Publish signed OTA web-280005 for APK 29
+on:
+  push:
+    branches: [stage/apk29-private-v3-r2]
+    paths: [.github/workflows/ota-web-280005.yml]
+permissions:
+  contents: write
+concurrency:
+  group: gymak-production-ota-web-280005
+  cancel-in-progress: false
+jobs:
+  ota:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "true"
+      VITE_REVIEW_BACKEND_GATED: "false"
+      VITE_PUSH_ENABLED: "true"   # APK 29 has push; keep identical to the APK 29 build
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Build from exactly the approved source commit
+        run: |
+          git checkout --detach 50a289d995b5fa33d4af2c35d388d9995758364e
+          test "$(git rev-parse HEAD^{tree})" = "9e95a56e1666ae2cfd34d48318f720f0d6e33c9f"
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - name: Public trust anchor and full tests
+        env: { GYMAK_OTA_PUBLIC_KEY: "${{ vars.GYMAK_OTA_PUBLIC_KEY }}" }
+        run: |
+          node scripts/ota/write-native-trust.mjs
+          git diff --exit-code src/lib/update/otaTrust.js   # trust key must equal the one already built into APK 29
+          npx vitest run --maxWorkers=2 --minWorkers=2
+          npx vite build
+      - name: Sign (uses the EXISTING secret, no rotation)
+        env: { GYMAK_OTA_PRIVATE_KEY: "${{ secrets.GYMAK_OTA_PRIVATE_KEY }}" }
+        run: |
+          mkdir -p "$RUNNER_TEMP/rel"
+          (cd dist && zip -qr "$RUNNER_TEMP/rel/exact.zip" .)
+          node scripts/ota/sign-bundle.mjs "$RUNNER_TEMP/rel/exact.zip" "$RUNNER_TEMP/rel" web-280005 29 sideload https://github.com/figo231/GYMAK/releases/download/web-280005/bundle.zip
+      - name: Publish release and site (additive, APK file untouched)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          gh release create web-280005 -R figo231/GYMAK "$RUNNER_TEMP/rel/bundle.zip" "$RUNNER_TEMP/rel/stable.json" --target "$GITHUB_SHA" --latest=false --title "GYMAK web 280005 (native 29)"
+          git fetch origin web-production && git checkout -B ota-publish origin/web-production
+          cp "$RUNNER_TEMP/rel/stable.json" public/ota/stable.json
+          git config user.name figo231 && git config user.email 89879739+figo231@users.noreply.github.com
+          git add public/ota/stable.json && git commit -m "Publish signed OTA web-280005 for native build 29"
+          git push origin HEAD:web-production
+      - name: Verify live
+        run: |
+          for n in $(seq 1 28); do curl -fsSL https://gymak-eight.vercel.app/ota/stable.json -o live.json; cmp -s live.json "$RUNNER_TEMP/rel/stable.json" && break; sleep 15; done
+          cmp live.json "$RUNNER_TEMP/rel/stable.json"
+          curl -fsSL https://gymak-eight.vercel.app/download/version.json | grep -q 6b0df6e7ad724e72dc893ff7ba5772bd6a0df44d2e6edc4de9e8bc5f9cade6e2
