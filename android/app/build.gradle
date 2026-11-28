@@ -4,7 +4,7 @@ android {
     namespace = "com.gymak.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.gymak.app"
+        applicationId (System.getenv("GYMAK_APPLICATION_ID") ?: "com.gymak.app")
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode Integer.parseInt(System.getenv("GYMAK_VERSION_CODE") ?: "1")

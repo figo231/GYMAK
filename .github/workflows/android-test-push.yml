@@ -1,0 +1,57 @@
+name: Test-only push APK (private artifact, never published)
+on:
+  push:
+    branches: [test/push-apk]
+permissions:
+  contents: read
+concurrency:
+  group: test-push-apk
+  cancel-in-progress: true
+jobs:
+  build:
+    if: github.ref == 'refs/heads/test/push-apk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Separate package so it can never replace or update the installed GYMAK.
+      GYMAK_APPLICATION_ID: com.gymak.app.test
+      GYMAK_VERSION_CODE: "1"
+      GYMAK_VERSION_NAME: "0.0-pushtest"
+      VITE_DISTRIBUTION_CHANNEL: sideload
+      VITE_OTA_ENABLED: "false"          # never touches production OTA
+      VITE_PUSH_ENABLED: "true"
+      VITE_SUPABASE_URL: ${{ vars.GYMAK_TEST_SUPABASE_URL }}   # test project only
+      VITE_SUPABASE_ANON_KEY: ${{ vars.GYMAK_TEST_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Write google-services.json for com.gymak.app.test
+        env:
+          GOOGLE_SERVICES_JSON_TEST: ${{ secrets.GOOGLE_SERVICES_JSON_TEST }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON_TEST" ]; then echo "Missing secret" >&2; exit 1; fi
+          printf '%s' "$GOOGLE_SERVICES_JSON_TEST" > android/app/google-services.json
+          grep -q '"package_name": *"com.gymak.app.test"' android/app/google-services.json || { echo "json has no com.gymak.app.test client" >&2; exit 1; }
+      - run: npm install --no-audit --no-fund
+      - name: Build web and sync
+        run: |
+          npm run build
+          npx cap sync android
+      - name: Build debug APK (Gradle debug key, not the release key)
+        working-directory: android
+        run: bash ./gradlew :app:assembleDebug
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: gymak-push-test-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 2
