@@ -31,7 +31,7 @@ export function parseLogForm({ weight, sets, reps }, fromDisplay, timed = false)
 
 // Step size for the +/- buttons.
 export function stepFor(field, unitLabel) {
-  if (field === "weight") return unitLabel === "lb" ? 5 : 2.5;
+  if (field === "weight") return unitLabel === "lb" || unitLabel === "رطل" ? 5 : 2.5;
   return 1;
 }
 export function stepValue(current, dir, field, unitLabel) {

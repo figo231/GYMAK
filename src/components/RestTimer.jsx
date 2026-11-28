@@ -18,6 +18,16 @@ function beep() {
   try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch { /* optional */ }
 }
 
+async function notifyIfHidden() {
+  try {
+    if (typeof document === "undefined" || !document.hidden) return;
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const title = tx("الراحة خلصت، كمّل المجموعة الجاية 💪");
+    const reg = await navigator.serviceWorker?.getRegistration?.();
+    if (reg?.showNotification) await reg.showNotification(title, { icon: "/icon-192.png", tag: "gymak-rest" });
+  } catch { /* optional */ }
+}
+
 export default function RestTimer() {
   const [endAt, setEndAt] = useState(0);
   const [left, setLeft] = useState(0);
@@ -38,16 +48,20 @@ export default function RestTimer() {
 
   useEffect(() => {
     if (!endAt) return undefined;
-    const id = setInterval(() => {
+    const tick = () => {
       const r = remaining(endAt);
       setLeft(r);
       if (r <= 0 && !done.current) {
         done.current = true;
         beep();
+        notifyIfHidden();
         setTimeout(() => setEndAt(0), 4000);
       }
-    }, 250);
-    return () => clearInterval(id);
+    };
+    const id = setInterval(tick, 250);
+    // Background tabs throttle timers; the end time is absolute, so re-check as soon as the app is visible again.
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", tick); };
   }, [endAt]);
 
   if (!endAt) return null;

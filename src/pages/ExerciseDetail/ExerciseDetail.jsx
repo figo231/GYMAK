@@ -69,7 +69,7 @@ function ExerciseDetail({ id }) {
   const best = bestWeight(allLogs);
   const orm = exercise?.unit === "sec" ? null : best1RM(allLogs);
   const ormDisplay = orm ? Store.toDisplayWeight(orm.value) : 0;
-  const ormStep = unit === "lb" ? 5 : 2.5;
+  const ormStep = unit === "lb" || unit === "رطل" ? 5 : 2.5;
   const ormTable = orm ? percentTable(ormDisplay, ormStep) : [];
   const [showOrm, setShowOrm] = useState(false);
   const [tab, setTab] = useState("log");

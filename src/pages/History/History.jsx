@@ -147,7 +147,7 @@ export default function History() {
       ))}
 
       {tab === "food" && (foodDays.length === 0 ? (
-        <EmptyState type="chat" title={tx("لسه مسجلتش أي أكل")} subtitle="اكتب للمدرب الذكي اللي أكلته وهو يحسب السعرات." ctaLabel="افتح المدرب" onCta={() => { navigate("/ai-coach"); }} />
+        <EmptyState type="chat" title={tx("لسه مسجلتش أي أكل")} subtitle={tx("اكتب للمدرب الذكي اللي أكلته وهو يحسب السعرات.")} ctaLabel={tx("افتح المدرب")} onCta={() => { navigate("/ai-coach"); }} />
       ) : foodDays.map((day) => (
         <section key={day.date} className="hist-day" aria-label={dayLabel(day.date, today)}>
           <div className="hist-day-head">
@@ -167,7 +167,7 @@ export default function History() {
       )))}
 
       {tab === "weight" && (weights.length === 0 ? (
-        <EmptyState type="trophy" title={tx("لسه مسجلتش وزنك")} subtitle="سجّل وزنك من الصفحة الرئيسية وهتشوف تغييرك هنا." />
+        <EmptyState type="trophy" title={tx("لسه مسجلتش وزنك")} subtitle={tx("سجّل وزنك من الصفحة الرئيسية وهتشوف تغييرك هنا.")} />
       ) : weights.map((w) => (
         <div className="glass hist-row" key={w.date}>
           <div className="hist-main">

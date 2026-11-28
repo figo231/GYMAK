@@ -691,6 +691,7 @@ let ownerView = false;
       return true;
     } catch (e) {
       console.error("gymak store save failed", e);
+      try { if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("gymak-save-failed")); } catch (_) {}
       // The write to localStorage did not happen, so the in-memory cache
       // must not be trusted as "the current state" either — invalidate it
       // so the next load() re-derives from whatever is actually persisted
@@ -970,12 +971,19 @@ let ownerView = false;
       const delay = next - now;
       const lang = this.getLang();
       this._reminderTimerId = setTimeout(() => {
-        try {
-          new Notification(lang === "en" ? "GYMAK — workout time 💪" : "GYMAK — وقت التمرين 💪", {
-            body: lang === "en" ? "Don't forget to log today's workout." : "متنساش تسجل تمرينك النهاردة.",
-            icon: "icon-192.png",
-          });
-        } catch (e) {}
+        const title = lang === "en" ? "GYMAK — workout time 💪" : "GYMAK — وقت التمرين 💪";
+        const opts = {
+          body: lang === "en" ? "Don't forget to log today's workout." : "متنساش تسجل تمرينك النهاردة.",
+          icon: "/icon-192.png",
+        };
+        // Android Chrome / installed PWA: the Notification constructor throws, so go through the service worker first.
+        (async () => {
+          try {
+            const reg = await navigator.serviceWorker?.getRegistration?.();
+            if (reg?.showNotification) { await reg.showNotification(title, opts); return; }
+          } catch (e) {}
+          try { new Notification(title, opts); } catch (e) {}
+        })();
         this.scheduleReminder();
       }, delay);
     },

@@ -22,7 +22,7 @@ export function hasGuestImport(storage=localStorage){return !!storage.getItem(PE
 export function archiveGuestData(userId,storage=localStorage){
  const previous=JSON.parse(storage.getItem(ARCHIVE+':'+userId)||'null');
  if(previous)return previous;
- const data={};for(let i=0;i<storage.length;i++){const k=storage.key(i);if(k?.startsWith('gymak_')&&!k.includes('push')&&!k.includes('device')&&!k.includes('guest_import'))data[k]=storage.getItem(k);}
+ const data={};for(let i=0;i<storage.length;i++){const k=storage.key(i);if(k?.startsWith('gymak_')&&!k.includes('push')&&!k.includes('device')&&!k.includes('guest_import')&&k!=='gymak_migration_snapshot_v1')data[k]=storage.getItem(k);}
  const archive={userId,created:Date.now(),data};storage.setItem(ARCHIVE+':'+userId,JSON.stringify(archive));
  if(!storage.getItem(ARCHIVE+':'+userId))throw Error('guest_backup_failed');return archive;
 }

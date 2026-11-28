@@ -54,7 +54,7 @@ export default defineConfig({
         // app, so a hard refresh or deep link (e.g. /exercises) while offline
         // needs to fall back to the app shell instead of failing outright.
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/download\//, /^\/api\//, /^\/landing\.html/, /^\/privacy\.html/, /^\/welcome/],
+        navigateFallbackDenylist: [/^\/download\//, /^\/ota\//, /^\/api\//, /^\/landing\.html/, /^\/privacy\.html/, /^\/welcome/],
         // Explicit (not just implied by registerType) so this holds regardless
         // of plugin defaults: a new SW takes over immediately instead of
         // sitting "waiting" until every open tab/PWA instance is closed, and

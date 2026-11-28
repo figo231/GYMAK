@@ -310,6 +310,10 @@ export const EN_EXTRA = {
   "اختار ميعاد تذكير التمرين من حسابي، الإشعارات.": "Pick your workout reminder time in My account, Notifications.",
   "تقدر تفعّلها بعدين من إعدادات الموبايل أو من حسابي، الإشعارات.": "You can turn them on later from your phone settings or My account, Notifications.",
   "تمام": "OK",
+  "مش قادر يحفظ على الجهاز. المساحة ممكن تكون مليانة. صدّر نسخة احتياطية وفضّي مساحة.": "Could not save on this device. Storage may be full. Export a backup and free some space.",
+  "اكتب للمدرب الذكي اللي أكلته وهو يحسب السعرات.": "Tell the AI coach what you ate and it will count the calories.",
+  "افتح المدرب": "Open coach",
+  "سجّل وزنك من الصفحة الرئيسية وهتشوف تغييرك هنا.": "Log your weight from Home and your change will show here.",
   "سجّل أول قياس النهارده وقارن بعد كام أسبوع.": "Log your first measurement today and compare in a few weeks.",
   "عدات بنفس الأداء": "reps in reserve",
 };

@@ -175,7 +175,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return { error: NO_CLIENT_ERROR };
     // Sign-out must work offline: a failed token revoke is queued for retry inside removePushToken.
     try { await removePushToken({explicit:true}); } catch { /* never block sign-out */ }
-    if (!window.Capacitor?.isNativePlatform?.()) { const {stopWebPush}=await import("../lib/push/webPush"); await stopWebPush(); }
+    if (!window.Capacitor?.isNativePlatform?.()) { try { const {stopWebPush}=await import("../lib/push/webPush"); await stopWebPush(); } catch { /* offline: never block sign-out */ } }
     const { error } = await supabase.auth.signOut();
     return { error };
   }
