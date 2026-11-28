@@ -119,10 +119,9 @@ jobs:
             adb shell svc wifi disable
             adb shell svc data disable
             adb shell cmd connectivity airplane-mode enable
-            for i in 1 2 3 4 5 6 7 8 9 10; do
-              sleep 3
-              if ! adb shell ping -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then echo "offline confirmed"; break; fi
-            done
+            sleep 15
+            adb shell ping -c 1 -W 2 8.8.8.8 > verification/offline-ping.txt 2>&1 || echo "ping failed as expected (offline)"
+            cat verification/offline-ping.txt
             adb shell dumpsys connectivity | grep -iE "NetworkAgentInfo|airplane" | head -5 || true
             adb install -r -g "$APK"
             adb shell am instrument -w -e class com.gymak.app.OfflineUpgradeTest#keepsDataAndRunsOffline com.gymak.app.test/androidx.test.runner.AndroidJUnitRunner | tee verification/upgrade.txt
