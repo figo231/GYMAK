@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { dayTitleEn } from "../../lib/i18n/programsEn";
 import { Link } from "react-router-dom";
 import { useStoreVersion } from "../../hooks/useStoreVersion";
 import { useToast } from "../../hooks/useToast";
@@ -120,7 +121,7 @@ export default function Programs() {
                 <span className="pg-name">{p.name}</span>
                 <span className="pg-meta">{p.goal ? GOAL_LABEL[p.goal] : ""} · {p.level}</span>
                 {isRecommended && <span className="pg-desc">{p.desc}</span>}
-                <span className="pg-chips">{p.dayChips.slice(0, 4).map((c, i) => <i key={i}>{c}</i>)}</span>
+                <span className="pg-chips">{p.dayChips.slice(0, 4).map((c, i) => <i key={i}>{dayTitleEn(c)}</i>)}</span>
               </div>
             </button>
             <button type="button" className={"pg-apply" + (isActive ? " on" : "")} aria-disabled={isActive || undefined} onClick={() => handleApply(p.id)}>

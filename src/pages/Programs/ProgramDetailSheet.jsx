@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { dayTitleEn } from "../../lib/i18n/programsEn";
 import ExerciseAnim from "../../components/ExerciseAnim";
 import Store from "../../lib/store/gymakStore";
 import { useConfirm } from "../../hooks/useDialog";
@@ -79,7 +80,7 @@ export default function ProgramDetailSheet({ program: programRaw, isActive, onCl
             {program.dayChips.map((c, i) => (
               <div className="detail-day-row" key={i}>
                 <span className="detail-day-num">{i + 1}</span>
-                <span className="detail-day-name">{c}</span>
+                <span className="detail-day-name">{dayTitleEn(c)}</span>
               </div>
             ))}
           </div>

@@ -157,7 +157,7 @@ export default function Measurements() {
       )}
 
       <div className="ms-card-title" style={{ margin: "14px 4px 8px" }}>{tx("السجل")}</div>
-      {entries.length === 0 && <EmptyState type="trophy" compact title={tx("لسه مسجلتش أي قياس")} subtitle="سجّل أول قياس النهارده وقارن بعد كام أسبوع." />}
+      {entries.length === 0 && <EmptyState type="trophy" compact title={tx("لسه مسجلتش أي قياس")} subtitle={tx("سجّل أول قياس النهارده وقارن بعد كام أسبوع.")} />}
       {[...entries].reverse().map((e) => (
         <div className="glass hist-row" key={e.date}>
           <div className="hist-main">

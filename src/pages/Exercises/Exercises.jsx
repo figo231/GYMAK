@@ -1,4 +1,5 @@
 import RamadanCard from "../../components/RamadanCard";
+import { dayTitleEn } from "../../lib/i18n/programsEn";
 import SectionNav from "../../components/layout/SectionNav";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -189,7 +190,7 @@ export default function Exercises() {
             <div style={{ fontSize: 13, fontWeight: 800 }}>{activeProgram.name}</div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
               {activeProgram.dayChips.map((c) => (
-                <span key={c} style={{ fontSize: 9.5, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(17,24,39,0.055)", color: "var(--text-secondary)" }}>{c}</span>
+                <span key={c} style={{ fontSize: 9.5, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(17,24,39,0.055)", color: "var(--text-secondary)" }}>{dayTitleEn(c)}</span>
               ))}
             </div>
           </div>

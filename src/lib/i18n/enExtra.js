@@ -310,5 +310,6 @@ export const EN_EXTRA = {
   "اختار ميعاد تذكير التمرين من حسابي، الإشعارات.": "Pick your workout reminder time in My account, Notifications.",
   "تقدر تفعّلها بعدين من إعدادات الموبايل أو من حسابي، الإشعارات.": "You can turn them on later from your phone settings or My account, Notifications.",
   "تمام": "OK",
+  "سجّل أول قياس النهارده وقارن بعد كام أسبوع.": "Log your first measurement today and compare in a few weeks.",
   "عدات بنفس الأداء": "reps in reserve",
 };
