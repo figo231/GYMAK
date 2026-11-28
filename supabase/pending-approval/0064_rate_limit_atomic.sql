@@ -13,6 +13,7 @@ begin
   if c is null then
     select send_count into c from public.admin_rate_limits where admin_id = p_admin and window_start = p_window;
     return query select false, coalesce(c, p_max);
+    return;
   end if;
   return query select true, c;
 end $$;
