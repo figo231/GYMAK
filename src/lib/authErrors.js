@@ -45,7 +45,7 @@ export function translateAuthError(error, online = typeof navigator === "undefin
   return /[\u0600-\u06FF]/.test(error.message || "") ? error.message : GENERIC;
 }
 
-export const SIGNUP_USERNAME_TAKEN = tx("اسم المستخدم ده غالبًا واخده حد تاني. جرّب اسم تاني.");
+export const SIGNUP_USERNAME_TAKEN = tx("التسجيل ما كملش. ممكن اسم المستخدم واخده حد تاني، أو التسجيل واقف مؤقتًا من عندنا. جرّب اسم تاني، ولو فضلت المشكلة جرّب بعد شوية.");
 export const SIGNUP_SERVER_ERROR = tx("التسجيل فشل من عندنا في الخادم، مش من النت عندك. جرّب اسم مستخدم تاني، أو جرّب بعد شوية.");
 // Signup-specific wording. `detail` = {status, code, msg} captured from the failed answer (may be null).
 export function signupFailureMessage(error, detail = null, online) {

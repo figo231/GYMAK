@@ -17,7 +17,7 @@ export const EN_EXTRA = {
   "خدمة رسائل التأكيد وصلت لحد الإرسال مؤقتًا. المشكلة مش من عدد محاولاتك. جرب بعدين، أو سجّل دخول لو حسابك متأكد بالفعل.": "The confirmation message service has hit its sending limit for now. It is not caused by your attempts. Try again later, or sign in if your account is already confirmed.",
   "مقدرناش نبعت إيميل التأكيد دلوقتي، والمشكلة عندنا مش من النت عندك. جرب بعد شوية.": "We can't send the confirmation email right now. The problem is on our side, not your internet. Try again in a bit.",
   "حصلت مشكلة عندنا في الخادم، مش من النت عندك. جرب تاني بعد شوية.": "A problem on our server, not your internet. Try again in a bit.",
-  "اسم المستخدم ده غالبًا واخده حد تاني. جرّب اسم تاني.": "That username is probably taken. Try another one.",
+  "التسجيل ما كملش. ممكن اسم المستخدم واخده حد تاني، أو التسجيل واقف مؤقتًا من عندنا. جرّب اسم تاني، ولو فضلت المشكلة جرّب بعد شوية.": "Sign-up did not finish. The username may be taken, or sign-up is paused on our side. Try another username, and if it keeps happening try again later.",
   "التسجيل فشل من عندنا في الخادم، مش من النت عندك. جرّب اسم مستخدم تاني، أو جرّب بعد شوية.": "Sign-up failed on our server, not because of your internet. Try another username, or try again in a bit.",
   "الإيميل أو الباسورد غلط. لو لسه معندكش حساب، اعمل حساب جديد.": "Wrong email or password. If you don't have an account yet, create one.",
   "الدخول فشل من عندنا في الخادم، مش من النت عندك. جرّب بعد شوية.": "Sign-in failed on our server, not because of your internet. Try again in a bit.",

@@ -3,12 +3,13 @@
 -- Evidence (live catalog read, 2026-11-27): every RLS policy that calls these functions is TO authenticated only.
 -- RPC functions keep authenticated + service_role. Trigger functions are never called through the API.
 begin;
-revoke all on function public.apk18_capabilities() from public, anon;
+-- apk18_capabilities keeps anon on purpose (0031 grants it; flags only, nothing private).
+revoke all on function public.apk18_capabilities() from public;
 revoke all on function public.coach_can_see(uuid) from public, anon;
 revoke all on function public.is_coach(uuid) from public, anon;
 revoke all on function public.professional_directory(text, uuid) from public, anon;
 revoke all on function public.professional_directory_v2(text, uuid) from public, anon;
-grant execute on function public.apk18_capabilities() to authenticated, service_role;
+grant execute on function public.apk18_capabilities() to anon, authenticated, service_role;
 grant execute on function public.coach_can_see(uuid) to authenticated, service_role;
 grant execute on function public.is_coach(uuid) to authenticated, service_role;
 grant execute on function public.professional_directory(text, uuid) to authenticated, service_role;
