@@ -49,6 +49,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,woff2,png,ico,svg,webp}"],
+        globIgnores: ["landing/**"],
         // The original was a multi-page app where every .html file was
         // individually precached and network-first. This is now a single-page
         // app, so a hard refresh or deep link (e.g. /exercises) while offline

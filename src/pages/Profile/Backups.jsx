@@ -20,10 +20,10 @@ export default function Backups() {
     toast(s ? tx("اتعملت نسخة احتياطية") : tx("مفيش بيانات تتحفظ لسه"));
     refresh();
   }
-  async function restore(text, label) {
+  async function restore(text, label, extras) {
     const ok = await confirm({ title: tx("استرجاع النسخة؟"), label: txf(`{0}. بياناتك الحالية هتتحفظ في نسخة قبل الاسترجاع.`, [label]), confirmLabel: tx("استرجع"), danger: true });
     if (!ok) return;
-    const r = await restoreText(text);
+    const r = await restoreText(text, extras);
     if (!r.ok) { toast(r.error); return; }
     toast(tx("اتسترجعت. بنعيد تشغيل التطبيق..."));
     setTimeout(() => window.location.assign("/"), 800);
@@ -42,6 +42,7 @@ export default function Backups() {
     <div className="help-page">
       <div className="section-head"><h1 className="section-title">{tx("النسخ الاحتياطي")}</h1></div>
       <p className="notif-note">{tx("التطبيق بياخد نسخة تلقائية من بياناتك على الموبايل مرة في اليوم تقريبًا ويحتفظ بآخر 5. لو سجّلت دخول، بياناتك كمان بتتزامن على حسابك.")}</p>
+      <p className="notif-note">{tx("القياسات والمياه والتحديات والصور بتتحفظ على الجهاز ده بس ومش بتتزامن مع الحساب. قبل ما تغيّر موبايلك صدّر نسخة احتياطية.")}</p>
       <div className="ad-actions">
         <button type="button" className="btn btn-primary" onClick={now}>{tx("انسخ دلوقتي")}</button>
         <button type="button" className="btn" onClick={downloadCurrent}>{tx("تصدير ملف")}</button>
@@ -53,7 +54,7 @@ export default function Backups() {
         <div key={s.id} className="glass ad-msg">
           <div className="ad-meta"><b>{fmtDate(s.ts)}</b><span>{s.kind === "auto" ? tx("تلقائية") : tx("يدوية")}</span></div>
           <p className="ad-text">{s.summary.workoutDays} {tx("يوم تمرين ·")} {s.summary.weights} {tx("وزنة ·")} {s.summary.foodDays} {tx("يوم أكل")}</p>
-          <div className="ad-actions"><button type="button" className="btn" onClick={() => restore(s.text, fmtDate(s.ts))}>{tx("استرجع")}</button></div>
+          <div className="ad-actions"><button type="button" className="btn" onClick={() => restore(s.text, fmtDate(s.ts), s.extras)}>{tx("استرجع")}</button></div>
         </div>
       ))}
     </div>

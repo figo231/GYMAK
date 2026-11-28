@@ -20,7 +20,28 @@ export function summarize(text) {
 }
 export function isMeaningful(sum) { return !!sum && (sum.workoutDays + sum.weights + sum.foodDays) > 0; }
 
-export function validateBackup(text) {
+export const EXTRA_KEYS = { measurements: "gymak_measure_v1", water: "gymak_water_v1" };
+// Accepts both formats: the raw state JSON and the profile export ({app:"GYMAK", state, measurements, water}).
+export function unwrapBackup(text) {
+  try {
+    const o = JSON.parse(text);
+    if (o && o.app === "GYMAK" && o.state && typeof o.state === "object") {
+      const extras = {};
+      if (o.measurements != null) extras.measurements = o.measurements;
+      if (o.water != null) extras.water = o.water;
+      return { stateText: JSON.stringify(o.state), extras };
+    }
+  } catch { /* handled by the caller */ }
+  return { stateText: text, extras: null };
+}
+function readExtras() {
+  const extras = {};
+  for (const [name, key] of Object.entries(EXTRA_KEYS)) { try { const v = JSON.parse(localStorage.getItem(key) || "null"); if (v != null) extras[name] = v; } catch { /* skip */ } }
+  return extras;
+}
+
+export function validateBackup(input) {
+  const text = typeof input === "string" ? unwrapBackup(input).stateText : input;
   if (typeof text !== "string" || text.length < 2 || text.length > 20 * 1024 * 1024) return { ok: false, error: tx("الملف مش صالح.") };
   let s;
   try { s = JSON.parse(text); } catch { return { ok: false, error: tx("الملف مش نسخة GYMAK صالحة.") }; }
@@ -62,7 +83,7 @@ export async function createSnapshot(kind = "auto") {
   if (!text || !isMeaningful(sum)) return null;
   try {
     const db = await open();
-    const snap = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, ts: Date.now(), kind, text, summary: sum };
+    const snap = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, ts: Date.now(), kind, text, summary: sum, extras: readExtras() };
     const write=db.transaction(STORE,"readwrite"),done=committed(write);write.objectStore(STORE).put(snap);await done;
     const all = await wrap(db.transaction(STORE).objectStore(STORE).getAll());
     const keepIds = new Set(prune(all).map((x) => x.id));
@@ -80,17 +101,33 @@ export async function autoSnapshotIfDue() {
   return null;
 }
 // Replace the app data with a backup text. Keeps a "before-restore" snapshot so it can be undone.
-export async function restoreText(text) {
-  const v = validateBackup(text);
+export async function restoreText(input, extrasArg) {
+  const v = validateBackup(input);
   if (!v.ok) return v;
+  const { stateText: text, extras: fileExtras } = unwrapBackup(input);
+  const extras = extrasArg || fileExtras;
   const current=localStorage.getItem(STATE_KEY);
   if(current&&isMeaningful(summarize(current))&&!await createSnapshot("manual"))return {ok:false,error:tx("معرفناش نحفظ نسخة من بياناتك الحالية. الاسترجاع اتوقف من غير تغيير.")};
-  try { localStorage.setItem(STATE_KEY, text); }
-  catch {return {ok:false,error:tx("الاسترجاع متحفظش. النسخة الحالية متغيرتش.")};}
+  const prevState = localStorage.getItem(STATE_KEY);
+  const prevExtras = Object.fromEntries(Object.values(EXTRA_KEYS).map((k) => [k, localStorage.getItem(k)]));
+  try {
+    localStorage.setItem(STATE_KEY, text);
+    for (const [name, key] of Object.entries(EXTRA_KEYS)) if (extras && extras[name] != null) localStorage.setItem(key, JSON.stringify(extras[name]));
+  } catch {
+    try {
+      if (prevState === null) localStorage.removeItem(STATE_KEY); else localStorage.setItem(STATE_KEY, prevState);
+      for (const [k, v] of Object.entries(prevExtras)) { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
+    } catch { /* the before-restore snapshot still holds the old data */ }
+    return {ok:false,error:tx("الاسترجاع متحفظش. النسخة الحالية متغيرتش.")};
+  }
   return { ok: true };
 }
 export function downloadCurrent() {
-  const text = localStorage.getItem(STATE_KEY) || "{}";
+  let state = null;
+  try { state = JSON.parse(localStorage.getItem(STATE_KEY) || "null"); } catch { /* keep null */ }
+  const x = readExtras();
+  // Same shape as the profile export, so either screen can restore it.
+  const text = JSON.stringify({ app: "GYMAK", exportedAt: new Date().toISOString(), state: state || {}, measurements: x.measurements ?? null, water: x.water ?? null });
   const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url; a.download = `gymak-backup-${localISO()}.json`;

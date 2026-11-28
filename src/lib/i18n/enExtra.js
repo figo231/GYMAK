@@ -310,6 +310,7 @@ export const EN_EXTRA = {
   "اختار ميعاد تذكير التمرين من حسابي، الإشعارات.": "Pick your workout reminder time in My account, Notifications.",
   "تقدر تفعّلها بعدين من إعدادات الموبايل أو من حسابي، الإشعارات.": "You can turn them on later from your phone settings or My account, Notifications.",
   "تمام": "OK",
+  "القياسات والمياه والتحديات والصور بتتحفظ على الجهاز ده بس ومش بتتزامن مع الحساب. قبل ما تغيّر موبايلك صدّر نسخة احتياطية.": "Measurements, water, challenges and photos are saved on this device only and do not sync with your account. Export a backup before you change phones.",
   "مش قادر يحفظ على الجهاز. المساحة ممكن تكون مليانة. صدّر نسخة احتياطية وفضّي مساحة.": "Could not save on this device. Storage may be full. Export a backup and free some space.",
   "اكتب للمدرب الذكي اللي أكلته وهو يحسب السعرات.": "Tell the AI coach what you ate and it will count the calories.",
   "افتح المدرب": "Open coach",
