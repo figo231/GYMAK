@@ -1,3 +1,4 @@
+import { localISO } from './dateKey';
 import { supabase } from './supabaseClient';
 const KEY='gymak_activity_opt_in_v1',PENDING='gymak_activity_delete_v1';
 export const activityOptedIn=(userId)=>!!userId && localStorage.getItem(KEY+':'+userId)==='1';
@@ -16,7 +17,7 @@ export async function recordAppActivity(userId){
   if(!supabase || !userId)return false;
   const cleared=await retryActivityDeletion(userId);
   if(!cleared || !activityOptedIn(userId) || document.visibilityState!=='visible')return false;
-  const day=new Date().toISOString().slice(0,10),key=userId+':'+day;
+  const day=localISO(),key=userId+':'+day;
   if(sent===key)return true;
   try{const {error}=await supabase.rpc('record_app_activity');if(error)return false;sent=key;return true;}catch{return false;}
 }
