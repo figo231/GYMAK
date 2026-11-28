@@ -1,5 +1,6 @@
 import {bootWithOta} from "./lib/update/otaBootstrap";
 import { installA11yEnhance } from "./lib/a11yEnhance";
+import { installGlobalErrorBuffer } from "./lib/crashReporting";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
@@ -23,6 +24,7 @@ try {
 import("./lib/push/pushService").then((m) => m.initBroadcastPush()).catch(() => {});
 
 installA11yEnhance();
+installGlobalErrorBuffer();
 function renderApp(){ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
