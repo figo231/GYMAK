@@ -1,3 +1,4 @@
+import OwnerGenderSwitch, { ownerSectionMatches } from "../../components/OwnerGenderSwitch";
 import { useEffect, useMemo, useState } from "react";
 import { dayTitleEn } from "../../lib/i18n/programsEn";
 import { Link } from "react-router-dom";
@@ -36,9 +37,9 @@ export default function Programs() {
   const { t } = useI18n();
   const [detailId, setDetailId] = useState(null);
   const [goal, setGoal] = useState("all");
-  const [ownerGender,setOwnerGender]=useState("male");
+  const [ownerGender,setOwnerGender]=useState("all");
 
-  const programs = useMemo(() => Store.getPrograms().filter(p=>!Store.isOwnerView()||(ownerGender==="female"?p.only==="female":p.only!=="female")), [version,ownerGender]);
+  const programs = useMemo(() => Store.getPrograms().filter(p=>!Store.isOwnerView()||ownerSectionMatches(ownerGender,p.only==="female")), [version,ownerGender]);
   const active = useMemo(() => programDisplay(Store.getActiveProgram()), [version]);
   const recommendedId = useMemo(() => Store.getRecommendedProgramId(), [version]);
   const shownRaw = goal === "all" ? programs : programs.filter((p) => p.goal === goal);
@@ -80,7 +81,7 @@ export default function Programs() {
   return (
     <>
       <SectionNav group="train" title={tx("تدريب")} />
-      {Store.isOwnerView()?<div role="group" aria-label={tx("قسم التمارين للمالك")} style={{display:'flex',gap:10,marginBlock:14}}>{[['male',tx("تمارين الرجال")],['female',tx("تمارين البنات")]].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?tx("قسم تمارين البنات"):tx("قسم تمارين الرجال")}</p>}
+      {Store.isOwnerView()?<OwnerGenderSwitch value={ownerGender} onChange={setOwnerGender}/>:<p className="pc-hint">{Store.getProfile().gender==='female'?tx("قسم تمارين البنات"):tx("قسم تمارين الرجال")}</p>}
 
       <p className="pg-sub">{tx("اختار برنامج وطبّقه تلقائيًا على جدولك")}</p>
 

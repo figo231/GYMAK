@@ -176,6 +176,12 @@ let ownerView = false;
     { names: ["تونة", "تونة معلبة"], per100: { kcal: 130, protein: 26, carbs: 0, fat: 3 }, en: "Tuna" },
     { names: ["كبدة"], per100: { kcal: 175, protein: 26, carbs: 4, fat: 6 }, en: "Liver" },
     { names: ["سجق"], per100: { kcal: 300, protein: 15, carbs: 3, fat: 25 }, en: "Sausage" },
+    // Iron/calcium-rich foods. Per 100 g, USDA FoodData Central (SR Legacy) values.
+    { names: ["سبانخ", "سبانخ مطبوخة", "سبانخ مسلوقة"], per100: { kcal: 23, protein: 3, carbs: 3.8, fat: 0.3 }, en: "Spinach, cooked" },
+    { names: ["بروكلي", "بروكلي مسلوق"], per100: { kcal: 35, protein: 2.4, carbs: 7.2, fat: 0.4 }, en: "Broccoli, cooked" },
+    { names: ["جرجير"], per100: { kcal: 25, protein: 2.6, carbs: 3.7, fat: 0.7 }, en: "Arugula (rocket), raw" },
+    { names: ["سمسم"], per100: { kcal: 573, protein: 17.7, carbs: 23.5, fat: 49.7 }, en: "Sesame seeds" },
+    { names: ["كينوا", "كينوا مطبوخة"], per100: { kcal: 120, protein: 4.4, carbs: 21.3, fat: 1.9 }, en: "Quinoa, cooked" },
     { names: ["بسطرمة"], per100: { kcal: 190, protein: 30, carbs: 2, fat: 7 }, en: "Pastrami" },
     { names: ["بيضة مسلوقة", "بيضة", "بيض", "بيضة مقلية"], pieceWeight: 50, per100: { kcal: 155, protein: 13, carbs: 1.1, fat: 11 }, en: "Boiled egg" },
     { names: ["زبادي", "زبادي كامل الدسم"], per100: { kcal: 61, protein: 3.5, carbs: 4.7, fat: 3.3 }, en: "Yogurt" },

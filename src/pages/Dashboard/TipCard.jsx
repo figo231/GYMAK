@@ -2,6 +2,7 @@ import LineIcon from "../../components/LineIcon";
 import { useState } from "react";
 import { localISO } from "../../lib/dateKey";
 import { tipOfTheDay } from "../../lib/content/tips";
+import Store from "../../lib/store/gymakStore";
 import { tx } from "../../lib/i18n/tx";
 
 const KEY = "gymak_tip_dismissed_v1";
@@ -17,7 +18,7 @@ export default function TipCard() {
       <span className="tip-line-icon"><LineIcon name="bulb" size={20}/></span>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-dim)", marginBottom: 2 }}>{tx("نصيحة اليوم")}</div>
-        <div style={{ fontSize: 13, lineHeight: 1.8 }}>{tipOfTheDay(today)}</div>
+        <div style={{ fontSize: 13, lineHeight: 1.8 }}>{tipOfTheDay(today, Store.getProfile().gender)}</div>
       </div>
       <button type="button" className="hist-btn" aria-label={tx("إخفاء نصيحة اليوم")} onClick={() => { try { localStorage.setItem(KEY, today); } catch { /* private mode */ } setDismissed(true); }}>✕</button>
     </div>

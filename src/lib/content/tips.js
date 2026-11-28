@@ -37,8 +37,24 @@ export const TIPS = [
   tx("سجّل وزنك الصبح بعد الحمام قبل الفطار — أنضف قراءة ممكنة 🌅"),
 ];
 
-export function tipOfTheDay(dateISO = localISO()) {
+// Extra tips shown only to female accounts. General guidance, not medical advice.
+export const WOMEN_TIPS = [
+  tx("الحديد من العدس والسبانخ والكبدة بيتمتص أحسن لو أكلتي معاه حاجة فيها فيتامين C زي الليمون أو البرتقال 🍋"),
+  tx("الشاي بعد الأكل على طول بيقلل امتصاص الحديد، فاستني ساعة تقريبًا قبل ما تشربيه 🍵"),
+  tx("اللبن والزبادي والجبنة القريش مصدر كويس للكالسيوم، والتمرين بالأوزان بيقوي العظام معاهم 🦴"),
+  tx("تمارين المقاومة مش هتخلي جسمك ضخم، دي بتشدّه وبتقوي عظامك وبتزود حرقك للسعرات 💪"),
+  tx("الأرداف بتتبني بالأوزان اللي بتزيديها واحدة واحدة وبروتين كفاية، مش بتكرارات كتير بوزن خفيف بس 🍑"),
+  tx("في أيام الدورة لو حاسة بتعب خففي التمرين والمشي والإطالة حلوين. ولو الألم شديد أو مش معتاد كلمي دكتورة 🌸"),
+  tx("النزول السريع جدًا في الوزن مع أكل قليل مش في صالحك. لو دورتك اتغيرت أو اتأخرت كلمي دكتورة 🩺"),
+  tx("وجبة فيها بروتين وكارب بعد التمرين بساعتين بتساعد جسمك يرجع قوته ويبني عضلاته 🥣"),
+  tx("اسألي دكتورة عن تحليل الحديد وفيتامين D قبل ما تاخدي أي مكمل، مش كل واحدة محتاجاه 🧪"),
+  tx("السمسم والطحينة والتين مصادر للكالسيوم، بس بكميات صغيرة عشان سعراتهم عالية 🌰"),
+];
+
+export function tipOfTheDay(dateISO = localISO(), gender = null) {
   const [y, m, d] = dateISO.split("-").map(Number);
   const dayNum = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+  // Women see a women-specific tip every other day; everyone else is unchanged.
+  if (gender === "female" && dayNum % 2 === 1) return WOMEN_TIPS[Math.floor(dayNum / 2) % WOMEN_TIPS.length];
   return TIPS[dayNum % TIPS.length];
 }

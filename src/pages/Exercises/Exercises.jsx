@@ -1,3 +1,4 @@
+import OwnerGenderSwitch, { ownerSectionMatches } from "../../components/OwnerGenderSwitch";
 import RamadanCard from "../../components/RamadanCard";
 import { dayTitleEn } from "../../lib/i18n/programsEn";
 import SectionNav from "../../components/layout/SectionNav";
@@ -52,7 +53,7 @@ export default function Exercises() {
   const [homeOnly, setHomeOnly] = useState(false);
   const [gymOnly, setGymOnly] = useState(false);
   const [womenOnly, setWomenOnly] = useState(false);
-  const [ownerGender,setOwnerGender]=useState("male");
+  const [ownerGender,setOwnerGender]=useState("all");
   const isFemale = useMemo(() => Store.getProfile().gender === "female", [version]);
   const showWomenChip = useMemo(() => Store.canSeeWomenContent(), [version]);
   const [mediaError, setMediaError] = useState("");
@@ -62,7 +63,7 @@ export default function Exercises() {
   const [favs, setFavs] = useState(() => getFavs());
   const todayIds = useMemo(() => new Set(Store.getTodayPlanIds()), [version]);
 
-  const all = useMemo(() => Store.getExercises().filter(e=>!Store.isOwnerView()||e.custom||(ownerGender==="female"?Store.isWomenExercise(e):e.only!=="female")), [version,ownerGender]);
+  const all = useMemo(() => Store.getExercises().filter(e=>!Store.isOwnerView()||e.custom||(ownerGender==="all"||ownerSectionMatches(ownerGender,ownerGender==="female"?Store.isWomenExercise(e):e.only==="female"))), [version,ownerGender]);
   const activeProgram = useMemo(() => Store.getActiveProgram(), [version]);
   const rotation = useMemo(() => (activeProgram ? Store.getProgramRotation() : null), [activeProgram, version]);
   // Default: the split day view when a program is active, the whole library for the owner or with no program.
@@ -167,7 +168,7 @@ export default function Exercises() {
   return (
     <>
       <SectionNav group="train" />
-      {Store.isOwnerView()?<div role="group" aria-label={tx("قسم التمارين للمالك")} style={{display:'flex',gap:10,marginBlock:14}}>{[['male',tx("تمارين الرجال")],['female',tx("تمارين البنات")]].map(([g,label])=><button className="chip chip-btn" aria-pressed={ownerGender===g} key={g} onClick={()=>setOwnerGender(g)}>{label}</button>)}</div>:<p className="pc-hint">{Store.getProfile().gender==='female'?tx("قسم تمارين البنات"):tx("قسم تمارين الرجال")}</p>}
+      {Store.isOwnerView()?<OwnerGenderSwitch value={ownerGender} onChange={setOwnerGender}/>:<p className="pc-hint">{Store.getProfile().gender==='female'?tx("قسم تمارين البنات"):tx("قسم تمارين الرجال")}</p>}
 
       <RamadanCard kind="train" />
       {!dayMode && <Link to="/workout" className="btn-apply" style={{display:"block",textAlign:"center",padding:14,marginBottom:16}}>{isEn()?"Start / resume workout":"ابدأ أو كمّل تمرينك"} ←</Link>}

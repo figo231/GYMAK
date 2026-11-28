@@ -88,6 +88,22 @@ export const WOMEN_TEMPLATES = {
     { title: "أرجل وأرداف", exerciseIds: ["w-bulgarian-split-squat", "sumo-squat-db", "w-hip-abductor", "calf-raise", "cable-crunch"] },
     { title: "أرداف وحجم", exerciseIds: ["w-hip-thrust", "step-up-db", "single-leg-glute-bridge", "w-cable-kickback", "crunch"] },
   ],
+  "w-home-full-3": [
+    { title: "سفلي بدون معدات", exerciseIds: ["bodyweight-squat", "curtsy-lunge", "frog-pump", "wall-sit", "donkey-kicks"] },
+    { title: "علوي وكور في البيت", exerciseIds: ["knee-pushup", "superman", "plank", "dead-bug", "bird-dog"] },
+    { title: "أرداف وبطن في البيت", exerciseIds: ["single-leg-glute-bridge", "fire-hydrant", "side-lying-leg-raise", "reverse-crunch", "standing-oblique-crunch"] },
+  ],
+  "w-glute-focus-4": [
+    { title: "هيب ثراست وأرداف", exerciseIds: ["w-hip-thrust", "w-bulgarian-split-squat", "w-cable-kickback", "frog-pump"] },
+    { title: "علوي متوازن", exerciseIds: ["lat-pulldown", "machine-shoulder-press", "seated-cable-row", "lateral-raise", "tricep-pushdown"] },
+    { title: "فخذ خلفي وأرداف", exerciseIds: ["romanian-deadlift", "lying-leg-curl", "w-hip-abductor", "single-leg-glute-bridge"] },
+    { title: "أرداف في البيت وكور", exerciseIds: ["donkey-kicks", "fire-hydrant", "curtsy-lunge", "plank", "standing-oblique-crunch"] },
+  ],
+  "w-gym-beginner-3": [
+    { title: "جيم: جسم كامل أ", exerciseIds: ["leg-press", "lat-pulldown", "machine-chest-press", "plank"] },
+    { title: "جيم: جسم كامل ب", exerciseIds: ["goblet-squat", "seated-cable-row", "dumbbell-shoulder-press", "w-hip-abductor", "crunch"] },
+    { title: "جيم: جسم كامل ج", exerciseIds: ["w-glute-leg-press", "one-arm-dumbbell-row", "lateral-raise", "w-cable-kickback", "cable-crunch"] },
+  ],
 };
 
 export const WOMEN_PROGRAMS = [
@@ -106,6 +122,15 @@ export const WOMEN_PROGRAMS = [
   { id: "w-gym-glutes", goal: "fitness", name: "أرداف بالجيم", level: "متوسط", daysPerWeek: "4 أيام / أسبوع", only: "female",
     dayChips: ["أرداف تقيلة", "علوي", "أرجل وأرداف", "أرداف وحجم"],
     desc: "برنامج جيم لبناء الأرداف: هيب ثراست وليج برس وكابل مع يوم علوي. زوّدي الأوزان تدريجيًا." },
+  { id: "w-home-full-3", goal: "fitness", name: "جسم كامل في البيت", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع", only: "female",
+    dayChips: ["سفلي بدون معدات", "علوي وكور في البيت", "أرداف وبطن في البيت"],
+    desc: "3 أيام في البيت من غير أي معدات: يوم للأرجل والأرداف، يوم للجزء العلوي والكور، ويوم للأرداف والبطن. ابدئي بتكرارات مريحة وزوّدي واحدة واحدة." },
+  { id: "w-glute-focus-4", goal: "fitness", name: "تركيز الأرداف 4 أيام", level: "متوسط", daysPerWeek: "4 أيام / أسبوع", only: "female",
+    dayChips: ["هيب ثراست وأرداف", "علوي متوازن", "فخذ خلفي وأرداف", "أرداف في البيت وكور"],
+    desc: "4 أيام بتركز على الأرداف: يومين تقيلين في الجيم، يوم علوي متوازن، ويوم خفيف في البيت مع كور. زوّدي الوزن تدريجيًا." },
+  { id: "w-gym-beginner-3", goal: "fitness", name: "جيم للمبتدئات", level: "مبتدئ", daysPerWeek: "3 أيام / أسبوع", only: "female",
+    dayChips: ["جيم: جسم كامل أ", "جيم: جسم كامل ب", "جيم: جسم كامل ج"],
+    desc: "أول برنامج جيم ليكي: أجهزة ودمبل خفيف بجسم كامل 3 أيام في الأسبوع. اسألي مدربة تظبطلك الجهاز في أول مرة." },
 ];
 
 export const WOMEN_EXERCISES_EN = {
@@ -142,4 +167,10 @@ export const WOMEN_PROGRAMS_EN = {
     desc: "If you have a base and want to step up: gym equipment, dumbbells and single-leg moves to strengthen the hips and thighs." },
   "w-gym-glutes": { name: "Glutes at the Gym", level: "Intermediate", daysPerWeek: "4 days / week", dayChips: ["Heavy glutes", "Upper", "Legs & glutes", "Glutes & volume"],
     desc: "A gym program for building glutes: hip thrusts, leg press and cables with an upper day. Add weight gradually." },
+  "w-home-full-3": { name: "Full Body at Home", level: "Beginner", daysPerWeek: "3 days / week", dayChips: ["Lower body, no equipment", "Upper body & core at home", "Glutes & abs at home"],
+    desc: "Three no-equipment days at home: one for legs and glutes, one for upper body and core, one for glutes and abs. Start with comfortable reps and add a little at a time." },
+  "w-glute-focus-4": { name: "Glute Focus, 4 Days", level: "Intermediate", daysPerWeek: "4 days / week", dayChips: ["Hip thrust & glutes", "Balanced upper body", "Hamstrings & glutes", "Home glutes & core"],
+    desc: "Four days that focus on glutes: two heavy gym days, a balanced upper day, and a light home day with core. Add weight gradually." },
+  "w-gym-beginner-3": { name: "Gym for Beginners", level: "Beginner", daysPerWeek: "3 days / week", dayChips: ["Gym: Full body A", "Gym: Full body B", "Gym: Full body C"],
+    desc: "A first gym plan made for you: machines and light dumbbells, full body 3 days a week. Ask a trainer to set up each machine the first time." },
 };
