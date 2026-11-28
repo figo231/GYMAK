@@ -11,7 +11,7 @@ export const validHeight = (cm) => Number.isFinite(cm) && cm >= HEIGHT_RANGE[0] 
 export const validGoalKg = (kg) => Number.isFinite(kg) && kg >= GOAL_RANGE_KG[0] && kg <= GOAL_RANGE_KG[1];
 
 export function bmiCategory(bmi) {
-  if (bmi == null) return "";
+  if (bmi == null || !Number.isFinite(Number(bmi)) || bmi <= 0) return "";
   if (bmi < 18.5) return tx("نحافة");
   if (bmi < 25) return tx("طبيعي");
   if (bmi < 30) return tx("زيادة وزن");
@@ -101,11 +101,11 @@ const csvCell = (v) => {
   if (/^[=+\-@\t\r]/.test(s) && isNaN(Number(s))) s = "'" + s; // block formula injection
   return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
-export function buildCsv(state) {
+export function buildCsv(state, nameOf = (id) => id) {
   const s = state || {};
   const rows = [[tx("النوع"), tx("التاريخ"), tx("الاسم"), tx("قيمة 1"), tx("قيمة 2"), tx("قيمة 3"), tx("قيمة 4")]];
   for (const w of s.weightLogs || []) rows.push([tx("وزن"), w.date, tx("الوزن (كجم)"), w.weight, w.bodyFat ?? "", "", ""]);
   for (const d of s.foodLog || []) for (const it of d.items || []) rows.push([tx("أكل"), d.date, it.name, it.grams, it.kcal, it.protein, it.carbs]);
-  for (const [id, logs] of Object.entries(s.exerciseLogs || {})) for (const l of logs || []) rows.push([tx("تمرين"), l.date, id, l.weight, l.sets, l.reps, ""]);
+  for (const [id, logs] of Object.entries(s.exerciseLogs || {})) for (const l of logs || []) rows.push([tx("تمرين"), l.date, nameOf(id), l.weight, l.sets, l.reps, ""]);
   return "\uFEFF" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n");
 }

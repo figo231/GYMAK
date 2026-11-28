@@ -244,7 +244,7 @@ let ownerView = false;
     { names: ["زبدة"], per100: { kcal: 717, protein: 0.9, carbs: 0.1, fat: 81 }, en: "Butter" },
     { names: ["قشطة", "كريمة"], per100: { kcal: 340, protein: 2.8, carbs: 2.9, fat: 36 }, en: "Cream" },
     { names: ["آيس كريم فانيليا"], per100: { kcal: 207, protein: 3.5, carbs: 24, fat: 11 }, en: "Vanilla ice cream" },
-    { names: ["رايب"], per100: { kcal: 65, protein: 3.4, carbs: 4.5, fat: 3.5 }, en: "Rayeb milk" },
+    { names: ["رايب", "لبن رايب"], per100: { kcal: 65, protein: 3.4, carbs: 4.5, fat: 3.5 }, en: "Rayeb milk" },
 
     // ===== حبوب ونشويات إضافية =====
     { names: ["شوفان"], per100: { kcal: 389, protein: 17, carbs: 66, fat: 7 }, en: "Oats" },
@@ -297,6 +297,9 @@ let ownerView = false;
     { names: ["بسبوسة"], per100: { kcal: 350, protein: 4, carbs: 55, fat: 13 }, en: "Basbousa" },
     { names: ["كيك", "كيكة"], per100: { kcal: 371, protein: 5, carbs: 55, fat: 15 }, en: "Cake" },
     { names: ["بوظة", "جيلاتي"], per100: { kcal: 207, protein: 3.5, carbs: 24, fat: 11 }, en: "Ice cream (boza)" },
+    { names: ["لحم", "لحم بقري"], per100: { kcal: 250, protein: 26, carbs: 0, fat: 15 }, en: "Beef (cooked)" },
+    { names: ["سمنة", "سمن", "سمنه"], per100: { kcal: 876, protein: 0.3, carbs: 0, fat: 99.5 }, en: "Ghee" },
+    { names: ["سكر"], per100: { kcal: 387, protein: 0, carbs: 100, fat: 0 }, pieceWeight: 5, en: "Sugar" },
     { names: ["كورن دوج"], per100: { kcal: 300, protein: 9, carbs: 25, fat: 18 }, en: "Corn dog" },
     { names: ["بوشار", "فشار"], per100: { kcal: 387, protein: 12, carbs: 78, fat: 4.5 }, en: "Popcorn" },
   ];
@@ -307,6 +310,7 @@ let ownerView = false;
     "كوب": 200, "كوباية": 200,
     "معلقة كبيرة": 15, "ملعقة كبيرة": 15,
     "معلقة صغيرة": 5, "ملعقة صغيرة": 5,
+    "معلقة": 10, "ملعقة": 10,
   };
   const AR_NUMBER_WORDS = { "واحد": 1, "واحدة": 1, "اتنين": 2, "أتنين": 2, "تلاتة": 3, "ثلاثة": 3, "أربعة": 4, "اربعة": 4, "خمسة": 5, "زوج": 2 };
   const DUAL_SUFFIX = /(تين|ين)$/; // e.g. حبتين، رغيفين → 2
@@ -316,10 +320,21 @@ let ownerView = false;
     return text.replace(/[٠-٩]/g, (d) => map[d]);
   }
 
+  // Arabic names plus the English name (lowercase, and without any bracketed part) so English input works.
+  function foodAliases(food) {
+    const out = [...food.names];
+    if (typeof food.en === "string" && food.en) {
+      const e = food.en.toLowerCase();
+      const bare = e.replace(/\s*\(.*?\)\s*/g, " ").trim();
+      for (const a of [e, bare]) if (a.length >= 3 && !out.includes(a)) out.push(a);
+    }
+    return out;
+  }
+
   function parseFoodText(rawText) {
     const items = [];
     const usedRanges = [];
-    const lower = normalizeDigits(rawText);
+    const lower = normalizeDigits(rawText).toLowerCase();
     // Whole-word match only ("بيض" must not match inside "ابيض" or "بيضاء", "بط" not inside "بطاطا").
     const wordAt = (alias) => {
       let from = 0;
@@ -338,7 +353,7 @@ let ownerView = false;
     // Longest alias first so "فراخ مقلية" wins over the shorter "فراخ"; one item per food; text order kept.
     const foodsAll = [...activeRemoteFoods(), ...FOOD_DB];
     const cands = [];
-    foodsAll.forEach((food, order) => { for (const alias of food.names) { const at = wordAt(alias); if (at !== -1) cands.push({ food, alias, idx: at, order }); } });
+    foodsAll.forEach((food, order) => { for (const alias of foodAliases(food)) { const at = wordAt(alias); if (at !== -1) cands.push({ food, alias, idx: at, order }); } });
     cands.sort((a, b) => b.alias.length - a.alias.length || a.order - b.order);
     const chosen = []; const seenFood = new Set();
     for (const c of cands) {
@@ -360,9 +375,9 @@ let ownerView = false;
         const before = lower.slice(windowStart, wordStart);
         let grams = null;
 
-        const numMatch = before.match(/(\d+(\.\d+)?)\s*(جم|جرام|غرام|g|كيلو|كجم|كوب|كوباية|معلقة كبيرة|ملعقة كبيرة|معلقة صغيرة|ملعقة صغيرة|حبة|حبات|رغيف|رغفان|قطعة)?\s*$/);
+        const numMatch = before.match(/(\d+(\.\d+)?)\s*(جم|جرام|غرام|g|كيلو|كجم|كوب|كوباية|معلقة كبيرة|ملعقة كبيرة|معلقة صغيرة|ملعقة صغيرة|معلقة|ملعقة|حبة|حبات|رغيف|رغفان|قطعة)?\s*$/);
         // quantity written after the food: "رز 200 جم", "بيض 3"
-        const afterMatch = numMatch ? null : lower.slice(idx + alias.length, idx + alias.length + 16).match(/^\s*(\d+(\.\d+)?)\s*(جم|جرام|غرام|g|كيلو|كجم|كوب|كوباية|معلقة كبيرة|ملعقة كبيرة|معلقة صغيرة|ملعقة صغيرة|حبة|حبات|رغيف|رغفان|قطعة)?(?=\s|$|[،,و])/);
+        const afterMatch = numMatch ? null : lower.slice(idx + alias.length, idx + alias.length + 16).match(/^\s*(\d+(\.\d+)?)\s*(جم|جرام|غرام|g|كيلو|كجم|كوب|كوباية|معلقة كبيرة|ملعقة كبيرة|معلقة صغيرة|ملعقة صغيرة|معلقة|ملعقة|حبة|حبات|رغيف|رغفان|قطعة)?(?=\s|$|[،,و])/);
         const qty = numMatch || afterMatch;
         if (qty) {
           const n = parseFloat(qty[1]);
@@ -386,7 +401,7 @@ let ownerView = false;
 
         const factor = grams / 100;
         items.push({
-          name: alias,
+          name: food.names.includes(alias) ? alias : food.names[0],
           grams: Math.round(grams),
           kcal: Math.round(food.per100.kcal * factor),
           protein: Math.round(food.per100.protein * factor * 10) / 10,
@@ -402,7 +417,7 @@ let ownerView = false;
   function foodDisplayName(name) {
     if (!isEn() || !name) return name;
     for (const food of [...activeRemoteFoods(), ...FOOD_DB]) {
-      if (food.en && food.names.includes(name)) return food.en;
+      if (food.en && foodAliases(food).includes(name)) return food.en;
     }
     return name;
   }
@@ -754,6 +769,7 @@ let ownerView = false;
     },
 
     addExercise({ name, muscle, secondary, sets, reps, mediaUrl, equipment, difficulty, unit, localMedia }) {
+      if (typeof name !== "string" || !name.trim()) return null;
       const s = load();
       if (!s.exercises) s.exercises = SEED_EXERCISES.slice();
       const meta = MUSCLE_META[muscle] || MUSCLE_META.chest;
@@ -1103,6 +1119,10 @@ let ownerView = false;
 
     // ===== Exercises =====
     logSet(exerciseId, weight, sets, reps, effort = null, sessionUpdate = null) {
+      {
+        const w0 = Number(weight), s0 = Number(sets), r0 = Number(reps);
+        if (!Number.isFinite(w0) || w0 < 0 || w0 > 2000 || !Number.isInteger(s0) || s0 < 1 || s0 > 100 || !Number.isInteger(r0) || r0 < 1 || r0 > 10000) throw Error("بيانات المجموعة مش صحيحة: الوزن من 0 لـ 2000، المجموعات من 1 لـ 100، التكرارات من 1 لـ 10000.");
+      }
       if(effort !== null && (!Number.isInteger(effort) || effort<0 || effort>5 || Number(sets)!==1))throw Error("تقييم المجهود لمجموعة واحدة، من0 لحد5.");
       const s = load();
       let sessionNext=null;
@@ -1924,7 +1944,7 @@ let ownerView = false;
       const s = load();
       const day = s.foodLog.find((f) => f.date === date);
       const g = Number(grams);
-      if (!day || !day.items[index] || !(g > 0)) return null;
+      if (!day || !day.items[index] || !(g > 0) || g > 5000) return null;
       const item = day.items[index];
       const before = { ...item };
       const ratio = item.grams > 0 ? g / item.grams : 1;

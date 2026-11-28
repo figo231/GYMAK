@@ -15,7 +15,7 @@ export function setRestSettings(patch) {
   return next;
 }
 export function fmtClock(total) {
-  const t = Math.max(0, Math.round(total));
+  const t = Number.isFinite(Number(total)) ? Math.max(0, Math.round(Number(total))) : 0;
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 }
 /** Remaining seconds from an absolute end timestamp (robust to tab throttling). */

@@ -21,15 +21,17 @@ export function parseWeightForm({ weight, bodyFat, date }, fromDisplay, today = 
     if (!(bf >= BODYFAT_RANGE[0] && bf <= BODYFAT_RANGE[1])) return { ok: false, error: txf(`نسبة الدهون لازم تكون بين {0} و {1}%.`, [BODYFAT_RANGE[0], BODYFAT_RANGE[1]]) };
   }
   const day = date || today;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { ok: false, error: tx("التاريخ مش صحيح.") };
   if (day > today) return { ok: false, error: tx("مينفعش تسجّل وزن في تاريخ لسه ماجاش.") };
   return { ok: true, kg, bodyFat: bf, date: day };
 }
 
 // "النهارده" / "امبارح" / "من 3 أيام" / "من أسبوع" ...
 export function relDayAr(iso, today = localISO()) {
-  if (!iso) return "";
+  if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return "";
   const n = Math.round((Date.UTC(...today.split("-").map((v, i) => (i === 1 ? +v - 1 : +v))) - Date.UTC(...iso.split("-").map((v, i) => (i === 1 ? +v - 1 : +v)))) / 86400000);
-  if (n <= 0) return tx("النهارده");
+  if (n < 0) return "";
+  if (n === 0) return tx("النهارده");
   if (n === 1) return tx("امبارح");
   if (n === 2) return tx("من يومين");
   if (n <= 10) return txf(`من {0} أيام`, [n]);

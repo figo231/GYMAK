@@ -79,7 +79,7 @@ const raw = [
   { names: ["خروب"],  per100: { kcal: 40, protein: 0, carbs: 10, fat: 0 }, en: "Carob drink" },
   { names: ["سحلب"],  per100: { kcal: 80, protein: 2, carbs: 15, fat: 2 }, en: "Sahlab" },
   { names: ["شاي بلبن"],  per100: { kcal: 40, protein: 1.2, carbs: 6, fat: 1.3 }, en: "Tea with milk" },
-  { names: ["شاي سادة"],  per100: { kcal: 1, protein: 0, carbs: 0.2, fat: 0 }, en: "Plain tea" },
+  { names: ["شاي سادة", "كوباية شاي", "كوب شاي", "شاي"], pieceWeight: 200,  per100: { kcal: 1, protein: 0, carbs: 0.2, fat: 0 }, en: "Plain tea" },
   { names: ["عصير ليمون"],  per100: { kcal: 30, protein: 0.3, carbs: 8, fat: 0 }, en: "Lemon juice" },
   { names: ["عصير جوافة"],  per100: { kcal: 60, protein: 0.5, carbs: 14, fat: 0.2 }, en: "Guava juice" },
   { names: ["عصير فراولة"],  per100: { kcal: 50, protein: 0.5, carbs: 12, fat: 0.1 }, en: "Strawberry juice" },

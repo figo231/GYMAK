@@ -57,7 +57,7 @@ export default function Account() {
   function handleExportCsv() {
     try {
       const st = JSON.parse(localStorage.getItem("gymak_state_v1") || "null");
-      const url = URL.createObjectURL(new Blob([buildCsv(st)], { type: "text/csv;charset=utf-8" }));
+      const url = URL.createObjectURL(new Blob([buildCsv(st, (id) => (Store.getExerciseById(id)?.name) || id)], { type: "text/csv;charset=utf-8" }));
       const a = document.createElement("a");
       a.href = url; a.download = `gymak-data-${localISO()}.csv`;
       document.body.appendChild(a); a.click(); a.remove();

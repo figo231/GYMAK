@@ -158,8 +158,21 @@ function resolveExerciseFrames(id) {
 // English search terms for a built-in exercise (derived from the image slug).
 export function getExerciseEnglish(id) {
   const k = IMAGE_IDS[id];
-  return k ? k.replace(/_/g, " ").replace(/-/g, " ") : "";
+  if (k) return k.replace(/_/g, " ").replace(/-/g, " ");
+  return Object.prototype.hasOwnProperty.call(EXTRA_ENGLISH, id) ? EXTRA_ENGLISH[id] : "";
 }
+// Exercises whose images are bundled by id (no IMAGE_IDS slug) still get an English search name.
+const EXTRA_ENGLISH = {
+  "pallof-press": "pallof press cable", "single-arm-landmine-press": "single arm landmine press",
+  "incline-treadmill-walk": "incline treadmill walk", "upright-stationary-bike": "upright stationary bike",
+  "elliptical-cross-trainer": "elliptical cross trainer", "rowing-ergometer": "rowing machine ergometer",
+  "dumbbell-floor-press": "dumbbell floor press", "single-arm-cable-chest-press": "single arm cable chest press",
+  "chest-supported-db-row": "chest supported dumbbell row", "machine-assisted-pullup": "assisted pull up machine",
+  "dumbbell-scaption": "dumbbell scaption", "scapular-wall-slide": "scapular wall slide",
+  "reverse-lunge-bodyweight": "reverse lunge bodyweight", "cable-pull-through": "cable pull through",
+  "bayesian-cable-curl": "bayesian cable curl", "single-arm-overhead-cable-extension": "single arm overhead cable triceps extension",
+  "suitcase-carry": "suitcase carry", "supine-heel-tap": "supine heel tap", "barbell-front-squat": "barbell front squat",
+};
 
 // Revisioned local URLs cannot reuse historical same-path gym photos.
 export function getExerciseFrames(id){return resolveExerciseFrames(id)?.map(url=>url.startsWith('/')?url+'?art=studio-v2':url)||null;}

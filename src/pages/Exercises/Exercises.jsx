@@ -139,6 +139,7 @@ export default function Exercises() {
   async function handleAddSave(payload) {
     const { mediaFile, ...data } = payload;
     const ex = Store.addExercise(data);
+    if (!ex) return;
     setShowAdd(false);
     setSearch("");
     refresh();
