@@ -10,7 +10,7 @@ for(const f of readdirSync('supabase/migrations').sort()){try{await db.exec(read
 await db.exec("create function public.rls_auto_enable() returns event_trigger language plpgsql as $$ begin null; end $$; grant execute on function public.rls_auto_enable() to anon,authenticated,service_role;");
 for(const fn of [...FNS.rpc,...FNS.trigger])expect(await can(db,'anon',fn),'before: anon can run '+fn).toBe(true);
 await db.exec(readFileSync('supabase/proposed/0064_revoke_anon_execute.sql','utf8'));
-for(const fn of [...FNS.rpc,...FNS.trigger])expect(await can(db,'anon',fn),'after: anon must not run '+fn).toBe(false);
+for(const fn of [...FNS.rpc,...FNS.trigger])expect(await can(db,'anon',fn),'after: anon '+fn).toBe(fn==='apk18_capabilities()'); // apk18_capabilities stays open to anon on purpose (0031)
 for(const fn of FNS.rpc){expect(await can(db,'authenticated',fn),fn).toBe(true);expect(await can(db,'service_role',fn),fn).toBe(true);}
 for(const fn of FNS.trigger)expect(await can(db,'authenticated',fn),'trigger fn not an API function: '+fn).toBe(false);
 // a trigger function must still fire for a role that cannot execute it directly
