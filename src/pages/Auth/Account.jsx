@@ -59,7 +59,7 @@ export default function Account() {
       const st = JSON.parse(localStorage.getItem("gymak_state_v1") || "null");
       const url = URL.createObjectURL(new Blob([buildCsv(st)], { type: "text/csv;charset=utf-8" }));
       const a = document.createElement("a");
-      a.href = url; a.download = "gymak-data.csv";
+      a.href = url; a.download = `gymak-data-${localISO()}.csv`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
     } catch { toast(tx("معرفناش نجهّز ملف الـCSV. جرّب تاني.")); }

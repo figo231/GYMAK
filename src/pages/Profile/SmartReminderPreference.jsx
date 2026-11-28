@@ -17,6 +17,7 @@ export default function SmartReminderPreference(){
   <label style={{display:'block',margin:'14px 0'}}>{t('الميعاد','Time')} <input aria-label={t('ميعاد تذكير الجدول','Schedule reminder time')} type="time" value={prefs.time} onChange={e=>e.target.value&&setPrefs({...prefs,time:e.target.value})}/></label>
   <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:16}}>{names.map((name,i)=><label key={i} style={{fontSize:12}}><input type="checkbox" checked={prefs.weekdays.includes(i)} onChange={()=>setPrefs({...prefs,weekdays:prefs.weekdays.includes(i)?prefs.weekdays.filter(x=>x!==i):[...prefs.weekdays,i]})}/>{name}</label>)}</div>
   <p className="notif-note">{t('لو التذكير اليومي القديم شغال، اقفله عشان متوصلكش رسالتين. إشعارات أندرويد ممكن تتأخر بسبب توفير البطارية.','Turn off the old daily reminder to avoid duplicates. Android battery settings can delay delivery.')}</p>
+  {native&&<p className="notif-note" data-testid="battery-hint">{t('لو التذكير مجاش في ميعاده: افتح إعدادات الموبايل ← التطبيقات ← GYMAK ← البطارية، واختار "بدون قيود".','If a reminder arrives late or not at all: open phone Settings, Apps, GYMAK, Battery, and choose "Unrestricted".')}</p>}
   <button type="button" className="btn-apply" style={{padding:"10px 18px",minWidth:130}} disabled={busy||(prefs.enabled&&!prefs.weekdays.length)} onClick={save}>{t('حفظ اختياراتي','Save my choices')}</button>{status&&<p role="status" className="notif-note">{status}</p>}
  </section>;
 }

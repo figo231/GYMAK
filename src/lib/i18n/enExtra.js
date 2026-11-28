@@ -318,4 +318,7 @@ export const EN_EXTRA = {
   "سجّل وزنك من الصفحة الرئيسية وهتشوف تغييرك هنا.": "Log your weight from Home and your change will show here.",
   "سجّل أول قياس النهارده وقارن بعد كام أسبوع.": "Log your first measurement today and compare in a few weeks.",
   "عدات بنفس الأداء": "reps in reserve",
+  "هتتيح {0} لمدة {1} دقيقة لكل عملائك اللي عندهم محادثة معاك.": "You will open {0} for {1} minutes to all your clients who have a chat with you.",
+  "هتبعت طلب متابعة مجانية يوم {0} لمدة {1} دقيقة. مش مؤكد إلا بعد قبول المختص.": "You will send a free follow-up request for {0}, {1} minutes. It is not confirmed until the specialist accepts.",
+  "هتؤكد متابعة مجانية يوم {0}. اتفقوا في الشات على طريقة التواصل.": "You will confirm a free follow-up on {0}. Agree on how to connect in the chat.",
 };
