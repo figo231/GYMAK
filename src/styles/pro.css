@@ -353,7 +353,7 @@ button.p-tab:focus-visible, .hist-btn:focus-visible, .hist-more:focus-visible, .
 .hist-day { margin-bottom: 14px; }
 .hist-day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 6px 4px 8px; }
 .hist-day-name { font-size: 13.5px; font-weight: 900; }
-.hist-day-sum { font-size: 11px; font-weight: 700; color: var(--text-dim); text-align: left; }
+.hist-day-sum { font-size: 11px; font-weight: 700; color: var(--text-dim); text-align: end; }
 .hist-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; margin-bottom: 8px; }
 .hist-main { flex: 1; min-width: 0; }
 .hist-name { font-weight: 800; font-size: 14px; color: var(--text-primary); text-decoration: none; display: block; }

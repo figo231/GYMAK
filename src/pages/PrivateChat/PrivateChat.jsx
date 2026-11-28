@@ -322,7 +322,7 @@ function ChatSession({ userId }) {
   const { threadId } = useParams(); const [boot, setBoot] = useState(null); const [err, setErr] = useState("");
   const [reload, setReload] = useState(0);
   useEffect(() => { let active = true; setBoot(null); setErr(""); chatBootstrap().then((b) => { if (active) setBoot(b); }).catch((e) => { if (active) setErr(chatError(e)); }); return () => { active = false; }; }, [userId, reload]);
-  return <div className="pc-page" dir="rtl">
+  return <div className="pc-page" dir={isEn()?"ltr":"rtl"}>
     {!threadId && <><DetailTopBar title={tx("المحادثات")} backTo="/profile" /></>}
     {err ? <><ErrorBox text={err} /><button type="button" className="pc-small" onClick={() => setReload((n) => n + 1)}>{tx("جرّب تاني")}</button><Link to="/profile" className="pc-small">{tx("حسابي")}</Link></> : !boot ? <p role="status" className="pc-hint">{tx("بنجهّز الرسائل...")}</p> : !boot.consent ? <Consent onAccept={() => setReload((n) => n + 1)} /> : threadId ? <Thread key={threadId} id={threadId} userId={userId} /> : <Inbox />}
   </div>;

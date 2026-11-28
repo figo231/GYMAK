@@ -1,3 +1,4 @@
+import { isEn } from "../../lib/i18n/lang";
 import { useState } from 'react';
 import { tx } from "../../lib/i18n/tx";
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +13,7 @@ export default function WeeklyCheckIn() {
  const [notice,setNotice]=useState('');
  function save(e) {e.preventDefault(); try {const row=normalizeCheckIn(form);Store.saveWeeklyCheckIn(row);setRows(Store.getWeeklyCheckIns());setNotice(tx("اتحفظت على الجهاز. مفيش حاجة اتبعتت لحد."));}catch(e){setNotice(e.message);}}
  const field=(key,value)=>setForm(v=>({...v,[key]:value}));
- return <div className="fu-page" dir="rtl"><DetailTopBar title={tx("متابعتي الأسبوعية")} backTo="/profile"/>
+ return <div className="fu-page" dir={isEn()?"ltr":"rtl"}><DetailTopBar title={tx("متابعتي الأسبوعية")} backTo="/profile"/>
  <header className="fu-hero"><span className="fu-eyebrow">{tx("وقفة صغيرة · كل أسبوع")}</span><h2>{tx("أسبوعك كان عامل إيه؟")}</h2><p>{tx("بص على نومك وطاقتك والتزامك. الأرقام دي ليك، والمشاركة باختيارك.")}</p><div className="fu-badge">{tx("محفوظة على جهازك فقط")}</div></header>
  <form onSubmit={save} className="fu-card glass"><h3>{tx("ملخص الأسبوع")}</h3><p className="fu-muted">{tx("من السبت للجمعة. لو حفظت تاني في نفس الأسبوع، الملخص بيتحدّث.")}</p>
  <label>{tx("متوسط ساعات النوم")}<input type="number" min="0" max="24" step="0.5" required value={form.sleep} onChange={e=>field('sleep',e.target.value)} placeholder={tx("مثلاً 7.5")} inputMode="decimal"/></label>

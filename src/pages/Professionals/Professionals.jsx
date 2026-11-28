@@ -1,3 +1,4 @@
+import { isEn } from "../../lib/i18n/lang";
 import VerifiedBadge from "../../components/VerifiedBadge";
 import ChatAvatar from "../../components/ChatAvatar";
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -72,4 +73,4 @@ function Directory({ userId }) {
     <p className="pc-hint"><Link to="/messages">{tx("رسائلي")}</Link> · <Link to="/coach">{tx("متابعة التمرين مع مدربيني")}</Link>{tx(". خدمات مختلفة، وبيانات التمرين مش بتتشارك بمجرد طلب التواصل.")}</p>
   </>;
 }
-export default function Professionals() { const { user } = useAuth(); return <div className="pc-page pro-page" dir="rtl"><DetailTopBar title={tx("المدربين المقترحين")} backTo="/profile" /><Directory key={user?.id || 'guest'} userId={user?.id} /></div>; }
+export default function Professionals() { const { user } = useAuth(); return <div className="pc-page pro-page" dir={isEn()?"ltr":"rtl"}><DetailTopBar title={tx("المدربين المقترحين")} backTo="/profile" /><Directory key={user?.id || 'guest'} userId={user?.id} /></div>; }

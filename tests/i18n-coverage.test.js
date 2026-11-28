@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {EN} from '../src/lib/i18n/en';
 import {EN_EXTRA} from '../src/lib/i18n/enExtra';
 const walk=d=>readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(join(d,e.name)):/\.jsx?$/.test(e.name)?[join(d,e.name)]:[]);
-const files=['src/pages','src/components','src/hooks'].flatMap(walk).filter(f=>!/answerEngine/.test(f));
+const files=['src/pages','src/components','src/hooks','src/lib'].flatMap(walk).filter(f=>!/answerEngine|i18n\//.test(f));
 const RE=/\btx\(\s*"((?:[^"\\\n]|\\.)*[\u0600-\u06FF](?:[^"\\\n]|\\.)*)"\s*\)/g;
 describe('English coverage of UI strings',()=>{
  it('every literal tx("...") key in pages, components and hooks has an English entry',()=>{
